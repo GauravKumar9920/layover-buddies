@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mumbai Buddies — Sign Up Mockup</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #051718;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── FLOATING PHOTO COLLAGE ── */
+    .collage {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .photo {
+      position: absolute;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06);
+      animation: float ease-in-out infinite;
+    }
+
+    .photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: saturate(1.1) brightness(0.9);
+    }
+
+    @keyframes float {
+      0%   { transform: translateY(0px)   rotate(var(--rot)); }
+      50%  { transform: translateY(-14px) rotate(var(--rot)); }
+      100% { transform: translateY(0px)   rotate(var(--rot)); }
+    }
+
+    /* Photo positions — peeking in from all edges */
+    .p1 { width: 170px; height: 230px; top:  3%;  left:  1%;  --rot: -8deg;  animation-duration: 6.2s; animation-delay:  0.0s; }
+    .p2 { width: 210px; height: 148px; top:  8%;  right: 2%;  --rot:  5deg;  animation-duration: 7.1s; animation-delay: -1.3s; }
+    .p3 { width: 148px; height: 200px; top: 42%;  left:  0%;  --rot:  7deg;  animation-duration: 5.8s; animation-delay: -2.1s; }
+    .p4 { width: 190px; height: 138px; bottom: 6%; left:  4%;  --rot: -5deg;  animation-duration: 8.3s; animation-delay: -0.7s; }
+    .p5 { width: 158px; height: 212px; bottom: 3%; right: 1%;  --rot:  8deg;  animation-duration: 6.7s; animation-delay: -3.2s; }
+    .p6 { width: 128px; height: 170px; top: 65%;  right: 4%;  --rot: -7deg;  animation-duration: 7.5s; animation-delay: -1.8s; }
+    .p7 { width: 140px; height: 108px; top:  1%;  left: 36%;  --rot:  3deg;  animation-duration: 9.1s; animation-delay: -2.8s; }
+    .p8 { width: 118px; height: 158px; bottom:14%; right:17%;  --rot: -4deg;  animation-duration: 6.4s; animation-delay: -4.1s; }
+
+    /* ── GRADIENT OVERLAY ── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background:
+        radial-gradient(ellipse 60% 70% at 25% 55%, rgba(13,115,119,0.60) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 50% at 75% 25%, rgba(255,107,107,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 80% 80%, rgba(245,166,35,0.14) 0%, transparent 55%),
+        linear-gradient(180deg, rgba(5,23,24,0.72) 0%, rgba(5,23,24,0.45) 50%, rgba(26,26,46,0.82) 100%);
+    }
+
+    /* ── MAIN CARD ── */
+    .card-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+    }
+
+    /* Logo */
+    .logo {
+      text-align: center;
+      margin-bottom: 26px;
+    }
+
+    .logo-icon {
+      width: 54px;
+      height: 54px;
+      background: linear-gradient(135deg, #0D7377, #3FA796);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 10px;
+      box-shadow: 0 8px 24px rgba(13,115,119,0.5);
+    }
+
+    .logo h1 {
+      color: #fff;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo p {
+      color: rgba(255,255,255,0.55);
+      font-size: 13px;
+      margin-top: 3px;
+    }
+
+    /* Glass card */
+    .glass {
+      background: rgba(255,255,255,0.09);
+      backdrop-filter: blur(36px) saturate(180%);
+      -webkit-backdrop-filter: blur(36px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 28px;
+      padding: 30px 28px 26px;
+      box-shadow:
+        0 40px 80px rgba(0,0,0,0.45),
+        0 0 0 0.5px rgba(255,255,255,0.04),
+        inset 0 1px 0 rgba(255,255,255,0.14);
+    }
+
+    .glass-header {
+      margin-bottom: 22px;
+    }
+
+    .glass-header h2 {
+      color: #fff;
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .glass-header p {
+      color: rgba(255,255,255,0.48);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    /* Fields */
+    .field { margin-bottom: 13px; }
+
+    .field label {
+      display: block;
+      color: rgba(255,255,255,0.65);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .field input {
+      width: 100%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 12px;
+      padding: 13px 16px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+
+    .field input::placeholder { color: rgba(255,255,255,0.28); }
+
+    .field input:focus {
+      border-color: rgba(63,167,150,0.75);
+      background: rgba(255,255,255,0.11);
+      box-shadow: 0 0 0 3px rgba(13,115,119,0.18);
+    }
+
+    /* Primary CTA */
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      margin-top: 18px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.2px;
+      background: linear-gradient(135deg, #FF6B6B 0%, #F5A623 100%);
+      box-shadow: 0 8px 28px rgba(255,107,107,0.42);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(255,107,107,0.52);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.10);
+    }
+
+    .divider span {
+      color: rgba(255,255,255,0.35);
+      font-size: 12px;
+    }
+
+    /* Google */
+    .btn-google {
+      width: 100%;
+      padding: 13px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .btn-google:hover {
+      background: rgba(255,255,255,0.11);
+      border-color: rgba(255,255,255,0.22);
+    }
+
+    /* Footer */
+    .signin-link {
+      text-align: center;
+      margin-top: 18px;
+      color: rgba(255,255,255,0.45);
+      font-size: 13px;
+    }
+
+    .signin-link a {
+      color: #3FA796;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .disclaimer {
+      color: rgba(255,255,255,0.25);
+      font-size: 11px;
+      text-align: center;
+      margin-top: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── ANNOTATION BADGE ── */
+    .badge {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: rgba(255,107,107,0.9);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 20px;
+      z-index: 100;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <span class="badge">✦ MOCKUP — Not yet implemented</span>
+
+  <!-- FLOATING MUMBAI PHOTOS -->
+  <div class="collage">
+    <!-- Gateway of India -->
+    <div class="photo p1">
+      <img src="https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=340&h=460&fit=crop&q=85" alt="Gateway of India" onerror="this.src='https://picsum.photos/seed/mumbai1/340/460'" />
+    </div>
+    <!-- Marine Drive night -->
+    <div class="photo p2">
+      <img src="https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=420&h=296&fit=crop&q=85" alt="Marine Drive" onerror="this.src='https://picsum.photos/seed/mumbai2/420/296'" />
+    </div>
+    <!-- Mumbai local train -->
+    <div class="photo p3">
+      <img src="https://images.unsplash.com/photo-1529253355930-ddbe423a2ac7?w=296&h=400&fit=crop&q=85" alt="Mumbai Local" onerror="this.src='https://picsum.photos/seed/mumbai3/296/400'" />
+    </div>
+    <!-- Colaba street -->
+    <div class="photo p4">
+      <img src="https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=380&h=276&fit=crop&q=85" alt="Mumbai Skyline" onerror="this.src='https://picsum.photos/seed/mumbai4/380/276'" />
+    </div>
+    <!-- Mumbai street food -->
+    <div class="photo p5">
+      <img src="https://images.unsplash.com/photo-1611270629569-8b357cb88da9?w=316&h=424&fit=crop&q=85" alt="Mumbai Street" onerror="this.src='https://picsum.photos/seed/mumbai5/316/424'" />
+    </div>
+    <!-- Haji Ali -->
+    <div class="photo p6">
+      <img src="https://images.unsplash.com/photo-1576502200916-3808e07386a5?w=256&h=340&fit=crop&q=85" alt="Haji Ali" onerror="this.src='https://picsum.photos/seed/mumbai6/256/340'" />
+    </div>
+    <!-- Bandra -->
+    <div class="photo p7">
+      <img src="https://images.unsplash.com/photo-1580581096469-5e5ab2b8e6e6?w=280&h=216&fit=crop&q=85" alt="Bandra" onerror="this.src='https://picsum.photos/seed/mumbai7/280/216'" />
+    </div>
+    <!-- Dharavi / city texture -->
+    <div class="photo p8">
+      <img src="https://images.unsplash.com/photo-1586500036706-41963de24d8b?w=236&h=316&fit=crop&q=85" alt="Mumbai Market" onerror="this.src='https://picsum.photos/seed/mumbai8/236/316'" />
+    </div>
+  </div>
+
+  <!-- GRADIENT OVERLAY -->
+  <div class="overlay"></div>
+
+  <!-- GLASS SIGNUP CARD -->
+  <div class="card-wrapper">
+
+    <div class="logo">
+      <div class="logo-icon">🗺️</div>
+      <h1>Mumbai Buddies</h1>
+      <p>Your local guide awaits</p>
+    </div>
+
+    <div class="glass">
+      <div class="glass-header">
+        <h2>Create your account</h2>
+        <p>Join thousands exploring Mumbai like a local</p>
+      </div>
+
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" placeholder="Priya Sharma" />
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input type="email" placeholder="you@example.com" />
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input type="password" placeholder="8+ characters" />
+      </div>
+
+      <button class="btn-primary">✨ Join Mumbai Buddies</button>
+
+      <div class="divider"><span>or</span></div>
+
+      <button class="btn-google">
+        <svg width="18" height="18" viewBox="0 0 18 18">
+          <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+          <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
+          <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+          <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <div class="signin-link">
+        Already have an account? <a href="#">Sign In</a>
+      </div>
+
+      <p class="disclaimer">By joining you agree to our Terms of Service &amp; Privacy Policy.</p>
+    </div>
+
+  </div>
+
+</body>
+</html>

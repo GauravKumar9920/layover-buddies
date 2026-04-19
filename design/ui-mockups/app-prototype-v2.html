@@ -1,0 +1,2918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Buddies - Interactive Prototype</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0d7377 50%, #ff6b6b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Phone Frame */
+        .phone-frame {
+            position: relative;
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            border: 12px solid #1a1a1a;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        .phone-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 28px;
+            background: #000;
+            border-radius: 0 0 30px 30px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 4px;
+        }
+
+        .status-bar {
+            position: absolute;
+            top: 8px;
+            width: 100%;
+            padding: 0 16px;
+            height: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+            font-size: 12px;
+            z-index: 101;
+        }
+
+        .status-left, .status-right {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .phone-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #f8f5f0;
+            padding-top: 44px;
+        }
+
+        /* Screen Container */
+        .screen {
+            position: absolute;
+            width: 100%;
+            height: calc(100% - 44px);
+            top: 44px;
+            left: 0;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #f8f5f0;
+        }
+
+        .screen.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        .screen.exit-left {
+            transform: translateX(-100%);
+        }
+
+        /* Scrolling */
+        .screen::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .screen::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .screen::-webkit-scrollbar-thumb {
+            background: rgba(13, 115, 119, 0.3);
+            border-radius: 2px;
+        }
+
+        /* Content Container */
+        .screen-content {
+            padding: 0 16px 80px 16px;
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* === WELCOME SCREEN === */
+        .welcome-container {
+            position: relative;
+            height: 100%;
+            background: linear-gradient(180deg, #2d1b69 0%, #1a0e3d 20%, #0d7377 50%, #ff6b6b 85%, #f5a623 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px 20px;
+            overflow: hidden;
+        }
+
+        /* Floating Bokeh */
+        .bokeh {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.3;
+            filter: blur(40px);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-30px) translateX(20px); }
+        }
+
+        .bokeh:nth-child(1) { width: 100px; height: 100px; background: #ff6b6b; top: 10%; left: 10%; animation-delay: 0s; }
+        .bokeh:nth-child(2) { width: 150px; height: 150px; background: #f5a623; top: 20%; right: 15%; animation-delay: 1s; }
+        .bokeh:nth-child(3) { width: 80px; height: 80px; background: #0d7377; bottom: 20%; left: 20%; animation-delay: 2s; }
+        .bokeh:nth-child(4) { width: 120px; height: 120px; background: #ff6b6b; bottom: 10%; right: 10%; animation-delay: 3s; }
+        .bokeh:nth-child(5) { width: 60px; height: 60px; background: #f5a623; top: 50%; left: 5%; animation-delay: 1.5s; }
+
+        .welcome-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .app-logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+            animation: scaleIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .waving-emoji {
+            display: inline-block;
+            font-size: 48px;
+            animation: wave 1.5s ease-in-out infinite;
+            margin: 16px 0;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(20deg); }
+            75% { transform: rotate(-20deg); }
+        }
+
+        .tagline {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.95);
+            line-height: 1.5;
+            margin: 20px 0 30px 0;
+            font-weight: 500;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tagline::after {
+            content: '';
+            animation: blink 0.7s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .trust-badges {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.85);
+            margin: 20px 0;
+            line-height: 1.8;
+            font-weight: 500;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            margin-top: 30px;
+            animation: slideUpGroup 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;
+        }
+
+        @keyframes slideUpGroup {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: none;
+            letter-spacing: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8a7b 100%);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #0d7377;
+            border: 2px solid #0d7377;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.96);
+        }
+
+        .signin-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            margin-top: 30px;
+            text-decoration: none;
+            padding: 8px;
+        }
+
+        /* === FLIGHT DETAILS SCREEN === */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            margin-top: 16px;
+        }
+
+        .header-back {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(13, 115, 119, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s ease;
+        }
+
+        .header-back:active {
+            background: rgba(13, 115, 119, 0.2);
+            transform: scale(0.95);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            flex: 1;
+        }
+
+        /* Airplane Illustration */
+        .plane-illustration {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            animation: planeFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes planeFloat {
+            0%, 100% { transform: translateY(0) rotate(-10deg); }
+            50% { transform: translateY(-20px) rotate(0deg); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-label {
+            position: absolute;
+            top: -8px;
+            left: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #0d7377;
+            background: #f8f5f0;
+            padding: 0 4px;
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e8f5f5;
+            border-radius: 12px;
+            font-size: 16px;
+            background: #fff;
+            color: #1a1a2e;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #0d7377;
+            box-shadow: 0 0 0 3px rgba(13, 115, 119, 0.1);
+        }
+
+        .timeline-container {
+            background: linear-gradient(135deg, #e8f5f5 0%, rgba(13, 115, 119, 0.05) 100%);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 24px 0;
+            border: 1px solid rgba(13, 115, 119, 0.1);
+        }
+
+        .timeline-stats {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .timeline-main {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0d7377;
+            margin-bottom: 4px;
+        }
+
+        .timeline-sub {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .timeline-bar {
+            height: 60px;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid rgba(13, 115, 119, 0.1);
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .timeline-segment {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-segment:nth-child(1) {
+            flex: 0.5;
+            background: rgba(13, 115, 119, 0.1);
+            animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0s;
+        }
+
+        .timeline-segment:nth-child(2) {
+            flex: 1;
+            background: rgba(13, 115, 119, 0.08);
+            animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;
+        }
+
+        .timeline-segment:nth-child(3) {
+            flex: 2.5;
+            background: linear-gradient(90deg, rgba(255, 107, 107, 0.15), rgba(255, 107, 107, 0.08));
+            animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;
+        }
+
+        .timeline-segment:nth-child(4) {
+            flex: 0.3;
+            background: rgba(13, 115, 119, 0.08);
+            animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;
+        }
+
+        .timeline-segment:nth-child(5) {
+            flex: 0.5;
+            background: rgba(13, 115, 119, 0.1);
+            animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s backwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                flex: 0;
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .timeline-label {
+            font-size: 10px;
+            color: #666;
+            margin-top: 4px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .interests-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+
+        .interests-scroll {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            scroll-behavior: smooth;
+        }
+
+        .interests-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .interest-pill {
+            white-space: nowrap;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #e8f5f5;
+            background: #fff;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .interest-pill:active {
+            background: #ff6b6b;
+            color: #fff;
+            border-color: #ff6b6b;
+            transform: scale(0.95);
+        }
+
+        .interest-pill.selected {
+            background: #ff6b6b;
+            color: #fff;
+            border-color: #ff6b6b;
+        }
+
+        /* === MATCHES SCREEN === */
+        .matches-header {
+            margin-top: 16px;
+            margin-bottom: 20px;
+        }
+
+        .matches-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .matches-subtitle {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .guide-card {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            animation: slideUpCard 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+        }
+
+        .guide-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .guide-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .guide-card:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes slideUpCard {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-cover {
+            height: 100px;
+            background: linear-gradient(135deg, #0d7377 0%, #1a3a3d 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-cover.cover-2 {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4a 100%);
+        }
+
+        .card-cover.cover-3 {
+            background: linear-gradient(135deg, #ff6b6b 0%, #f5a623 100%);
+        }
+
+        .card-profile-section {
+            padding: 0 16px 16px;
+            position: relative;
+        }
+
+        .profile-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            margin-top: -30px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .profile-circle.circle-1 {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8a7b 100%);
+        }
+
+        .profile-circle.circle-2 {
+            background: linear-gradient(135deg, #f5a623 0%, #f5b849 100%);
+        }
+
+        .profile-circle.circle-3 {
+            background: linear-gradient(135deg, #0d7377 0%, #158fa6 100%);
+        }
+
+        .guide-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 2px;
+        }
+
+        .guide-subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .rating-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .stars {
+            color: #f5a623;
+        }
+
+        .reviews-count {
+            color: #666;
+            font-weight: 400;
+        }
+
+        .languages {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .lang-pill {
+            font-size: 11px;
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .skill-chip {
+            font-size: 12px;
+            background: #f0f0f0;
+            padding: 6px 10px;
+            border-radius: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .price-row {
+            font-size: 12px;
+            color: #0d7377;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .response-time {
+            font-size: 12px;
+            color: #0d7377;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .verified-badges {
+            display: flex;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .badge {
+            font-size: 11px;
+            color: #27AE60;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-check {
+            width: 16px;
+            height: 16px;
+            background: #27AE60;
+            border-radius: 50%;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        .badge-special {
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(245, 166, 35, 0.15));
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            display: inline-block;
+            font-size: 11px;
+            margin-top: 4px;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* === PROFILE SCREEN === */
+        .profile-hero {
+            height: 140px;
+            background: linear-gradient(135deg, #0d7377 0%, #1a3a3d 100%);
+            position: relative;
+            margin: -16px -16px 0 -16px;
+        }
+
+        .profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8a7b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            margin-top: -40px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 2;
+        }
+
+        .profile-info {
+            padding: 0 16px;
+        }
+
+        .profile-name-section {
+            margin-top: 12px;
+            margin-bottom: 16px;
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .verified-pulse {
+            width: 20px;
+            height: 20px;
+            background: #27AE60;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7); }
+            50% { box-shadow: 0 0 0 8px rgba(39, 174, 96, 0); }
+        }
+
+        .profile-subtitle {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-item {
+            flex: 1;
+            background: #f0f0f0;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0d7377;
+            margin-bottom: 2px;
+            animation: countUp 1.5s ease-out;
+        }
+
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .about-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+
+        .about-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+            background: #f8f5f0;
+            padding: 12px;
+            border-radius: 12px;
+            border-left: 3px solid #0d7377;
+        }
+
+        .languages-section {
+            margin-bottom: 24px;
+        }
+
+        .lang-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .lang-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .lang-bar {
+            width: 60px;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .lang-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0d7377, #158fa6);
+            animation: langFill 1s ease-out;
+        }
+
+        @keyframes langFill {
+            from { width: 0; }
+            to { width: 90%; }
+        }
+
+        .experiences-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+
+        .exp-card {
+            background: #fff;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .exp-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+
+        .exp-details {
+            font-size: 11px;
+            color: #666;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+
+        .exp-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .exp-rating {
+            font-size: 11px;
+            color: #f5a623;
+            font-weight: 600;
+        }
+
+        .reviews-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+            margin-top: 24px;
+        }
+
+        .review-card {
+            background: #fff;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .review-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .review-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d7377, #158fa6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .review-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .review-flag {
+            font-size: 12px;
+        }
+
+        .review-rating {
+            font-size: 11px;
+            color: #f5a623;
+        }
+
+        .review-text {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .sticky-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 16px 16px;
+            background: rgba(248, 245, 240, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(13, 115, 119, 0.1);
+            width: 375px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .sticky-btn {
+            width: 100%;
+            max-width: 343px;
+        }
+
+        /* === BOOKING CONFIRMATION === */
+        .itinerary-mini {
+            background: linear-gradient(135deg, #0d7377 0%, #1a3a3d 100%);
+            color: #fff;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            margin-top: 16px;
+        }
+
+        .itinerary-name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .itinerary-details {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .expense-breakdown {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .expense-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .expense-row.total {
+            border-top: 2px solid #f0f0f0;
+            padding-top: 12px;
+            font-weight: 700;
+            color: #1a1a2e;
+            font-size: 14px;
+        }
+
+        .expense-label {
+            display: flex;
+            justify-content: space-between;
+            flex: 1;
+        }
+
+        .expense-sub-items {
+            margin-left: 16px;
+            padding-left: 16px;
+            border-left: 2px solid #f0f0f0;
+        }
+
+        .expense-sub {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .expense-amount {
+            font-weight: 600;
+            color: #0d7377;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, rgba(13, 115, 119, 0.1), rgba(13, 115, 119, 0.05));
+            border-left: 3px solid #0d7377;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .payment-methods {
+            margin-bottom: 20px;
+        }
+
+        .payment-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .payment-option:active {
+            border-color: #0d7377;
+            background: rgba(13, 115, 119, 0.05);
+        }
+
+        .payment-option.selected {
+            border-color: #0d7377;
+            background: rgba(13, 115, 119, 0.05);
+        }
+
+        .payment-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .payment-option.selected .payment-radio {
+            border-color: #0d7377;
+            background: #0d7377;
+        }
+
+        .payment-radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #fff;
+            opacity: 0;
+        }
+
+        .payment-option.selected .payment-radio::after {
+            opacity: 1;
+        }
+
+        .payment-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        /* === SUCCESS SCREEN === */
+        .success-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .confetti {
+            position: fixed;
+            pointer-events: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            animation: confettiFall 3s ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translateY(-10px) translateX(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) translateX(var(--tx)) rotate(720deg);
+            }
+        }
+
+        .checkmark {
+            width: 100px;
+            height: 100px;
+            margin: 40px auto 20px;
+            position: relative;
+        }
+
+        .checkmark-circle {
+            width: 100%;
+            height: 100%;
+            border: 3px solid #27AE60;
+            border-radius: 50%;
+            animation: checkCircle 0.6s ease-out;
+        }
+
+        @keyframes checkCircle {
+            from {
+                stroke-dasharray: 314;
+                stroke-dashoffset: 314;
+            }
+            to {
+                stroke-dasharray: 314;
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .checkmark-check {
+            position: absolute;
+            width: 35px;
+            height: 55px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 3px solid #27AE60;
+            border-left: none;
+            border-top: none;
+            animation: checkDraw 0.6s ease-out 0.3s backwards;
+        }
+
+        @keyframes checkDraw {
+            from {
+                stroke-dasharray: 100;
+                stroke-dashoffset: 100;
+            }
+            to {
+                stroke-dasharray: 100;
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .success-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin: 20px 0 12px;
+            animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards;
+        }
+
+        @keyframes bounceIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .success-subtitle {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .booking-summary {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .summary-label {
+            font-weight: 600;
+        }
+
+        .during-tour {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .map-placeholder {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #e8f5f5 0%, #f0f0f0 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 12px;
+            font-size: 32px;
+        }
+
+        .map-pin {
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .route-dots {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            opacity: 0.3;
+        }
+
+        .tour-overlay {
+            background: rgba(248, 245, 240, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 14px;
+            border: 1px solid rgba(13, 115, 119, 0.1);
+            margin-bottom: 16px;
+        }
+
+        .tour-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+
+        .timer-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid #0d7377;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .timer-circle::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid #ff6b6b;
+            clip-path: polygon(0 0, 100% 0, 100% 70%, 0 70%);
+            animation: timerFill 3.75s linear;
+        }
+
+        @keyframes timerFill {
+            from { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+            to { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); }
+        }
+
+        .timer-text {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0d7377;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .timer-label {
+            font-size: 10px;
+            color: #666;
+        }
+
+        .expense-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .expense-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27AE60, #20c997);
+            animation: expenseFill 2s ease-out;
+        }
+
+        @keyframes expenseFill {
+            from { width: 0; }
+            to { width: 70%; }
+        }
+
+        .expense-text {
+            font-size: 11px;
+            color: #666;
+            text-align: right;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 11px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .action-btn:active {
+            background: rgba(13, 115, 119, 0.1);
+            border-color: #0d7377;
+        }
+
+        .action-btn.sos {
+            background: rgba(255, 107, 107, 0.1);
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .action-btn.sos:active {
+            background: rgba(255, 107, 107, 0.2);
+        }
+
+        .sos-pulse {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            animation: sosPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes sosPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+        }
+
+        .action-icon {
+            font-size: 20px;
+        }
+
+        /* === GUIDE DASHBOARD === */
+        .guide-header {
+            background: linear-gradient(135deg, #0d7377 0%, #1a3a3d 100%);
+            color: #fff;
+            padding: 16px;
+            margin: -16px -16px 20px -16px;
+            border-radius: 0 0 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .guide-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ff8a7b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .guide-greeting {
+            flex: 1;
+        }
+
+        .greeting-text {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .greeting-sub {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #fff;
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            animation: slideUpCard 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+        }
+
+        .stat-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .stat-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .stat-big {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0d7377;
+            margin-bottom: 4px;
+        }
+
+        .stat-small {
+            font-size: 11px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .requests-section {
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .section-title-main {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .request-card {
+            background: #fff;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .request-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .traveler-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d7377, #158fa6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .request-info {
+            flex: 1;
+        }
+
+        .traveler-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .traveler-location {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .request-details {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .request-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-accept {
+            background: #27AE60;
+            color: #fff;
+        }
+
+        .btn-accept:active {
+            transform: scale(0.95);
+            opacity: 0.9;
+        }
+
+        .btn-decline {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-decline:active {
+            transform: scale(0.95);
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 100px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ff8a7b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+            transition: all 0.2s ease;
+            animation: fabPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 50;
+        }
+
+        @keyframes fabPop {
+            from {
+                opacity: 0;
+                transform: scale(0);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .fab:active {
+            transform: scale(0.9);
+        }
+
+        .invite-card {
+            background: linear-gradient(135deg, rgba(245, 166, 35, 0.15), rgba(13, 115, 119, 0.15));
+            border: 2px solid rgba(245, 166, 35, 0.3);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .invite-emoji {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .invite-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .invite-text {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* === CREATE ITINERARY === */
+        .photo-upload {
+            border: 2px dashed #0d7377;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(13, 115, 119, 0.05);
+        }
+
+        .photo-upload:active {
+            background: rgba(13, 115, 119, 0.1);
+            border-color: #158fa6;
+        }
+
+        .photo-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .photo-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0d7377;
+        }
+
+        .duration-pills {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .duration-pill {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 2px solid #e0e0e0;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .duration-pill:active {
+            border-color: #0d7377;
+            background: rgba(13, 115, 119, 0.1);
+            color: #0d7377;
+        }
+
+        .duration-pill.selected {
+            border-color: #0d7377;
+            background: #0d7377;
+            color: #fff;
+        }
+
+        .stops-container {
+            margin-bottom: 20px;
+        }
+
+        .stop-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .stop-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d7377, #158fa6);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .stop-fields {
+            flex: 1;
+        }
+
+        .stop-line {
+            position: absolute;
+            left: 15px;
+            top: 32px;
+            width: 2px;
+            height: calc(100% + 12px);
+            background: linear-gradient(180deg, #0d7377, transparent);
+        }
+
+        .stop-item:last-child .stop-line {
+            display: none;
+        }
+
+        .form-control {
+            margin-bottom: 8px;
+        }
+
+        .form-control input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #1a1a2e;
+        }
+
+        .form-control input:focus {
+            outline: none;
+            border-color: #0d7377;
+            box-shadow: 0 0 0 2px rgba(13, 115, 119, 0.1);
+        }
+
+        .add-stop-btn {
+            padding: 10px 12px;
+            border: 2px dashed #0d7377;
+            border-radius: 8px;
+            background: rgba(13, 115, 119, 0.05);
+            color: #0d7377;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .add-stop-btn:active {
+            background: rgba(13, 115, 119, 0.1);
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #e8f5f5, rgba(13, 115, 119, 0.05));
+            border: 1px solid rgba(13, 115, 119, 0.1);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .summary-line.highlight {
+            font-weight: 700;
+            color: #0d7377;
+            padding-top: 12px;
+            border-top: 1px solid rgba(13, 115, 119, 0.1);
+        }
+
+        /* === EARNINGS SCREEN === */
+        .earnings-header {
+            background: linear-gradient(135deg, #0d7377 0%, #1a3a3d 100%);
+            color: #fff;
+            padding: 20px 16px;
+            margin: -16px -16px 20px -16px;
+            border-radius: 0 0 20px 20px;
+            text-align: center;
+        }
+
+        .earnings-big {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            animation: countUp 2s ease-out;
+        }
+
+        .earnings-subtitle {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .earnings-month {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .chart-container {
+            background: #fff;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 120px;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(180deg, #0d7377, #158fa6);
+            border-radius: 4px 4px 0 0;
+            animation: barGrow 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+        }
+
+        .bar:nth-child(1) { height: 30%; animation-delay: 0s; }
+        .bar:nth-child(2) { height: 45%; animation-delay: 0.1s; }
+        .bar:nth-child(3) { height: 35%; animation-delay: 0.2s; }
+        .bar:nth-child(4) { height: 60%; animation-delay: 0.3s; }
+        .bar:nth-child(5) { height: 75%; animation-delay: 0.4s; }
+        .bar:nth-child(6) {
+            height: 85%;
+            animation-delay: 0.5s;
+            background: linear-gradient(180deg, #ff6b6b, #ff8a7b);
+        }
+
+        @keyframes barGrow {
+            from {
+                height: 0;
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .chart-labels {
+            display: flex;
+            justify-content: space-around;
+            font-size: 10px;
+            color: #999;
+            font-weight: 500;
+        }
+
+        .payout-card {
+            background: #fff;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .payout-info {
+            flex: 1;
+        }
+
+        .payout-desc {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 2px;
+        }
+
+        .payout-date {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .payout-amount {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0d7377;
+            margin-right: 12px;
+        }
+
+        .badge-status {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .badge-paid {
+            background: rgba(39, 174, 96, 0.15);
+            color: #27AE60;
+        }
+
+        .badge-processing {
+            background: rgba(245, 166, 35, 0.15);
+            color: #f5a623;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: rgba(248, 245, 240, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(13, 115, 119, 0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+            height: 100%;
+            justify-content: center;
+        }
+
+        .nav-item.active {
+            color: #0d7377;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        .nav-label {
+            font-weight: 600;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="phone-notch">
+        </div>
+        <div class="status-bar">
+            <div class="status-left">
+                <span>9:41</span>
+            </div>
+            <div class="status-right">
+                <span>📶</span>
+                <span>🔋</span>
+            </div>
+        </div>
+
+        <div class="phone-content">
+            <!-- Screen 1: Welcome -->
+            <div class="screen active" id="screen-1">
+                <div class="welcome-container">
+                    <div class="bokeh"></div>
+                    <div class="bokeh"></div>
+                    <div class="bokeh"></div>
+                    <div class="bokeh"></div>
+                    <div class="bokeh"></div>
+
+                    <div class="welcome-content">
+                        <div class="app-logo">mumbai buddies ✈️</div>
+                        <div class="waving-emoji">👋</div>
+                        <div class="tagline">Your layover. Their city. One unforgettable story.</div>
+                        <div class="trust-badges">
+                            2,400+ travelers ✈️<br>
+                            150+ student guides 🎓<br>
+                            4.9★ average
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="goToScreen(2)">I'm a Traveler ✈️</button>
+                        <button class="btn btn-secondary" onclick="goToScreen(7)">I'm a Student Guide 🎓</button>
+                        <a class="signin-text" onclick="alert('Sign in functionality')">Already have an account? Sign in</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 2: Flight Details -->
+            <div class="screen" id="screen-2">
+                <div class="screen-content">
+                    <div class="header">
+                        <div class="header-back" onclick="goToScreen(1)">←</div>
+                        <div class="header-title">Plan Your Adventure</div>
+                    </div>
+
+                    <svg class="plane-illustration" viewBox="0 0 100 100">
+                        <path d="M20 50 L50 30 L80 50 M50 30 L50 70 M35 50 L65 50" stroke="#0d7377" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <circle cx="50" cy="60" r="3" fill="#0d7377"/>
+                    </svg>
+
+                    <div class="form-group">
+                        <label class="form-label">Arrival Flight</label>
+                        <input type="text" class="form-input" placeholder="AI-501 • 14:30" value="AI-501 • 14:30">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Departure Flight</label>
+                        <input type="text" class="form-input" placeholder="AI-502 • 22:50" value="AI-502 • 22:50">
+                    </div>
+
+                    <div class="timeline-container">
+                        <div class="timeline-stats">
+                            <div class="timeline-main">✨ You have 6 hours 20 minutes!</div>
+                            <div class="timeline-sub">Perfect for exploring Mumbai</div>
+                        </div>
+                        <div class="timeline-bar">
+                            <div class="timeline-segment">✈️</div>
+                            <div class="timeline-segment">🛂</div>
+                            <div class="timeline-segment">🏙️</div>
+                            <div class="timeline-segment">🚕</div>
+                            <div class="timeline-segment">✈️</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #999; font-weight: 500;">
+                            <div>Land<br>14:30</div>
+                            <div>Customs<br>~1hr</div>
+                            <div>EXPLORE<br>4h 20m</div>
+                            <div>Return<br>~30m</div>
+                            <div>Depart<br>22:50</div>
+                        </div>
+                    </div>
+
+                    <div class="interests-label">What interests you?</div>
+                    <div class="interests-scroll">
+                        <div class="interest-pill">🍜 Street Food</div>
+                        <div class="interest-pill">🏛️ History</div>
+                        <div class="interest-pill selected">📸 Photography</div>
+                        <div class="interest-pill">🎬 Bollywood</div>
+                        <div class="interest-pill">🏏 Cricket</div>
+                        <div class="interest-pill">🎨 Art</div>
+                        <div class="interest-pill">🛍️ Shopping</div>
+                        <div class="interest-pill">🌃 Nightlife</div>
+                    </div>
+
+                    <button class="btn btn-primary" style="width: 100%; margin-bottom: 20px;" onclick="goToScreen(3)">Find My Buddy ✨</button>
+                </div>
+            </div>
+
+            <!-- Screen 3: Your Matches -->
+            <div class="screen" id="screen-3">
+                <div class="screen-content">
+                    <div class="header">
+                        <div class="header-back" onclick="goToScreen(2)">←</div>
+                        <div class="header-title">Your Matches</div>
+                    </div>
+
+                    <div class="matches-header">
+                        <div class="matches-title">Your Top 3 Matches ✨</div>
+                        <div class="matches-subtitle">Curated for your interests and timing</div>
+                    </div>
+
+                    <!-- Card 1 -->
+                    <div class="guide-card" onclick="goToScreen(4)">
+                        <div class="card-cover cover-1"></div>
+                        <div class="card-profile-section">
+                            <div class="profile-circle circle-1">PS</div>
+                            <div class="guide-name">Priya Sharma</div>
+                            <div class="guide-subtitle">NMIMS · 3rd Year Business</div>
+                            <div class="rating-row">
+                                <span class="stars">⭐ 4.9</span>
+                                <span class="reviews-count">(23 reviews)</span>
+                            </div>
+                            <div class="languages">
+                                <div class="lang-pill">🇬🇧 English</div>
+                                <div class="lang-pill">🇮🇳 Hindi</div>
+                                <div class="lang-pill">🇯🇵 Japanese</div>
+                            </div>
+                            <div class="skills">
+                                <div class="skill-chip">🍜 Foodie</div>
+                                <div class="skill-chip">📸 Photo Pro</div>
+                                <div class="skill-chip">🎬 Bollywood</div>
+                            </div>
+                            <div class="price-row">From ₹2,000 · ~₹3,500 total</div>
+                            <div class="response-time">⚡ Responds in 20 min</div>
+                            <div class="verified-badges">
+                                <div class="badge">✅ ID</div>
+                                <div class="badge">✅ College</div>
+                                <div class="badge">✅ Interview</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="guide-card" onclick="goToScreen(4)">
+                        <div class="card-cover cover-2"></div>
+                        <div class="card-profile-section">
+                            <div class="profile-circle circle-2">AM</div>
+                            <div class="guide-name">Arjun Mehta</div>
+                            <div class="guide-subtitle">IIT Bombay · 2nd Year CS</div>
+                            <div class="rating-row">
+                                <span class="stars">⭐ 4.8</span>
+                                <span class="reviews-count">(17 reviews)</span>
+                            </div>
+                            <div class="languages">
+                                <div class="lang-pill">🇬🇧 English</div>
+                                <div class="lang-pill">🇮🇳 Hindi</div>
+                                <div class="lang-pill">🇩🇪 German</div>
+                            </div>
+                            <div class="skills">
+                                <div class="skill-chip">🏛️ History</div>
+                                <div class="skill-chip">🏏 Cricket</div>
+                                <div class="skill-chip">🍜 Food</div>
+                            </div>
+                            <div class="price-row">From ₹2,500 · ~₹4,000 total</div>
+                            <div class="response-time">🏆 Top Rated Guide</div>
+                            <div class="verified-badges">
+                                <div class="badge">✅ ID</div>
+                                <div class="badge">✅ College</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="guide-card" onclick="goToScreen(4)">
+                        <div class="card-cover cover-3"></div>
+                        <div class="card-profile-section">
+                            <div class="profile-circle circle-3">ZK</div>
+                            <div class="guide-name">Zara Khan</div>
+                            <div class="guide-subtitle">VJTI · 4th Year Architecture</div>
+                            <div class="rating-row">
+                                <span class="stars">⭐ 5.0</span>
+                                <span class="reviews-count">(8 reviews)</span>
+                            </div>
+                            <div class="languages">
+                                <div class="lang-pill">🇬🇧 English</div>
+                                <div class="lang-pill">🇮🇳 Hindi</div>
+                                <div class="lang-pill">🇮🇳 Urdu</div>
+                                <div class="lang-pill">🇫🇷 French</div>
+                            </div>
+                            <div class="skills">
+                                <div class="skill-chip">🎨 Art & Design</div>
+                                <div class="skill-chip">📸 Photography</div>
+                                <div class="skill-chip">🌃 Nightlife</div>
+                            </div>
+                            <div class="price-row">From ₹2,000 · ~₹3,200 total</div>
+                            <div class="response-time">🌟 New Star</div>
+                            <div class="badge-special">⭐ Perfect Score!</div>
+                            <div class="verified-badges">
+                                <div class="badge">✅ ID</div>
+                                <div class="badge">✅ College</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 4: Guide Profile -->
+            <div class="screen" id="screen-4">
+                <div class="profile-hero"></div>
+                <div style="padding-top: 16px;">
+                    <div class="header" style="margin-top: 8px;">
+                        <div class="header-back" onclick="goToScreen(3)">←</div>
+                    </div>
+
+                    <div class="profile-info">
+                        <div class="profile-pic" style="margin-left: 0; margin-top: -50px;">PS</div>
+
+                        <div class="profile-name-section">
+                            <div class="profile-name">
+                                Priya Sharma
+                                <div class="verified-pulse">✓</div>
+                            </div>
+                            <div class="profile-subtitle">NMIMS · 3rd Year Business</div>
+                        </div>
+
+                        <div class="stats-row">
+                            <div class="stat-item">
+                                <div class="stat-number">23</div>
+                                <div class="stat-label">Trips</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">4.9</div>
+                                <div class="stat-label">Rating</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">₹34K</div>
+                                <div class="stat-label">Earned</div>
+                            </div>
+                        </div>
+
+                        <div class="about-section">
+                            <div class="section-title">About Me</div>
+                            <div class="about-text">Hey! I'm Priya, a total foodie who's tried every street food stall from Juhu to Mohammed Ali Road. I've shown 23 travelers the REAL Mumbai — the one that smells like vada pav and looks like a Bollywood set. Let's eat our way through this city! 🍜✨</div>
+                        </div>
+
+                        <div class="languages-section">
+                            <div class="section-title">Languages</div>
+                            <div class="lang-item">
+                                <div class="lang-name">English</div>
+                                <div class="lang-bar"><div class="lang-fill" style="width: 95%;"></div></div>
+                            </div>
+                            <div class="lang-item">
+                                <div class="lang-name">Hindi</div>
+                                <div class="lang-bar"><div class="lang-fill" style="width: 100%;"></div></div>
+                            </div>
+                            <div class="lang-item">
+                                <div class="lang-name">Japanese</div>
+                                <div class="lang-bar"><div class="lang-fill" style="width: 70%;"></div></div>
+                            </div>
+                        </div>
+
+                        <div class="section-title">My Experiences</div>
+                        <div class="exp-card">
+                            <div class="exp-title">🍜 Ultimate Street Food Trail</div>
+                            <div class="exp-details">
+                                <div class="exp-detail-item">4 hrs</div>
+                                <div class="exp-detail-item">₹3,500</div>
+                                <div class="exp-detail-item">6 stops</div>
+                            </div>
+                            <div class="exp-rating">⭐ 4.9 (12 reviews)</div>
+                        </div>
+
+                        <div class="exp-card">
+                            <div class="exp-title">🎬 Bollywood & Beyond</div>
+                            <div class="exp-details">
+                                <div class="exp-detail-item">5 hrs</div>
+                                <div class="exp-detail-item">₹4,200</div>
+                                <div class="exp-detail-item">5 stops</div>
+                            </div>
+                            <div class="exp-rating">⭐ 4.8 (11 reviews)</div>
+                        </div>
+
+                        <div class="reviews-label">Recent Reviews</div>
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="review-avatar">SM</div>
+                                <div>
+                                    <div class="review-name">Sarah Mitchell <span class="review-flag">🇬🇧</span></div>
+                                    <div class="review-rating">⭐⭐⭐⭐⭐</div>
+                                </div>
+                            </div>
+                            <div class="review-text">"Priya made my 6-hour layover feel like a week in Mumbai! Best street food experience ever."</div>
+                        </div>
+
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="review-avatar">KT</div>
+                                <div>
+                                    <div class="review-name">Kenji Tanaka <span class="review-flag">🇯🇵</span></div>
+                                    <div class="review-rating">⭐⭐⭐⭐⭐</div>
+                                </div>
+                            </div>
+                            <div class="review-text">"Amazing photography locations! Priya knows Mumbai like nobody else."</div>
+                        </div>
+
+                        <div style="height: 100px;"></div>
+                    </div>
+                </div>
+
+                <div class="sticky-bottom">
+                    <button class="btn btn-primary sticky-btn" onclick="goToScreen(5)">Request Priya ✨</button>
+                </div>
+            </div>
+
+            <!-- Screen 5: Booking Confirmation -->
+            <div class="screen" id="screen-5">
+                <div class="screen-content">
+                    <div class="header">
+                        <div class="header-back" onclick="goToScreen(4)">←</div>
+                        <div class="header-title">Confirm Booking</div>
+                    </div>
+
+                    <div class="itinerary-mini">
+                        <div class="itinerary-name">🍜 Ultimate Street Food Trail</div>
+                        <div class="itinerary-details">with Priya Sharma</div>
+                    </div>
+
+                    <div style="font-size: 13px; color: #666; margin-bottom: 20px;">
+                        <strong>Apr 15, 2026 · 15:30 - 19:30</strong>
+                    </div>
+
+                    <div class="section-title">Expense Breakdown</div>
+                    <div class="expense-breakdown">
+                        <div class="expense-row">
+                            <span class="expense-label">Buddy Fee</span>
+                            <span class="expense-amount">₹2,000</span>
+                        </div>
+                        <div class="expense-row">
+                            <span>Shared Experience</span>
+                            <span class="expense-amount">₹1,200</span>
+                        </div>
+                        <div class="expense-row" style="margin-left: 16px; padding-left: 16px; border-left: 2px solid #f0f0f0; color: #999;">
+                            <span>Food (2 people)</span>
+                            <span>₹700</span>
+                        </div>
+                        <div class="expense-row" style="margin-left: 16px; padding-left: 16px; border-left: 2px solid #f0f0f0; color: #999;">
+                            <span>Transport</span>
+                            <span>₹400</span>
+                        </div>
+                        <div class="expense-row" style="margin-left: 16px; padding-left: 16px; border-left: 2px solid #f0f0f0; color: #999;">
+                            <span>Entry Fees</span>
+                            <span>₹100</span>
+                        </div>
+                        <div class="expense-row">
+                            <span>Platform Fee</span>
+                            <span class="expense-amount">₹500</span>
+                        </div>
+                        <div class="expense-row">
+                            <span>GST (5%)</span>
+                            <span class="expense-amount">₹100</span>
+                        </div>
+                        <div class="expense-row total">
+                            <span>TOTAL</span>
+                            <span>₹3,300</span>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        💡 <strong>Shared experience</strong> — your buddy joins you for every bite and ride!
+                    </div>
+
+                    <div class="payment-label">Payment Method</div>
+                    <div class="payment-methods">
+                        <div class="payment-option selected" onclick="this.parentElement.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); this.classList.add('selected');">
+                            <div class="payment-radio"></div>
+                            <div class="payment-text">💳 Credit Card</div>
+                        </div>
+                        <div class="payment-option" onclick="this.parentElement.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); this.classList.add('selected');">
+                            <div class="payment-radio"></div>
+                            <div class="payment-text">📱 UPI</div>
+                        </div>
+                        <div class="payment-option" onclick="this.parentElement.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected')); this.classList.add('selected');">
+                            <div class="payment-radio"></div>
+                            <div class="payment-text">🅿️ PayPal</div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" style="width: 100%; margin-bottom: 12px;" onclick="goToScreen(6)">Confirm & Pay ₹3,300</button>
+                    <button class="btn btn-secondary" style="width: 100%;" onclick="goToScreen(4)">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Screen 6: Success -->
+            <div class="screen" id="screen-6">
+                <div class="success-container">
+                    <div class="header" style="width: 100%; position: absolute; top: 0; left: 0; justify-content: space-between;">
+                        <div class="header-back" onclick="goToScreen(3)">←</div>
+                    </div>
+
+                    <div class="checkmark">
+                        <div class="checkmark-circle"></div>
+                        <div class="checkmark-check"></div>
+                    </div>
+
+                    <div class="success-title">You're all set! 🎉</div>
+                    <div class="success-subtitle">Your experience with Priya has been confirmed. Get ready for an amazing Mumbai adventure!</div>
+
+                    <div class="booking-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Guide:</span>
+                            <span>Priya Sharma</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Date:</span>
+                            <span>Apr 15, 2026</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Time:</span>
+                            <span>15:30 - 19:30</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Total:</span>
+                            <span style="font-weight: 700; color: #0d7377;">₹3,300</span>
+                        </div>
+                    </div>
+
+                    <div class="success-subtitle">Priya has been notified — she usually responds in 20 minutes!</div>
+
+                    <div style="width: 100%; height: 2px; background: #f0f0f0; margin: 20px 0;"></div>
+
+                    <div class="during-tour">
+                        <div style="font-size: 14px; font-weight: 700; color: #1a1a2e; margin-bottom: 12px;">During Your Tour</div>
+                        <div class="map-placeholder">
+                            <div class="map-pin">📍</div>
+                        </div>
+
+                        <div class="tour-overlay">
+                            <div class="tour-header">
+                                <span>📍</span>
+                                <span>Live tracking active</span>
+                            </div>
+                            <div style="text-align: center; margin-bottom: 12px;">
+                                <div class="timer-circle">
+                                    <div class="timer-text">3h 45m<div class="timer-label">remaining</div></div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <div style="font-size: 11px; font-weight: 600; color: #666; margin-bottom: 4px;">Expense Tracker</div>
+                                <div class="expense-bar">
+                                    <div class="expense-fill"></div>
+                                </div>
+                                <div class="expense-text">₹850 / ₹1,200</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <div class="action-btn sos">
+                            <div class="sos-pulse">🆘</div>
+                            <div>SOS</div>
+                        </div>
+                        <div class="action-btn">
+                            <div class="action-icon">📞</div>
+                            <div>Call</div>
+                        </div>
+                        <div class="action-btn">
+                            <div class="action-icon">📍</div>
+                            <div>Share</div>
+                        </div>
+                    </div>
+
+                    <div style="height: 100px;"></div>
+                </div>
+
+                <div class="bottom-nav">
+                    <div class="nav-item active" onclick="goToScreen(6)">
+                        <div class="nav-icon">🏠</div>
+                        <div class="nav-label">Home</div>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon">✈️</div>
+                        <div class="nav-label">My Trips</div>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon">💬</div>
+                        <div class="nav-label">Messages</div>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon">👤</div>
+                        <div class="nav-label">Profile</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 7: Guide Dashboard -->
+            <div class="screen" id="screen-7">
+                <div class="guide-header">
+                    <div class="guide-avatar">P</div>
+                    <div class="guide-greeting">
+                        <div class="greeting-text">Hey Priya! 👋</div>
+                        <div class="greeting-sub">Welcome back, guide!</div>
+                    </div>
+                </div>
+
+                <div class="screen-content" style="margin-top: -20px;">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-big">⭐ 4.9</div>
+                            <div class="stat-small">Rating</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-big">23</div>
+                            <div class="stat-small">Total Trips</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-big">₹34.5K</div>
+                            <div class="stat-small">Earned</div>
+                        </div>
+                    </div>
+
+                    <div class="requests-section">
+                        <div class="section-header">
+                            <div class="section-title-main">Incoming Requests</div>
+                        </div>
+
+                        <div class="request-card">
+                            <div class="request-header">
+                                <div class="traveler-avatar">SM</div>
+                                <div class="request-info">
+                                    <div class="traveler-name">Sarah Mitchell <span class="review-flag">🇬🇧</span></div>
+                                    <div class="traveler-location">London</div>
+                                </div>
+                            </div>
+                            <div class="request-details">
+                                4hr · 🍜 Food + 🏛️ History · Apr 15
+                            </div>
+                            <div class="request-buttons">
+                                <button class="btn-small btn-accept">✓ Accept</button>
+                                <button class="btn-small btn-decline">✗ Decline</button>
+                            </div>
+                        </div>
+
+                        <div class="request-card">
+                            <div class="request-header">
+                                <div class="traveler-avatar" style="background: linear-gradient(135deg, #ff6b6b, #ff8a7b);">KT</div>
+                                <div class="request-info">
+                                    <div class="traveler-name">Kenji Tanaka <span class="review-flag">🇯🇵</span></div>
+                                    <div class="traveler-location">Tokyo</div>
+                                </div>
+                            </div>
+                            <div class="request-details">
+                                6hr · 📸 Photo + 🍜 Food · Apr 18
+                            </div>
+                            <div class="request-buttons">
+                                <button class="btn-small btn-accept">✓ Accept</button>
+                                <button class="btn-small btn-decline">✗ Decline</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="invite-card">
+                        <div class="invite-emoji">🎟️</div>
+                        <div class="invite-title">You earned 1 invite code!</div>
+                        <div class="invite-text">Share with a friend and earn ₹750 when they complete 3 trips</div>
+                    </div>
+
+                    <div style="height: 80px;"></div>
+                </div>
+
+                <div class="fab" onclick="alert('Create new itinerary')">+</div>
+
+                <div class="bottom-nav">
+                    <div class="nav-item active" onclick="goToScreen(7)">
+                        <div class="nav-icon">📊</div>
+                        <div class="nav-label">Dashboard</div>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon">📅</div>
+                        <div class="nav-label">Calendar</div>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon">💰</div>
+                        <div class="nav-label">Earnings</div>
+                    </div>
+                    <div class="nav-item" onclick="goToScreen(9)">
+                        <div class="nav-icon">👤</div>
+                        <div class="nav-label">Profile</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 8: Create Itinerary -->
+            <div class="screen" id="screen-8">
+                <div class="screen-content">
+                    <div class="header">
+                        <div class="header-back" onclick="goToScreen(7)">←</div>
+                        <div class="header-title">Create Experience</div>
+                    </div>
+
+                    <div class="photo-upload">
+                        <div class="photo-icon">📸</div>
+                        <div class="photo-text">Add Cover Photo</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Experience Name</label>
+                        <input type="text" class="form-input" placeholder="e.g., Street Food Adventure">
+                    </div>
+
+                    <div class="interests-label">Duration</div>
+                    <div class="duration-pills">
+                        <div class="duration-pill">2 hrs</div>
+                        <div class="duration-pill">3 hrs</div>
+                        <div class="duration-pill selected">4 hrs</div>
+                        <div class="duration-pill">5 hrs</div>
+                        <div class="duration-pill">6 hrs</div>
+                    </div>
+
+                    <div class="interests-label">Category</div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+                        <div class="interest-pill">🍜 Food</div>
+                        <div class="interest-pill">🏛️ History</div>
+                        <div class="interest-pill">📸 Photography</div>
+                        <div class="interest-pill">🎬 Bollywood</div>
+                    </div>
+
+                    <div class="section-title" style="margin-top: 0;">Add Stops</div>
+                    <div class="stops-container">
+                        <div class="stop-item">
+                            <div class="stop-number">1</div>
+                            <div class="stop-line"></div>
+                            <div class="stop-fields">
+                                <div class="form-control"><input type="text" placeholder="Stop Name" value="Chowpatty Beach"></div>
+                                <div class="form-control"><input type="text" placeholder="Description"></div>
+                                <div class="form-control"><input type="text" placeholder="Estimated cost" value="₹200"></div>
+                            </div>
+                        </div>
+                        <div class="stop-item">
+                            <div class="stop-number">2</div>
+                            <div class="stop-line"></div>
+                            <div class="stop-fields">
+                                <div class="form-control"><input type="text" placeholder="Stop Name" value="Vada Pav Stand"></div>
+                                <div class="form-control"><input type="text" placeholder="Description"></div>
+                                <div class="form-control"><input type="text" placeholder="Estimated cost" value="₹150"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="add-stop-btn">+ Add Another Stop</button>
+
+                    <div class="summary-card" style="margin-top: 20px;">
+                        <div class="summary-line">
+                            <span>Total estimated experience cost:</span>
+                            <span>₹1,200</span>
+                        </div>
+                        <div class="summary-line">
+                            <span>Suggested buddy fee:</span>
+                            <span>₹2,000</span>
+                        </div>
+                        <div class="summary-line highlight">
+                            <span>Traveler will pay:</span>
+                            <span>~₹3,200</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" style="width: 100%; margin-bottom: 20px;">Publish Experience ✨</button>
+                </div>
+            </div>
+
+            <!-- Screen 9: Earnings -->
+            <div class="screen" id="screen-9">
+                <div class="earnings-header">
+                    <div class="earnings-big">₹34,500</div>
+                    <div class="earnings-subtitle">Total Earned</div>
+                    <div class="earnings-month">This Month: ₹8,500 (4 trips)</div>
+                </div>
+
+                <div class="screen-content" style="margin-top: -20px;">
+                    <div class="chart-container">
+                        <div class="chart">
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                        </div>
+                        <div class="chart-labels">
+                            <div>Oct</div>
+                            <div>Nov</div>
+                            <div>Dec</div>
+                            <div>Jan</div>
+                            <div>Feb</div>
+                            <div>Mar</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Recent Payouts</div>
+
+                    <div class="payout-card">
+                        <div class="payout-info">
+                            <div class="payout-desc">🍜 Street Food Trail</div>
+                            <div class="payout-date">Sarah M. · Apr 10</div>
+                        </div>
+                        <div class="payout-amount">₹1,500</div>
+                        <div class="badge-status badge-paid">Paid</div>
+                    </div>
+
+                    <div class="payout-card">
+                        <div class="payout-info">
+                            <div class="payout-desc">🎬 Bollywood Tour</div>
+                            <div class="payout-date">David K. · Apr 7</div>
+                        </div>
+                        <div class="payout-amount">₹2,000</div>
+                        <div class="badge-status badge-paid">Paid</div>
+                    </div>
+
+                    <div class="payout-card">
+                        <div class="payout-info">
+                            <div class="payout-desc">🏛️ Heritage Walk</div>
+                            <div class="payout-date">Lisa W. · Apr 3</div>
+                        </div>
+                        <div class="payout-amount">₹2,500</div>
+                        <div class="badge-status badge-processing">Processing</div>
+                    </div>
+
+                    <div class="invite-card" style="margin-top: 20px;">
+                        <div class="invite-emoji">🎟️</div>
+                        <div class="invite-title">Referral Earnings</div>
+                        <div class="invite-text">₹750 earned from 1 successful referral</div>
+                    </div>
+
+                    <button class="btn btn-primary" style="width: 100%; margin-bottom: 20px; margin-top: 20px;">Request Payout</button>
+
+                    <div style="height: 80px;"></div>
+                </div>
+
+                <div class="bottom-nav">
+                    <div class="nav-item" onclick="goToScreen(7)">
+                        <div class="nav-icon">📊</div>
+                        <div class="nav-label">Dashboard</div>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon">📅</div>
+                        <div class="nav-label">Calendar</div>
+                    </div>
+                    <div class="nav-item active" onclick="goToScreen(9)">
+                        <div class="nav-icon">💰</div>
+                        <div class="nav-label">Earnings</div>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon">👤</div>
+                        <div class="nav-label">Profile</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 1;
+
+        function goToScreen(screenNum) {
+            const current = document.getElementById(`screen-${currentScreen}`);
+            const next = document.getElementById(`screen-${screenNum}`);
+
+            if (screenNum > currentScreen) {
+                current.classList.add('exit-left');
+            } else {
+                current.classList.add('exit-left');
+            }
+
+            current.classList.remove('active');
+            next.classList.add('active');
+            currentScreen = screenNum;
+
+            // Trigger confetti on success screen
+            if (screenNum === 6) {
+                createConfetti();
+            }
+        }
+
+        function createConfetti() {
+            const confettiContainer = document.createElement('div');
+            confettiContainer.className = 'confetti';
+            document.querySelector('.phone-frame').appendChild(confettiContainer);
+
+            const colors = ['#ff6b6b', '#0d7377', '#f5a623', '#27AE60'];
+            const pieces = 40;
+
+            for (let i = 0; i < pieces; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 375 + 'px';
+                piece.style.top = '-10px';
+                piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                piece.style.width = (Math.random() * 8 + 4) + 'px';
+                piece.style.height = piece.style.width;
+                piece.style.borderRadius = '50%';
+                piece.style.setProperty('--tx', (Math.random() * 200 - 100) + 'px');
+
+                confettiContainer.appendChild(piece);
+
+                setTimeout(() => {
+                    piece.remove();
+                }, 3000);
+            }
+        }
+
+        // Animate elements on load
+        window.addEventListener('load', () => {
+            const elements = document.querySelectorAll('.screen.active [class*="card"], .screen.active [class*="stat"]');
+            elements.forEach((el, i) => {
+                el.style.animationDelay = (i * 0.1) + 's';
+            });
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                if (currentScreen < 9) goToScreen(currentScreen + 1);
+            } else if (e.key === 'ArrowLeft') {
+                if (currentScreen > 1) goToScreen(currentScreen - 1);
+            }
+        });
+    </script>
+</body>
+</html>

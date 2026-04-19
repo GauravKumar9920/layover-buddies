@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%23E8730A'/%3E%3Cpath d='M16 6 C11 6 7 10 7 15 C7 21 16 28 16 28 C16 28 25 21 25 15 C25 10 21 6 16 6Z' fill='white'/%3E%3Ccircle cx='16' cy='15' r='4' fill='%23E8730A'/%3E%3C/svg%3E">
+  <meta property="og:title" content="LayoverLocal - Mumbai in a Few Hours">
+  <meta property="og:description" content="Get a personalised Mumbai tour with a vetted local student during your airport layover. Explore the real city in just a few hours.">
+  <meta property="og:image" content="/images/og-mumbai.jpg">
+  <meta property="og:url" content="https://layoverlocal.com">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="/images/twitter-mumbai.jpg">
+  <title>Mumbai Layover Buddies | Authentic City Tours</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body id="top" class="font-sans text-gray-800 antialiased">
+  <nav class="bg-white/80 backdrop-blur-md border-b border-white/40 shadow-sm fixed w-full z-50 top-0 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        <a href="#top" class="flex-shrink-0 font-bold text-2xl text-indigo-600 hover:text-indigo-700 transition">
+          <i class="fa-solid fa-map-location-dot mr-2"></i>LayoverBuddies
+        </a>
+
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="#about" class="text-slate-600 hover:text-indigo-600 font-medium transition">Why Us</a>
+          <a href="#how-it-works" class="text-slate-600 hover:text-indigo-600 font-medium transition">How It Works</a>
+          <a href="#reviews" class="text-slate-600 hover:text-indigo-600 font-medium transition">Reviews</a>
+          <a href="#faq" class="text-slate-600 hover:text-indigo-600 font-medium transition">FAQ</a>
+          <a href="know-more.html" class="text-slate-600 hover:text-indigo-600 font-medium transition">Know More</a>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <a href="http://localhost:8081" class="hidden sm:inline-flex items-center bg-indigo-600 text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-full font-medium hover:bg-indigo-700 transition duration-300 shadow-md shadow-indigo-200 text-sm sm:text-base">Book a Buddy</a>
+          <button id="mobile-menu-toggle-home" type="button" class="inline-flex md:hidden items-center justify-center w-10 h-10 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 transition" aria-label="Toggle navigation menu" aria-controls="mobile-menu-home" aria-expanded="false">
+            <i class="fa-solid fa-bars" data-icon-open></i>
+            <i class="fa-solid fa-xmark text-lg hidden" data-icon-close></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="mobile-menu-home" class="md:hidden hidden pb-4">
+        <div class="rounded-2xl border border-slate-200 bg-white/95 backdrop-blur px-3 py-3 shadow-sm space-y-1">
+          <a href="#about" class="block px-3 py-2 rounded-lg text-slate-700 font-medium hover:bg-slate-100 transition">Why Us</a>
+          <a href="#how-it-works" class="block px-3 py-2 rounded-lg text-slate-700 font-medium hover:bg-slate-100 transition">How It Works</a>
+          <a href="#reviews" class="block px-3 py-2 rounded-lg text-slate-700 font-medium hover:bg-slate-100 transition">Reviews</a>
+          <a href="#faq" class="block px-3 py-2 rounded-lg text-slate-700 font-medium hover:bg-slate-100 transition">FAQ</a>
+          <a href="know-more.html" class="block px-3 py-2 rounded-lg text-slate-700 font-medium hover:bg-slate-100 transition">Know More</a>
+          <a href="http://localhost:8081" class="block mt-2 px-3 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition">Book a Buddy</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="relative pt-24 pb-20 overflow-hidden">
+    <div class="hero-video-bg" aria-hidden="true"></div>
+    <div class="hero-mobile-mesh" aria-hidden="true"></div>
+    <div class="hero-vignette" aria-hidden="true"></div>
+    <div class="hero-saffron-teal" aria-hidden="true"></div>
+    <div class="absolute inset-0 z-[1] pointer-events-none">
+      <div class="absolute -top-16 -left-16 w-80 h-80 bg-sky-300/30 rounded-full blur-3xl hero-glow"></div>
+      <div class="absolute top-20 -right-16 w-96 h-96 bg-amber-300/25 rounded-full blur-3xl hero-glow-delay"></div>
+      <div class="absolute bottom-0 left-1/3 w-72 h-72 bg-teal-300/20 rounded-full blur-3xl float-slower"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="text-center lg:text-left max-w-2xl mx-auto lg:mx-0">
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 backdrop-blur border border-sky-100 text-sky-700 shadow-sm fade-up">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            Mumbai layovers, turned into city stories
+          </div>
+          <h1 class="mt-6 text-4xl tracking-tight font-extrabold text-gray-950 sm:text-5xl md:text-6xl leading-tight fade-up-delay-1">
+            <span class="block">Turn your Mumbai layover</span>
+            <span class="block text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-cyan-600 to-amber-500">into a local adventure.</span>
+          </h1>
+          <p class="mt-5 text-lg text-slate-700 sm:text-xl leading-relaxed fade-up-delay-2">
+            Don't wait at the airport. Explore the real Mumbai with a vetted, English-speaking university student as your personal navigator. We keep the route flexible, the pace smooth, and your return flight safe.
+          </p>
+
+          <div class="mt-8 flex flex-col sm:flex-row justify-center lg:justify-start gap-4 fade-up-delay-3">
+            <a href="http://localhost:8081" class="shine bg-gradient-to-r from-indigo-600 to-sky-600 text-white px-8 py-3.5 rounded-full font-bold text-lg hover:from-indigo-700 hover:to-sky-700 shadow-xl shadow-sky-200 transition duration-300 transform hover:-translate-y-0.5">
+              <i class="fa-solid fa-rocket mr-2 text-xl align-middle"></i> Find My Local Buddy
+            </a>
+            <a href="know-more.html" class="bg-white/80 backdrop-blur text-slate-700 border border-slate-200 px-8 py-3.5 rounded-full font-bold text-lg hover:bg-white transition duration-300 transform hover:-translate-y-0.5 shadow-sm">
+              Know More
+            </a>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-slate-200 fade-up-delay-3">
+            <span class="recent-label recent-label--solo"><i class="fa-solid fa-users text-sky-600 mr-2"></i>+2,400 travelers hosted this year</span>
+          </div>
+        </div>
+
+        <div class="relative">
+          <div class="absolute -top-5 -left-5 w-24 h-24 rounded-3xl bg-amber-300/40 blur-2xl float-slow"></div>
+          <div class="absolute -bottom-6 right-8 w-28 h-28 rounded-full bg-sky-400/30 blur-2xl float-slower"></div>
+          <div class="grid grid-cols-12 gap-4 items-end">
+            <div class="col-span-7 photo-card rounded-[2rem] shadow-2xl shadow-slate-300/40 h-[26rem] sm:h-[32rem] border border-white/60">
+              <img src="/images/hero-skyline-main.jpg" alt="Mumbai skyline at dusk" class="w-full h-full object-cover img-blur-up" width="1200" height="1600" decoding="async">
+            </div>
+            <div class="col-span-5 space-y-4">
+              <div class="photo-card rounded-[1.75rem] shadow-xl shadow-slate-300/30 h-40 border border-white/60">
+                <img src="/images/hero-skyline-side.jpg" alt="Mumbai skyline" class="w-full h-full object-cover img-blur-up" width="600" height="400" loading="lazy" decoding="async">
+              </div>
+              <div class="photo-card rounded-[1.75rem] shadow-xl shadow-slate-300/30 h-48 border border-white/60">
+                <img src="/images/hero-gateway-night.jpg" alt="Gateway of India at night" class="w-full h-full object-cover img-blur-up" width="600" height="500" loading="lazy" decoding="async">
+              </div>
+            </div>
+          </div>
+          <div class="absolute -left-4 bottom-10 bg-white/85 backdrop-blur rounded-2xl px-4 py-3 shadow-lg border border-white/70 float-slow">
+            <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Popular stop</p>
+            <p class="font-semibold text-slate-800">Marine Drive sunset loop</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="about" class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12 max-w-2xl mx-auto">
+        <span class="text-indigo-600 font-bold tracking-wider uppercase text-sm mb-2 block">Why Choose Us</span>
+        <h2 class="text-3xl font-extrabold text-gray-950 sm:text-4xl">Why Explore with a Local Student?</h2>
+        <p class="mt-4 text-lg text-slate-600">Ditch the boring tourist traps. Experience the city through neighborhoods, food, and landmarks that actually feel alive.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white/85 backdrop-blur p-8 rounded-[2rem] shadow-lg shadow-slate-200/50 border border-white text-center transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
+          <img src="/images/gallery-university.jpg" alt="Student guides on campus" width="480" height="280" loading="lazy" decoding="async" class="w-full h-28 object-cover rounded-2xl mb-5 img-blur-up">
+          <div class="w-16 h-16 bg-sky-50 text-sky-600 text-3xl rounded-2xl flex items-center justify-center mx-auto mb-6"><i class="fa-solid fa-user-graduate"></i></div>
+          <h3 class="text-xl font-bold mb-3">Smart & Cultured</h3>
+          <p class="text-slate-600 leading-relaxed">Our buddies are vetted students from Mumbai's top colleges. They speak fluent English and double as the ultimate local handbook.</p>
+        </div>
+        <div class="bg-white/85 backdrop-blur p-8 rounded-[2rem] shadow-lg shadow-slate-200/50 border border-white text-center transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
+          <img src="/images/step-airport.jpg" alt="Traveler returning safely to airport" width="480" height="280" loading="lazy" decoding="async" class="w-full h-28 object-cover rounded-2xl mb-5 img-blur-up">
+          <div class="w-16 h-16 bg-amber-50 text-amber-500 text-3xl rounded-2xl flex items-center justify-center mx-auto mb-6"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <h3 class="text-xl font-bold mb-3">Flight-Safe Protocol</h3>
+          <p class="text-slate-600 leading-relaxed">We design the itinerary strictly around your departure time. We track traffic in real-time to guarantee you'll be back at CSMIA with time to spare.</p>
+        </div>
+        <div class="bg-white/85 backdrop-blur p-8 rounded-[2rem] shadow-lg shadow-slate-200/50 border border-white text-center transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
+          <img src="/images/gallery-vadapav.jpg" alt="Transparent local pricing for food and experiences" width="480" height="280" loading="lazy" decoding="async" class="w-full h-28 object-cover rounded-2xl mb-5 img-blur-up">
+          <div class="w-16 h-16 bg-teal-50 text-teal-600 text-3xl rounded-2xl flex items-center justify-center mx-auto mb-6"><i class="fa-solid fa-wallet"></i></div>
+          <h3 class="text-xl font-bold mb-3">Transparent Pricing</h3>
+          <p class="text-slate-600 leading-relaxed">Pay a flat service fee for your buddy's time. Food, cab fare, and tickets are bought directly, at the correct local price, with zero markup.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-4 pb-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-3 gap-6">
+        <article class="package-card relative rounded-[2rem] border border-white/70 shadow-2xl shadow-slate-300/30 overflow-hidden">
+          <div class="img-zoom-wrap h-[200px]">
+            <img src="/images/package-quick-escape.jpg" alt="Marine Drive Mumbai at night - Quick Escape tour" width="600" height="200" loading="lazy" decoding="async" class="w-full h-full object-cover img-blur-up">
+            <span class="package-overlay package-overlay-teal"></span>
+          </div>
+          <div class="p-6 bg-white/85 backdrop-blur">
+            <h3 class="text-xl font-bold text-slate-900">Quick Escape</h3>
+            <p class="mt-2 text-slate-600">A compact city burst with sea breeze, skyline, and snack stops.</p>
+          </div>
+        </article>
+
+        <article class="package-card relative rounded-[2rem] border border-white/70 shadow-2xl shadow-slate-300/30 overflow-hidden">
+          <div class="img-zoom-wrap h-[200px]">
+            <img src="/images/package-real-mumbai.jpg" alt="Dharavi Mumbai - The Real Mumbai tour" width="600" height="200" loading="lazy" decoding="async" class="w-full h-full object-cover img-blur-up">
+            <span class="package-overlay package-overlay-saffron"></span>
+          </div>
+          <div class="p-6 bg-white/85 backdrop-blur">
+            <h3 class="text-xl font-bold text-slate-900">The Real Mumbai</h3>
+            <p class="mt-2 text-slate-600">Color, craftsmanship, hidden streets, and stories from the ground up.</p>
+          </div>
+        </article>
+
+        <article class="package-card relative rounded-[2rem] border border-white/70 shadow-2xl shadow-slate-300/30 overflow-hidden">
+          <div class="img-zoom-wrap h-[200px]">
+            <img src="/images/package-deep-dive.jpg" alt="Juhu Beach Mumbai sunset - Deep Dive tour" width="600" height="200" loading="lazy" decoding="async" class="w-full h-full object-cover img-blur-up">
+            <span class="package-overlay package-overlay-gold"></span>
+          </div>
+          <div class="p-6 bg-white/85 backdrop-blur">
+            <h3 class="text-xl font-bold text-slate-900">Deep Dive</h3>
+            <p class="mt-2 text-slate-600">A slower, richer route with local trains, neighborhoods, and flavors.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 lg:py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-extrabold text-gray-950 sm:text-4xl">Mumbai, As Seen By Those Who Live It</h2>
+        <p class="mt-4 text-lg text-slate-600">Every photo taken by a LayoverLocal guide. Real people. Real moments.</p>
+      </div>
+      <div class="gallery-masonry">
+        <img class="img-reveal img-blur-up" src="/images/gallery-chai.jpg" alt="Mumbai cafe and tea culture" width="400" height="500" loading="lazy">
+        <img class="img-reveal img-blur-up" src="/images/gallery-gateway.jpg" alt="Gateway of India Mumbai" width="400" height="300" loading="lazy">
+        <img class="img-reveal img-blur-up" src="/images/gallery-dharavi.jpg" alt="Dharavi Mumbai vibrant community" width="400" height="600" loading="lazy">
+        <img class="img-reveal img-blur-up" src="/images/gallery-cst.jpg" alt="CST railway station Mumbai heritage architecture" width="400" height="400" loading="lazy">
+        <img class="img-reveal img-blur-up" src="/images/gallery-vadapav.jpg" alt="Vada pav Mumbai street food" width="400" height="350" loading="lazy">
+        <img class="img-reveal img-blur-up" src="/images/gallery-sealink.jpg" alt="Bandra Worli Sea Link at dusk" width="400" height="550" loading="lazy">
+        <img class="img-reveal img-blur-up" src="/images/gallery-university.jpg" alt="University of Mumbai Fort Campus" width="400" height="400" loading="lazy">
+        <img class="img-reveal img-blur-up" src="/images/gallery-local-train.jpg" alt="View from Mumbai local train" width="400" height="300" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <section class="video-reel py-16 lg:py-24 text-center relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div class="video-reel__label text-indigo-600 font-bold tracking-wider uppercase text-sm mb-2 block">60 Seconds in Mumbai</div>
+      <h2 class="text-3xl font-extrabold text-gray-950 mb-4">This is what your layover could feel like</h2>
+      <p class="text-slate-600 mb-10">Watch Arjun take Emma from Denmark through 5 hours of real Mumbai</p>
+
+      <aside class="video-deco video-deco-left" data-delay="200" aria-hidden="true">
+        <span class="video-rating">Top-rated layover route • 4.9/5</span>
+      </aside>
+
+      <aside class="video-deco video-deco-right" data-delay="200" aria-hidden="true">
+        <span>📍 Dharavi → Marine Drive → CST</span>
+      </aside>
+
+      <div class="video-frame" data-video-src="/videos/layover-reel.mp4">
+        <img class="video-poster img-blur-up" src="/images/video-poster.jpg" alt="Watch a LayoverLocal experience video" width="1200" height="675" decoding="async">
+        <button class="play-btn" aria-label="Play experience video">
+          <svg viewBox="0 0 60 60" width="60" height="60">
+            <circle cx="30" cy="30" r="30" fill="#4f46e5" opacity="0.9"></circle>
+            <polygon points="23,18 47,30 23,42" fill="white"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works" class="bg-white/80 backdrop-blur py-16 lg:py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <span class="text-indigo-600 font-bold tracking-wider uppercase text-sm mb-2 block text-center">Process</span>
+      <h2 class="text-3xl font-extrabold text-center text-gray-950 mb-14">How It Works</h2>
+
+      <div class="relative">
+        <div class="hidden md:block absolute top-[50%] left-[10%] right-[10%] h-0.5 bg-slate-100 z-0"></div>
+        <div class="flex flex-col md:flex-row justify-center items-start gap-8 relative z-10">
+          <article class="flex-1 text-center bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/40 border border-slate-100 transform transition duration-300 hover:-translate-y-2 relative overflow-hidden">
+            <img src="/images/step-airport.jpg" alt="Mumbai airport terminal" loading="lazy" width="120" height="80" class="step-photo absolute top-4 right-4 w-[120px] h-[80px]">
+            <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-sm border border-sky-50">1</div>
+            <h3 class="text-xl font-bold mb-3 text-slate-900">Share Your Layover</h3>
+            <p class="text-slate-600 leading-relaxed">Message us your flight arrival and departure times on WhatsApp to get started instantly.</p>
+          </article>
+          <article class="flex-1 text-center bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/40 border border-slate-100 transform transition duration-300 hover:-translate-y-2 relative overflow-hidden">
+            <img src="/images/step-university.jpg" alt="University of Mumbai campus" loading="lazy" width="120" height="80" class="step-photo absolute top-4 right-4 w-[120px] h-[80px]">
+            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-sm border border-amber-50">2</div>
+            <h3 class="text-xl font-bold mb-3 text-slate-900">Get Matched</h3>
+            <p class="text-slate-600 leading-relaxed">We match you with a vetted student buddy and send a tailored itinerary based on your available hours.</p>
+          </article>
+          <article class="flex-1 text-center bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/40 border border-slate-100 transform transition duration-300 hover:-translate-y-2 relative overflow-hidden">
+            <img src="/images/step-streets.jpg" alt="Mumbai city streets" loading="lazy" width="120" height="80" class="step-photo absolute top-4 right-4 w-[120px] h-[80px]">
+            <div class="w-16 h-16 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-sm border border-teal-50">3</div>
+            <h3 class="text-xl font-bold mb-3 text-slate-900">Explore Mumbai</h3>
+            <p class="text-slate-600 leading-relaxed">Meet your buddy at airport arrivals, stash your heavy bags in the cloakroom, and hit the city.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="guide" class="py-16 lg:py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-2 gap-8 items-stretch">
+        <div class="relative rounded-[2rem] overflow-hidden min-h-[360px]">
+          <img src="/images/guide-campus.jpg" alt="University of Mumbai campus - become a LayoverLocal guide" width="800" height="1000" loading="lazy" decoding="async" class="guide-section-photo">
+          <div class="absolute inset-0 bg-gradient-to-br from-teal-900/70 via-cyan-800/40 to-transparent"></div>
+          <div class="absolute bottom-6 left-6 right-6 text-white">
+            <p class="uppercase tracking-[0.2em] text-xs text-cyan-100">Become a Guide</p>
+            <h3 class="text-2xl font-bold mt-2">Show travelers the city you love</h3>
+          </div>
+        </div>
+        <div class="bg-white rounded-[2rem] border border-slate-100 p-8 shadow-xl shadow-slate-200/40">
+          <h3 class="text-2xl font-bold text-slate-900">Earn while sharing Mumbai</h3>
+          <p class="mt-3 text-slate-600">Join vetted local students who host travelers safely between flights. Flexible hours, transparent payouts, and real cultural exchange.</p>
+          <ul class="mt-6 space-y-3 text-slate-700">
+            <li><i class="fa-solid fa-circle-check text-emerald-500 mr-2"></i> Verified identity and training</li>
+            <li><i class="fa-solid fa-circle-check text-emerald-500 mr-2"></i> Live itinerary support</li>
+            <li><i class="fa-solid fa-circle-check text-emerald-500 mr-2"></i> Weekly payouts</li>
+          </ul>
+          <a href="mailto:hello@layoverbuddies.com?subject=Guide%20Application" class="mt-8 inline-flex bg-slate-900 text-white px-6 py-3 rounded-full font-semibold hover:bg-slate-800 transition">Apply as a Guide</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="reviews" class="testimonials py-16 lg:py-24 relative overflow-hidden">
+    <div class="section-bg-photo" aria-hidden="true">
+      <img src="/images/reviews-bg.jpg" alt="" width="1920" height="800" loading="lazy" decoding="async" class="img-blur-up">
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-b from-orange-900/55 via-slate-900/55 to-slate-950/75"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="text-center mb-14">
+        <span class="text-amber-200 font-bold tracking-wider uppercase text-sm mb-2 block">Testimonials</span>
+        <h2 class="text-3xl font-extrabold text-white">What Travelers Are Saying</h2>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <article class="testimonial-card p-8 rounded-3xl shadow-sm">
+          <div class="flex text-amber-300 text-sm mb-4"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+          <p class="text-slate-100 italic mb-6">"I had a 9-hour layover en route to London. Rather than sleeping in an uncomfortable chair, my buddy Rahul took me to try the best pav bhaji. Got back to the terminal feeling refreshed."</p>
+          <div class="flex items-center gap-3">
+            <img src="/images/gallery-gateway.jpg" alt="Traveler Sarah Mitchell" width="64" height="64" loading="lazy" decoding="async" class="w-10 h-10 rounded-full object-cover border border-white/40">
+            <div>
+              <p class="font-bold text-white text-sm">Sarah Mitchell</p>
+              <p class="text-indigo-200 text-xs">Layover from Sydney</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="testimonial-card p-8 rounded-3xl shadow-sm">
+          <div class="flex text-amber-300 text-sm mb-4"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+          <p class="text-slate-100 italic mb-6">"Safety was my biggest concern as a solo traveler. Having a local student navigate trains and cabs was priceless. Highly recommend for any long layover."</p>
+          <div class="flex items-center gap-3">
+            <img src="/images/gallery-chai.jpg" alt="Traveler Elena Kats" width="64" height="64" loading="lazy" decoding="async" class="w-10 h-10 rounded-full object-cover border border-white/40">
+            <div>
+              <p class="font-bold text-white text-sm">Elena Kats</p>
+              <p class="text-indigo-200 text-xs">Layover from Frankfurt</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="testimonial-card p-8 rounded-3xl shadow-sm">
+          <div class="flex text-amber-300 text-sm mb-4"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+          <p class="text-slate-100 italic mb-6">"Incredibly professional. Coordination on WhatsApp was seamless, pricing was transparent, and we packed so much into five hours."</p>
+          <div class="flex items-center gap-3">
+            <img src="/images/gallery-sealink.jpg" alt="Traveler David Boyle" width="64" height="64" loading="lazy" decoding="async" class="w-10 h-10 rounded-full object-cover border border-white/40">
+            <div>
+              <p class="font-bold text-white text-sm">David Boyle</p>
+              <p class="text-indigo-200 text-xs">Layover from Dubai</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="py-16 lg:py-24">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-extrabold text-gray-950">Got Questions?</h2>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 mb-8">
+        <img src="/images/gallery-local-train.jpg" alt="Mumbai local transport support" width="400" height="240" loading="lazy" decoding="async" class="w-full h-24 object-cover rounded-xl img-blur-up">
+        <img src="/images/gallery-cst.jpg" alt="Mumbai airport return discipline" width="400" height="240" loading="lazy" decoding="async" class="w-full h-24 object-cover rounded-xl img-blur-up">
+        <img src="/images/gallery-chai.jpg" alt="Local food and experience guidance" width="400" height="240" loading="lazy" decoding="async" class="w-full h-24 object-cover rounded-xl img-blur-up">
+      </div>
+
+      <div class="space-y-6">
+        <article class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+          <h3 class="text-lg font-bold text-slate-900 flex items-center gap-3"><i class="fa-solid fa-plane-departure text-indigo-500"></i> What if my incoming flight is delayed?</h3>
+          <p class="mt-3 text-slate-600">We monitor flight statuses in real-time. Your buddy will wait for you or adjust the itinerary on the fly. You only pay for the time you actually spend touring.</p>
+        </article>
+
+        <article class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+          <h3 class="text-lg font-bold text-slate-900 flex items-center gap-3"><i class="fa-solid fa-suitcase text-indigo-500"></i> What do I do with my heavy luggage?</h3>
+          <p class="mt-3 text-slate-600">Mumbai Airport has a secure left-luggage cloakroom. Your buddy will meet you at arrivals and escort you directly there so your city run stays easy.</p>
+        </article>
+
+        <article class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+          <h3 class="text-lg font-bold text-slate-900 flex items-center gap-3"><i class="fa-solid fa-money-bill-wave text-indigo-500"></i> How does the pricing work?</h3>
+          <p class="mt-3 text-slate-600">You pay a flat hourly or half-day fee online to reserve your buddy. During the tour, you directly pay transportation, food, and tickets with no hidden markup.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="book" class="relative overflow-hidden py-16 lg:py-24">
+    <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950 to-sky-900"></div>
+    <div class="absolute inset-0 opacity-35 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.45),_transparent_30%),radial-gradient(circle_at_80%_20%,_rgba(245,158,11,0.38),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.25),_transparent_24%)]"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+      <div class="relative bg-white/10 backdrop-blur-xl border border-white/15 rounded-[2rem] p-10 sm:p-14 shadow-2xl shadow-slate-950/30">
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-6">Ready to skip the airport waiting lounge?</h2>
+        <p class="text-sky-100 text-lg sm:text-xl mb-10 max-w-2xl mx-auto">Create a free account, browse local guides, and book your perfect Mumbai adventure in minutes.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <a href="http://localhost:8081" class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold rounded-full text-slate-900 bg-white hover:bg-slate-100 shadow-xl transition duration-300 transform hover:-translate-y-1">
+            <i class="fa-solid fa-rocket text-xl mr-2 text-indigo-500"></i> Get Started Free
+          </a>
+          <a href="https://wa.me/910000000000?text=Hi!%20I%20have%20a%20layover%20in%20Mumbai%20and%20want%20to%20book%20a%20Local%20Buddy." target="_blank" class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold rounded-full text-white border-2 border-white/30 hover:bg-white/10 transition duration-300 transform hover:-translate-y-1">
+            <i class="fa-brands fa-whatsapp text-2xl mr-2 text-green-400"></i> Chat on WhatsApp
+          </a>
+        </div>
+        <p class="mt-6 text-sm text-sky-200/70"><i class="fa-solid fa-bolt mr-1"></i> Free sign-up • No payment until you book</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="bg-slate-950 pt-16 pb-8 border-t border-slate-900 border-t-4 border-indigo-600">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div class="col-span-1 md:col-span-2 text-slate-300">
+          <a href="#top" class="font-bold text-2xl text-white mb-4 flex items-center">
+            <i class="fa-solid fa-map-location-dot mr-2 text-indigo-500"></i>LayoverBuddies
+          </a>
+          <p class="mb-6 max-w-sm text-slate-400 leading-relaxed">Connecting transit travelers with vetted university students for safe, authentic, and flight-safe layover tours across Mumbai.</p>
+          <div class="flex space-x-4">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="X" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-sky-500 hover:text-white transition"><i class="fa-brands fa-twitter"></i></a>
+            <a href="mailto:hello@layoverbuddies.com" aria-label="Email support" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-700 hover:text-white transition"><i class="fa-solid fa-envelope"></i></a>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-white font-bold mb-4">Explore</h4>
+          <ul class="space-y-3 text-slate-400">
+            <li><a href="#how-it-works" class="hover:text-indigo-400 transition">How it Works</a></li>
+            <li><a href="#about" class="hover:text-indigo-400 transition">Why Choose Us</a></li>
+            <li><a href="#reviews" class="hover:text-indigo-400 transition">Traveler Reviews</a></li>
+            <li><a href="#faq" class="hover:text-indigo-400 transition">FAQs</a></li>
+            <li><a href="know-more.html" class="hover:text-indigo-400 transition">Know More</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-bold mb-4">Contact</h4>
+          <ul class="space-y-3 text-slate-400">
+            <li><a href="mailto:hello@layoverbuddies.com" class="hover:text-white transition">Email Support</a></li>
+            <li><a href="https://wa.me/910000000000?text=Hi!%20I%20have%20a%20layover%20in%20Mumbai%20and%20want%20to%20book%20a%20Local%20Buddy." target="_blank" rel="noopener noreferrer" class="hover:text-white transition">WhatsApp</a></li>
+            <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="hover:text-white transition">Instagram</a></li>
+            <li><a href="https://x.com" target="_blank" rel="noopener noreferrer" class="hover:text-white transition">X (Twitter)</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-slate-500 text-sm mb-4 md:mb-0">&copy; 2026 LayoverBuddies Mumbai. All rights reserved.</p>
+        <div class="flex items-center text-slate-500 text-sm gap-4">
+          <span class="flex items-center gap-1"><i class="fa-solid fa-shield-halved text-emerald-500"></i> Verified Local Guides</span>
+          <span class="flex items-center gap-1"><i class="fa-solid fa-plane-arrival text-sky-500"></i> CSMIA Approved Protocol</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const setupMobileMenu = (toggleId, menuId) => {
+      const toggle = document.getElementById(toggleId);
+      const menu = document.getElementById(menuId);
+      if (!toggle || !menu) return;
+
+      const iconOpen = toggle.querySelector('[data-icon-open]');
+      const iconClose = toggle.querySelector('[data-icon-close]');
+
+      const setMenuState = (isOpen) => {
+        menu.classList.toggle('hidden', !isOpen);
+        toggle.setAttribute('aria-expanded', String(isOpen));
+        iconOpen?.classList.toggle('hidden', isOpen);
+        iconClose?.classList.toggle('hidden', !isOpen);
+      };
+
+      setMenuState(false);
+
+      toggle.addEventListener('click', () => {
+        setMenuState(menu.classList.contains('hidden'));
+      });
+
+      menu.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', () => setMenuState(false));
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) setMenuState(false);
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') setMenuState(false);
+      });
+    };
+
+    setupMobileMenu('mobile-menu-toggle-home', 'mobile-menu-home');
+
+    document.querySelectorAll('img.img-blur-up').forEach((img) => {
+      if (img.complete) img.classList.add('loaded');
+      else img.addEventListener('load', () => img.classList.add('loaded'), { once: true });
+    });
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.img-reveal').forEach((el, idx) => {
+      el.style.animationDelay = `${idx * 100}ms`;
+      revealObserver.observe(el);
+    });
+
+    const bgPhoto = document.querySelector('.section-bg-photo img');
+    if (bgPhoto) {
+      window.addEventListener('scroll', () => {
+        const rect = bgPhoto.closest('.testimonials').getBoundingClientRect();
+        const offset = rect.top * 0.15;
+        bgPhoto.style.setProperty('--parallax-offset', `${offset}px`);
+      }, { passive: true });
+    }
+
+    const videoFrame = document.querySelector('.video-frame');
+    const playBtn = videoFrame?.querySelector('.play-btn');
+
+    const playExperienceVideo = () => {
+      if (!videoFrame || videoFrame.dataset.playing === 'true') return;
+
+      const video = document.createElement('video');
+      video.src = videoFrame.dataset.videoSrc || '';
+      video.controls = true;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.preload = 'metadata';
+      video.title = 'Layover experience video';
+
+      videoFrame.classList.add('is-playing');
+      videoFrame.dataset.playing = 'true';
+
+      videoFrame.querySelector('.video-poster')?.remove();
+      videoFrame.querySelector('.play-btn')?.remove();
+
+      video.addEventListener('error', () => {
+        const fallback = document.createElement('a');
+        fallback.href = video.src;
+        fallback.target = '_blank';
+        fallback.rel = 'noopener noreferrer';
+        fallback.className = 'video-fallback-link';
+        fallback.textContent = 'Video could not load here. Open it in a new tab.';
+        videoFrame.innerHTML = '';
+        videoFrame.appendChild(fallback);
+      }, { once: true });
+
+      videoFrame.appendChild(video);
+      video.play().catch(() => {
+        const fallback = document.createElement('a');
+        fallback.href = video.src;
+        fallback.target = '_blank';
+        fallback.rel = 'noopener noreferrer';
+        fallback.className = 'video-fallback-link';
+        fallback.textContent = 'Tap to open video in a new tab.';
+        videoFrame.innerHTML = '';
+        videoFrame.appendChild(fallback);
+      });
+    };
+
+    playBtn?.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      playExperienceVideo();
+    });
+
+    videoFrame?.addEventListener('click', (event) => {
+      if (event.target.closest('video')) return;
+      playExperienceVideo();
+    });
+  </script>
+</body>
+</html>

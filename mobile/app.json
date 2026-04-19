@@ -1,0 +1,63 @@
+{
+  "expo": {
+    "name": "Mumbai Buddies",
+    "slug": "mumbai-buddies",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D7377"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.mumbaibuddies.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Mumbai Buddies uses your location to show your guide's live position during the tour.",
+        "NSLocationAlwaysUsageDescription": "Mumbai Buddies uses your location for real-time tracking during tours.",
+        "NSCameraUsageDescription": "Mumbai Buddies uses your camera for profile photos.",
+        "NSPhotoLibraryUsageDescription": "Mumbai Buddies needs access to your photos for profile pictures."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0D7377"
+      },
+      "package": "com.mumbaibuddies.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Mumbai Buddies uses your location during tours."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Mumbai Buddies uses your camera for profile photos."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "newArchEnabled": true,
+    "scheme": "mumbaibuddies"
+  }
+}

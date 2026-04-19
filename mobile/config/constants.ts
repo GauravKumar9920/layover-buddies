@@ -1,0 +1,63 @@
+// Business rules — never change without founder sign-off
+export const COMMISSION_RATE = 0.25; // 25% of buddy_cost only (NOT on expenses)
+// NOTE: NEXT_TASKS.md Task 7 suggests 15% — confirm with Gaurav before changing
+
+export const ESTIMATED_EXPENSES_PERCENT = 30; // 30% of buddy_cost as placeholder estimate
+export const MIN_BOOKING_NOTICE_HOURS = 4;    // can't book less than 4h before arrival
+export const MAX_BOOKING_ADVANCE_DAYS = 90;   // can't book more than 90 days ahead
+
+export const CURRENCY = 'INR' as const;
+export const CURRENCY_SYMBOL = '₹' as const;
+
+export const BOOKING_STATUS = {
+  PENDING: 'pending',
+  GUIDE_ACCEPTED: 'guide_accepted',
+  CONFIRMED: 'confirmed',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+  DECLINED: 'declined',
+  CANCELLED: 'cancelled',
+} as const;
+
+export const PAYMENT_STATUS = {
+  PENDING: 'pending',
+  AUTHORIZED: 'authorized',
+  CAPTURED: 'captured',
+  RELEASED: 'released',
+  FAILED: 'failed',
+  REFUNDED: 'refunded',
+} as const;
+
+// Guides only show in search if rating >= this (0 reviews are exempt — shown as "New Guide")
+export const MIN_GUIDE_RATING = 4.0;
+
+// Payment held in escrow; auto-released after this many hours post-tour
+export const ESCROW_RELEASE_HOURS = 24;
+
+export const PRIMARY_CITY = 'Mumbai' as const;
+
+export const SUPPORTED_CITIES = [
+  PRIMARY_CITY,
+] as const;
+
+export const GUIDE_CATEGORIES = [
+  'History',
+  'Culture',
+  'Food',
+  'Photography',
+  'Art',
+  'Nature',
+  'Adventure',
+  'Shopping',
+] as const;
+
+export const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
+  History: { bg: '#EDE9FE', text: '#6C5CE7' },
+  Culture: { bg: '#FCE7F3', text: '#DB2777' },
+  Food: { bg: '#FEF3C7', text: '#D97706' },
+  Photography: { bg: '#DBEAFE', text: '#2563EB' },
+  Art: { bg: '#FEF9C3', text: '#CA8A04' },
+  Nature: { bg: '#DCFCE7', text: '#16A34A' },
+  Adventure: { bg: '#FFE8E8', text: '#E55555' },
+  Shopping: { bg: '#F3E8FF', text: '#9333EA' },
+};

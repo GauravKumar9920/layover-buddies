@@ -1,0 +1,413 @@
+-- ============================================================================
+-- MUMBAI BUDDIES — SEED DATA
+-- ============================================================================
+-- Realistic demo data for local development.
+-- Run with: supabase db reset   (applies migrations then this seed)
+-- Or manually: psql < supabase/seed.sql
+-- ============================================================================
+
+-- Use fixed UUIDs so foreign keys are deterministic and re-runnable.
+-- Pattern: aaaaaaaa-0000-4000-a000-{table}{row} (easy to grep/debug)
+
+-- ============================================================================
+-- 1. USERS (5 guides + 3 travelers)
+-- ============================================================================
+
+INSERT INTO users (id, email, phone, full_name, role, avatar_url, is_verified, auth_provider) VALUES
+-- Guides
+('aaaaaaaa-0000-4000-a000-000000000001', 'aarav.patil@vjti.ac.in',       '+919876543201', 'Aarav Patil',     'guide',    NULL, TRUE,  'email'),
+('aaaaaaaa-0000-4000-a000-000000000002', 'priya.sharma@iitb.ac.in',      '+919876543202', 'Priya Sharma',    'guide',    NULL, TRUE,  'google'),
+('aaaaaaaa-0000-4000-a000-000000000003', 'rohan.dsouza@xaviers.edu',     '+919876543203', 'Rohan D''Souza',  'guide',    NULL, TRUE,  'email'),
+('aaaaaaaa-0000-4000-a000-000000000004', 'sneha.mehta@nmims.edu',        '+919876543204', 'Sneha Mehta',     'guide',    NULL, TRUE,  'google'),
+('aaaaaaaa-0000-4000-a000-000000000005', 'kabir.joshi@mithibai.ac.in',   '+919876543205', 'Kabir Joshi',     'guide',    NULL, FALSE, 'email'),
+-- Travelers
+('aaaaaaaa-0000-4000-a000-000000000011', 'emma.wilson@gmail.com',        '+14155551234',  'Emma Wilson',     'traveler', NULL, TRUE,  'google'),
+('aaaaaaaa-0000-4000-a000-000000000012', 'james.tanaka@outlook.com',     '+81901234567',  'James Tanaka',    'traveler', NULL, TRUE,  'email'),
+('aaaaaaaa-0000-4000-a000-000000000013', 'sofia.mueller@proton.me',      '+491761234567', 'Sofia Mueller',   'traveler', NULL, TRUE,  'apple');
+
+
+-- ============================================================================
+-- 2. GUIDE PROFILES
+-- ============================================================================
+
+INSERT INTO guide_profiles (
+  id, user_id, university, year_of_study, course, bio,
+  languages, skills,
+  aadhaar_verified, college_verified, interview_passed, police_verified,
+  avg_rating, total_reviews, total_trips, response_time_minutes, is_active
+) VALUES
+(
+  'bbbbbbbb-0000-4000-a000-000000000001',
+  'aaaaaaaa-0000-4000-a000-000000000001',
+  'Veermata Jijabai Technological Institute (VJTI)', '3rd Year', 'Mechanical Engineering',
+  'Born and raised in Dadar — I know every galli and tapri in central Mumbai. I''ll take you to places even Google Maps hasn''t found. When I''m not in the workshop, I''m eating vada pav or exploring abandoned mill compounds.',
+  '[{"language": "English", "proficiency": "fluent"}, {"language": "Hindi", "proficiency": "native"}, {"language": "Marathi", "proficiency": "native"}]'::jsonb,
+  '[{"name": "Foodie", "emoji": "🍜"}, {"name": "History Buff", "emoji": "📚"}, {"name": "Street Smart", "emoji": "🏙️"}]'::jsonb,
+  TRUE, TRUE, TRUE, TRUE,
+  4.80, 3, 5, 8, TRUE
+),
+(
+  'bbbbbbbb-0000-4000-a000-000000000002',
+  'aaaaaaaa-0000-4000-a000-000000000002',
+  'Indian Institute of Technology Bombay (IIT Bombay)', '4th Year', 'Computer Science',
+  'Powai kid who discovered Mumbai properly only after starting to guide travelers. I blend tech-nerd curiosity with local street cred — expect random trivia about everything from dabbawalas to Art Deco architecture.',
+  '[{"language": "English", "proficiency": "fluent"}, {"language": "Hindi", "proficiency": "native"}, {"language": "Gujarati", "proficiency": "conversational"}]'::jsonb,
+  '[{"name": "Architecture", "emoji": "🏛️"}, {"name": "Photography", "emoji": "📸"}, {"name": "Tech Nerd", "emoji": "💻"}]'::jsonb,
+  TRUE, TRUE, TRUE, FALSE,
+  4.60, 2, 3, 12, TRUE
+),
+(
+  'bbbbbbbb-0000-4000-a000-000000000003',
+  'aaaaaaaa-0000-4000-a000-000000000003',
+  'St. Xavier''s College, Mumbai', '2nd Year', 'Mass Media & Journalism',
+  'Half-Goan, full-Mumbai. I grew up between Bandra''s chapel lanes and Colaba''s cafe scene. I tell stories for a living (journalism student), so expect your tour to feel like a documentary, minus the boring parts.',
+  '[{"language": "English", "proficiency": "native"}, {"language": "Hindi", "proficiency": "fluent"}, {"language": "Konkani", "proficiency": "conversational"}, {"language": "Portuguese", "proficiency": "basic"}]'::jsonb,
+  '[{"name": "Culture", "emoji": "🎭"}, {"name": "Nightlife", "emoji": "🌙"}, {"name": "Storyteller", "emoji": "📖"}]'::jsonb,
+  TRUE, TRUE, TRUE, TRUE,
+  4.90, 2, 4, 5, TRUE
+),
+(
+  'bbbbbbbb-0000-4000-a000-000000000004',
+  'aaaaaaaa-0000-4000-a000-000000000004',
+  'SVKM''s NMIMS University', '3rd Year', 'BBA',
+  'SoBo girl who knows the business side of Mumbai — from Dalal Street traders to Dharavi entrepreneurs. I organize tours that show you how this city actually runs. Also an amateur photographer, so your Instagram will thank me.',
+  '[{"language": "English", "proficiency": "native"}, {"language": "Hindi", "proficiency": "fluent"}, {"language": "Sindhi", "proficiency": "conversational"}]'::jsonb,
+  '[{"name": "Business", "emoji": "💼"}, {"name": "Photography", "emoji": "📸"}, {"name": "Shopping", "emoji": "🛍️"}]'::jsonb,
+  TRUE, TRUE, TRUE, FALSE,
+  4.50, 1, 2, 15, TRUE
+),
+(
+  'bbbbbbbb-0000-4000-a000-000000000005',
+  'aaaaaaaa-0000-4000-a000-000000000005',
+  'Mithibai College', '2nd Year', 'B.Sc. Chemistry',
+  'Vile Parle local with a thing for hidden temples, street food, and sunset spots. I''ve been mapping secret staircases and rooftop views across Mumbai since school. If you want the version of Mumbai that doesn''t show up in travel blogs, I''m your guy.',
+  '[{"language": "English", "proficiency": "fluent"}, {"language": "Hindi", "proficiency": "native"}, {"language": "Marathi", "proficiency": "fluent"}]'::jsonb,
+  '[{"name": "Adventure", "emoji": "🧗"}, {"name": "Foodie", "emoji": "🍜"}, {"name": "Hidden Gems", "emoji": "💎"}]'::jsonb,
+  TRUE, TRUE, FALSE, FALSE,
+  0, 0, 0, 0, TRUE
+);
+
+
+-- ============================================================================
+-- 3. TRAVELER PROFILES
+-- ============================================================================
+
+INSERT INTO traveler_profiles (id, user_id, nationality, preferred_language, emergency_contact_name, emergency_contact_phone) VALUES
+('cccccccc-0000-4000-a000-000000000011', 'aaaaaaaa-0000-4000-a000-000000000011', 'United States',  'English', 'Mark Wilson',    '+14155559876'),
+('cccccccc-0000-4000-a000-000000000012', 'aaaaaaaa-0000-4000-a000-000000000012', 'Japan',          'English', 'Yuki Tanaka',    '+81901239876'),
+('cccccccc-0000-4000-a000-000000000013', 'aaaaaaaa-0000-4000-a000-000000000013', 'Germany',        'English', 'Klaus Mueller',   '+491769876543');
+
+
+-- ============================================================================
+-- 4. ITINERARIES  (3 per guide = 15 total)
+--    Tier pattern: Quick Escape ~3hr, Real Mumbai ~6hr, Deep Dive 8hr+
+-- ============================================================================
+
+-- ── Guide 1: Aarav (VJTI) — food & history focus ──
+
+INSERT INTO itineraries (id, guide_id, title, description, duration_hours, buddy_cost, estimated_expense, category, is_published, avg_rating, total_bookings) VALUES
+('dddddddd-0000-4000-a000-000000000101',
+ 'aaaaaaaa-0000-4000-a000-000000000001',
+ 'Dadar to Matunga Food Sprint',
+ 'A 3-hour crash course in Mumbai''s best street food — from Aaswad''s misal pav to Cafe Madras'' filter coffee. We cover Dadar flower market, the hidden Shivaji Park stalls, and Matunga''s South Indian belt. Come hungry.',
+ 3.00, 800.00, 500.00, 'food', TRUE, 4.80, 2),
+
+('dddddddd-0000-4000-a000-000000000102',
+ 'aaaaaaaa-0000-4000-a000-000000000001',
+ 'Real Mumbai: Mills to Malls',
+ 'Trace Mumbai''s transformation from textile capital to financial hub. We start at the old Girangaon mill districts, walk through the Phoenix Mills revival, hit Lower Parel''s skyscrapers, then loop back to Worli''s fishing village. Lunch included.',
+ 6.00, 1500.00, 900.00, 'history', TRUE, 4.70, 2),
+
+('dddddddd-0000-4000-a000-000000000103',
+ 'aaaaaaaa-0000-4000-a000-000000000001',
+ 'Midnight Mumbai: Dawn to Dawn',
+ 'The full nocturnal experience — starts with sunset at Worli Sea Face, dinner at Mohammad Ali Road, late-night Marine Drive cruise, Haji Ali at 2 AM, and ends with sunrise chai at Sassoon Docks fish auction. Not for the faint-hearted.',
+ 10.00, 2500.00, 1500.00, 'adventure', TRUE, 0, 0);
+
+-- ── Guide 2: Priya (IIT Bombay) — architecture & photography ──
+
+INSERT INTO itineraries (id, guide_id, title, description, duration_hours, buddy_cost, estimated_expense, category, is_published, avg_rating, total_bookings) VALUES
+('dddddddd-0000-4000-a000-000000000201',
+ 'aaaaaaaa-0000-4000-a000-000000000002',
+ 'Art Deco Gateway',
+ 'Mumbai has the world''s second-largest collection of Art Deco buildings after Miami. This 3-hour walking tour covers the Marine Drive ensemble, Oval Maidan''s cricket-with-a-backdrop scene, and the Regal Cinema lobby. Bring your camera.',
+ 3.00, 900.00, 300.00, 'photography', TRUE, 4.50, 1),
+
+('dddddddd-0000-4000-a000-000000000202',
+ 'aaaaaaaa-0000-4000-a000-000000000002',
+ 'South Mumbai Heritage Circuit',
+ 'CST to Colaba in 6 hours — covering every major heritage structure along the way. Victoria Terminus interiors, Flora Fountain, Horniman Circle Gardens, Kala Ghoda galleries, and Gateway of India. Chai and vada pav breaks built in.',
+ 6.00, 1600.00, 700.00, 'culture', TRUE, 4.70, 1),
+
+('dddddddd-0000-4000-a000-000000000203',
+ 'aaaaaaaa-0000-4000-a000-000000000002',
+ 'Campus to Coast: Full IIT + Powai + Sanjay Gandhi',
+ 'Start with breakfast at IIT''s lakeside canteen, explore Powai''s tech-park-meets-lake vibe, then head into Sanjay Gandhi National Park for the Kanheri Caves. Ends with sunset at Aarey Colony. Packed day.',
+ 9.00, 2200.00, 1200.00, 'adventure', TRUE, 0, 0);
+
+-- ── Guide 3: Rohan (Xaviers) — culture & nightlife ──
+
+INSERT INTO itineraries (id, guide_id, title, description, duration_hours, buddy_cost, estimated_expense, category, is_published, avg_rating, total_bookings) VALUES
+('dddddddd-0000-4000-a000-000000000301',
+ 'aaaaaaaa-0000-4000-a000-000000000003',
+ 'Bandra Chapel Lane Walk',
+ 'The real Bandra — not the Instagram Bandra. Tiny 400-year-old chapels, Portuguese-era houses crumbling next to new cafes, street art in every alley. We end at Bandstand with the best cutting chai in the suburb. 3 hours, zero tourist traps.',
+ 3.00, 850.00, 400.00, 'culture', TRUE, 4.90, 2),
+
+('dddddddd-0000-4000-a000-000000000302',
+ 'aaaaaaaa-0000-4000-a000-000000000003',
+ 'Colaba to Bandra: The Full Story',
+ 'Start at Leopold Cafe (yes, that one), walk through Colaba Causeway, ferry to Elephanta Caves for a couple of hours, come back and local-train it to Bandra for sunset and dinner at a hidden Bandra East kebab place.',
+ 6.50, 1700.00, 1100.00, 'culture', TRUE, 4.80, 1),
+
+('dddddddd-0000-4000-a000-000000000303',
+ 'aaaaaaaa-0000-4000-a000-000000000003',
+ 'After Dark: Mumbai Nightlife Crawl',
+ 'Starts at 7 PM. Jazz at The Quarter, cocktails in Khar, rooftop drinks in Lower Parel, live music at Todi Mill, and street food at Carter Road at midnight. I know every bouncer and bartender. Trust.',
+ 8.00, 2000.00, 2500.00, 'nightlife', TRUE, 0, 0);
+
+-- ── Guide 4: Sneha (NMIMS) — business & photography ──
+
+INSERT INTO itineraries (id, guide_id, title, description, duration_hours, buddy_cost, estimated_expense, category, is_published, avg_rating, total_bookings) VALUES
+('dddddddd-0000-4000-a000-000000000401',
+ 'aaaaaaaa-0000-4000-a000-000000000004',
+ 'Dalal Street to Crawford Market',
+ 'Mumbai''s money nerve: Bombay Stock Exchange exterior, Dalal Street chai-and-trades, Asiatic Library reading room, then the sensory overload of Crawford Market. Perfect 3-hour intro to how this city hustles.',
+ 3.00, 900.00, 350.00, 'culture', TRUE, 4.50, 1),
+
+('dddddddd-0000-4000-a000-000000000402',
+ 'aaaaaaaa-0000-4000-a000-000000000004',
+ 'The Dharavi Experience',
+ 'A respectful, guided walk through Asia''s most productive square mile. Leather workshops, pottery colony, recycling district, and rooftop views. Ends with lunch cooked by a local family. This tour changes how you see cities.',
+ 5.50, 1400.00, 600.00, 'culture', TRUE, 0, 0),
+
+('dddddddd-0000-4000-a000-000000000403',
+ 'aaaaaaaa-0000-4000-a000-000000000004',
+ 'Golden Hour Mumbai: All-Day Photo Tour',
+ 'Sunrise at Sassoon Docks, morning light at Mahalaxmi Dhobi Ghat, golden hour at Marine Drive, blue hour at Worli Sea Link. I carry a spare lens and know every angle. Your portfolio will triple.',
+ 10.00, 2800.00, 1000.00, 'photography', TRUE, 0, 0);
+
+-- ── Guide 5: Kabir (Mithibai) — adventure & hidden gems ──
+
+INSERT INTO itineraries (id, guide_id, title, description, duration_hours, buddy_cost, estimated_expense, category, is_published, avg_rating, total_bookings) VALUES
+('dddddddd-0000-4000-a000-000000000501',
+ 'aaaaaaaa-0000-4000-a000-000000000005',
+ 'Vile Parle Hidden Temples',
+ 'Six temples in three hours — most of them tucked behind apartment buildings or under flyovers. Each one has a story the priests love telling if you know Marathi (I''ll translate). Ends with Parle''s best pani puri.',
+ 3.00, 700.00, 200.00, 'culture', TRUE, 0, 0),
+
+('dddddddd-0000-4000-a000-000000000502',
+ 'aaaaaaaa-0000-4000-a000-000000000005',
+ 'Suburban Mumbai: The Real Residential Life',
+ 'Skip the tourist trail. Ride the local train, eat at a highway dhaba, explore Goregaon''s Film City gates, walk through Aarey''s tribal hamlets, and watch planes land from Juhu Beach at dusk. This is how 20 million people actually live.',
+ 6.00, 1200.00, 700.00, 'adventure', TRUE, 0, 0),
+
+('dddddddd-0000-4000-a000-000000000503',
+ 'aaaaaaaa-0000-4000-a000-000000000005',
+ 'Monsoon Mumbai: Waterfalls & Chai Marathon',
+ 'Only runs June-September. We chase waterfalls in Sanjay Gandhi Park, wade through flooded streets (it''s a feature, not a bug), hit every tapri for masala chai, and end at a rooftop with rain views. Rain gear mandatory.',
+ 8.00, 1800.00, 600.00, 'adventure', FALSE, 0, 0);
+-- ^ Not published — seasonal, Kabir enables it when monsoon starts
+
+
+-- ============================================================================
+-- 5. ITINERARY STOPS (selected itineraries, 3-5 stops each)
+-- ============================================================================
+
+-- Stops for: Dadar to Matunga Food Sprint (Guide 1, itinerary 101)
+INSERT INTO itinerary_stops (itinerary_id, stop_order, name, description, location_lat, location_lng, estimated_duration_minutes, estimated_cost, category) VALUES
+('dddddddd-0000-4000-a000-000000000101', 1, 'Aaswad Restaurant',          'Legendary misal pav and Maharashtrian breakfast. We start strong.',            19.017600, 72.843400, 30, 150.00, 'food'),
+('dddddddd-0000-4000-a000-000000000101', 2, 'Dadar Flower Market',         'Walk through mountains of marigold and jasmine. Great photos at dawn.',        19.018500, 72.844200, 25,   0.00, 'attraction'),
+('dddddddd-0000-4000-a000-000000000101', 3, 'Shivaji Park Stalls',         'Hidden vada pav and pav bhaji carts that locals swear by.',                    19.028300, 72.838600, 30, 120.00, 'food'),
+('dddddddd-0000-4000-a000-000000000101', 4, 'Cafe Madras',                 'South Indian filter coffee and crispy dosa. The perfect end.',                 19.030800, 72.850200, 35, 200.00, 'food');
+
+-- Stops for: Art Deco Gateway (Guide 2, itinerary 201)
+INSERT INTO itinerary_stops (itinerary_id, stop_order, name, description, location_lat, location_lng, estimated_duration_minutes, estimated_cost, category) VALUES
+('dddddddd-0000-4000-a000-000000000201', 1, 'Marine Drive Ensemble',       'The Queen''s Necklace curve — the largest Art Deco seafront in the world.',     18.943800, 72.823500, 30,   0.00, 'attraction'),
+('dddddddd-0000-4000-a000-000000000201', 2, 'Oval Maidan',                 'Cricket matches backed by Gothic and Deco buildings. Peak Mumbai.',            18.932200, 72.829000, 25,   0.00, 'attraction'),
+('dddddddd-0000-4000-a000-000000000201', 3, 'Eros Cinema (exterior)',       'One of the finest Deco cinemas in Asia. We''ll break down the facade details.', 18.936700, 72.827700, 20,   0.00, 'attraction'),
+('dddddddd-0000-4000-a000-000000000201', 4, 'Regal Cinema Lobby',          'Step inside the restored lobby — original terrazzo floors and brass fixtures.',  18.921800, 72.831800, 25, 100.00, 'attraction');
+
+-- Stops for: Bandra Chapel Lane Walk (Guide 3, itinerary 301)
+INSERT INTO itinerary_stops (itinerary_id, stop_order, name, description, location_lat, location_lng, estimated_duration_minutes, estimated_cost, category) VALUES
+('dddddddd-0000-4000-a000-000000000301', 1, 'Mount Mary Basilica',         '1760s hilltop church with sea views. We start with the stairs and the story.', 19.042300, 72.821000, 25,   0.00, 'attraction'),
+('dddddddd-0000-4000-a000-000000000301', 2, 'Chapel Road Heritage Houses', 'Portuguese-era bungalows being swallowed by the city. Beautiful decay.',       19.044100, 72.823800, 30,   0.00, 'attraction'),
+('dddddddd-0000-4000-a000-000000000301', 3, 'Ranwar Village',              'A hidden East Indian village inside Bandra. Colourful doors, narrow lanes.',   19.047500, 72.827100, 30,   0.00, 'attraction'),
+('dddddddd-0000-4000-a000-000000000301', 4, 'Bandstand Promenade',         'Sea-facing walk with cutting chai from the best tapri in the suburb.',         19.049800, 72.816900, 25, 100.00, 'experience');
+
+-- Stops for: Dalal Street to Crawford Market (Guide 4, itinerary 401)
+INSERT INTO itinerary_stops (itinerary_id, stop_order, name, description, location_lat, location_lng, estimated_duration_minutes, estimated_cost, category) VALUES
+('dddddddd-0000-4000-a000-000000000401', 1, 'Bombay Stock Exchange',       'The exterior and Dalal Street — where India''s money story started.',          18.930600, 72.833400, 20,   0.00, 'attraction'),
+('dddddddd-0000-4000-a000-000000000401', 2, 'Asiatic Society Library',     'One of Mumbai''s quietest rooms. Grand reading hall, old maps on display.',     18.931200, 72.831400, 30,   0.00, 'attraction'),
+('dddddddd-0000-4000-a000-000000000401', 3, 'Crawford Market',             'Sensory overload: fruits, spices, pets, sweets. Rudyard Kipling was born nearby.', 18.947200, 72.835600, 40, 200.00, 'shopping');
+
+
+-- ============================================================================
+-- 6. BOOKINGS (3 — pending, completed, confirmed)
+-- ============================================================================
+
+INSERT INTO bookings (
+  id, traveler_id, guide_id, itinerary_id,
+  status, arrival_flight_number, arrival_time, departure_time, available_window_minutes,
+  tour_start_time, tour_end_time,
+  buddy_cost, estimated_expenses, platform_fee, gst_amount, total_amount,
+  payment_status, created_at
+) VALUES
+-- Booking 1: Emma + Aarav (completed food tour)
+(
+  'eeeeeeee-0000-4000-a000-000000000001',
+  'aaaaaaaa-0000-4000-a000-000000000011',  -- Emma
+  'aaaaaaaa-0000-4000-a000-000000000001',  -- Aarav
+  'dddddddd-0000-4000-a000-000000000101',  -- Dadar to Matunga Food Sprint
+  'completed',
+  'EK504', '2026-03-20 06:30:00+05:30', '2026-03-20 23:45:00+05:30', 600,
+  '2026-03-20 08:00:00+05:30', '2026-03-20 11:00:00+05:30',
+  800.00, 500.00, 200.00, 36.00, 1000.00,
+  'paid', '2026-03-18 14:00:00+05:30'
+),
+-- Booking 2: James + Rohan (completed Bandra walk)
+(
+  'eeeeeeee-0000-4000-a000-000000000002',
+  'aaaaaaaa-0000-4000-a000-000000000012',  -- James
+  'aaaaaaaa-0000-4000-a000-000000000003',  -- Rohan
+  'dddddddd-0000-4000-a000-000000000301',  -- Bandra Chapel Lane Walk
+  'completed',
+  'NH830', '2026-03-25 09:00:00+05:30', '2026-03-26 02:30:00+05:30', 720,
+  '2026-03-25 11:00:00+05:30', '2026-03-25 14:00:00+05:30',
+  850.00, 400.00, 212.50, 38.25, 1062.50,
+  'paid', '2026-03-23 10:30:00+05:30'
+),
+-- Booking 3: Sofia + Priya (pending heritage tour)
+(
+  'eeeeeeee-0000-4000-a000-000000000003',
+  'aaaaaaaa-0000-4000-a000-000000000013',  -- Sofia
+  'aaaaaaaa-0000-4000-a000-000000000002',  -- Priya
+  'dddddddd-0000-4000-a000-000000000202',  -- South Mumbai Heritage Circuit
+  'pending',
+  'LH762', '2026-04-18 07:15:00+05:30', '2026-04-19 01:00:00+05:30', 720,
+  NULL, NULL,
+  1600.00, 700.00, 400.00, 72.00, 2000.00,
+  'pending', '2026-04-10 18:00:00+05:30'
+);
+
+
+-- ============================================================================
+-- 7. REVIEWS (5 — on the 2 completed bookings, plus 3 extras for other guides)
+-- ============================================================================
+-- We need more completed bookings to hang reviews on (reviews FK to bookings).
+-- Add 3 additional completed bookings first.
+
+INSERT INTO bookings (
+  id, traveler_id, guide_id, itinerary_id,
+  status, arrival_flight_number, arrival_time, departure_time,
+  tour_start_time, tour_end_time,
+  buddy_cost, platform_fee, gst_amount, total_amount,
+  payment_status, created_at
+) VALUES
+(
+  'eeeeeeee-0000-4000-a000-000000000004',
+  'aaaaaaaa-0000-4000-a000-000000000011',  -- Emma
+  'aaaaaaaa-0000-4000-a000-000000000001',  -- Aarav
+  'dddddddd-0000-4000-a000-000000000102',  -- Real Mumbai: Mills to Malls
+  'completed', 'EK504', '2026-03-28 06:30:00+05:30', '2026-03-28 23:45:00+05:30',
+  '2026-03-28 09:00:00+05:30', '2026-03-28 15:00:00+05:30',
+  1500.00, 375.00, 67.50, 1875.00, 'paid', '2026-03-26 09:00:00+05:30'
+),
+(
+  'eeeeeeee-0000-4000-a000-000000000005',
+  'aaaaaaaa-0000-4000-a000-000000000013',  -- Sofia
+  'aaaaaaaa-0000-4000-a000-000000000002',  -- Priya
+  'dddddddd-0000-4000-a000-000000000201',  -- Art Deco Gateway
+  'completed', 'LH762', '2026-04-01 07:15:00+05:30', '2026-04-01 22:00:00+05:30',
+  '2026-04-01 09:00:00+05:30', '2026-04-01 12:00:00+05:30',
+  900.00, 225.00, 40.50, 1125.00, 'paid', '2026-03-30 11:00:00+05:30'
+),
+(
+  'eeeeeeee-0000-4000-a000-000000000006',
+  'aaaaaaaa-0000-4000-a000-000000000012',  -- James
+  'aaaaaaaa-0000-4000-a000-000000000004',  -- Sneha
+  'dddddddd-0000-4000-a000-000000000401',  -- Dalal Street to Crawford Market
+  'completed', 'NH830', '2026-04-05 09:00:00+05:30', '2026-04-05 23:00:00+05:30',
+  '2026-04-05 10:30:00+05:30', '2026-04-05 13:30:00+05:30',
+  900.00, 225.00, 40.50, 1125.00, 'paid', '2026-04-03 08:00:00+05:30'
+);
+
+-- Now the 5 reviews (one per completed booking, using first 5)
+INSERT INTO reviews (id, booking_id, reviewer_id, reviewee_id, overall_rating, value_for_money_rating, safety_rating, personality_rating, comment, created_at) VALUES
+(
+  'ffffffff-0000-4000-a000-000000000001',
+  'eeeeeeee-0000-4000-a000-000000000001',  -- Emma + Aarav (Food Sprint)
+  'aaaaaaaa-0000-4000-a000-000000000011',  -- Emma (reviewer)
+  'aaaaaaaa-0000-4000-a000-000000000001',  -- Aarav (reviewee)
+  5, 5, 5, 5,
+  'Aarav knew every stall owner by name. The misal pav at Aaswad was life-changing and Cafe Madras was the perfect finish. I''ve done food tours in 12 countries — this was top 3.',
+  '2026-03-20 18:00:00+05:30'
+),
+(
+  'ffffffff-0000-4000-a000-000000000002',
+  'eeeeeeee-0000-4000-a000-000000000002',  -- James + Rohan (Bandra)
+  'aaaaaaaa-0000-4000-a000-000000000012',  -- James (reviewer)
+  'aaaaaaaa-0000-4000-a000-000000000003',  -- Rohan (reviewee)
+  5, 5, 5, 5,
+  'Rohan is a natural storyteller. Every chapel, every crumbling house had a story. The chai at Bandstand was the best I''ve had in India. Already recommending him to friends with Mumbai layovers.',
+  '2026-03-25 20:00:00+05:30'
+),
+(
+  'ffffffff-0000-4000-a000-000000000003',
+  'eeeeeeee-0000-4000-a000-000000000004',  -- Emma + Aarav (Mills to Malls)
+  'aaaaaaaa-0000-4000-a000-000000000011',  -- Emma (reviewer)
+  'aaaaaaaa-0000-4000-a000-000000000001',  -- Aarav (reviewee)
+  5, 4, 5, 5,
+  'Second tour with Aarav — this one blew my mind. Walking through the old mill compounds while he explained their history was incredible. Lunch at the Worli fishing village was an unexpected highlight.',
+  '2026-03-28 20:00:00+05:30'
+),
+(
+  'ffffffff-0000-4000-a000-000000000004',
+  'eeeeeeee-0000-4000-a000-000000000005',  -- Sofia + Priya (Art Deco)
+  'aaaaaaaa-0000-4000-a000-000000000013',  -- Sofia (reviewer)
+  'aaaaaaaa-0000-4000-a000-000000000002',  -- Priya (reviewee)
+  4, 4, 5, 5,
+  'Priya clearly loves architecture — she pointed out details on buildings I''d walked past a hundred times without noticing. Great photography tips too. Only wish we had more time at Oval Maidan.',
+  '2026-04-01 19:00:00+05:30'
+),
+(
+  'ffffffff-0000-4000-a000-000000000005',
+  'eeeeeeee-0000-4000-a000-000000000006',  -- James + Sneha (Dalal Street)
+  'aaaaaaaa-0000-4000-a000-000000000012',  -- James (reviewer)
+  'aaaaaaaa-0000-4000-a000-000000000004',  -- Sneha (reviewee)
+  4, 5, 5, 4,
+  'Crawford Market was sensory overload in the best way. Sneha explained Dalal Street like a business documentary. Very professional, clearly knows her stuff. Would book again.',
+  '2026-04-05 19:30:00+05:30'
+);
+
+
+-- ============================================================================
+-- 8. MESSAGES (conversation snippets on the pending booking)
+-- ============================================================================
+
+INSERT INTO messages (booking_id, sender_id, content, is_read, created_at) VALUES
+-- Sofia ↔ Priya conversation about the upcoming heritage tour
+('eeeeeeee-0000-4000-a000-000000000003', 'aaaaaaaa-0000-4000-a000-000000000013',
+ 'Hi Priya! I land early morning on the 18th. Is 9 AM too early to start the heritage tour?',
+ TRUE, '2026-04-10 18:05:00+05:30'),
+
+('eeeeeeee-0000-4000-a000-000000000003', 'aaaaaaaa-0000-4000-a000-000000000002',
+ 'Hey Sofia! 9 AM is actually perfect — the light at CST is gorgeous in the morning and it won''t be too crowded yet. I''ll meet you at the station entrance.',
+ TRUE, '2026-04-10 18:20:00+05:30'),
+
+('eeeeeeee-0000-4000-a000-000000000003', 'aaaaaaaa-0000-4000-a000-000000000013',
+ 'Amazing! Should I bring anything specific? Comfortable shoes I assume?',
+ TRUE, '2026-04-10 18:25:00+05:30'),
+
+('eeeeeeee-0000-4000-a000-000000000003', 'aaaaaaaa-0000-4000-a000-000000000002',
+ 'Yes, comfy walking shoes and a water bottle. I''ll carry a portable charger in case your phone dies from all the photos you''ll be taking 😄 See you on the 18th!',
+ FALSE, '2026-04-10 18:32:00+05:30'),
+
+-- Quick message on Emma + Aarav completed booking
+('eeeeeeee-0000-4000-a000-000000000001', 'aaaaaaaa-0000-4000-a000-000000000011',
+ 'Just landed! At arrivals now.',
+ TRUE, '2026-03-20 06:45:00+05:30'),
+
+('eeeeeeee-0000-4000-a000-000000000001', 'aaaaaaaa-0000-4000-a000-000000000001',
+ 'Welcome to Mumbai! I''m right outside with a sign. Look for the guy in the orange VJTI hoodie 🧡',
+ TRUE, '2026-03-20 06:48:00+05:30');

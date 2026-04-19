@@ -1,0 +1,35 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Signup Mockup",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "9999", "--directory", "mockup"],
+      "port": 9999
+    },
+    {
+      "name": "Marketing Website (Vite)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "Expo App (Web)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:web", "--prefix", "mobile"],
+      "port": 8081
+    },
+    {
+      "name": "Expo App (iOS Simulator)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:ios", "--prefix", "mobile"],
+      "port": 8081
+    },
+    {
+      "name": "Expo App (Android Emulator)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:android", "--prefix", "mobile"],
+      "port": 8081
+    }
+  ]
+}
