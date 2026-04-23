@@ -9,21 +9,22 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Primary palette
-        teal: '#0D7377',
-        'teal-light': '#E8F5F5',
-        'teal-dark': '#095456',
-        coral: '#FF6B6B',
-        'coral-light': '#FFE8E8',
-        'coral-dark': '#E55555',
-        cream: '#F8F5F0',
-        charcoal: '#1A1A2E',
-        gold: '#F5A623',
+        // Primary palette — Mumbai Saffron
+        saffron: '#F97316',
+        'saffron-light': '#FFF7ED',
+        'saffron-dark': '#EA580C',
+        // Accent — Bougainvillea Pink
+        pink: '#EC4899',
+        'pink-light': '#FDF2F8',
+        'pink-dark': '#BE185D',
+        cream: '#FFFAF5',
+        navy: '#0B1229',
+        gold: '#F59E0B',
         purple: '#6C5CE7',
         // Functional
-        success: '#27AE60',
-        warning: '#F39C12',
-        error: '#E55555',
+        success: '#22C55E',
+        warning: '#F59E0B',
+        error: '#EF4444',
       },
       fontFamily: {
         sans: ['Inter', 'System'],

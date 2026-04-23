@@ -51,7 +51,7 @@ export default function SearchScreen() {
           borderRadius: 16,
           overflow: 'hidden',
           borderWidth: 1,
-          borderColor: 'rgba(13, 115, 119, 0.18)',
+          borderColor: 'rgba(249, 115, 22, 0.18)',
         }}
       >
         <Image

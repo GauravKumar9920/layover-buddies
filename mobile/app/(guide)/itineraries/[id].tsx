@@ -194,7 +194,7 @@ export default function EditItineraryScreen() {
                 inset: 0,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: coverImageUrl ? 'transparent' : 'rgba(13,115,119,0.08)',
+                backgroundColor: coverImageUrl ? 'transparent' : 'rgba(249,115,22,0.08)',
               }}>
                 {uploadingPhoto ? (
                   <ActivityIndicator color={theme.colors.primary} />

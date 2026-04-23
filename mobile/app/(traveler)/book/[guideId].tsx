@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  ScrollView,
   useWindowDimensions,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -21,6 +23,20 @@ import Animated, {
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
+import {
+  format,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  getDay,
+  isSameDay,
+  isBefore,
+  parseISO,
+  isValid,
+  differenceInMinutes,
+} from 'date-fns';
 import { StarRating } from '@/components/ui/StarRating';
 import { Card } from '@/components/ui/Card';
 import { SkeletonLine } from '@/components/ui/Loading';
@@ -33,20 +49,290 @@ import { COMMISSION_RATE, ESTIMATED_EXPENSES_PERCENT, CURRENCY_SYMBOL } from '@/
 import type { GuideProfile, Itinerary } from '@/types';
 
 const CARD_WIDTH = 288;
-const CARD_IMAGE_HEIGHT = Math.round(CARD_WIDTH * (9 / 16)); // 16:9 ratio = 162
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const CARD_IMAGE_HEIGHT = Math.round(CARD_WIDTH * (9 / 16));
+const DAYS_OF_WEEK = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-function parseDateOnly(v: string): Date | null {
-  if (!ISO_DATE_RE.test(v.trim())) return null;
-  const d = new Date(`${v.trim()}T00:00:00.000Z`);
-  return Number.isNaN(d.getTime()) ? null : d;
+// ─── Calendar picker ─────────────────────────────────────────────────────────
+function CalendarPicker({
+  label,
+  value,
+  onChange,
+  minDate,
+  helper,
+  required,
+}: {
+  label: string;
+  value: string;
+  onChange: (iso: string) => void;
+  minDate?: string;
+  helper?: string;
+  required?: boolean;
+}) {
+  const [visible, setVisible] = useState(false);
+  const selected = value ? parseISO(value) : null;
+  const minD = minDate ? parseISO(minDate) : null;
+
+  const [viewMonth, setViewMonth] = useState(() => {
+    if (selected && isValid(selected)) return selected;
+    if (minD && isValid(minD)) return minD;
+    return new Date();
+  });
+
+  const firstDay = startOfMonth(viewMonth);
+  const days = eachDayOfInterval({ start: firstDay, end: endOfMonth(viewMonth) });
+  const startPadding = getDay(firstDay);
+
+  // Build week rows for the grid
+  const weeks = useMemo(() => {
+    const rows: (Date | null)[][] = [];
+    let row: (Date | null)[] = Array(startPadding).fill(null);
+    for (const day of days) {
+      row.push(day);
+      if (row.length === 7) { rows.push(row); row = []; }
+    }
+    if (row.length > 0) {
+      while (row.length < 7) row.push(null);
+      rows.push(row);
+    }
+    return rows;
+  }, [viewMonth]);
+
+  function isDisabled(day: Date) {
+    if (minD && isValid(minD) && isBefore(day, minD)) return true;
+    return false;
+  }
+
+  const displayValue = selected && isValid(selected) ? format(selected, 'd MMM yyyy') : '';
+
+  return (
+    <View style={{ marginBottom: 16 }}>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: theme.colors.textSecondary, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 }}>
+        {label}{required ? ' *' : ''}
+      </Text>
+      <TouchableOpacity
+        onPress={() => setVisible(true)}
+        style={{
+          flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+          backgroundColor: theme.colors.surface,
+          borderRadius: theme.borderRadius.md,
+          borderWidth: 1,
+          borderColor: theme.colors.divider,
+          paddingHorizontal: 14, paddingVertical: 13,
+        }}
+      >
+        <Text style={{ fontSize: 15, color: displayValue ? theme.colors.text : theme.colors.textMuted }}>
+          {displayValue || 'Select date'}
+        </Text>
+        <Text style={{ fontSize: 16 }}>📅</Text>
+      </TouchableOpacity>
+      {helper ? <Text style={{ fontSize: 11, color: theme.colors.textMuted, marginTop: 4 }}>{helper}</Text> : null}
+
+      <Modal visible={visible} transparent animationType="slide" onRequestClose={() => setVisible(false)}>
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}
+          activeOpacity={1}
+          onPress={() => setVisible(false)}
+        >
+          <TouchableOpacity activeOpacity={1} style={{
+            backgroundColor: theme.colors.background,
+            borderTopLeftRadius: 24, borderTopRightRadius: 24,
+            padding: 20, paddingBottom: 36,
+          }}>
+            {/* Month navigation */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <TouchableOpacity onPress={() => setViewMonth((m) => subMonths(m, 1))} style={{ padding: 8 }}>
+                <Text style={{ fontSize: 24, color: theme.colors.text }}>‹</Text>
+              </TouchableOpacity>
+              <Text style={{ fontSize: 17, fontWeight: '700', color: theme.colors.text }}>
+                {format(viewMonth, 'MMMM yyyy')}
+              </Text>
+              <TouchableOpacity onPress={() => setViewMonth((m) => addMonths(m, 1))} style={{ padding: 8 }}>
+                <Text style={{ fontSize: 24, color: theme.colors.text }}>›</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Day headers */}
+            <View style={{ flexDirection: 'row', marginBottom: 8 }}>
+              {DAYS_OF_WEEK.map((d, i) => (
+                <View key={i} style={{ flex: 1, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: theme.colors.textSecondary }}>{d}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Calendar grid */}
+            {weeks.map((week, wi) => (
+              <View key={wi} style={{ flexDirection: 'row', marginBottom: 4 }}>
+                {week.map((day, di) => {
+                  if (!day) return <View key={di} style={{ flex: 1 }} />;
+                  const sel = selected && isValid(selected) && isSameDay(day, selected);
+                  const disabled = isDisabled(day);
+                  return (
+                    <TouchableOpacity
+                      key={di}
+                      onPress={() => {
+                        if (!disabled) {
+                          onChange(format(day, 'yyyy-MM-dd'));
+                          setVisible(false);
+                        }
+                      }}
+                      style={{ flex: 1, alignItems: 'center', paddingVertical: 4, opacity: disabled ? 0.28 : 1 }}
+                    >
+                      <View style={{
+                        width: 36, height: 36, borderRadius: 18,
+                        backgroundColor: sel ? theme.colors.primary : 'transparent',
+                        alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <Text style={{
+                          fontSize: 14, fontWeight: sel ? '700' : '400',
+                          color: sel ? '#FFFFFF' : theme.colors.text,
+                        }}>{format(day, 'd')}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ))}
+
+            <TouchableOpacity onPress={() => setVisible(false)} style={{ marginTop: 12, alignItems: 'center', paddingVertical: 10 }}>
+              <Text style={{ color: theme.colors.textSecondary, fontSize: 15 }}>Cancel</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+    </View>
+  );
+}
+
+// ─── Time input (HH:MM) ───────────────────────────────────────────────────────
+function TimeInput({ label, value, onChange, placeholder }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string;
+}) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <View style={{ flex: 1 }}>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: theme.colors.textSecondary, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 }}>{label}</Text>
+      <TextInput
+        value={value}
+        onChangeText={(v) => {
+          // Auto-insert colon after 2 digits
+          let clean = v.replace(/[^0-9:]/g, '');
+          if (clean.length === 2 && !clean.includes(':') && value.length < 2) clean += ':';
+          if (clean.length <= 5) onChange(clean);
+        }}
+        placeholder={placeholder ?? 'HH:MM'}
+        placeholderTextColor={theme.colors.textMuted}
+        keyboardType="numbers-and-punctuation"
+        maxLength={5}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          backgroundColor: theme.colors.surface,
+          borderRadius: theme.borderRadius.md,
+          borderWidth: 1,
+          borderColor: focused ? theme.colors.primary : theme.colors.divider,
+          paddingHorizontal: 14, paddingVertical: 13,
+          fontSize: 15, color: theme.colors.text,
+          textAlign: 'center',
+          ...(Platform.OS === 'web' ? { outline: 'none' } as any : {}),
+        }}
+      />
+    </View>
+  );
+}
+
+// ─── Day overview ─────────────────────────────────────────────────────────────
+function DayOverview({
+  arrivalDate, arrivalTime, departureDate, departureTime, tourDurationHours,
+}: {
+  arrivalDate: string; arrivalTime: string;
+  departureDate: string; departureTime: string;
+  tourDurationHours: number;
+}) {
+  const TRANSIT_BUFFER = 90;  // minutes each way (airport transit)
+  const TOUR_BUFFER = 30;     // minutes buffer between transit and tour
+
+  const arrival = useMemo(() => {
+    if (!arrivalDate || !arrivalTime || !/^\d{2}:\d{2}$/.test(arrivalTime)) return null;
+    const d = parseISO(`${arrivalDate}T${arrivalTime}:00`);
+    return isValid(d) ? d : null;
+  }, [arrivalDate, arrivalTime]);
+
+  const departure = useMemo(() => {
+    if (!departureDate || !departureTime || !/^\d{2}:\d{2}$/.test(departureTime)) return null;
+    const d = parseISO(`${departureDate}T${departureTime}:00`);
+    return isValid(d) ? d : null;
+  }, [departureDate, departureTime]);
+
+  if (!arrival || !departure) return null;
+
+  const totalMinutes = differenceInMinutes(departure, arrival);
+  if (totalMinutes <= 0) return null;
+
+  const availableForTour = totalMinutes - TRANSIT_BUFFER * 2 - TOUR_BUFFER * 2;
+  const tourMinutes = tourDurationHours * 60;
+  const hasEnoughTime = availableForTour >= tourMinutes;
+  const isTight = !hasEnoughTime && availableForTour >= tourMinutes * 0.8;
+
+  const tourStartTime = new Date(arrival.getTime() + (TRANSIT_BUFFER + TOUR_BUFFER) * 60000);
+  const tourEndTime = new Date(tourStartTime.getTime() + tourMinutes * 60000);
+
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalMins = totalMinutes % 60;
+
+  return (
+    <Card style={{ marginBottom: 16, backgroundColor: hasEnoughTime ? theme.colors.primaryLight : isTight ? '#FFF8E1' : '#FDECEA' }}>
+      <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.text, marginBottom: 10 }}>
+        📋 Day Overview
+      </Text>
+
+      <View style={{ gap: 6 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ fontSize: 12, color: theme.colors.textSecondary }}>✈️ Arrive Mumbai</Text>
+          <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.text }}>{format(arrival, 'HH:mm')}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ fontSize: 12, color: theme.colors.textSecondary }}>🚕 Transit to city</Text>
+          <Text style={{ fontSize: 12, color: theme.colors.textMuted }}>~{TRANSIT_BUFFER} min</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ fontSize: 12, color: theme.colors.primary, fontWeight: '600' }}>🗺️ Tour start</Text>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: theme.colors.primary }}>{format(tourStartTime, 'HH:mm')}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ fontSize: 12, color: theme.colors.primary, fontWeight: '600' }}>🏁 Tour end</Text>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: theme.colors.primary }}>{format(tourEndTime, 'HH:mm')}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ fontSize: 12, color: theme.colors.textSecondary }}>🚕 Back to airport</Text>
+          <Text style={{ fontSize: 12, color: theme.colors.textMuted }}>~{TRANSIT_BUFFER} min</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ fontSize: 12, color: theme.colors.textSecondary }}>✈️ Depart Mumbai</Text>
+          <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.text }}>{format(departure, 'HH:mm')}</Text>
+        </View>
+      </View>
+
+      <View style={{ height: 1, backgroundColor: theme.colors.divider, marginVertical: 10 }} />
+
+      <Text style={{ fontSize: 12, fontWeight: '700', color: hasEnoughTime ? theme.colors.success : isTight ? '#F59E0B' : theme.colors.error }}>
+        {hasEnoughTime ? '✅' : isTight ? '⚠️' : '❌'}{' '}
+        {totalHours}h {totalMins > 0 ? `${totalMins}m ` : ''}layover ·{' '}
+        {hasEnoughTime
+          ? `Plenty of time for this ${tourDurationHours}h tour`
+          : isTight
+          ? `Tight schedule — this ${tourDurationHours}h tour may run close`
+          : `Not enough time for a ${tourDurationHours}h tour`}
+      </Text>
+    </Card>
+  );
 }
 
 // ─── Skeleton ────────────────────────────────────────────────────────────────
 function HeroSkeleton() {
   return (
     <LinearGradient
-      colors={['#0D7377', '#095456', '#1A1A2E']}
+      colors={theme.gradients.hero}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={{ paddingHorizontal: 20, paddingBottom: 24, paddingTop: 16 }}
@@ -62,16 +348,8 @@ function HeroSkeleton() {
   );
 }
 
-// ─── Itinerary card (horizontal scroll) ──────────────────────────────────────
-function ItinCard({
-  itin,
-  selected,
-  onPress,
-}: {
-  itin: Itinerary;
-  selected: boolean;
-  onPress: () => void;
-}) {
+// ─── Itinerary card ───────────────────────────────────────────────────────────
+function ItinCard({ itin, selected, onPress }: { itin: Itinerary; selected: boolean; onPress: () => void }) {
   const photo = getItineraryPhoto(itin);
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -92,15 +370,11 @@ function ItinCard({
           ...theme.shadows.md,
         }}
       >
-        {/* 16:9 hero image */}
         <View style={{ width: CARD_WIDTH, height: CARD_IMAGE_HEIGHT }}>
           {photo ? (
             <Image source={{ uri: photo }} contentFit="cover" style={{ width: '100%', height: '100%' }} transition={200} />
           ) : (
-            <LinearGradient
-              colors={['#0D7377', '#1A1A2E']}
-              style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
-            >
+            <LinearGradient colors={theme.gradients.dark} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontSize: 40 }}>🗺️</Text>
             </LinearGradient>
           )}
@@ -108,14 +382,12 @@ function ItinCard({
             colors={['transparent', 'rgba(15,23,42,0.55)']}
             style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60 }}
           />
-          {/* Duration badge */}
           <View style={{
             position: 'absolute', top: 10, right: 10,
             backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4,
           }}>
             <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>⏱ {itin.estimated_duration_hours}h</Text>
           </View>
-          {/* Selected check */}
           {selected && (
             <View style={{
               position: 'absolute', top: 10, left: 10,
@@ -126,8 +398,6 @@ function ItinCard({
             </View>
           )}
         </View>
-
-        {/* Card body */}
         <View style={{ padding: 12 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Text style={{ fontSize: 15, fontWeight: '700', color: theme.colors.text, flex: 1, marginRight: 8 }} numberOfLines={2}>
@@ -160,7 +430,7 @@ function PriceRow({ label, value, bold, muted }: { label: string; value: string;
   );
 }
 
-// ─── Labeled input ────────────────────────────────────────────────────────────
+// ─── Labeled text input ───────────────────────────────────────────────────────
 function LabeledInput({
   label, value, onChangeText, placeholder, keyboardType, autoCapitalize, helper,
 }: {
@@ -189,16 +459,12 @@ function LabeledInput({
           borderRadius: theme.borderRadius.md,
           borderWidth: 1,
           borderColor: focused ? theme.colors.primary : theme.colors.divider,
-          paddingHorizontal: 14,
-          paddingVertical: 12,
-          fontSize: 15,
-          color: theme.colors.text,
+          paddingHorizontal: 14, paddingVertical: 12,
+          fontSize: 15, color: theme.colors.text,
           ...(Platform.OS === 'web' ? { outline: 'none' } as any : {}),
         }}
       />
-      {helper ? (
-        <Text style={{ fontSize: 11, color: theme.colors.textMuted, marginTop: 4 }}>{helper}</Text>
-      ) : null}
+      {helper ? <Text style={{ fontSize: 11, color: theme.colors.textMuted, marginTop: 4 }}>{helper}</Text> : null}
     </View>
   );
 }
@@ -220,17 +486,21 @@ export default function BookingScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const [selectedItinId, setSelectedItinId] = useState<string>(preselectedItinId ?? '');
-  const [tourDate, setTourDate] = useState('');
-  const [flightNumber, setFlightNumber] = useState('');
+  const [tourStartDate, setTourStartDate] = useState('');
+  const [tourEndDate, setTourEndDate] = useState('');
   const [arrivalDate, setArrivalDate] = useState('');
+  const [arrivalTime, setArrivalTime] = useState('');
   const [departureDate, setDepartureDate] = useState('');
+  const [departureTime, setDepartureTime] = useState('');
+  const [flightNumber, setFlightNumber] = useState('');
   const [numTravelers, setNumTravelers] = useState('1');
+
+  const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler((e) => { scrollY.value = e.contentOffset.y; });
   const confirmScale = useSharedValue(1);
   const confirmStyle = useAnimatedStyle(() => ({ transform: [{ scale: confirmScale.value }] }));
-
   const heroOpacity = useAnimatedStyle(() => ({
     opacity: interpolate(scrollY.value, [0, 80], [1, 0.85], Extrapolate.CLAMP),
   }));
@@ -260,43 +530,24 @@ export default function BookingScreen() {
     setError(null);
 
     if (!selectedItinId || !selectedItin) {
-      hapticError();
-      setError('Please select a tour to continue.');
-      return;
+      hapticError(); setError('Please select a tour to continue.'); return;
     }
-    if (!tourDate.trim()) {
-      hapticError();
-      setError('Tour date is required.');
-      return;
+    if (!tourStartDate) {
+      hapticError(); setError('Tour start date is required.'); return;
     }
-    const parsedTourDate = parseDateOnly(tourDate);
-    if (!parsedTourDate) {
-      hapticError();
-      setError('Tour date must be in YYYY-MM-DD format (e.g. 2026-04-20).');
-      return;
+    const startParsed = parseISO(tourStartDate);
+    if (!isValid(startParsed) || isBefore(startParsed, parseISO(today))) {
+      hapticError(); setError('Tour start date cannot be in the past.'); return;
     }
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-    if (parsedTourDate < today) {
-      hapticError();
-      setError('Tour date cannot be in the past.');
-      return;
-    }
-    if (arrivalDate.trim() && !parseDateOnly(arrivalDate)) {
-      hapticError();
-      setError('Arrival date must be in YYYY-MM-DD format.');
-      return;
-    }
-    if (departureDate.trim() && !parseDateOnly(departureDate)) {
-      hapticError();
-      setError('Departure date must be in YYYY-MM-DD format.');
-      return;
+    if (tourEndDate) {
+      const endParsed = parseISO(tourEndDate);
+      if (!isValid(endParsed) || isBefore(endParsed, startParsed)) {
+        hapticError(); setError('Tour end date must be on or after the start date.'); return;
+      }
     }
     const travelers = parseInt(numTravelers, 10);
     if (Number.isNaN(travelers) || travelers < 1 || travelers > 10) {
-      hapticError();
-      setError('Number of travelers must be between 1 and 10.');
-      return;
+      hapticError(); setError('Number of travelers must be between 1 and 10.'); return;
     }
 
     hapticImpactMedium();
@@ -308,15 +559,13 @@ export default function BookingScreen() {
         guide_id: guideId,
         itinerary_id: selectedItinId,
         flight_number: flightNumber.trim() || undefined,
-        flight_date: arrivalDate.trim() || undefined,
-        start_date: tourDate.trim(),
-        end_date: departureDate.trim() || tourDate.trim(),
+        flight_date: arrivalDate || undefined,
+        start_date: tourStartDate,
+        end_date: tourEndDate || tourStartDate,
       });
 
       hapticSuccess();
       confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 });
-
-      // Navigate to payment screen — it owns the Razorpay checkout flow
       router.replace(`/(traveler)/book/payment/${booking.id}` as never);
     } catch (err: unknown) {
       hapticError();
@@ -327,7 +576,6 @@ export default function BookingScreen() {
     }
   }
 
-  // ── Hero photo ───────────────────────────────────────────────────────────
   const heroPhoto = guide ? getGuideHeroPhoto(guide) : null;
 
   return (
@@ -358,12 +606,11 @@ export default function BookingScreen() {
             <HeroSkeleton />
           ) : (
             <LinearGradient
-              colors={['#0D7377', '#095456', '#1A1A2E']}
+              colors={theme.gradients.hero}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={{ paddingTop: insets.top + 52, paddingHorizontal: 20, paddingBottom: 28 }}
             >
-              {/* Background image behind gradient */}
               {heroPhoto && (
                 <Image
                   source={{ uri: heroPhoto }}
@@ -372,7 +619,6 @@ export default function BookingScreen() {
                 />
               )}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                {/* Avatar */}
                 <View style={{
                   width: 68, height: 68, borderRadius: 34,
                   borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)',
@@ -386,7 +632,6 @@ export default function BookingScreen() {
                     </View>
                   )}
                 </View>
-
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '800', letterSpacing: -0.3 }}>
                     {guide?.name ?? '…'}
@@ -410,7 +655,6 @@ export default function BookingScreen() {
         </Animated.View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
-
           {/* ── Tour selection ─────────────────────────────────────────── */}
           <Text style={{ fontSize: 18, fontWeight: '700', color: theme.colors.text, marginBottom: 4 }}>
             Choose Your Tour
@@ -448,45 +692,29 @@ export default function BookingScreen() {
 
         <View style={{ paddingHorizontal: 20, paddingTop: 28 }}>
 
-          {/* ── Arrival details ────────────────────────────────────────── */}
+          {/* ── Tour dates ────────────────────────────────────────────── */}
           <Text style={{ fontSize: 18, fontWeight: '700', color: theme.colors.text, marginBottom: 16 }}>
-            Your Arrival Details
+            Tour Dates
           </Text>
 
-          <LabeledInput
-            label="Tour Date *"
-            value={tourDate}
-            onChangeText={setTourDate}
-            placeholder="YYYY-MM-DD"
-            keyboardType="numeric"
-            helper="The day you want to explore Mumbai"
+          <CalendarPicker
+            label="Tour Start Date"
+            value={tourStartDate}
+            onChange={setTourStartDate}
+            minDate={today}
+            helper="First day of your Mumbai tour"
+            required
           />
-          <LabeledInput
-            label="Arrival Date (optional)"
-            value={arrivalDate}
-            onChangeText={setArrivalDate}
-            placeholder="YYYY-MM-DD"
-            keyboardType="numeric"
-            helper="Date your flight lands in Mumbai"
-          />
-          <LabeledInput
-            label="Departure Date (optional)"
-            value={departureDate}
-            onChangeText={setDepartureDate}
-            placeholder="YYYY-MM-DD"
-            keyboardType="numeric"
-            helper="Date you fly out — helps guide plan the tour length"
-          />
-          <LabeledInput
-            label="Flight Number (optional)"
-            value={flightNumber}
-            onChangeText={setFlightNumber}
-            placeholder="e.g. EK504"
-            autoCapitalize="characters"
+          <CalendarPicker
+            label="Tour End Date (optional)"
+            value={tourEndDate}
+            onChange={setTourEndDate}
+            minDate={tourStartDate || today}
+            helper="Leave blank for a single-day tour"
           />
 
           {/* Travelers counter */}
-          <View style={{ marginBottom: 16 }}>
+          <View style={{ marginBottom: 24 }}>
             <Text style={{ fontSize: 11, fontWeight: '700', color: theme.colors.textSecondary, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 }}>
               Number of Travelers
             </Text>
@@ -509,9 +737,64 @@ export default function BookingScreen() {
             </View>
           </View>
 
+          {/* ── Flight info ────────────────────────────────────────────── */}
+          <Text style={{ fontSize: 18, fontWeight: '700', color: theme.colors.text, marginBottom: 4 }}>
+            Your Flight Details
+          </Text>
+          <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginBottom: 16 }}>
+            Helps your guide plan around your schedule
+          </Text>
+
+          <LabeledInput
+            label="Flight Number (optional)"
+            value={flightNumber}
+            onChangeText={setFlightNumber}
+            placeholder="e.g. EK504"
+            autoCapitalize="characters"
+          />
+
+          <CalendarPicker
+            label="Arrival Date (optional)"
+            value={arrivalDate}
+            onChange={setArrivalDate}
+            helper="Day your flight lands in Mumbai"
+          />
+
+          {arrivalDate ? (
+            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 8, marginTop: -4 }}>
+              <TimeInput label="Arrival Time" value={arrivalTime} onChange={setArrivalTime} placeholder="e.g. 08:30" />
+              <View style={{ flex: 1 }} />
+            </View>
+          ) : null}
+
+          <CalendarPicker
+            label="Departure Date (optional)"
+            value={departureDate}
+            onChange={setDepartureDate}
+            helper="Day you fly out of Mumbai"
+          />
+
+          {departureDate ? (
+            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 8, marginTop: -4 }}>
+              <TimeInput label="Departure Time" value={departureTime} onChange={setDepartureTime} placeholder="e.g. 22:00" />
+              <View style={{ flex: 1 }} />
+            </View>
+          ) : null}
+
+          {/* ── Day overview ───────────────────────────────────────────── */}
+          {selectedItin ? (
+            <DayOverview
+              arrivalDate={arrivalDate}
+              arrivalTime={arrivalTime}
+              departureDate={departureDate}
+              departureTime={departureTime}
+              tourDurationHours={selectedItin.estimated_duration_hours}
+            />
+          ) : null}
+
           {/* ── Price breakdown ────────────────────────────────────────── */}
           {selectedItin ? (
-            <Card style={{ marginTop: 8, marginBottom: 4 }}>
+            <Card style={{ marginTop: 4, marginBottom: 4 }}>
               <Text style={{ fontSize: 17, fontWeight: '700', color: theme.colors.text, marginBottom: 14 }}>
                 Price Breakdown
               </Text>
@@ -548,9 +831,7 @@ export default function BookingScreen() {
       </Animated.ScrollView>
 
       {/* ── Fixed confirm button ────────────────────────────────────────── */}
-      <View style={{
-        position: 'absolute', bottom: insets.bottom + 16, left: 20, right: 20,
-      }}>
+      <View style={{ position: 'absolute', bottom: insets.bottom + 16, left: 20, right: 20 }}>
         <Animated.View style={confirmStyle}>
           <TouchableOpacity
             onPress={handleConfirm}
@@ -559,18 +840,14 @@ export default function BookingScreen() {
             disabled={submitting || loading}
             activeOpacity={0.9}
             style={{
-              height: 56,
-              borderRadius: 16,
+              height: 56, borderRadius: 16,
               backgroundColor: submitting || loading ? '#E5E7EB' : theme.colors.accent,
-              alignItems: 'center',
-              justifyContent: 'center',
+              alignItems: 'center', justifyContent: 'center',
               ...theme.shadows.lg,
             }}
           >
             {submitting ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>Sending request…</Text>
-              </View>
+              <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>Sending request…</Text>
             ) : (
               <Text style={{ color: submitting || loading ? '#9CA3AF' : '#FFFFFF', fontSize: 16, fontWeight: '700', letterSpacing: 0.2 }}>
                 Confirm Booking →

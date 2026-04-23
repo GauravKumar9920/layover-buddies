@@ -15,41 +15,41 @@
 // theme.ts — paste directly into the project
 export const theme = {
   colors: {
-    primary: '#0D7377',           // Teal (primary action, CTAs)
+    primary: '#F97316',           // Teal (primary action, CTAs)
     primaryLight: '#E8F5F5',       // Teal light (backgrounds, badges)
-    primaryDark: '#095456',        // Teal dark (hover, pressed states)
-    accent: '#FF6B6B',             // Coral (secondary actions, highlights)
+    primaryDark: '#EA580C',        // Teal dark (hover, pressed states)
+    accent: '#EC4899',             // Coral (secondary actions, highlights)
     accentLight: '#FFE8E8',        // Coral light (warning backgrounds)
-    accentDark: '#E55555',         // Coral dark (error states)
-    background: '#F8F5F0',         // Cream (main background)
+    accentDark: '#BE185D',         // Coral dark (error states)
+    background: '#FFFAF5',         // Cream (main background)
     surface: '#FFFFFF',            // White (cards, surfaces)
-    text: '#1A1A2E',               // Charcoal (primary text)
+    text: '#0B1229',               // Charcoal (primary text)
     textSecondary: '#6B7280',      // Gray (secondary text)
     textMuted: '#9CA3AF',          // Light gray (captions, hints)
-    gold: '#F5A623',               // Gold (ratings, premium features)
+    gold: '#F59E0B',               // Gold (ratings, premium features)
     success: '#27AE60',            // Green (success states, confirmations)
     warning: '#F39C12',            // Orange (warnings, alerts)
-    error: '#E55555',              // Red (errors, destructive actions)
+    error: '#BE185D',              // Red (errors, destructive actions)
     purple: '#6C5CE7',             // Purple (categories, badges)
     divider: '#E5E7EB',            // Divider lines
 
     // Dark mode
     dark: {
       background: '#0F0F1A',       // Near-black background
-      surface: '#1A1A2E',          // Dark surface
+      surface: '#0B1229',          // Dark surface
       card: '#252540',             // Dark card
-      text: '#F8F5F0',             // Light text
+      text: '#FFFAF5',             // Light text
       textSecondary: '#A0A0B0',    // Muted light text
       divider: '#3D3D4D',          // Dark divider
     }
   },
 
   gradients: {
-    hero: ['#0D7377', '#095456', '#1A1A2E'],          // Teal to charcoal
-    sunset: ['#FF6B6B', '#F5A623'],                    // Coral to gold
-    card: ['#0D7377', '#0A5F62'],                      // Teal gradient
+    hero: ['#F97316', '#EA580C', '#0B1229'],          // Teal to charcoal
+    sunset: ['#EC4899', '#F59E0B'],                    // Coral to gold
+    card: ['#F97316', '#0A5F62'],                      // Teal gradient
     glass: 'rgba(255, 255, 255, 0.15)',                // Glass morphism
-    dark: ['#1A1A2E', '#0F0F1A'],                      // Dark mode gradient
+    dark: ['#0B1229', '#0F0F1A'],                      // Dark mode gradient
   },
 
   spacing: {
@@ -172,12 +172,12 @@ export const theme = {
 
 | Color | Primary Use | Secondary Use |
 |-------|-------------|---------------|
-| **Teal (#0D7377)** | CTAs, "Request Guide" button, active navigation | Card borders, emphasis |
-| **Coral (#FF6B6B)** | Secondary CTAs, SOS button, error states | Badges, highlights |
-| **Gold (#F5A623)** | Star ratings, premium badges, earned rewards | Special promotions |
+| **Teal (#F97316)** | CTAs, "Request Guide" button, active navigation | Card borders, emphasis |
+| **Coral (#EC4899)** | Secondary CTAs, SOS button, error states | Badges, highlights |
+| **Gold (#F59E0B)** | Star ratings, premium badges, earned rewards | Special promotions |
 | **Purple (#6C5CE7)** | Category tags (history, art, culture), filters | Notifications, features |
-| **Charcoal (#1A1A2E)** | Primary text (>90% of text) | Hero sections background |
-| **Cream (#F8F5F0)** | Main app background | Large surface areas |
+| **Charcoal (#0B1229)** | Primary text (>90% of text) | Hero sections background |
+| **Cream (#FFFAF5)** | Main app background | Large surface areas |
 | **White (#FFFFFF)** | Card surfaces, modal backgrounds | Text input backgrounds |
 
 ---
@@ -339,7 +339,7 @@ export default function RootLayout() {
         animation: 'slide_from_right',    // Android + iOS consistent
         animationDuration: 300,            // 300ms transition
         headerShown: false,
-        cardStyle: { backgroundColor: '#F8F5F0' },
+        cardStyle: { backgroundColor: '#FFFAF5' },
       }}
     >
       <Stack.Screen name="guides" />
@@ -476,7 +476,7 @@ export const BookingSuccessScreen = () => {
         origin={{ x: width / 2, y: height / 2 }}
         fallSpeed={3000}       // 3 seconds to fall
         explosionSpeed={1200}   // Spread in 1.2 seconds
-        colors={['#0D7377', '#FF6B6B', '#F5A623', '#6C5CE7']} // Brand colors
+        colors={['#F97316', '#EC4899', '#F59E0B', '#6C5CE7']} // Brand colors
         autoStart={false}
       />
       {/* Success content */}
@@ -632,8 +632,8 @@ export const usePulseAnimation = () => {
 //   width: 64,
 //   height: 64,
 //   borderRadius: 32,
-//   backgroundColor: '#FF6B6B',
-//   shadowColor: '#E55555',
+//   backgroundColor: '#EC4899',
+//   shadowColor: '#BE185D',
 //   shadowOffset: { width: 0, height: 0 },
 //   shadowOpacity: 0.6,
 //   shadowRadius: 20,
@@ -1030,11 +1030,11 @@ export const SOSButton = ({ onPress }: SOSButtonProps) => {
             width: 64,
             height: 64,
             borderRadius: 32,
-            backgroundColor: '#FF6B6B',
+            backgroundColor: '#EC4899',
             justifyContent: 'center',
             alignItems: 'center',
             ...theme.shadows.xl,
-            shadowColor: '#E55555',
+            shadowColor: '#BE185D',
           },
           pulseStyle,
         ]}
@@ -1051,7 +1051,7 @@ export const SOSButton = ({ onPress }: SOSButtonProps) => {
                 width: '100%',
                 height: '100%',
                 borderRadius: 32,
-                backgroundColor: '#FF6B6B',
+                backgroundColor: '#EC4899',
                 justifyContent: 'center',
                 alignItems: 'center',
               },
@@ -1073,7 +1073,7 @@ export const SOSButton = ({ onPress }: SOSButtonProps) => {
           backgroundColor: 'transparent',
           borderWidth: 2,
           borderColor: 'rgba(229, 85, 85, 0.2)',
-          shadowColor: '#E55555',
+          shadowColor: '#BE185D',
           shadowOffset: { width: 0, height: 0 },
           shadowOpacity: 0.6,
           shadowRadius: 20,
@@ -1260,7 +1260,7 @@ export const ItineraryCard = ({
               ₹{itinerary.price}
             </Text>
             <View className="flex-row items-center gap-1">
-              <StarIcon size={14} weight="fill" color="#F5A623" />
+              <StarIcon size={14} weight="fill" color="#F59E0B" />
               <Text className="text-xs font-semibold text-gray-700">
                 {itinerary.rating}
               </Text>
@@ -1558,23 +1558,23 @@ module.exports = {
       colors: {
         // Brand colors
         teal: {
-          DEFAULT: '#0D7377',
+          DEFAULT: '#F97316',
           50: '#E8F5F5',
           100: '#D0EBEB',
           200: '#A1D7D7',
-          600: '#095456',
+          600: '#EA580C',
           700: '#073D40',
         },
         coral: {
-          DEFAULT: '#FF6B6B',
+          DEFAULT: '#EC4899',
           50: '#FFE8E8',
           100: '#FFD1D1',
-          600: '#E55555',
+          600: '#BE185D',
           700: '#CC4444',
         },
-        gold: '#F5A623',
-        charcoal: '#1A1A2E',
-        cream: '#F8F5F0',
+        gold: '#F59E0B',
+        charcoal: '#0B1229',
+        cream: '#FFFAF5',
         purple: {
           DEFAULT: '#6C5CE7',
           50: '#F5F3FF',
@@ -1584,7 +1584,7 @@ module.exports = {
         // Semantic colors
         success: '#27AE60',
         warning: '#F39C12',
-        error: '#E55555',
+        error: '#BE185D',
       },
 
       borderRadius: {
@@ -1810,7 +1810,7 @@ npx expo install phosphor-react-native
 # Usage:
 import { Star, Heart, MapPin, AlertCircle } from 'phosphor-react-native';
 
-<Star size={24} color="#F5A623" weight="fill" />
+<Star size={24} color="#F59E0B" weight="fill" />
 ```
 
 ---
@@ -1903,7 +1903,7 @@ export const PrimaryButton = ({ label, onPress }: PrimaryButtonProps) => {
       <Animated.View
         style={[
           {
-            backgroundColor: '#0D7377',
+            backgroundColor: '#F97316',
             borderRadius: 16,
             paddingVertical: 14,
             paddingHorizontal: 24,

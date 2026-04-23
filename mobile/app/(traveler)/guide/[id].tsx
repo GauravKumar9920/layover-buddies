@@ -254,7 +254,12 @@ export default function GuideDetailScreen() {
               </Text>
             ) : (
               itineraries.map((itin) => (
-                <Card key={itin.id} style={{ marginBottom: 12 }}>
+                <TouchableOpacity
+                  key={itin.id}
+                  activeOpacity={0.85}
+                  onPress={() => router.push({ pathname: '/(traveler)/itinerary/[id]', params: { id: itin.id } })}
+                >
+                <Card style={{ marginBottom: 12 }}>
                   {getItineraryPhoto(itin) && (
                     <View style={{ height: 130, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
                       <Image
@@ -318,11 +323,12 @@ export default function GuideDetailScreen() {
                     </View>
                   )}
                   <Button
-                    title="Book This Tour"
-                    onPress={() => router.push({ pathname: '/(traveler)/book/[guideId]', params: { guideId: guide.id, itineraryId: itin.id } })}
+                    title="See the full story"
+                    onPress={() => router.push({ pathname: '/(traveler)/itinerary/[id]', params: { id: itin.id } })}
                     style={{ marginTop: 14 }}
                   />
                 </Card>
+                </TouchableOpacity>
               ))
             )}
           </View>

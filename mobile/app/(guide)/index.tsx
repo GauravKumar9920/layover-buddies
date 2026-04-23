@@ -147,7 +147,7 @@ export default function GuideDashboardScreen() {
             overflow: 'hidden',
             marginBottom: 16,
             borderWidth: 1,
-            borderColor: 'rgba(13, 115, 119, 0.2)',
+            borderColor: 'rgba(249, 115, 22, 0.2)',
           }}
         >
           <Image

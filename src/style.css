@@ -4,11 +4,20 @@
 
 @layer base {
   :root {
-      --ink: #0f172a;
-      --sky: #0ea5e9;
-      --sea: #0f766e;
-      --sand: #f8fafc;
-      --sun: #f59e0b;
+      /* Mumbai Buddies Design System — /design/brand/design-system.md */
+      --ink:      #0B1229;   /* Midnight Navy — primary text */
+      --saffron:  #F97316;   /* Mumbai Saffron — primary */
+      --saffron-dk: #EA580C;
+      --pink:     #EC4899;   /* Bougainvillea Pink — secondary */
+      --pink-dk:  #BE185D;
+      --cream:    #FFFAF5;   /* Warm cream background */
+      --gold:     #F59E0B;
+
+      /* Legacy aliases so any CSS that still references teal/coral keeps working */
+      --teal:     var(--saffron);
+      --teal-dk:  var(--saffron-dk);
+      --coral:    var(--pink);
+      --coral-dk: var(--pink-dk);
   }
 
   html {
@@ -17,9 +26,9 @@
 
   body {
       background:
-          radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 30%),
-          radial-gradient(circle at 85% 20%, rgba(245, 158, 11, 0.14), transparent 28%),
-          linear-gradient(180deg, #f8fbff 0%, #f8fafc 45%, #eef6ff 100%);
+          radial-gradient(circle at top left, rgba(249, 115, 22, 0.10), transparent 30%),
+          radial-gradient(circle at 85% 20%, rgba(236, 72, 153, 0.08), transparent 28%),
+          linear-gradient(180deg, #FFFAF5 0%, #FFFAF5 45%, #FEE4D0 100%);
   }
 }
 
@@ -144,9 +153,9 @@
 }
 
 @media (max-width: 768px) {
-  .hero-video-bg { 
+  .hero-video-bg {
     background: radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.4), rgba(0, 0, 0, 0.8)),
-                linear-gradient(45deg, rgba(232, 115, 10, 0.3), rgba(13, 148, 136, 0.3));
+                linear-gradient(45deg, rgba(249, 115, 22, 0.35), rgba(236, 72, 153, 0.35));
   }
 }
 
@@ -296,7 +305,7 @@
   position: absolute;
   inset: 0;
   z-index: 3;
-  background: linear-gradient(135deg, rgba(232, 115, 10, 0.45) 0%, rgba(13, 148, 136, 0.4) 100%);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.50) 0%, rgba(236, 72, 153, 0.40) 100%);
   opacity: 0.55;
   pointer-events: none;
 }
@@ -307,10 +316,10 @@
   inset: 0;
   z-index: 1;
   background:
-    radial-gradient(circle at 10% 10%, rgba(14, 165, 233, 0.25), transparent 40%),
+    radial-gradient(circle at 10% 10%, rgba(249, 115, 22, 0.28), transparent 40%),
     radial-gradient(circle at 90% 20%, rgba(245, 158, 11, 0.22), transparent 42%),
-    radial-gradient(circle at 50% 95%, rgba(20, 184, 166, 0.2), transparent 38%),
-    linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.68) 100%);
+    radial-gradient(circle at 50% 95%, rgba(236, 72, 153, 0.24), transparent 38%),
+    linear-gradient(180deg, rgba(11, 18, 41, 0.92) 0%, rgba(11, 18, 41, 0.68) 100%);
 }
 
 .recent-travelers {
@@ -358,11 +367,11 @@
 }
 
 .package-overlay-teal {
-  background: linear-gradient(180deg, transparent 35%, rgba(15, 118, 110, 0.75) 100%);
+  background: linear-gradient(180deg, transparent 35%, rgba(234, 88, 12, 0.80) 100%);
 }
 
 .package-overlay-saffron {
-  background: linear-gradient(180deg, transparent 35%, rgba(234, 88, 12, 0.75) 100%);
+  background: linear-gradient(180deg, transparent 35%, rgba(236, 72, 153, 0.75) 100%);
 }
 
 .package-overlay-gold {

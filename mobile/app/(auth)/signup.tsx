@@ -25,6 +25,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { signUp } from '@/lib/auth';
+import type { UserRole } from '@/types';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { hapticError, hapticImpactMedium, hapticSuccess, hapticWarning } from '@/lib/haptics';
 
@@ -90,6 +91,7 @@ function FloatingPhoto({ uri, style: posStyle, w, h, rot, delay, dur }: {
 
 export default function SignUpScreen() {
   const { width: W, height: H } = useWindowDimensions();
+  const [role, setRole]         = useState<UserRole>('traveler');
   const [name, setName]         = useState('');
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -137,7 +139,7 @@ export default function SignUpScreen() {
     setLoading(true);
     hapticImpactMedium();
     try {
-      await signUp(email.trim(), password, name.trim());
+      await signUp(email.trim(), password, name.trim(), role);
       hapticSuccess();
       Alert.alert('🎉 Almost there!', 'Check your email to confirm your account, then sign in.', [{ text: 'OK' }]);
     } catch (err: unknown) {
@@ -151,19 +153,19 @@ export default function SignUpScreen() {
   const inputStyle = (field: string) => ({
     backgroundColor: focused === field ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)',
     borderWidth: 1,
-    borderColor: focused === field ? 'rgba(63,167,150,0.85)' : 'rgba(255,255,255,0.14)',
+    borderColor: focused === field ? 'rgba(249,115,22,0.85)' : 'rgba(255,255,255,0.14)',
     borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14,
     color: '#FFFFFF' as const, fontSize: 15,
     ...(Platform.OS === 'web' ? { outline: 'none' } as any : {}),
   });
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#051718' }}>
+    <View style={{ flex: 1, backgroundColor: '#0B1229' }}>
       {photoProps.map((p, i) => <FloatingPhoto key={i} {...p} />)}
 
       {/* Coral-tinted overlay for signup */}
       <LinearGradient
-        colors={['rgba(255,107,107,0.22)', 'rgba(13,115,119,0.58)', 'rgba(5,23,24,0.52)', 'rgba(26,26,46,0.94)']}
+        colors={['rgba(249,115,22,0.22)', 'rgba(11,18,41,0.55)', 'rgba(11,18,41,0.60)', 'rgba(11,18,41,0.96)']}
         locations={[0, 0.28, 0.62, 1]}
         start={{ x: 0.3, y: 0 }} end={{ x: 0.7, y: 1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
@@ -179,8 +181,8 @@ export default function SignUpScreen() {
             <View style={{ alignItems: 'center', marginBottom: 28 }}>
               <View style={{
                 width: 60, height: 60, borderRadius: 20,
-                backgroundColor: 'rgba(13,115,119,0.92)', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
-                shadowColor: '#0D7377', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.70, shadowRadius: 24, elevation: 18,
+                backgroundColor: 'rgba(249,115,22,0.92)', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+                shadowColor: '#F97316', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.55, shadowRadius: 24, elevation: 18,
               }}>
                 <Text style={{ fontSize: 30 }}>🗺️</Text>
               </View>
@@ -197,7 +199,41 @@ export default function SignUpScreen() {
             }, cardStyle]}>
 
               <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '700', letterSpacing: -0.3, marginBottom: 4 }}>Create your account</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.40)', fontSize: 13, marginBottom: 26 }}>Join thousands exploring Mumbai like a local</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.40)', fontSize: 13, marginBottom: 22 }}>Join thousands exploring Mumbai like a local</Text>
+
+              {/* Role selector */}
+              <View style={{ marginBottom: 22 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10 }}>I am joining as a…</Text>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  {([
+                    { value: 'traveler' as UserRole, emoji: '🧳', title: 'Traveler', sub: 'I\'m on a layover' },
+                    { value: 'guide' as UserRole, emoji: '🎓', title: 'Guide', sub: 'I\'m a student guide' },
+                  ] as const).map(({ value, emoji, title, sub }) => {
+                    const active = role === value;
+                    return (
+                      <TouchableOpacity
+                        key={value}
+                        onPress={() => setRole(value)}
+                        activeOpacity={0.8}
+                        style={{
+                          flex: 1,
+                          borderRadius: 14,
+                          borderWidth: active ? 2 : 1,
+                          borderColor: active ? '#F97316' : 'rgba(255,255,255,0.14)',
+                          backgroundColor: active ? 'rgba(249,115,22,0.18)' : 'rgba(255,255,255,0.05)',
+                          paddingVertical: 14,
+                          alignItems: 'center',
+                          gap: 4,
+                        }}
+                      >
+                        <Text style={{ fontSize: 28 }}>{emoji}</Text>
+                        <Text style={{ color: active ? '#F97316' : '#FFFFFF', fontSize: 14, fontWeight: '700' }}>{title}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.40)', fontSize: 11, textAlign: 'center' }}>{sub}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
 
               {/* Full Name */}
               <View style={{ marginBottom: 14 }}>
@@ -225,8 +261,8 @@ export default function SignUpScreen() {
 
               {/* Join CTA */}
               <TouchableOpacity onPress={handleSignUp} disabled={loading} activeOpacity={0.85} style={{ marginTop: 24 }}>
-                <LinearGradient colors={['#FF6B6B', '#F5A623']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                  style={{ borderRadius: 14, paddingVertical: 16, alignItems: 'center', shadowColor: '#FF6B6B', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.50, shadowRadius: 22, elevation: 14 }}>
+                <LinearGradient colors={['#F97316', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  style={{ borderRadius: 14, paddingVertical: 16, alignItems: 'center', shadowColor: '#F97316', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.45, shadowRadius: 22, elevation: 14 }}>
                   {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Join Mumbai Buddies</Text>}
                 </LinearGradient>
               </TouchableOpacity>
@@ -251,7 +287,7 @@ export default function SignUpScreen() {
               <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 22, gap: 4 }}>
                 <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>Already have an account?</Text>
                 <Link href="/(auth)/login" asChild>
-                  <TouchableOpacity><Text style={{ color: '#3FA796', fontSize: 13, fontWeight: '700' }}>Sign In</Text></TouchableOpacity>
+                  <TouchableOpacity><Text style={{ color: '#F97316', fontSize: 13, fontWeight: '700' }}>Sign In</Text></TouchableOpacity>
                 </Link>
               </View>
 

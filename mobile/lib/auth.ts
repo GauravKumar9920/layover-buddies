@@ -13,13 +13,14 @@ async function syncCurrentAuthUser(): Promise<void> {
   }
 }
 
-export async function signUp(email: string, password: string, name: string) {
+export async function signUp(email: string, password: string, name: string, role: 'traveler' | 'guide' = 'traveler') {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
         full_name: name.trim(),
+        role,
       },
     },
   });
@@ -55,7 +56,7 @@ export async function resetPassword(email: string) {
 
 /**
  * Determine if the logged-in user is a guide or traveler.
- * Rule: if a row exists in guide_profiles with is_active=true → guide, else → traveler.
+ * Priority: active guide_profiles row → user_metadata.role → default traveler.
  */
 export async function getUserRole(userId: string): Promise<'guide' | 'traveler'> {
   const { data } = await supabase
@@ -65,5 +66,11 @@ export async function getUserRole(userId: string): Promise<'guide' | 'traveler'>
     .eq('is_active', true)
     .maybeSingle();
 
-  return data ? 'guide' : 'traveler';
+  if (data) return 'guide';
+
+  // New guide signups don't have a guide_profile yet — check their signup intent.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user?.id === userId && user.user_metadata?.role === 'guide') return 'guide';
+
+  return 'traveler';
 }

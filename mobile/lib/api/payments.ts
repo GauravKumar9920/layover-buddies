@@ -126,7 +126,7 @@ export async function openRazorpayCheckout(params: {
       name: params.travelerName ?? '',
       email: params.travelerEmail ?? '',
     },
-    theme: { color: '#0D7377' },
+    theme: { color: '#F97316' },
     modal: { backdropclose: false },
   }) as Promise<RazorpayPaymentResult>;
 }

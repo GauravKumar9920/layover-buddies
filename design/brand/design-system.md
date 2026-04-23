@@ -15,19 +15,19 @@
 #### Primary Colors
 | Color | Hex | Usage | Psychology |
 |-------|-----|-------|------------|
-| **Deep Teal** | #0D7377 | Primary CTA, trusted elements, headers | Trust, reliability, ocean vibes |
-| **Warm Coral** | #FF6B6B | Energy elements, alerts, secondary CTA | Energy, warmth, Mumbai sunset |
-| **Off-White** | #F8F5F0 | Backgrounds, breathable space | Clean, premium, minimalist |
-| **Dark Charcoal** | #1A1A2E | Primary text, sophisticated elements | Professional, readable, depth |
+| **Mumbai Saffron** | #F97316 | Primary CTA, trusted elements, headers | Trust, reliability, ocean vibes |
+| **Bougainvillea Pink** | #EC4899 | Energy elements, alerts, secondary CTA | Energy, warmth, Mumbai sunset |
+| **Warm Cream** | #FFFAF5 | Backgrounds, breathable space | Clean, premium, minimalist |
+| **Midnight Navy** | #0B1229 | Primary text, sophisticated elements | Professional, readable, depth |
 
 #### Extended Palette
 | Color | Hex | Usage |
 |-------|-----|-------|
 | Teal Light | #E8F5F5 | Background tints, hover states, highlights |
-| Teal Dark | #095456 | Pressed states, dark headers, depth |
+| Teal Dark | #EA580C | Pressed states, dark headers, depth |
 | Coral Light | #FFE8E8 | Badge backgrounds, notification halos |
-| Coral Dark | #E55555 | Error states, SOS button, critical alerts |
-| Gold | #F5A623 | Star ratings, premium badges, highlights |
+| Coral Dark | #BE185D | Error states, SOS button, critical alerts |
+| Gold | #F59E0B | Star ratings, premium badges, highlights |
 | Success Green | #27AE60 | Confirmations, positive states, verified badges |
 | Warning Amber | #F39C12 | Warnings, attention needed, pending states |
 | Mumbai Purple | #6C5CE7 | Premium features, special events, accent highlights |
@@ -36,13 +36,13 @@
 
 **Hero Gradient** (for splashes, headers, large CTAs)
 ```css
-background: linear-gradient(135deg, #0D7377 0%, #095456 50%, #1A1A2E 100%);
+background: linear-gradient(135deg, #F97316 0%, #EA580C 50%, #0B1229 100%);
 ```
 *Creates depth from teal through dark charcoal*
 
 **Sunset Gradient** (for warm, energetic elements)
 ```css
-background: linear-gradient(135deg, #FF6B6B 0%, #F5A623 100%);
+background: linear-gradient(135deg, #EC4899 0%, #F59E0B 100%);
 ```
 *Evokes Mumbai's golden-hour sunsets*
 
@@ -62,7 +62,7 @@ border: 1px solid rgba(255,255,255,0.2);
 
 **Mumbai Glow** (for premium/special elements)
 ```css
-background: linear-gradient(135deg, #6C5CE7 0%, #0D7377 100%);
+background: linear-gradient(135deg, #6C5CE7 0%, #F97316 100%);
 box-shadow: 0 0 30px rgba(108, 92, 231, 0.3);
 ```
 
@@ -100,10 +100,10 @@ All values in pixels, with recommended line-height and letter-spacing:
 3. **Numbers always use DM Sans** (monospace-ish feel) for prices and stats
 4. **Never mix serif and sans-serif** in same section
 5. **Color hierarchy**: 
-   - Primary text: Dark Charcoal (#1A1A2E) — 100% opacity
-   - Secondary text: Dark Charcoal at 60% opacity
-   - Tertiary text: Dark Charcoal at 45% opacity
-   - Interactive text: Deep Teal (#0D7377) or Warm Coral (#FF6B6B)
+   - Primary text: Midnight Navy (#0B1229) — 100% opacity
+   - Secondary text: Midnight Navy at 60% opacity
+   - Tertiary text: Midnight Navy at 45% opacity
+   - Interactive text: Mumbai Saffron (#F97316) or Bougainvillea Pink (#EC4899)
 
 ---
 
@@ -185,7 +185,7 @@ Fade out from 100% opacity to 0% over 600ms
 Gravity effect: slight downward acceleration
 
 Phase 3: Color fill
-Heart outline fills with Coral (#FF6B6B)
+Heart outline fills with Coral (#EC4899)
 Duration: 150ms ease-in
 
 Haptic: Light tap + medium impact on release
@@ -199,12 +199,12 @@ Haptic: Light tap + medium impact on release
 State: off
 Position: left (0%)
 Background: Light gray (opacity 30%)
-Thumb color: Off-White
+Thumb color: Warm Cream
 Duration to reach: instant (on render)
 
 State: on (after tap)
 Position: right (100%)
-Background: Deep Teal (#0D7377)
+Background: Mumbai Saffron (#F97316)
 Thumb color: White with teal shadow
 
 Transition: 200ms ease-out
@@ -420,7 +420,7 @@ Result: Elements appear to rise into view as you scroll
 Initial state (at top):
 Height: 120px
 Blur: 0px
-Background: solid (Off-White)
+Background: solid (Warm Cream)
 Title opacity: 100%, large font
 
 As user scrolls down (after hero):
@@ -601,7 +601,7 @@ Result: User always knows status of their action
 ```
 Full-screen celebration:
 Background gradient animates colors
-From: Deep Teal → Warm Coral → Mumbai Purple
+From: Mumbai Saffron → Bougainvillea Pink → Mumbai Purple
 Duration: 2s loop, soft transitions
 
 Confetti burst (Lottie animation):
@@ -899,7 +899,7 @@ Result: Helpful actions revealed without cluttering interface
 **Style Guidelines:**
 ```
 Default state:
-Background: Sunset Gradient (linear-gradient(135deg, #FF6B6B 0%, #F5A623 100%))
+Background: Sunset Gradient (linear-gradient(135deg, #EC4899 0%, #F59E0B 100%))
 Text: White, Inter 16px Bold
 Padding: 12px horizontal, 16px vertical (total 48px height)
 Border radius: 9999px (fully rounded pill shape)
@@ -946,10 +946,10 @@ Duration: 1.5s, then auto-dismiss
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 9999,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#EC4899',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF6B6B',
+    shadowColor: '#EC4899',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
@@ -967,21 +967,21 @@ Duration: 1.5s, then auto-dismiss
 **Style Guidelines:**
 ```
 Default state:
-Background: transparent (or Off-White #F8F5F0)
-Border: 2px solid Deep Teal (#0D7377)
-Text: Deep Teal (#0D7377), Inter 16px Bold
+Background: transparent (or Warm Cream #FFFAF5)
+Border: 2px solid Mumbai Saffron (#F97316)
+Text: Mumbai Saffron (#F97316), Inter 16px Bold
 Padding: 12px horizontal, 14px vertical (accounts for border)
 Border radius: 12px (slightly less than primary)
 Box shadow: none
 
 Hover state:
 Background: Teal Light (#E8F5F5)
-Border: 2px solid Deep Teal
+Border: 2px solid Mumbai Saffron
 Scale: 1.02
 Duration: 200ms ease-out
 
 Pressed state:
-Background: Teal Dark (#095456)
+Background: Teal Dark (#EA580C)
 Text color: White
 Scale: 0.96
 Duration: 100ms instant
@@ -996,7 +996,7 @@ Opacity: 0.4
 Default state:
 Background: transparent
 Border: none
-Text: Deep Teal (#0D7377), Inter 16px Medium
+Text: Mumbai Saffron (#F97316), Inter 16px Medium
 Padding: 12px horizontal, 12px vertical
 
 Pressed state:
@@ -1011,7 +1011,7 @@ Useful for: Secondary actions, less emphasis
 **Style Guidelines:**
 ```
 Default state:
-Background: Coral Dark (#E55555)
+Background: Coral Dark (#BE185D)
 Text: "SOS" or "Emergency", white, 18px bold
 Border radius: 9999px
 Size: 56px diameter (circular)
@@ -1102,11 +1102,11 @@ Drop shadow: 0 4px 8px rgba(0,0,0,0.15)
 
 Content area:
 Padding: 16px
-Background: Off-White (#F8F5F0)
+Background: Warm Cream (#FFFAF5)
 Rounded bottom corners: 16px
 
 Name & Rating Row:
-Name: Plus Jakarta Sans 18px Bold, Dark Charcoal
+Name: Plus Jakarta Sans 18px Bold, Midnight Navy
 Rating: "⭐ 4.9 (43)" — gold stars, Inter 14px
 Below on next row:
 Languages: ["English", "Hindi", "Marathi"] as teal pills
@@ -1118,19 +1118,19 @@ Colored chips (background colors per category):
 - History 🏛️: Purple (#6C5CE7)
 - Photography 📸: Blue (#0984E3)
 - Bollywood 🎬: Pink (#FD79A8)
-- Markets 🛍️: Teal (#0D7377)
+- Markets 🛍️: Teal (#F97316)
 Spacing: 8px between tags
 Font: DM Sans 12px
 
 Price:
 "From ₹2,000/day" — large, DM Sans 18px bold
-Color: Coral (#FF6B6B)
+Color: Coral (#EC4899)
 Position: Bottom-right corner of content area
 
 Card-level styles:
 Border radius: 16px
 Box shadow: 0 4px 16px rgba(0,0,0,0.1)
-Background: Off-White
+Background: Warm Cream
 
 Interactive states:
 Hover:
@@ -1184,7 +1184,7 @@ Position: 12px from edges
 
 Content area (below image):
 Padding: 12px
-Background: Off-White
+Background: Warm Cream
 
 Price badge:
 "₹12,000" — DM Sans 18px bold, coral text
@@ -1219,8 +1219,8 @@ Width: 4px, positioned left
 Color: varies by status
 - Confirmed: Success Green (#27AE60)
 - Pending: Warning Amber (#F39C12)
-- In Progress: Deep Teal (#0D7377)
-- Completed: Gold (#F5A623)
+- In Progress: Mumbai Saffron (#F97316)
+- Completed: Gold (#F59E0B)
 
 Content:
 Guide avatar: 48px, rounded, 8px from left
@@ -1272,12 +1272,12 @@ Structure:
 
 Opening quote:
 Font: Plus Jakarta Sans 40px
-Color: Gold (#F5A623)
+Color: Gold (#F59E0B)
 Opacity: 40%
 Position: top-left, -10px offset
 
 Review text:
-Inter 14px, Dark Charcoal
+Inter 14px, Midnight Navy
 Line height: 1.6
 Max lines: 3 (expandable "more")
 
@@ -1286,7 +1286,7 @@ Same as opening, position bottom-right
 
 Star rating:
 5 stars in a row
-Each star: Gold (#F5A623)
+Each star: Gold (#F59E0B)
 Size: 18px
 
 Traveler info:
@@ -1316,40 +1316,40 @@ All text fades in (staggered)
 **Design & Layout:**
 ```
 Container height: 48px
-Border: 1px solid Deep Teal (#0D7377)
+Border: 1px solid Mumbai Saffron (#F97316)
 Border radius: 12px (rounded-xl)
 Padding: 12px horizontal, 12px vertical
-Background: Off-White (#F8F5F0)
+Background: Warm Cream (#FFFAF5)
 Font: Inter 16px
 
 Placeholder:
-Color: Dark Charcoal at 40% opacity
+Color: Midnight Navy at 40% opacity
 Text: descriptive ("Enter destination date...")
 
 Focus state:
-Border: 2px solid Deep Teal (#0D7377)
+Border: 2px solid Mumbai Saffron (#F97316)
 Glow: box-shadow 0 0 0 3px rgba(13,115,119,0.15)
 Background: white (slight change for contrast)
 Duration: 200ms ease-out
 
 Error state:
-Border: 2px solid Coral Dark (#E55555)
+Border: 2px solid Coral Dark (#BE185D)
 Background: Coral Light (#FFE8E8) at 20% opacity
 Error message: Inter 12px, Coral Dark, below field
 Shake animation: 3 quick horizontal shakes (±8px), 200ms total
 
 Text color (filled):
-Dark Charcoal (#1A1A2E)
-Cursor color: Deep Teal
+Midnight Navy (#0B1229)
+Cursor color: Mumbai Saffron
 
 With left icon:
 Icon: 20px, positioned 12px left
-Icon color: Dark Charcoal at 60% opacity
+Icon color: Midnight Navy at 60% opacity
 Text indentation: 44px (12px icon + 12px padding + 20px icon)
 
 With right icon (action):
 Icon: 20px, positioned 12px right
-Icon color: Deep Teal (for actionable icons)
+Icon color: Mumbai Saffron (for actionable icons)
 Tap: Executes action (e.g., clear field, show password)
 Cursor indentation: -44px from right
 
@@ -1359,7 +1359,7 @@ On focus:
   - Scale: 0.85
   - Position: move up 8px
   - Opacity: 100%
-  - Color: Deep Teal
+  - Color: Mumbai Saffron
 Duration: 200ms ease-out
 
 Autocomplete:
@@ -1393,15 +1393,15 @@ Layout: 4 tabs evenly distributed
 - Profile / Account
 
 Inactive tab:
-Icon: 24px, Dark Charcoal at 60% opacity
-Label: Inter 10px, Dark Charcoal at 60% opacity
+Icon: 24px, Midnight Navy at 60% opacity
+Label: Inter 10px, Midnight Navy at 60% opacity
 Position: Centered in tab area
 
 Active tab:
-Icon: 24px, Deep Teal (#0D7377)
-Label: Inter 10px, Deep Teal
+Icon: 24px, Mumbai Saffron (#F97316)
+Label: Inter 10px, Mumbai Saffron
 Indicator: Colored dot (4px) below icon
-Indicator color: Matches icon (Deep Teal or Coral)
+Indicator color: Matches icon (Mumbai Saffron or Coral)
 Animation: Icon bounces (scale 1 → 1.15 → 1) when switched
 Duration: 300ms spring
 
@@ -1442,7 +1442,7 @@ Duration: 150ms spring
 Tap action: Pop screen / go back
 
 Title:
-Plus Jakarta Sans, 18px bold, Dark Charcoal
+Plus Jakarta Sans, 18px bold, Midnight Navy
 Position: Center-left (or centered, depending on design)
 
 On scroll transition:
@@ -1473,7 +1473,7 @@ Bottom corners: 0px (standard)
 Display mode (read-only):
 5 stars in a row
 Star size: 20px (can vary)
-Star color: Gold (#F5A623)
+Star color: Gold (#F59E0B)
 Spacing: 4px between stars
 Background: transparent
 
@@ -1519,7 +1519,7 @@ Font: Inter 12px medium
 Height: 28px (default)
 
 Language chips:
-Background: Deep Teal (#0D7377)
+Background: Mumbai Saffron (#F97316)
 Text: White
 Example: ["English", "Hindi", "Marathi"]
 
@@ -1531,7 +1531,7 @@ Examples:
 - "History 🏛️": Purple (#6C5CE7)
 - "Photography 📸": Blue (#0984E3)
 - "Bollywood 🎬": Pink (#FD79A8)
-- "Markets 🛍️": Teal (#0D7377)
+- "Markets 🛍️": Teal (#F97316)
 
 Removable chips (input context):
 X button inside chip (right side)
@@ -1575,7 +1575,7 @@ Tooltip: "Responds within 2 hours"
 Top rated badge:
 Icon: Gold star (⭐) in circle
 Size: 20px diameter
-Background: Gold (#F5A623)
+Background: Gold (#F59E0B)
 Tooltip: "Top rated guide"
 
 New guide badge:
@@ -1609,7 +1609,7 @@ Overlap by 8px for integration
 Full-screen overlay structure:
 Position: fixed, bottom 0
 Height: Variable (peek 25%, half 50%, full 90%)
-Background: Off-White (#F8F5F0)
+Background: Warm Cream (#FFFAF5)
 Border radius: 20px top corners
 Z-index: Very high (above all except modals)
 
@@ -1617,7 +1617,7 @@ Handle bar (at top):
 Width: 40px
 Height: 4px
 Border radius: 2px
-Background: Dark Charcoal at 20% opacity
+Background: Midnight Navy at 20% opacity
 Position: Centered, 12px from top
 Grabbable indicator (visual feedback)
 
@@ -1840,7 +1840,7 @@ Bottom section:
 Position: Sticky (stays at top when scrolling)
 Height: 48px
 Style: 
-  - Background: Off-White with subtle shadow
+  - Background: Warm Cream with subtle shadow
   - Border: 1px solid Teal Light
   - Rounded corners: 12px
   - Padding: 12px left, 12px right
@@ -1855,7 +1855,7 @@ On scroll down:
 
 On focus:
 - Glow: Blue ring (box-shadow)
-- Border: Deep Teal
+- Border: Mumbai Saffron
 - Duration: 200ms ease-out
 ```
 
@@ -1869,11 +1869,11 @@ Chips:
 
 Inactive chip:
 - Background: Teal Light (#E8F5F5)
-- Text: Dark Charcoal
+- Text: Midnight Navy
 - Border radius: 20px
 
 Active chip:
-- Background: Deep Teal
+- Background: Mumbai Saffron
 - Text: White
 - Animation: Scale 1.02, shadow increase
 - Duration: 200ms ease-out
@@ -2082,9 +2082,9 @@ Fit guide and traveler locations with padding
 Show current locations with pulse animations
 Route line animates in when guide starts navigation
 Colors:
-- Guide pin: Deep Teal
-- Traveler pin: Warm Coral
-- Route line: Deep Teal (2px width)
+- Guide pin: Mumbai Saffron
+- Traveler pin: Bougainvillea Pink
+- Route line: Mumbai Saffron (2px width)
 ```
 
 **Location Pins:**
@@ -2187,7 +2187,7 @@ Position: Fixed, bottom-right (32px from edges, above bottom sheet peek area)
 Style: Pulsing red circle
 Size: 56px diameter
 Icon: "SOS" text, white, bold
-Background: Coral Dark (#E55555)
+Background: Coral Dark (#BE185D)
 Glow: Pulsing red shadow (0 0 20px → 0 0 30px, 1.5s infinite)
 
 On tap:
@@ -2214,9 +2214,9 @@ Duration: 3–4 seconds (before auto-dismiss)
 **Background Gradient Animation:**
 ```
 Cycle through 3 states:
-State 1: Deep Teal to Warm Coral
-State 2: Warm Coral to Mumbai Purple
-State 3: Mumbai Purple to Deep Teal
+State 1: Mumbai Saffron to Bougainvillea Pink
+State 2: Bougainvillea Pink to Mumbai Purple
+State 3: Mumbai Purple to Mumbai Saffron
 Duration: 4s each, infinite loop
 Easing: Linear (smooth transitions)
 
@@ -2362,7 +2362,7 @@ Or user can tap button to dismiss earlier
 - Diverse character representation
 
 **Color Palette for Illustrations:**
-- Use only brand colors (#0D7377, #FF6B6B, #F5A623, #6C5CE7, etc.)
+- Use only brand colors (#F97316, #EC4899, #F59E0B, #6C5CE7, etc.)
 - No custom colors (maintains consistency)
 - Gradients: Same library as design system
 
@@ -2564,11 +2564,11 @@ Custom icons needed (complement Lucide icons):
 
 | Light Theme | Dark Theme | Usage |
 |------------|-----------|-------|
-| Off-White (#F8F5F0) | Dark Base (#0F0F1A) | Primary background |
-| Dark Charcoal (#1A1A2E) | Light Gray (#F5F5F5) | Primary text |
-| Deep Teal (#0D7377) | Deep Teal (#0D7377) | Primary actions (same) |
-| Warm Coral (#FF6B6B) | Warm Coral (#FF6B6B) | Energy/alerts (same) |
-| Off-White cards | Card Dark (#1A1A2E) | Card backgrounds |
+| Warm Cream (#FFFAF5) | Dark Base (#0F0F1A) | Primary background |
+| Midnight Navy (#0B1229) | Light Gray (#F5F5F5) | Primary text |
+| Mumbai Saffron (#F97316) | Mumbai Saffron (#F97316) | Primary actions (same) |
+| Bougainvillea Pink (#EC4899) | Bougainvillea Pink (#EC4899) | Energy/alerts (same) |
+| Warm Cream cards | Card Dark (#0B1229) | Card backgrounds |
 | Subtle shadows | Stronger shadows | Depth (higher opacity) |
 
 **Dark Theme Rules:**
@@ -2762,7 +2762,7 @@ function AppNavigator() {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: '#F8F5F0' },
+        cardStyle: { backgroundColor: '#FFFAF5' },
         animationEnabled: true,
         animationTypeForReplace: isSignedIn ? 'pop' : 'fade',
       }}
@@ -2924,7 +2924,7 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F5F0',
+    backgroundColor: '#FFFAF5',
     paddingHorizontal: 16,
   },
   button: {
@@ -2943,10 +2943,10 @@ const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const colors = {
-    primary: '#0D7377',
-    secondary: '#FF6B6B',
-    background: '#F8F5F0',
-    text: '#1A1A2E',
+    primary: '#F97316',
+    secondary: '#EC4899',
+    background: '#FFFAF5',
+    text: '#0B1229',
   };
 
   return (

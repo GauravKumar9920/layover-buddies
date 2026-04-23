@@ -50,6 +50,16 @@ export interface ItineraryStop {
   image_url?: string | null;
 }
 
+/**
+ * Rich-text building block used by the package detail screen
+ * (mobile/app/(traveler)/itinerary/[id].tsx). Persisted as JSONB
+ * on itineraries.story_blocks via migration 20260420120000.
+ */
+export type StoryBlock =
+  | { kind: 'paragraph'; text: string }
+  | { kind: 'quote'; text: string; author?: string }
+  | { kind: 'highlight'; emoji: string; title: string; body: string };
+
 export interface Itinerary {
   id: string;
   guide_id: string;
@@ -66,6 +76,11 @@ export interface Itinerary {
   is_active: boolean;
   created_at: string;
   stops?: ItineraryStop[];
+  // Story-content fields (migration 20260420120000_itinerary_story_fields.sql)
+  story_blocks?: StoryBlock[];
+  gallery_urls?: string[];
+  video_url?: string | null;
+  video_duration_seconds?: number | null;
 }
 
 // ─── Bookings ─────────────────────────────────────────────────────────────────

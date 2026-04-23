@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 56" fill="none">
+  <defs>
+    <linearGradient id="gb" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#F97316"></stop>
+      <stop offset="100%" stop-color="#EC4899"></stop>
+    </linearGradient>
+  </defs>
+  
+  <rect width="52" height="52" rx="14" fill="#0B1229" y="2"></rect>
+  
+  <path d="M12 14 L12 40 L28 40" stroke="#F97316" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+  
+  <path d="M32 14 L32 40" stroke="white" stroke-width="3.5" stroke-linecap="round" fill="none"></path>
+  <path d="M32 14 L40 14 Q46 14 46 20.5 Q46 27 32 27" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+  <path d="M32 27 L41 27 Q48 27 48 33.5 Q48 40 32 40" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+  
+  <circle cx="46" cy="8" r="3" fill="url(#gb)"></circle>
+  <circle cx="51" cy="5" r="2" fill="#F59E0B" opacity="0.7"></circle>
+  
+  <text x="64" y="24" font-family="&#39;Plus Jakarta Sans&#39;,sans-serif" font-weight="800" font-size="20" fill="#0B1229" letter-spacing="-1">Layover</text>
+  <text x="64" y="46" font-family="&#39;Plus Jakarta Sans&#39;,sans-serif" font-weight="800" font-size="20" fill="url(#gb)" letter-spacing="-1">Buddies</text>
+</svg>

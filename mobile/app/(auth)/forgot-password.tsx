@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { resetPassword } from '@/lib/auth';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { hapticError, hapticImpactLight, hapticSuccess, hapticWarning } from '@/lib/haptics';
+import { theme } from '@/config/theme';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -59,9 +60,9 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#051718' }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.dark.background }}>
       <LinearGradient
-        colors={['#0D7377', '#095456', '#1A1A2E']}
+        colors={theme.gradients.hero}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
@@ -142,14 +143,14 @@ export default function ForgotPasswordScreen() {
                 style={{ marginTop: 18 }}
               >
                 <LinearGradient
-                  colors={['#FF6B6B', '#F5A623']}
+                  colors={theme.gradients.sunset}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={{
                     borderRadius: 14,
                     paddingVertical: 15,
                     alignItems: 'center',
-                    shadowColor: '#FF6B6B',
+                    shadowColor: theme.colors.accent,
                     shadowOffset: { width: 0, height: 10 },
                     shadowOpacity: 0.5,
                     shadowRadius: 20,
@@ -183,12 +184,12 @@ export default function ForgotPasswordScreen() {
 
               <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20, gap: 6 }}>
                 <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
-                  <Text style={{ color: '#3FA796', fontSize: 13, fontWeight: '700' }}>Back to Sign In</Text>
+                  <Text style={{ color: theme.colors.primary, fontSize: 13, fontWeight: '700' }}>Back to Sign In</Text>
                 </TouchableOpacity>
                 <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>or</Text>
                 <Link href="/(auth)/signup" asChild>
                   <TouchableOpacity>
-                    <Text style={{ color: '#FF6B6B', fontSize: 13, fontWeight: '700' }}>Create account</Text>
+                    <Text style={{ color: theme.colors.accent, fontSize: 13, fontWeight: '700' }}>Create account</Text>
                   </TouchableOpacity>
                 </Link>
               </View>

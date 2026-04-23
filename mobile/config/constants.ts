@@ -58,6 +58,6 @@ export const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   Photography: { bg: '#DBEAFE', text: '#2563EB' },
   Art: { bg: '#FEF9C3', text: '#CA8A04' },
   Nature: { bg: '#DCFCE7', text: '#16A34A' },
-  Adventure: { bg: '#FFE8E8', text: '#E55555' },
+  Adventure: { bg: '#FEE2E2', text: '#DC2626' },
   Shopping: { bg: '#F3E8FF', text: '#9333EA' },
 };

@@ -13,7 +13,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #0d7377 50%, #ff6b6b 100%);
+            background: linear-gradient(135deg, #0b1229 0%, #f97316 50%, #ec4899 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -79,7 +79,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #f8f5f0;
+            background: #fffaf5;
             padding-top: 44px;
         }
 
@@ -96,7 +96,7 @@
             pointer-events: none;
             overflow-y: auto;
             overflow-x: hidden;
-            background: #f8f5f0;
+            background: #fffaf5;
         }
 
         .screen.active {
@@ -119,7 +119,7 @@
         }
 
         .screen::-webkit-scrollbar-thumb {
-            background: rgba(13, 115, 119, 0.3);
+            background: rgba(249, 115, 22, 0.3);
             border-radius: 2px;
         }
 
@@ -133,7 +133,7 @@
         .welcome-container {
             position: relative;
             height: 100%;
-            background: linear-gradient(180deg, #2d1b69 0%, #1a0e3d 20%, #0d7377 50%, #ff6b6b 85%, #f5a623 100%);
+            background: linear-gradient(180deg, #2d1b69 0%, #1a0e3d 20%, #f97316 50%, #ec4899 85%, #f59e0b 100%);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -156,11 +156,11 @@
             50% { transform: translateY(-30px) translateX(20px); }
         }
 
-        .bokeh:nth-child(1) { width: 100px; height: 100px; background: #ff6b6b; top: 10%; left: 10%; animation-delay: 0s; }
-        .bokeh:nth-child(2) { width: 150px; height: 150px; background: #f5a623; top: 20%; right: 15%; animation-delay: 1s; }
-        .bokeh:nth-child(3) { width: 80px; height: 80px; background: #0d7377; bottom: 20%; left: 20%; animation-delay: 2s; }
-        .bokeh:nth-child(4) { width: 120px; height: 120px; background: #ff6b6b; bottom: 10%; right: 10%; animation-delay: 3s; }
-        .bokeh:nth-child(5) { width: 60px; height: 60px; background: #f5a623; top: 50%; left: 5%; animation-delay: 1.5s; }
+        .bokeh:nth-child(1) { width: 100px; height: 100px; background: #ec4899; top: 10%; left: 10%; animation-delay: 0s; }
+        .bokeh:nth-child(2) { width: 150px; height: 150px; background: #f59e0b; top: 20%; right: 15%; animation-delay: 1s; }
+        .bokeh:nth-child(3) { width: 80px; height: 80px; background: #f97316; bottom: 20%; left: 20%; animation-delay: 2s; }
+        .bokeh:nth-child(4) { width: 120px; height: 120px; background: #ec4899; bottom: 10%; right: 10%; animation-delay: 3s; }
+        .bokeh:nth-child(5) { width: 60px; height: 60px; background: #f59e0b; top: 50%; left: 5%; animation-delay: 1.5s; }
 
         .welcome-content {
             position: relative;
@@ -260,7 +260,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ff8a7b 100%);
+            background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
             color: #fff;
             box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
         }
@@ -272,8 +272,8 @@
 
         .btn-secondary {
             background: #fff;
-            color: #0d7377;
-            border: 2px solid #0d7377;
+            color: #f97316;
+            border: 2px solid #f97316;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
@@ -302,7 +302,7 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: rgba(13, 115, 119, 0.1);
+            background: rgba(249, 115, 22, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -312,14 +312,14 @@
         }
 
         .header-back:active {
-            background: rgba(13, 115, 119, 0.2);
+            background: rgba(249, 115, 22, 0.2);
             transform: scale(0.95);
         }
 
         .header-title {
             font-size: 20px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0b1229;
             flex: 1;
         }
 
@@ -347,8 +347,8 @@
             left: 16px;
             font-size: 12px;
             font-weight: 600;
-            color: #0d7377;
-            background: #f8f5f0;
+            color: #f97316;
+            background: #fffaf5;
             padding: 0 4px;
             transition: all 0.2s ease;
             pointer-events: none;
@@ -357,27 +357,27 @@
         .form-input {
             width: 100%;
             padding: 14px 16px;
-            border: 2px solid #e8f5f5;
+            border: 2px solid #fff7ed;
             border-radius: 12px;
             font-size: 16px;
             background: #fff;
-            color: #1a1a2e;
+            color: #0b1229;
             transition: all 0.2s ease;
             font-weight: 500;
         }
 
         .form-input:focus {
             outline: none;
-            border-color: #0d7377;
-            box-shadow: 0 0 0 3px rgba(13, 115, 119, 0.1);
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
         }
 
         .timeline-container {
-            background: linear-gradient(135deg, #e8f5f5 0%, rgba(13, 115, 119, 0.05) 100%);
+            background: linear-gradient(135deg, #fff7ed 0%, rgba(249, 115, 22, 0.05) 100%);
             border-radius: 16px;
             padding: 20px;
             margin: 24px 0;
-            border: 1px solid rgba(13, 115, 119, 0.1);
+            border: 1px solid rgba(249, 115, 22, 0.1);
         }
 
         .timeline-stats {
@@ -388,7 +388,7 @@
         .timeline-main {
             font-size: 18px;
             font-weight: 700;
-            color: #0d7377;
+            color: #f97316;
             margin-bottom: 4px;
         }
 
@@ -401,7 +401,7 @@
             height: 60px;
             background: #fff;
             border-radius: 12px;
-            border: 1px solid rgba(13, 115, 119, 0.1);
+            border: 1px solid rgba(249, 115, 22, 0.1);
             display: flex;
             align-items: center;
             overflow: hidden;
@@ -422,13 +422,13 @@
 
         .timeline-segment:nth-child(1) {
             flex: 0.5;
-            background: rgba(13, 115, 119, 0.1);
+            background: rgba(249, 115, 22, 0.1);
             animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0s;
         }
 
         .timeline-segment:nth-child(2) {
             flex: 1;
-            background: rgba(13, 115, 119, 0.08);
+            background: rgba(249, 115, 22, 0.08);
             animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;
         }
 
@@ -440,13 +440,13 @@
 
         .timeline-segment:nth-child(4) {
             flex: 0.3;
-            background: rgba(13, 115, 119, 0.08);
+            background: rgba(249, 115, 22, 0.08);
             animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;
         }
 
         .timeline-segment:nth-child(5) {
             flex: 0.5;
-            background: rgba(13, 115, 119, 0.1);
+            background: rgba(249, 115, 22, 0.1);
             animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s backwards;
         }
 
@@ -471,7 +471,7 @@
         .interests-label {
             font-size: 14px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: #0b1229;
             margin-bottom: 12px;
         }
 
@@ -492,7 +492,7 @@
             white-space: nowrap;
             padding: 8px 16px;
             border-radius: 20px;
-            border: 2px solid #e8f5f5;
+            border: 2px solid #fff7ed;
             background: #fff;
             font-size: 13px;
             cursor: pointer;
@@ -503,16 +503,16 @@
         }
 
         .interest-pill:active {
-            background: #ff6b6b;
+            background: #ec4899;
             color: #fff;
-            border-color: #ff6b6b;
+            border-color: #ec4899;
             transform: scale(0.95);
         }
 
         .interest-pill.selected {
-            background: #ff6b6b;
+            background: #ec4899;
             color: #fff;
-            border-color: #ff6b6b;
+            border-color: #ec4899;
         }
 
         /* === MATCHES SCREEN === */
@@ -524,7 +524,7 @@
         .matches-title {
             font-size: 20px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0b1229;
             margin-bottom: 4px;
         }
 
@@ -567,17 +567,17 @@
 
         .card-cover {
             height: 100px;
-            background: linear-gradient(135deg, #0d7377 0%, #1a3a3d 100%);
+            background: linear-gradient(135deg, #f97316 0%, #1a3a3d 100%);
             position: relative;
             overflow: hidden;
         }
 
         .card-cover.cover-2 {
-            background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4a 100%);
+            background: linear-gradient(135deg, #0b1229 0%, #2d2d4a 100%);
         }
 
         .card-cover.cover-3 {
-            background: linear-gradient(135deg, #ff6b6b 0%, #f5a623 100%);
+            background: linear-gradient(135deg, #ec4899 0%, #f59e0b 100%);
         }
 
         .card-profile-section {
@@ -601,21 +601,21 @@
         }
 
         .profile-circle.circle-1 {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ff8a7b 100%);
+            background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
         }
 
         .profile-circle.circle-2 {
-            background: linear-gradient(135deg, #f5a623 0%, #f5b849 100%);
+            background: linear-gradient(135deg, #f59e0b 0%, #f5b849 100%);
         }
 
         .profile-circle.circle-3 {
-            background: linear-gradient(135deg, #0d7377 0%, #158fa6 100%);
+            background: linear-gradient(135deg, #f97316 0%, #158fa6 100%);
         }
 
         .guide-name {
             font-size: 16px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0b1229;
             margin-bottom: 2px;
         }
 
@@ -635,7 +635,7 @@
         }
 
         .stars {
-            color: #f5a623;
+            color: #f59e0b;
         }
 
         .reviews-count {
@@ -677,14 +677,14 @@
 
         .price-row {
             font-size: 12px;
-            color: #0d7377;
+            color: #f97316;
             font-weight: 600;
             margin-bottom: 12px;
         }
 
         .response-time {
             font-size: 12px;
-            color: #0d7377;
+            color: #f97316;
             margin-bottom: 12px;
             font-weight: 500;
         }
@@ -721,7 +721,7 @@
             padding: 2px 8px;
             border-radius: 12px;
             background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(245, 166, 35, 0.15));
-            color: #ff6b6b;
+            color: #ec4899;
             border: 1px solid rgba(255, 107, 107, 0.2);
             display: inline-block;
             font-size: 11px;
@@ -737,7 +737,7 @@
         /* === PROFILE SCREEN === */
         .profile-hero {
             height: 140px;
-            background: linear-gradient(135deg, #0d7377 0%, #1a3a3d 100%);
+            background: linear-gradient(135deg, #f97316 0%, #1a3a3d 100%);
             position: relative;
             margin: -16px -16px 0 -16px;
         }
@@ -746,7 +746,7 @@
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ff8a7b 100%);
+            background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -772,7 +772,7 @@
         .profile-name {
             font-size: 18px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0b1229;
             margin-bottom: 4px;
             display: flex;
             align-items: center;
@@ -819,7 +819,7 @@
         .stat-number {
             font-size: 18px;
             font-weight: 700;
-            color: #0d7377;
+            color: #f97316;
             margin-bottom: 2px;
             animation: countUp 1.5s ease-out;
         }
@@ -848,7 +848,7 @@
         .section-title {
             font-size: 14px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0b1229;
             margin-bottom: 12px;
         }
 
@@ -856,10 +856,10 @@
             font-size: 13px;
             color: #666;
             line-height: 1.6;
-            background: #f8f5f0;
+            background: #fffaf5;
             padding: 12px;
             border-radius: 12px;
-            border-left: 3px solid #0d7377;
+            border-left: 3px solid #f97316;
         }
 
         .languages-section {
@@ -876,7 +876,7 @@
         .lang-name {
             font-size: 13px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: #0b1229;
         }
 
         .lang-bar {
@@ -889,7 +889,7 @@
 
         .lang-fill {
             height: 100%;
-            background: linear-gradient(90deg, #0d7377, #158fa6);
+            background: linear-gradient(90deg, #f97316, #158fa6);
             animation: langFill 1s ease-out;
         }
 
@@ -901,7 +901,7 @@
         .experiences-label {
             font-size: 14px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0b1229;
             margin-bottom: 12px;
         }
 
@@ -917,7 +917,7 @@
         .exp-title {
             font-size: 13px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0b1229;
             margin-bottom: 6px;
         }
 
@@ -938,14 +938,14 @@
 
         .exp-rating {
             font-size: 11px;
-            color: #f5a623;
+            color: #f59e0b;
             font-weight: 600;
         }
 
         .reviews-label {
             font-size: 14px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0b1229;
             margin-bottom: 12px;
             margin-top: 24px;
         }
@@ -969,7 +969,7 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #0d7377, #158fa6);
+            background: linear-gradient(135deg, #f97316, #158fa6);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -981,7 +981,7 @@
         .review-name {
             font-size: 13px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: #0b1229;
         }
 
         .review-flag {
@@ -990,7 +990,7 @@
 
         .review-rating {
             font-size: 11px;
-            color: #f5a623;
+            color: #f59e0b;
         }
 
         .review-text {
@@ -1007,7 +1007,7 @@
             padding: 12px 16px 16px;
             background: rgba(248, 245, 240, 0.95);
             backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(13, 115, 119, 0.1);
+            border-top: 1px solid rgba(249, 115, 22, 0.1);
             width: 375px;
             display: flex;
             justify-content: center;
@@ -1020,7 +1020,7 @@
 
         /* === BOOKING CONFIRMATION === */
         .itinerary-mini {
-            background: linear-gradient(135deg, #0d7377 0%, #1a3a3d 100%);
+            background: linear-gradient(135deg, #f97316 0%, #1a3a3d 100%);
             color: #fff;
             padding: 16px;
             border-radius: 12px;
@@ -1060,7 +1060,7 @@
             border-top: 2px solid #f0f0f0;
             padding-top: 12px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0b1229;
             font-size: 14px;
         }
 
@@ -1086,12 +1086,12 @@
 
         .expense-amount {
             font-weight: 600;
-            color: #0d7377;
+            color: #f97316;
         }
 
         .info-box {
-            background: linear-gradient(135deg, rgba(13, 115, 119, 0.1), rgba(13, 115, 119, 0.05));
-            border-left: 3px solid #0d7377;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(249, 115, 22, 0.05));
+            border-left: 3px solid #f97316;
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -1107,7 +1107,7 @@
         .payment-label {
             font-size: 13px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: #0b1229;
             margin-bottom: 12px;
         }
 
@@ -1124,13 +1124,13 @@
         }
 
         .payment-option:active {
-            border-color: #0d7377;
-            background: rgba(13, 115, 119, 0.05);
+            border-color: #f97316;
+            background: rgba(249, 115, 22, 0.05);
         }
 
         .payment-option.selected {
-            border-color: #0d7377;
-            background: rgba(13, 115, 119, 0.05);
+            border-color: #f97316;
+            background: rgba(249, 115, 22, 0.05);
         }
 
         .payment-radio {
@@ -1145,8 +1145,8 @@
         }
 
         .payment-option.selected .payment-radio {
-            border-color: #0d7377;
-            background: #0d7377;
+            border-color: #f97316;
+            background: #f97316;
         }
 
         .payment-radio::after {
@@ -1165,7 +1165,7 @@
         .payment-text {
             font-size: 14px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: #0b1229;
         }
 
         /* === SUCCESS SCREEN === */
@@ -1257,7 +1257,7 @@
         .success-title {
             font-size: 24px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0b1229;
             margin: 20px 0 12px;
             animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards;
         }
@@ -1309,7 +1309,7 @@
         .map-placeholder {
             width: 100%;
             height: 180px;
-            background: linear-gradient(135deg, #e8f5f5 0%, #f0f0f0 100%);
+            background: linear-gradient(135deg, #fff7ed 0%, #f0f0f0 100%);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -1344,7 +1344,7 @@
             backdrop-filter: blur(10px);
             border-radius: 12px;
             padding: 14px;
-            border: 1px solid rgba(13, 115, 119, 0.1);
+            border: 1px solid rgba(249, 115, 22, 0.1);
             margin-bottom: 16px;
         }
 
@@ -1354,7 +1354,7 @@
             gap: 8px;
             font-size: 14px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: #0b1229;
             margin-bottom: 12px;
         }
 
@@ -1362,7 +1362,7 @@
             width: 70px;
             height: 70px;
             border-radius: 50%;
-            border: 3px solid #0d7377;
+            border: 3px solid #f97316;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -1377,7 +1377,7 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            border: 3px solid #ff6b6b;
+            border: 3px solid #ec4899;
             clip-path: polygon(0 0, 100% 0, 100% 70%, 0 70%);
             animation: timerFill 3.75s linear;
         }
@@ -1390,7 +1390,7 @@
         .timer-text {
             font-size: 12px;
             font-weight: 700;
-            color: #0d7377;
+            color: #f97316;
             text-align: center;
             position: relative;
             z-index: 1;
@@ -1447,18 +1447,18 @@
             transition: all 0.2s ease;
             font-size: 11px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: #0b1229;
         }
 
         .action-btn:active {
-            background: rgba(13, 115, 119, 0.1);
-            border-color: #0d7377;
+            background: rgba(249, 115, 22, 0.1);
+            border-color: #f97316;
         }
 
         .action-btn.sos {
             background: rgba(255, 107, 107, 0.1);
-            border-color: #ff6b6b;
-            color: #ff6b6b;
+            border-color: #ec4899;
+            color: #ec4899;
         }
 
         .action-btn.sos:active {
@@ -1469,7 +1469,7 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: #ff6b6b;
+            background: #ec4899;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1488,7 +1488,7 @@
 
         /* === GUIDE DASHBOARD === */
         .guide-header {
-            background: linear-gradient(135deg, #0d7377 0%, #1a3a3d 100%);
+            background: linear-gradient(135deg, #f97316 0%, #1a3a3d 100%);
             color: #fff;
             padding: 16px;
             margin: -16px -16px 20px -16px;
@@ -1502,7 +1502,7 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #ff6b6b, #ff8a7b);
+            background: linear-gradient(135deg, #ec4899, #f472b6);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1553,7 +1553,7 @@
         .stat-big {
             font-size: 20px;
             font-weight: 700;
-            color: #0d7377;
+            color: #f97316;
             margin-bottom: 4px;
         }
 
@@ -1577,7 +1577,7 @@
         .section-title-main {
             font-size: 14px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0b1229;
         }
 
         .request-card {
@@ -1599,7 +1599,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #0d7377, #158fa6);
+            background: linear-gradient(135deg, #f97316, #158fa6);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1615,7 +1615,7 @@
         .traveler-name {
             font-size: 13px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: #0b1229;
         }
 
         .traveler-location {
@@ -1672,7 +1672,7 @@
             width: 56px;
             height: 56px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #ff6b6b, #ff8a7b);
+            background: linear-gradient(135deg, #ec4899, #f472b6);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1701,7 +1701,7 @@
         }
 
         .invite-card {
-            background: linear-gradient(135deg, rgba(245, 166, 35, 0.15), rgba(13, 115, 119, 0.15));
+            background: linear-gradient(135deg, rgba(245, 166, 35, 0.15), rgba(249, 115, 22, 0.15));
             border: 2px solid rgba(245, 166, 35, 0.3);
             padding: 16px;
             border-radius: 12px;
@@ -1717,7 +1717,7 @@
         .invite-title {
             font-size: 13px;
             font-weight: 700;
-            color: #1a1a2e;
+            color: #0b1229;
             margin-bottom: 4px;
         }
 
@@ -1729,18 +1729,18 @@
 
         /* === CREATE ITINERARY === */
         .photo-upload {
-            border: 2px dashed #0d7377;
+            border: 2px dashed #f97316;
             border-radius: 12px;
             padding: 30px 20px;
             text-align: center;
             margin-bottom: 20px;
             cursor: pointer;
             transition: all 0.2s ease;
-            background: rgba(13, 115, 119, 0.05);
+            background: rgba(249, 115, 22, 0.05);
         }
 
         .photo-upload:active {
-            background: rgba(13, 115, 119, 0.1);
+            background: rgba(249, 115, 22, 0.1);
             border-color: #158fa6;
         }
 
@@ -1752,7 +1752,7 @@
         .photo-text {
             font-size: 13px;
             font-weight: 600;
-            color: #0d7377;
+            color: #f97316;
         }
 
         .duration-pills {
@@ -1775,14 +1775,14 @@
         }
 
         .duration-pill:active {
-            border-color: #0d7377;
-            background: rgba(13, 115, 119, 0.1);
-            color: #0d7377;
+            border-color: #f97316;
+            background: rgba(249, 115, 22, 0.1);
+            color: #f97316;
         }
 
         .duration-pill.selected {
-            border-color: #0d7377;
-            background: #0d7377;
+            border-color: #f97316;
+            background: #f97316;
             color: #fff;
         }
 
@@ -1801,7 +1801,7 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #0d7377, #158fa6);
+            background: linear-gradient(135deg, #f97316, #158fa6);
             color: #fff;
             display: flex;
             align-items: center;
@@ -1820,7 +1820,7 @@
             top: 32px;
             width: 2px;
             height: calc(100% + 12px);
-            background: linear-gradient(180deg, #0d7377, transparent);
+            background: linear-gradient(180deg, #f97316, transparent);
         }
 
         .stop-item:last-child .stop-line {
@@ -1837,21 +1837,21 @@
             border: 1px solid #e0e0e0;
             border-radius: 8px;
             font-size: 13px;
-            color: #1a1a2e;
+            color: #0b1229;
         }
 
         .form-control input:focus {
             outline: none;
-            border-color: #0d7377;
-            box-shadow: 0 0 0 2px rgba(13, 115, 119, 0.1);
+            border-color: #f97316;
+            box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1);
         }
 
         .add-stop-btn {
             padding: 10px 12px;
-            border: 2px dashed #0d7377;
+            border: 2px dashed #f97316;
             border-radius: 8px;
-            background: rgba(13, 115, 119, 0.05);
-            color: #0d7377;
+            background: rgba(249, 115, 22, 0.05);
+            color: #f97316;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
@@ -1860,12 +1860,12 @@
         }
 
         .add-stop-btn:active {
-            background: rgba(13, 115, 119, 0.1);
+            background: rgba(249, 115, 22, 0.1);
         }
 
         .summary-card {
-            background: linear-gradient(135deg, #e8f5f5, rgba(13, 115, 119, 0.05));
-            border: 1px solid rgba(13, 115, 119, 0.1);
+            background: linear-gradient(135deg, #fff7ed, rgba(249, 115, 22, 0.05));
+            border: 1px solid rgba(249, 115, 22, 0.1);
             padding: 16px;
             border-radius: 12px;
             margin-bottom: 20px;
@@ -1881,14 +1881,14 @@
 
         .summary-line.highlight {
             font-weight: 700;
-            color: #0d7377;
+            color: #f97316;
             padding-top: 12px;
-            border-top: 1px solid rgba(13, 115, 119, 0.1);
+            border-top: 1px solid rgba(249, 115, 22, 0.1);
         }
 
         /* === EARNINGS SCREEN === */
         .earnings-header {
-            background: linear-gradient(135deg, #0d7377 0%, #1a3a3d 100%);
+            background: linear-gradient(135deg, #f97316 0%, #1a3a3d 100%);
             color: #fff;
             padding: 20px 16px;
             margin: -16px -16px 20px -16px;
@@ -1933,7 +1933,7 @@
 
         .bar {
             flex: 1;
-            background: linear-gradient(180deg, #0d7377, #158fa6);
+            background: linear-gradient(180deg, #f97316, #158fa6);
             border-radius: 4px 4px 0 0;
             animation: barGrow 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
         }
@@ -1946,7 +1946,7 @@
         .bar:nth-child(6) {
             height: 85%;
             animation-delay: 0.5s;
-            background: linear-gradient(180deg, #ff6b6b, #ff8a7b);
+            background: linear-gradient(180deg, #ec4899, #f472b6);
         }
 
         @keyframes barGrow {
@@ -1985,7 +1985,7 @@
         .payout-desc {
             font-size: 13px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: #0b1229;
             margin-bottom: 2px;
         }
 
@@ -1997,7 +1997,7 @@
         .payout-amount {
             font-size: 14px;
             font-weight: 700;
-            color: #0d7377;
+            color: #f97316;
             margin-right: 12px;
         }
 
@@ -2015,7 +2015,7 @@
 
         .badge-processing {
             background: rgba(245, 166, 35, 0.15);
-            color: #f5a623;
+            color: #f59e0b;
         }
 
         /* Bottom Navigation */
@@ -2027,7 +2027,7 @@
             height: 60px;
             background: rgba(248, 245, 240, 0.95);
             backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(13, 115, 119, 0.1);
+            border-top: 1px solid rgba(249, 115, 22, 0.1);
             display: flex;
             justify-content: space-around;
             align-items: center;
@@ -2049,7 +2049,7 @@
         }
 
         .nav-item.active {
-            color: #0d7377;
+            color: #f97316;
         }
 
         .nav-icon {
@@ -2135,8 +2135,8 @@
                     </div>
 
                     <svg class="plane-illustration" viewBox="0 0 100 100">
-                        <path d="M20 50 L50 30 L80 50 M50 30 L50 70 M35 50 L65 50" stroke="#0d7377" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <circle cx="50" cy="60" r="3" fill="#0d7377"/>
+                        <path d="M20 50 L50 30 L80 50 M50 30 L50 70 M35 50 L65 50" stroke="#f97316" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <circle cx="50" cy="60" r="3" fill="#f97316"/>
                     </svg>
 
                     <div class="form-group">
@@ -2510,7 +2510,7 @@
                         </div>
                         <div class="summary-item">
                             <span class="summary-label">Total:</span>
-                            <span style="font-weight: 700; color: #0d7377;">₹3,300</span>
+                            <span style="font-weight: 700; color: #f97316;">₹3,300</span>
                         </div>
                     </div>
 
@@ -2519,7 +2519,7 @@
                     <div style="width: 100%; height: 2px; background: #f0f0f0; margin: 20px 0;"></div>
 
                     <div class="during-tour">
-                        <div style="font-size: 14px; font-weight: 700; color: #1a1a2e; margin-bottom: 12px;">During Your Tour</div>
+                        <div style="font-size: 14px; font-weight: 700; color: #0b1229; margin-bottom: 12px;">During Your Tour</div>
                         <div class="map-placeholder">
                             <div class="map-pin">📍</div>
                         </div>
@@ -2632,7 +2632,7 @@
 
                         <div class="request-card">
                             <div class="request-header">
-                                <div class="traveler-avatar" style="background: linear-gradient(135deg, #ff6b6b, #ff8a7b);">KT</div>
+                                <div class="traveler-avatar" style="background: linear-gradient(135deg, #ec4899, #f472b6);">KT</div>
                                 <div class="request-info">
                                     <div class="traveler-name">Kenji Tanaka <span class="review-flag">🇯🇵</span></div>
                                     <div class="traveler-location">Tokyo</div>
@@ -2875,7 +2875,7 @@
             confettiContainer.className = 'confetti';
             document.querySelector('.phone-frame').appendChild(confettiContainer);
 
-            const colors = ['#ff6b6b', '#0d7377', '#f5a623', '#27AE60'];
+            const colors = ['#ec4899', '#f97316', '#f59e0b', '#27AE60'];
             const pieces = 40;
 
             for (let i = 0; i < pieces; i++) {

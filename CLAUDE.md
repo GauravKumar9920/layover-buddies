@@ -76,8 +76,8 @@ The website uses different colors than the app's design system. Needs alignment:
 
 | Element | Website (current) | Design System (correct) |
 |---|---|---|
-| Primary color | Indigo `#4F46E5` | Deep Teal `#0D7377` |
-| Secondary | Sky Blue `#0EA5E9` | Warm Coral `#FF6B6B` |
+| Primary color | Indigo `#4F46E5` | Mumbai Saffron `#F97316` |
+| Secondary | Sky Blue `#0EA5E9` | Bougainvillea Pink `#EC4899` |
 | Fonts | System fonts | Plus Jakarta Sans, Inter, DM Sans |
 
 **Files to update:** `index.html`, `know-more.html`, `src/style.css`, `tailwind.config.js`
@@ -138,13 +138,13 @@ mumbai-buddies/
 
 ## Design System Quick Reference
 
-**Colors:**
-- Primary: Deep Teal `#0D7377` / Dark `#095456`
-- Secondary: Warm Coral `#FF6B6B` / Dark `#E55555`
-- Background: Off-White `#F8F5F0`
-- Text: Dark Charcoal `#1A1A2E`
-- Gold (ratings): `#F5A623`
-- Success: `#27AE60`
+**Colors (v2 "City of Dreams" — saffron-led):**
+- Primary: Mumbai Saffron `#F97316` / Dark `#EA580C`
+- Secondary: Bougainvillea Pink `#EC4899` / Dark `#BE185D`
+- Background: Warm Cream `#FFFAF5`
+- Text: Midnight Navy `#0B1229`
+- Gold (ratings): `#F59E0B`
+- Success: `#22C55E`
 - Mumbai Purple (premium): `#6C5CE7`
 
 **Fonts:**

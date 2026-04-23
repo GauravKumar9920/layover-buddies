@@ -1,5 +1,5 @@
 import { supabase } from '../supabase';
-import { COMMISSION_RATE, BOOKING_STATUS } from '@/config/constants';
+import { COMMISSION_RATE, BOOKING_STATUS, ESTIMATED_EXPENSES_PERCENT } from '@/config/constants';
 import type { Booking, CreateBookingRequest, BookingStatus, PaymentStatus } from '@/types';
 
 interface RawUserJoin {
@@ -172,7 +172,7 @@ function normalizeBooking(row: RawBookingRow): Booking {
 }
 
 export function calcCommission(buddyCost: number): number {
-  return buddyCost * COMMISSION_RATE;
+  return Math.round(buddyCost * COMMISSION_RATE);
 }
 
 export async function createBooking(req: CreateBookingRequest): Promise<Booking> {
@@ -193,6 +193,7 @@ export async function createBooking(req: CreateBookingRequest): Promise<Booking>
   if (itinErr || !itin) throw new Error('Itinerary not found');
 
   const buddyCost = itin.buddy_cost;
+  const estimatedExpenses = Math.round(buddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
   const commission = calcCommission(buddyCost);
 
   const { data, error } = await supabase
@@ -207,7 +208,7 @@ export async function createBooking(req: CreateBookingRequest): Promise<Booking>
       tour_end_time: tourEndTime,
       buddy_cost: buddyCost,
       platform_fee: commission,
-      total_amount: buddyCost + commission,
+      total_amount: buddyCost + estimatedExpenses + commission,
       status: BOOKING_STATUS.PENDING,
       payment_status: 'pending',
     })

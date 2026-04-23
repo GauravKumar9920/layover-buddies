@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 import { PRIMARY_CITY } from '@/config/constants';
-import type { GuideProfile, Itinerary, Review } from '@/types';
+import type { GuideProfile, Itinerary, Review, StoryBlock } from '@/types';
 
 interface RawGuideProfileRow {
   id: string;
@@ -44,6 +44,11 @@ interface RawItineraryRow {
   is_published: boolean | null;
   created_at: string;
   stops?: RawItineraryStopRow[];
+  // Story-content fields (migration 20260420120000)
+  story_blocks?: unknown;
+  gallery_urls?: unknown;
+  video_url?: string | null;
+  video_duration_seconds?: number | null;
 }
 
 function asString(value: unknown): string | null {
@@ -97,6 +102,20 @@ function normalizeGuideProfile(row: RawGuideProfileRow): GuideProfile {
   };
 }
 
+function normalizeStoryBlocks(value: unknown): StoryBlock[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((block): block is StoryBlock => {
+    if (!block || typeof block !== 'object') return false;
+    const kind = (block as { kind?: unknown }).kind;
+    return kind === 'paragraph' || kind === 'quote' || kind === 'highlight';
+  });
+}
+
+function normalizeStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((v): v is string => typeof v === 'string' && v.length > 0);
+}
+
 function normalizeItinerary(row: RawItineraryRow): Itinerary {
   return {
     id: row.id,
@@ -124,6 +143,11 @@ function normalizeItinerary(row: RawItineraryRow): Itinerary {
           image_url: stop.image_url ?? null,
         }))
       : [],
+    story_blocks: normalizeStoryBlocks(row.story_blocks),
+    gallery_urls: normalizeStringArray(row.gallery_urls),
+    video_url: row.video_url ?? null,
+    video_duration_seconds:
+      typeof row.video_duration_seconds === 'number' ? row.video_duration_seconds : null,
   };
 }
 
@@ -176,6 +200,17 @@ export async function fetchGuideById(guideId: string): Promise<GuideProfile | nu
 
   if (error) throw error;
   return data ? normalizeGuideProfile(data as RawGuideProfileRow) : null;
+}
+
+export async function fetchItineraryById(id: string): Promise<Itinerary | null> {
+  const { data, error } = await supabase
+    .from('itineraries')
+    .select('*, stops:itinerary_stops(*)')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data ? normalizeItinerary(data as RawItineraryRow) : null;
 }
 
 export async function fetchGuideItineraries(guideId: string, includeUnpublished = false): Promise<Itinerary[]> {

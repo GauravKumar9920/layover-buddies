@@ -149,20 +149,20 @@ export default function LoginScreen() {
   const inputStyle = (field: string) => ({
     backgroundColor: focused === field ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)',
     borderWidth: 1,
-    borderColor: focused === field ? 'rgba(63,167,150,0.85)' : 'rgba(255,255,255,0.14)',
+    borderColor: focused === field ? 'rgba(249,115,22,0.85)' : 'rgba(255,255,255,0.14)',
     borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14,
     color: '#FFFFFF' as const, fontSize: 15,
     ...(Platform.OS === 'web' ? { outline: 'none' } as any : {}),
   });
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#051718' }}>
+    <View style={{ flex: 1, backgroundColor: '#0B1229' }}>
       {/* Floating Mumbai photos — 10 images distributed around edges */}
       {photoProps.map((p, i) => <FloatingPhoto key={i} {...p} />)}
 
-      {/* Gradient overlay */}
+      {/* Gradient overlay — subtle saffron hint at top, deep navy at bottom */}
       <LinearGradient
-        colors={['rgba(13,115,119,0.70)', 'rgba(5,23,24,0.48)', 'rgba(5,23,24,0.56)', 'rgba(26,26,46,0.94)']}
+        colors={['rgba(249,115,22,0.18)', 'rgba(11,18,41,0.50)', 'rgba(11,18,41,0.60)', 'rgba(11,18,41,0.96)']}
         locations={[0, 0.30, 0.60, 1]}
         start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
@@ -178,8 +178,8 @@ export default function LoginScreen() {
             <View style={{ alignItems: 'center', marginBottom: 32 }}>
               <View style={{
                 width: 60, height: 60, borderRadius: 20,
-                backgroundColor: 'rgba(13,115,119,0.92)', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
-                shadowColor: '#0D7377', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.70, shadowRadius: 24, elevation: 18,
+                backgroundColor: 'rgba(249,115,22,0.92)', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+                shadowColor: '#F97316', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.55, shadowRadius: 24, elevation: 18,
               }}>
                 <Text style={{ fontSize: 30 }}>🗺️</Text>
               </View>
@@ -196,9 +196,9 @@ export default function LoginScreen() {
             }, cardStyle]}>
 
               {!isSupabaseConfigured && (
-                <View style={{ backgroundColor: 'rgba(245,166,35,0.16)', borderWidth: 1, borderColor: 'rgba(245,166,35,0.35)', borderRadius: 12, padding: 12, marginBottom: 22 }}>
-                  <Text style={{ fontSize: 12, color: '#F5A623', fontWeight: '700' }}>⚙️ Setup required</Text>
-                  <Text style={{ fontSize: 12, color: 'rgba(245,166,35,0.85)', marginTop: 3, lineHeight: 18 }}>Copy .env.local.example → .env.local and add your Supabase keys.</Text>
+                <View style={{ backgroundColor: 'rgba(245,158,11,0.16)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)', borderRadius: 12, padding: 12, marginBottom: 22 }}>
+                  <Text style={{ fontSize: 12, color: '#F59E0B', fontWeight: '700' }}>⚙️ Setup required</Text>
+                  <Text style={{ fontSize: 12, color: 'rgba(245,158,11,0.85)', marginTop: 3, lineHeight: 18 }}>Copy .env.local.example → .env.local and add your Supabase keys.</Text>
                 </View>
               )}
 
@@ -219,7 +219,7 @@ export default function LoginScreen() {
                   <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' }}>Password</Text>
                   <Link href="/(auth)/forgot-password" asChild>
                     <TouchableOpacity>
-                      <Text style={{ color: '#3FA796', fontSize: 12, fontWeight: '600' }}>Forgot?</Text>
+                      <Text style={{ color: '#F97316', fontSize: 12, fontWeight: '600' }}>Forgot?</Text>
                     </TouchableOpacity>
                   </Link>
                 </View>
@@ -230,8 +230,8 @@ export default function LoginScreen() {
 
               {/* Sign In CTA */}
               <TouchableOpacity onPress={handleLogin} disabled={loading} activeOpacity={0.85} style={{ marginTop: 24 }}>
-                <LinearGradient colors={['#0D7377', '#3FA796']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                  style={{ borderRadius: 14, paddingVertical: 16, alignItems: 'center', shadowColor: '#0D7377', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.55, shadowRadius: 22, elevation: 14 }}>
+                <LinearGradient colors={['#F97316', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  style={{ borderRadius: 14, paddingVertical: 16, alignItems: 'center', shadowColor: '#F97316', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.45, shadowRadius: 22, elevation: 14 }}>
                   {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Sign In</Text>}
                 </LinearGradient>
               </TouchableOpacity>
@@ -256,7 +256,7 @@ export default function LoginScreen() {
               <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 22, gap: 4 }}>
                 <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>New here?</Text>
                 <Link href="/(auth)/signup" asChild>
-                  <TouchableOpacity><Text style={{ color: '#FF6B6B', fontSize: 13, fontWeight: '700' }}>Create an account</Text></TouchableOpacity>
+                  <TouchableOpacity><Text style={{ color: '#F97316', fontSize: 13, fontWeight: '700' }}>Create an account</Text></TouchableOpacity>
                 </Link>
               </View>
             </Animated.View>

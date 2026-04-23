@@ -25,7 +25,7 @@ import {
 import { hapticImpactMedium, hapticSuccess, hapticError } from '@/lib/haptics';
 import { supabase } from '@/lib/supabase';
 import { theme } from '@/config/theme';
-import { PAYMENT_STATUS } from '@/config/constants';
+import { PAYMENT_STATUS, ESTIMATED_EXPENSES_PERCENT } from '@/config/constants';
 import type { Booking } from '@/types';
 
 function PriceRow({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
@@ -207,7 +207,8 @@ export default function PaymentScreen() {
     );
   }
 
-  const buddyCost = booking.total_price - booking.commission;
+  const buddyCost = booking.itinerary?.buddy_cost_inr ?? 0;
+  const estimatedExpenses = Math.round(buddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
   const platformFee = booking.commission;
 
   return (
@@ -235,6 +236,7 @@ export default function PaymentScreen() {
           )}
           <View style={{ height: 1, backgroundColor: theme.colors.divider, marginBottom: 12 }} />
           <PriceRow label="Buddy fee" value={`₹${buddyCost.toLocaleString('en-IN')}`} />
+          <PriceRow label={`Estimated expenses (~${ESTIMATED_EXPENSES_PERCENT}%)`} value={`₹${estimatedExpenses.toLocaleString('en-IN')}`} />
           <PriceRow label="Platform fee" value={`₹${platformFee.toLocaleString('en-IN')}`} />
           <View style={{ height: 1, backgroundColor: theme.colors.divider, marginVertical: 8 }} />
           <PriceRow label="Total to pay" value={`₹${booking.total_price.toLocaleString('en-IN')}`} bold />
