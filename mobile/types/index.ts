@@ -26,6 +26,9 @@ export interface GuideProfile {
   hometown: string | null;
   categories: string[];
   created_at: string;
+  // Editorial-zine profile fields (migration 20260420160000)
+  prompts?: GuidePrompt[];
+  pull_quote?: string | null;
 }
 
 export interface TravelerProfile {
@@ -51,14 +54,40 @@ export interface ItineraryStop {
 }
 
 /**
- * Rich-text building block used by the package detail screen
+ * Rich-text building block used by the (legacy) package detail screen
  * (mobile/app/(traveler)/itinerary/[id].tsx). Persisted as JSONB
  * on itineraries.story_blocks via migration 20260420120000.
+ *
+ * The Hinge-style refactor (migration 20260420160000) moves to
+ * `TourPrompt[]` instead, but we keep this type around because
+ * legacy rows and the fallback `buildMockStory()` still emit it.
  */
 export type StoryBlock =
   | { kind: 'paragraph'; text: string }
   | { kind: 'quote'; text: string; author?: string }
   | { kind: 'highlight'; emoji: string; title: string; body: string };
+
+/**
+ * Hinge-style prompt — one of the 3 Q/A cards a guide fills in per tour.
+ * Persisted as JSONB on itineraries.prompts via migration 20260420160000.
+ *
+ * The UI interleaves prompt cards between photos on the detail page so
+ * the reader scrolls: photo → prompt → photo → prompt → photo → prompt.
+ */
+export interface TourPrompt {
+  question: string;
+  answer: string;
+}
+
+/**
+ * Guide-level prompt, surfaced on the editorial-zine guide profile.
+ * Same shape as TourPrompt but scoped to the guide (not a tour).
+ * Persisted as JSONB on guide_profiles.prompts via migration 20260420160000.
+ */
+export interface GuidePrompt {
+  question: string;
+  answer: string;
+}
 
 export interface Itinerary {
   id: string;
@@ -81,6 +110,8 @@ export interface Itinerary {
   gallery_urls?: string[];
   video_url?: string | null;
   video_duration_seconds?: number | null;
+  // Hinge-style prompts (migration 20260420160000_hinge_prompts_and_favorites.sql)
+  prompts?: TourPrompt[];
 }
 
 // ─── Bookings ─────────────────────────────────────────────────────────────────

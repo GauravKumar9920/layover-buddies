@@ -14,6 +14,12 @@
       "port": 5173
     },
     {
+      "name": "Admin Panel",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "admin"],
+      "port": 5174
+    },
+    {
       "name": "Expo App (Web)",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start:web", "--prefix", "mobile"],

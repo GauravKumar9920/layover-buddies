@@ -1,8 +1,11 @@
 node_modules/
 mobile/node_modules/
+admin/node_modules/
 dist/
+admin/dist/
 .env
 .env.local
 supabase/functions/.env
 .DS_Store
 *.log
+.claude/worktrees/

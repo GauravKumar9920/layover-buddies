@@ -47,6 +47,12 @@ export default function TravelerLayout() {
         }}
       />
       <Tabs.Screen
+        name="saved"
+        options={{
+          tabBarIcon: ({ focused }) => <TabIcon emoji="♥" label="Saved" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="trips/index"
         options={{
           tabBarIcon: ({ focused }) => <TabIcon emoji="🎒" label="My Trips" focused={focused} />,
@@ -55,6 +61,8 @@ export default function TravelerLayout() {
       {/* Hidden from tab bar but routable */}
       <Tabs.Screen name="guide/[id]" options={{ href: null }} />
       <Tabs.Screen name="book/[guideId]" options={{ href: null }} />
+      <Tabs.Screen name="book/payment/[bookingId]" options={{ href: null }} />
+      <Tabs.Screen name="itinerary/[id]" options={{ href: null }} />
       <Tabs.Screen name="trips/[id]" options={{ href: null }} />
       <Tabs.Screen name="trips/live/[id]" options={{ href: null }} />
       <Tabs.Screen name="trips/review/[id]" options={{ href: null }} />

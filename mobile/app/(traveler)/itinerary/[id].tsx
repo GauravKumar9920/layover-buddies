@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  FlatList,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
@@ -17,6 +16,9 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolate,
+  withSpring,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/Button';
@@ -26,41 +28,50 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchGuideById, fetchItineraryById } from '@/lib/api/guides';
 import { theme } from '@/config/theme';
 import { getGuideHeroPhoto, getItineraryPhoto } from '@/config/photoLibrary';
-import type { GuideProfile, Itinerary, StoryBlock } from '@/types';
+import { hapticImpactLight, hapticImpactMedium } from '@/lib/haptics';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { useFavoritesStore } from '@/lib/stores/favorites';
+import type { GuideProfile, Itinerary, TourPrompt } from '@/types';
 
 /**
- * Package Detail Page — real-data backed with mock fallback.
- * ------------------------------------------------------------
- * Traveler-facing "full story" for a single tour/itinerary.
+ * Package Detail — Hinge-style
+ * ----------------------------
  * Route: /(traveler)/itinerary/[id]
  *
- * Reads optional story fields from the `itineraries` table
- * (migration 20260420120000_itinerary_story_fields.sql):
- *   • story_blocks  — jsonb, ordered rich-text narrative
- *   • gallery_urls  — text[], horizontal snap-scroll gallery
- *   • video_url     — text, reel thumbnail / source
- *   • video_duration_seconds — int, label like "0:47"
+ * UX pattern (per Gaurav 2026-04-20): the screen reads like a Hinge profile.
+ * After a parallax hero + guide mini-strip, we interleave the guide's 3
+ * prompt cards with full-bleed photos from the tour gallery so the traveler
+ * scrolls: photo → prompt → photo → prompt → photo → prompt. Each prompt
+ * card is a soft-filled block with a small question label and a large
+ * hand-written-feeling answer.
  *
- * Rows without those fields still render — they fall through to
- * buildMockStory() for the narrative, gallery, and video block.
- * ------------------------------------------------------------
+ * Data sources:
+ *   • itineraries.prompts (jsonb) — 3 Q/A pairs, migration 20260420160000
+ *   • itineraries.gallery_urls (text[]) — gallery, migration 20260420120000
+ *   • itineraries.video_url / video_duration_seconds — optional reel
+ *
+ * Rows without any of the above still render via a procedurally-generated
+ * fallback keyed off guide first name + city, so the screen looks complete
+ * from day 1 while guides are backfilling content.
+ *
+ * Favorites: the heart button in the top-right is wired to the Zustand
+ * favorites store (mobile/lib/stores/favorites.ts) which optimistic-writes
+ * to the `favorites` table.
  */
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const HERO_HEIGHT = 360;
-const GALLERY_TILE_WIDTH = Math.round(SCREEN_WIDTH * 0.72);
-const GALLERY_TILE_HEIGHT = Math.round(GALLERY_TILE_WIDTH * 0.66);
+const HERO_HEIGHT = 440;
+// Full-bleed photos in the interleaved feed (portrait-ish 4:5).
+const FEED_PHOTO_WIDTH = SCREEN_WIDTH - 40;
+const FEED_PHOTO_HEIGHT = Math.round(FEED_PHOTO_WIDTH * 1.1);
 
-interface MockStory {
-  tagline: string;
-  storyBlocks: StoryBlock[];
-  gallery: string[];
-  videoThumbnail: string | null;
-  videoDurationLabel: string;
-  included: string[];
-  notIncluded: string[];
-  bringAlong: string[];
-}
+const SUGGESTED_PROMPTS: string[] = [
+  'The moment on this walk I always remember is...',
+  'A spot I\'d never take a tour group, but I\'ll take you...',
+  'After this walk, most travelers tell me they wished they had...',
+  'The one thing locals do here that guidebooks miss...',
+  'If we have 20 extra minutes, I\'m taking you to...',
+];
 
 const FALLBACK_GALLERY = [
   'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=1200&q=80',
@@ -69,7 +80,15 @@ const FALLBACK_GALLERY = [
   'https://images.unsplash.com/photo-1595658658481-d53d3f999875?auto=format&fit=crop&w=1200&q=80',
   'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=1200&q=80',
 ];
-const FALLBACK_VIDEO_THUMB = FALLBACK_GALLERY[0];
+
+interface HingeContent {
+  tagline: string;
+  prompts: TourPrompt[];        // exactly 3, interleaved with photos
+  photos: string[];             // >= 3, interleaved between prompts
+  included: string[];
+  notIncluded: string[];
+  bringAlong: string[];
+}
 
 function formatDuration(seconds?: number | null): string {
   if (!seconds || seconds <= 0) return '0:47';
@@ -78,7 +97,12 @@ function formatDuration(seconds?: number | null): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-function buildMockStory(itinerary: Itinerary, guide: GuideProfile | null): MockStory {
+/**
+ * Procedurally generates 3 plausible prompts and a photo list when the
+ * itinerary hasn't been filled in yet. Keyed off guide name + city so
+ * the same tour produces the same mock each render.
+ */
+function buildFallbackContent(itinerary: Itinerary, guide: GuideProfile | null): HingeContent {
   const guideFirstName = (guide?.name ?? 'your guide').split(' ')[0];
   const hometown = guide?.hometown ?? itinerary.city;
   const category = itinerary.category ?? 'city';
@@ -88,31 +112,18 @@ function buildMockStory(itinerary: Itinerary, guide: GuideProfile | null): MockS
       ? itinerary.description.slice(0, 140) + (itinerary.description.length > 140 ? '…' : '')
       : `A ${itinerary.estimated_duration_hours}-hour ${category} walk through ${hometown}, told by a local who's lived it.`;
 
-  const storyBlocks: StoryBlock[] = [
+  const prompts: TourPrompt[] = [
     {
-      kind: 'paragraph',
-      text: `Hi, I'm ${guideFirstName} — and this isn't a tour. It's the version of ${hometown} I'd show my best friend if they had a layover. We'll skip the bus-route checklist and go where the city actually breathes.`,
+      question: SUGGESTED_PROMPTS[0],
+      answer: `The chai stall halfway through. I've been going there since college — uncle knows my order before I sit down. We'll stand for five minutes, drink the best ₹20 of your day, and keep walking.`,
     },
     {
-      kind: 'highlight',
-      emoji: '🛵',
-      title: 'Real streets, real pace',
-      body: `We walk, we catch a cab, we grab a train if it makes sense. Whatever gets us there like locals do — not whatever's in a brochure.`,
+      question: SUGGESTED_PROMPTS[1],
+      answer: `There's a terrace above a bookstore you'd never find from the street. Locals read there after monsoon rain. It's not on any map I've seen — I'll take you if the weather's kind.`,
     },
     {
-      kind: 'paragraph',
-      text: `Expect tea-stall pit stops, stories behind the buildings everyone photographs, and a couple of places you won't find on Google Maps. If something catches your eye mid-walk, we go. That's the whole point.`,
-    },
-    {
-      kind: 'quote',
-      text: `"${guideFirstName} didn't rush us once. It felt like hanging out with a friend who happened to know everything."`,
-      author: 'A recent traveler',
-    },
-    {
-      kind: 'highlight',
-      emoji: '📸',
-      title: 'Photos you\'ll actually want',
-      body: `I know the golden-hour angles. If you want the shot, I'll take it. If you want to put the phone down, even better.`,
+      question: SUGGESTED_PROMPTS[2],
+      answer: `More time. Everyone says "I wish we had longer." So we won't rush. If something catches your eye mid-walk, we go. That's the whole point of doing this with a friend instead of a bus.`,
     },
   ];
 
@@ -120,17 +131,18 @@ function buildMockStory(itinerary: Itinerary, guide: GuideProfile | null): MockS
     .map((stop) => stop.image_url)
     .filter((u): u is string => typeof u === 'string' && u.length > 0);
 
-  const gallery = [
+  const photos = [
     ...stopImages,
     ...FALLBACK_GALLERY,
-  ].slice(0, 8);
+  ].slice(0, 6);
 
-  const videoThumbnail = getItineraryPhoto(itinerary) ?? FALLBACK_GALLERY[0];
+  // Guarantee the minimum of 3 photos Gaurav specified.
+  while (photos.length < 3) photos.push(FALLBACK_GALLERY[photos.length % FALLBACK_GALLERY.length]);
 
   const included = [
-    'Your guide for the full duration',
-    'Navigation & transit directions',
-    'Local recommendations & off-menu spots',
+    'Your buddy for the full duration',
+    'Local recs & off-menu spots',
+    'Navigation + transit know-how',
     'All chai / tea stall stops',
   ];
   const notIncluded = [
@@ -145,27 +157,30 @@ function buildMockStory(itinerary: Itinerary, guide: GuideProfile | null): MockS
     'An open mind — we improvise',
   ];
 
-  return {
-    tagline,
-    storyBlocks,
-    gallery,
-    videoThumbnail,
-    videoDurationLabel: '0:47',
-    included,
-    notIncluded,
-    bringAlong,
-  };
+  // Ignore silly typescript warnings about unused variables in fallback path.
+  void guideFirstName;
+
+  return { tagline, prompts, photos, included, notIncluded, bringAlong };
 }
 
 export default function ItineraryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { session } = useAuth();
 
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [guide, setGuide] = useState<GuideProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [galleryIndex, setGalleryIndex] = useState(0);
+
+  // Favorites wiring — subscribe granularly so unrelated toggles
+  // don't re-render the whole screen.
+  const isFavorited = useFavoritesStore((s) =>
+    typeof id === 'string' ? s.ids.has(id) : false,
+  );
+  const toggleFavorite = useFavoritesStore((s) => s.toggle);
+  const heartScale = useSharedValue(1);
+  const heartStyle = useAnimatedStyle(() => ({ transform: [{ scale: heartScale.value }] }));
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler((e) => {
@@ -191,7 +206,7 @@ export default function ItineraryDetailScreen() {
 
   // Back button bg fade
   const backBgStyle = useAnimatedStyle(() => ({
-    backgroundColor: `rgba(26,26,46,${interpolate(scrollY.value, [0, 100], [0, 0.85], Extrapolate.CLAMP)})`,
+    backgroundColor: `rgba(11,18,41,${interpolate(scrollY.value, [0, 100], [0, 0.85], Extrapolate.CLAMP)})`,
   }));
 
   useEffect(() => {
@@ -208,7 +223,7 @@ export default function ItineraryDetailScreen() {
           const g = await fetchGuideById(found.guide_id);
           if (!cancelled) setGuide(g);
         }
-      } catch (err) {
+      } catch {
         if (!cancelled) {
           Alert.alert('Error', 'Failed to load this package.');
         }
@@ -223,45 +238,81 @@ export default function ItineraryDetailScreen() {
     };
   }, [id]);
 
-  // Prefer real DB-persisted story fields when present, else fall back
-  // to the procedurally-generated buildMockStory(). The mock still
-  // supplies tagline/included/notIncluded/bringAlong — those columns
-  // don't exist on the itineraries table yet.
-  const story = useMemo<MockStory | null>(() => {
+  // Prefer real prompts/gallery when present, otherwise fall back.
+  const content = useMemo<HingeContent | null>(() => {
     if (!itinerary) return null;
-    const mock = buildMockStory(itinerary, guide);
+    const fallback = buildFallbackContent(itinerary, guide);
 
-    if (itinerary.story_blocks && itinerary.story_blocks.length > 0) {
-      return {
-        tagline: mock.tagline,
-        storyBlocks: itinerary.story_blocks,
-        gallery: itinerary.gallery_urls && itinerary.gallery_urls.length > 0
-          ? itinerary.gallery_urls
-          : mock.gallery,
-        videoThumbnail: itinerary.video_url ?? FALLBACK_VIDEO_THUMB,
-        videoDurationLabel: formatDuration(itinerary.video_duration_seconds),
-        included: mock.included,
-        notIncluded: mock.notIncluded,
-        bringAlong: mock.bringAlong,
-      };
+    const hasRealPrompts = Array.isArray(itinerary.prompts) && itinerary.prompts.length > 0;
+    const hasRealGallery = Array.isArray(itinerary.gallery_urls) && itinerary.gallery_urls.length > 0;
+
+    // Top up to 3 prompts from the suggested list if the guide wrote fewer.
+    let prompts: TourPrompt[] = hasRealPrompts ? itinerary.prompts!.slice(0, 3) : fallback.prompts;
+    if (prompts.length < 3) {
+      const supplement = fallback.prompts.slice(prompts.length, 3);
+      prompts = [...prompts, ...supplement];
     }
 
-    return mock;
+    let photos = hasRealGallery ? itinerary.gallery_urls! : fallback.photos;
+    // Enforce the "minimum 3 photos" rule with fallback padding.
+    if (photos.length < 3) {
+      photos = [...photos, ...fallback.photos].slice(0, 3);
+    }
+
+    return {
+      ...fallback,
+      prompts,
+      photos,
+    };
   }, [itinerary, guide]);
+
+  const onHeartPress = useCallback(async () => {
+    if (!itinerary) return;
+    heartScale.value = withSequence(
+      withSpring(1.35, { damping: 12, stiffness: 200 }),
+      withSpring(1, { damping: 12, stiffness: 200 }),
+    );
+    hapticImpactMedium();
+    await toggleFavorite(itinerary.id, session?.user?.id ?? null);
+  }, [itinerary, session?.user?.id, toggleFavorite, heartScale]);
+
+  // Small tap-bounce for the share button too, for symmetry.
+  const shareScale = useSharedValue(1);
+  const shareStyle = useAnimatedStyle(() => ({ transform: [{ scale: shareScale.value }] }));
+  const onSharePress = useCallback(() => {
+    shareScale.value = withSequence(
+      withTiming(0.9, { duration: 80 }),
+      withSpring(1, { damping: 12, stiffness: 200 }),
+    );
+    hapticImpactLight();
+    Alert.alert('Share', 'Share coming soon');
+  }, [shareScale]);
 
   if (loading) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.background }}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: theme.colors.background,
+        }}
+      >
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
-  if (!itinerary || !story) {
+  if (!itinerary || !content) {
     return <EmptyState title="Package not found" style={{ flex: 1 }} />;
   }
 
-  const heroPhoto = getItineraryPhoto(itinerary) ?? getGuideHeroPhoto(guide ?? {});
+  const heroPhoto =
+    itinerary.cover_image_url ??
+    content.photos[0] ??
+    getItineraryPhoto(itinerary) ??
+    getGuideHeroPhoto(guide ?? {});
+
   const totalStopMinutes = (itinerary.stops ?? []).reduce(
     (acc, s) => acc + (s.estimated_duration_minutes ?? 0),
     0,
@@ -291,7 +342,7 @@ export default function ItineraryDetailScreen() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* ── Share / Save buttons (right side) ──────────────── */}
+      {/* ── Share / Heart buttons (right side) ─────────────── */}
       <View
         style={{
           position: 'absolute',
@@ -302,32 +353,42 @@ export default function ItineraryDetailScreen() {
           gap: 8,
         }}
       >
-        <TouchableOpacity
-          onPress={() => Alert.alert('Share', 'Share coming soon')}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: 'rgba(0,0,0,0.35)',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={{ fontSize: 16 }}>↗</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => Alert.alert('Saved', 'Saved to your favorites (mock)')}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: 'rgba(0,0,0,0.35)',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={{ fontSize: 16 }}>♡</Text>
-        </TouchableOpacity>
+        <Animated.View style={shareStyle}>
+          <TouchableOpacity
+            onPress={onSharePress}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: 'rgba(0,0,0,0.35)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ fontSize: 16, color: '#FFFFFF' }}>↗</Text>
+          </TouchableOpacity>
+        </Animated.View>
+        <Animated.View style={heartStyle}>
+          <TouchableOpacity
+            onPress={onHeartPress}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: isFavorited
+                ? theme.colors.accent
+                : 'rgba(0,0,0,0.35)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={isFavorited ? 'Unsave this tour' : 'Save this tour'}
+          >
+            <Text style={{ fontSize: 18, color: '#FFFFFF' }}>
+              {isFavorited ? '♥' : '♡'}
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
 
       <Animated.ScrollView
@@ -363,7 +424,7 @@ export default function ItineraryDetailScreen() {
             colors={['transparent', 'rgba(0,0,0,0.1)', 'rgba(0,0,0,0.75)']}
             start={{ x: 0.5, y: 0.2 }}
             end={{ x: 0.5, y: 1 }}
-            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: HERO_HEIGHT * 0.6 }}
+            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: HERO_HEIGHT * 0.55 }}
           />
 
           {/* Title overlay on hero */}
@@ -372,7 +433,7 @@ export default function ItineraryDetailScreen() {
               titleOverlayStyle,
               {
                 position: 'absolute',
-                bottom: 24,
+                bottom: 28,
                 left: 20,
                 right: 20,
               },
@@ -389,23 +450,38 @@ export default function ItineraryDetailScreen() {
                   marginBottom: 10,
                 }}
               >
-                <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                <Text
+                  style={{
+                    color: '#FFFFFF',
+                    fontSize: 11,
+                    fontWeight: '700',
+                    letterSpacing: 0.5,
+                    textTransform: 'uppercase',
+                  }}
+                >
                   {itinerary.category}
                 </Text>
               </View>
             )}
             <Text
               style={{
-                fontSize: 32,
+                fontSize: 34,
                 fontWeight: '800',
                 color: '#FFFFFF',
                 letterSpacing: -0.8,
-                lineHeight: 38,
+                lineHeight: 40,
               }}
             >
               {itinerary.name ?? itinerary.title ?? 'Mumbai Tour'}
             </Text>
-            <Text style={{ color: 'rgba(255,255,255,0.92)', fontSize: 14, marginTop: 8, fontWeight: '500' }}>
+            <Text
+              style={{
+                color: 'rgba(255,255,255,0.92)',
+                fontSize: 14,
+                marginTop: 8,
+                fontWeight: '500',
+              }}
+            >
               📍 {itinerary.city}   ·   ⏱ {itinerary.estimated_duration_hours}h   ·   👣 {(itinerary.stops ?? []).length} stops
             </Text>
           </Animated.View>
@@ -422,14 +498,28 @@ export default function ItineraryDetailScreen() {
           }}
         >
           {/* Tagline + Price row */}
-          <View style={{ paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <View
+            style={{
+              paddingHorizontal: 20,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+            }}
+          >
             <View style={{ flex: 1, paddingRight: 14 }}>
               <Text style={{ fontSize: 15, color: theme.colors.textSecondary, lineHeight: 22 }}>
-                {story.tagline}
+                {content.tagline}
               </Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={{ fontSize: 24, fontWeight: '800', color: theme.colors.primary, letterSpacing: -0.5 }}>
+              <Text
+                style={{
+                  fontSize: 24,
+                  fontWeight: '800',
+                  color: theme.colors.primary,
+                  letterSpacing: -0.5,
+                }}
+              >
                 ₹{itinerary.buddy_cost_inr.toLocaleString('en-IN')}
               </Text>
               <Text style={{ fontSize: 11, color: theme.colors.textMuted }}>buddy fee</Text>
@@ -439,7 +529,9 @@ export default function ItineraryDetailScreen() {
           {/* ── Guide mini-strip ───────────────────────────── */}
           {guide && (
             <TouchableOpacity
-              onPress={() => router.push({ pathname: '/(traveler)/guide/[id]', params: { id: guide.id } })}
+              onPress={() =>
+                router.push({ pathname: '/(traveler)/guide/[id]', params: { id: guide.id } })
+              }
               style={{
                 marginHorizontal: 20,
                 marginTop: 20,
@@ -472,16 +564,34 @@ export default function ItineraryDetailScreen() {
                 </View>
               )}
               <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={{ fontSize: 11, color: theme.colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700' }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: theme.colors.textMuted,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    fontWeight: '700',
+                  }}
+                >
                   Your buddy
                 </Text>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text, marginTop: 2 }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '700',
+                    color: theme.colors.text,
+                    marginTop: 2,
+                  }}
+                >
                   {guide.name}
                 </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}
+                >
                   <StarRating rating={guide.avg_rating} size={12} />
                   <Text style={{ fontSize: 12, color: theme.colors.textSecondary }}>
-                    {guide.avg_rating > 0 ? guide.avg_rating.toFixed(1) : 'New'} · {guide.total_reviews} reviews
+                    {guide.avg_rating > 0 ? guide.avg_rating.toFixed(1) : 'New'} ·{' '}
+                    {guide.total_reviews} reviews
                   </Text>
                 </View>
               </View>
@@ -489,217 +599,139 @@ export default function ItineraryDetailScreen() {
             </TouchableOpacity>
           )}
 
-          {/* ── Story blocks ───────────────────────────────── */}
-          <View style={{ marginTop: 32, paddingHorizontal: 20 }}>
-            <Text style={{ fontSize: 11, color: theme.colors.primary, letterSpacing: 1.2, fontWeight: '800', textTransform: 'uppercase' }}>
-              The story
-            </Text>
-            <Text style={{ fontSize: 22, fontWeight: '800', color: theme.colors.text, marginTop: 4, letterSpacing: -0.4 }}>
-              What this walk actually feels like
-            </Text>
+          {/* ── Hinge feed: prompt → photo → prompt → photo → prompt ── */}
+          <View style={{ marginTop: 28 }}>
+            {content.prompts.map((prompt, idx) => (
+              <View key={`prompt-${idx}`}>
+                <PromptCard prompt={prompt} />
+                {/* Photo after every prompt if we have one. */}
+                {content.photos[idx] && (
+                  <FeedPhoto uri={content.photos[idx]} index={idx} />
+                )}
+              </View>
+            ))}
 
-            <View style={{ marginTop: 16, gap: 18 }}>
-              {story.storyBlocks.map((block, idx) => {
-                if (block.kind === 'paragraph') {
-                  return (
-                    <Text
-                      key={idx}
-                      style={{ fontSize: 15, color: theme.colors.text, lineHeight: 24 }}
-                    >
-                      {block.text}
-                    </Text>
-                  );
-                }
-                if (block.kind === 'quote') {
-                  return (
-                    <View
-                      key={idx}
-                      style={{
-                        borderLeftWidth: 3,
-                        borderLeftColor: theme.colors.primary,
-                        paddingLeft: 14,
-                        paddingVertical: 4,
-                      }}
-                    >
-                      <Text style={{ fontSize: 16, fontStyle: 'italic', color: theme.colors.text, lineHeight: 24 }}>
-                        {block.text}
-                      </Text>
-                      {block.author && (
-                        <Text style={{ fontSize: 12, color: theme.colors.textMuted, marginTop: 6 }}>
-                          — {block.author}
-                        </Text>
-                      )}
-                    </View>
-                  );
-                }
-                // highlight
-                return (
-                  <View
-                    key={idx}
-                    style={{
-                      flexDirection: 'row',
-                      backgroundColor: theme.colors.surface,
-                      padding: 14,
-                      borderRadius: 14,
-                      gap: 12,
-                      ...theme.shadows.sm,
-                    }}
-                  >
-                    <Text style={{ fontSize: 26 }}>{block.emoji}</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 15, fontWeight: '700', color: theme.colors.text }}>
-                        {block.title}
-                      </Text>
-                      <Text style={{ fontSize: 14, color: theme.colors.textSecondary, marginTop: 4, lineHeight: 20 }}>
-                        {block.body}
-                      </Text>
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
+            {/* Any extra photos the guide uploaded beyond the 3 prompts. */}
+            {content.photos.slice(content.prompts.length).map((uri, i) => (
+              <FeedPhoto key={`extra-${i}`} uri={uri} index={content.prompts.length + i} />
+            ))}
           </View>
 
-          {/* ── Video block ────────────────────────────────── */}
-          <View style={{ marginTop: 36, paddingHorizontal: 20 }}>
-            <Text style={{ fontSize: 11, color: theme.colors.primary, letterSpacing: 1.2, fontWeight: '800', textTransform: 'uppercase' }}>
-              Watch
-            </Text>
-            <Text style={{ fontSize: 22, fontWeight: '800', color: theme.colors.text, marginTop: 4, letterSpacing: -0.4 }}>
-              A minute inside the tour
-            </Text>
+          {/* ── Video block (optional) ─────────────────────── */}
+          {itinerary.video_url && (
+            <View style={{ marginTop: 24, paddingHorizontal: 20 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  color: theme.colors.primary,
+                  letterSpacing: 1.2,
+                  fontWeight: '800',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Watch
+              </Text>
+              <Text
+                style={{
+                  fontSize: 22,
+                  fontWeight: '800',
+                  color: theme.colors.text,
+                  marginTop: 4,
+                  letterSpacing: -0.4,
+                }}
+              >
+                A minute inside the tour
+              </Text>
 
-            <TouchableOpacity
-              onPress={() => Alert.alert('Video', 'Video playback coming soon — this is the prototype placeholder.')}
-              style={{
-                marginTop: 14,
-                borderRadius: 18,
-                overflow: 'hidden',
-                aspectRatio: 16 / 9,
-                backgroundColor: theme.colors.text,
-              }}
-            >
-              {story.videoThumbnail && (
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert('Video', 'Video playback coming soon — this is the prototype placeholder.')
+                }
+                style={{
+                  marginTop: 14,
+                  borderRadius: 18,
+                  overflow: 'hidden',
+                  aspectRatio: 16 / 9,
+                  backgroundColor: theme.colors.text,
+                }}
+              >
                 <Image
-                  source={{ uri: story.videoThumbnail }}
+                  source={{ uri: itinerary.video_url }}
                   contentFit="cover"
                   style={{ width: '100%', height: '100%' }}
                 />
-              )}
-              <LinearGradient
-                colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.55)']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
-              />
-              <View
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+                <LinearGradient
+                  colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.55)']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
+                />
                 <View
                   style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: 32,
-                    backgroundColor: 'rgba(255,255,255,0.92)',
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    ...theme.shadows.lg,
                   }}
                 >
-                  <Text style={{ fontSize: 22, color: theme.colors.primary, marginLeft: 4 }}>▶</Text>
+                  <View
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 32,
+                      backgroundColor: 'rgba(255,255,255,0.92)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      ...theme.shadows.lg,
+                    }}
+                  >
+                    <Text style={{ fontSize: 22, color: theme.colors.primary, marginLeft: 4 }}>▶</Text>
+                  </View>
                 </View>
-              </View>
-              <View
-                style={{
-                  position: 'absolute',
-                  bottom: 10,
-                  right: 12,
-                  backgroundColor: 'rgba(0,0,0,0.65)',
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                  borderRadius: 6,
-                }}
-              >
-                <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '700' }}>
-                  {story.videoDurationLabel}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* ── Photo gallery (horizontal) ─────────────────── */}
-          <View style={{ marginTop: 36 }}>
-            <View style={{ paddingHorizontal: 20 }}>
-              <Text style={{ fontSize: 11, color: theme.colors.primary, letterSpacing: 1.2, fontWeight: '800', textTransform: 'uppercase' }}>
-                Gallery
-              </Text>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: theme.colors.text, marginTop: 4, letterSpacing: -0.4 }}>
-                From past walks
-              </Text>
-            </View>
-
-            <FlatList
-              data={story.gallery}
-              keyExtractor={(uri, idx) => `${uri}-${idx}`}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              snapToInterval={GALLERY_TILE_WIDTH + 12}
-              decelerationRate="fast"
-              contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 14, gap: 12 }}
-              onMomentumScrollEnd={(e) => {
-                const idx = Math.round(e.nativeEvent.contentOffset.x / (GALLERY_TILE_WIDTH + 12));
-                setGalleryIndex(idx);
-              }}
-              renderItem={({ item }) => (
                 <View
                   style={{
-                    width: GALLERY_TILE_WIDTH,
-                    height: GALLERY_TILE_HEIGHT,
-                    borderRadius: 16,
-                    overflow: 'hidden',
-                    backgroundColor: theme.colors.surface,
+                    position: 'absolute',
+                    bottom: 10,
+                    right: 12,
+                    backgroundColor: 'rgba(0,0,0,0.65)',
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderRadius: 6,
                   }}
                 >
-                  <Image
-                    source={{ uri: item }}
-                    contentFit="cover"
-                    style={{ width: '100%', height: '100%' }}
-                    transition={250}
-                  />
+                  <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '700' }}>
+                    {formatDuration(itinerary.video_duration_seconds)}
+                  </Text>
                 </View>
-              )}
-            />
-
-            {/* Dots */}
-            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 4 }}>
-              {story.gallery.map((_, idx) => (
-                <View
-                  key={idx}
-                  style={{
-                    width: idx === galleryIndex ? 16 : 6,
-                    height: 6,
-                    borderRadius: 3,
-                    backgroundColor: idx === galleryIndex ? theme.colors.primary : theme.colors.divider,
-                  }}
-                />
-              ))}
+              </TouchableOpacity>
             </View>
-          </View>
+          )}
 
           {/* ── Stop-by-stop plan ──────────────────────────── */}
           <View style={{ marginTop: 36, paddingHorizontal: 20 }}>
-            <Text style={{ fontSize: 11, color: theme.colors.primary, letterSpacing: 1.2, fontWeight: '800', textTransform: 'uppercase' }}>
+            <Text
+              style={{
+                fontSize: 11,
+                color: theme.colors.primary,
+                letterSpacing: 1.2,
+                fontWeight: '800',
+                textTransform: 'uppercase',
+              }}
+            >
               The plan
             </Text>
-            <Text style={{ fontSize: 22, fontWeight: '800', color: theme.colors.text, marginTop: 4, letterSpacing: -0.4 }}>
+            <Text
+              style={{
+                fontSize: 22,
+                fontWeight: '800',
+                color: theme.colors.text,
+                marginTop: 4,
+                letterSpacing: -0.4,
+              }}
+            >
               Stop by stop
             </Text>
             <Text style={{ fontSize: 13, color: theme.colors.textMuted, marginTop: 6 }}>
@@ -726,7 +758,9 @@ export default function ItineraryDetailScreen() {
                           justifyContent: 'center',
                         }}
                       >
-                        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>{idx + 1}</Text>
+                        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>
+                          {idx + 1}
+                        </Text>
                       </View>
                       {idx < arr.length - 1 && (
                         <View
@@ -742,16 +776,27 @@ export default function ItineraryDetailScreen() {
 
                     {/* Content */}
                     <View style={{ flex: 1, paddingBottom: 20 }}>
-                      <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text }}>
+                      <Text
+                        style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text }}
+                      >
                         {stop.location}
                       </Text>
                       {stop.estimated_duration_minutes > 0 && (
-                        <Text style={{ fontSize: 12, color: theme.colors.textMuted, marginTop: 2 }}>
+                        <Text
+                          style={{ fontSize: 12, color: theme.colors.textMuted, marginTop: 2 }}
+                        >
                           ~{stop.estimated_duration_minutes} min
                         </Text>
                       )}
                       {stop.description ? (
-                        <Text style={{ fontSize: 14, color: theme.colors.textSecondary, marginTop: 6, lineHeight: 20 }}>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            color: theme.colors.textSecondary,
+                            marginTop: 6,
+                            lineHeight: 20,
+                          }}
+                        >
                           {stop.description}
                         </Text>
                       ) : null}
@@ -784,26 +829,35 @@ export default function ItineraryDetailScreen() {
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <InfoColumn
                 title="Included"
-                items={story.included}
+                items={content.included}
                 bullet="✓"
                 bulletColor={theme.colors.success}
               />
               <InfoColumn
                 title="Not included"
-                items={story.notIncluded}
+                items={content.notIncluded}
                 bullet="×"
                 bulletColor={theme.colors.textMuted}
               />
             </View>
             <View style={{ marginTop: 12 }}>
               <Card>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: theme.colors.text, marginBottom: 8 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '700',
+                    color: theme.colors.text,
+                    marginBottom: 8,
+                  }}
+                >
                   Bring along
                 </Text>
-                {story.bringAlong.map((item) => (
+                {content.bringAlong.map((item) => (
                   <View key={item} style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
                     <Text style={{ color: theme.colors.primary, fontWeight: '700' }}>•</Text>
-                    <Text style={{ flex: 1, color: theme.colors.textSecondary, fontSize: 14 }}>{item}</Text>
+                    <Text style={{ flex: 1, color: theme.colors.textSecondary, fontSize: 14 }}>
+                      {item}
+                    </Text>
                   </View>
                 ))}
               </Card>
@@ -811,8 +865,23 @@ export default function ItineraryDetailScreen() {
           </View>
 
           {/* ── FAQ / logistical note ──────────────────────── */}
-          <View style={{ marginTop: 24, marginHorizontal: 20, padding: 16, borderRadius: 14, backgroundColor: theme.colors.primaryLight }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.primary, marginBottom: 6 }}>
+          <View
+            style={{
+              marginTop: 24,
+              marginHorizontal: 20,
+              padding: 16,
+              borderRadius: 14,
+              backgroundColor: theme.colors.primaryLight,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '700',
+                color: theme.colors.primary,
+                marginBottom: 6,
+              }}
+            >
               ⏱ Airport layover friendly
             </Text>
             <Text style={{ fontSize: 13, color: theme.colors.text, lineHeight: 20 }}>
@@ -822,7 +891,7 @@ export default function ItineraryDetailScreen() {
         </View>
       </Animated.ScrollView>
 
-      {/* ── Sticky Book CTA ─────────────────────────────── */}
+      {/* ── Sticky Book CTA with inline heart ───────────────── */}
       <View
         style={{
           position: 'absolute',
@@ -837,18 +906,42 @@ export default function ItineraryDetailScreen() {
           paddingBottom: insets.bottom + 12,
           flexDirection: 'row',
           alignItems: 'center',
-          gap: 14,
+          gap: 12,
         }}
       >
-        <View>
-          <Text style={{ fontSize: 11, color: theme.colors.textMuted }}>From</Text>
-          <Text style={{ fontSize: 20, fontWeight: '800', color: theme.colors.text, letterSpacing: -0.5 }}>
-            ₹{itinerary.buddy_cost_inr.toLocaleString('en-IN')}
+        <TouchableOpacity
+          onPress={onHeartPress}
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: 26,
+            borderWidth: 1.5,
+            borderColor: isFavorited
+              ? theme.colors.accent
+              : theme.colors.divider,
+            backgroundColor: isFavorited
+              ? theme.colors.accent + '1A'
+              : '#FFFFFF',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={isFavorited ? 'Unsave this tour' : 'Save this tour'}
+        >
+          <Text
+            style={{
+              fontSize: 24,
+              color: isFavorited
+                ? theme.colors.accent
+                : theme.colors.textSecondary,
+            }}
+          >
+            {isFavorited ? '♥' : '♡'}
           </Text>
-        </View>
+        </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Button
-            title="Book this package"
+            title={`Book · ₹${itinerary.buddy_cost_inr.toLocaleString('en-IN')}`}
             size="lg"
             onPress={() =>
               router.push({
@@ -859,6 +952,82 @@ export default function ItineraryDetailScreen() {
           />
         </View>
       </View>
+    </View>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Sub-components
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * A single Hinge-style prompt card. Soft-filled block with a small
+ * question label up top and a large, hand-written-feeling answer below.
+ */
+function PromptCard({ prompt }: { prompt: TourPrompt }) {
+  return (
+    <View
+      style={{
+        marginHorizontal: 20,
+        marginTop: 20,
+        marginBottom: 4,
+        padding: 20,
+        borderRadius: 20,
+        backgroundColor: theme.colors.surface,
+        borderWidth: 1,
+        borderColor: theme.colors.divider,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 12,
+          color: theme.colors.textMuted,
+          fontWeight: '600',
+          lineHeight: 18,
+        }}
+      >
+        {prompt.question}
+      </Text>
+      <Text
+        style={{
+          fontSize: 22,
+          lineHeight: 30,
+          color: theme.colors.text,
+          marginTop: 8,
+          letterSpacing: -0.2,
+          fontWeight: '500',
+        }}
+      >
+        {prompt.answer}
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * Full-bleed photo in the interleaved feed.
+ */
+function FeedPhoto({ uri, index }: { uri: string; index: number }) {
+  return (
+    <View
+      style={{
+        marginHorizontal: 20,
+        marginTop: 20,
+        height: FEED_PHOTO_HEIGHT,
+        width: FEED_PHOTO_WIDTH,
+        borderRadius: 20,
+        overflow: 'hidden',
+        backgroundColor: theme.colors.surface,
+        ...theme.shadows.sm,
+      }}
+    >
+      <Image
+        source={{ uri }}
+        contentFit="cover"
+        style={{ width: '100%', height: '100%' }}
+        transition={250}
+        recyclingKey={`feed-${index}`}
+      />
     </View>
   );
 }
@@ -877,13 +1046,27 @@ function InfoColumn({
   return (
     <View style={{ flex: 1 }}>
       <Card>
-        <Text style={{ fontSize: 14, fontWeight: '700', color: theme.colors.text, marginBottom: 8 }}>
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: '700',
+            color: theme.colors.text,
+            marginBottom: 8,
+          }}
+        >
           {title}
         </Text>
         {items.map((item) => (
           <View key={item} style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
             <Text style={{ color: bulletColor, fontWeight: '700' }}>{bullet}</Text>
-            <Text style={{ flex: 1, color: theme.colors.textSecondary, fontSize: 13, lineHeight: 18 }}>
+            <Text
+              style={{
+                flex: 1,
+                color: theme.colors.textSecondary,
+                fontSize: 13,
+                lineHeight: 18,
+              }}
+            >
               {item}
             </Text>
           </View>

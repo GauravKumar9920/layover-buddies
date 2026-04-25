@@ -127,12 +127,27 @@ mumbai-buddies/
 │   ├── config/constants.ts     # Business rules
 │   ├── types/index.ts          # All TypeScript models
 │   └── .env.local.example      # Required env vars
+├── admin/                      # Local-only solo-admin console (Vite+React+Tailwind)
+│   ├── src/pages/              # Users, Bookings, Revenue, SOS
+│   ├── src/components/         # Shell, Login, DataTable, StatusBadge, PageHeader
+│   ├── src/lib/                # supabase client (service role), auth gate, format helpers
+│   ├── .env.local.example      # VITE_SUPABASE_URL / SERVICE_KEY / ADMIN_PASSWORD
+│   └── README.md               # Setup + security notes (do NOT deploy publicly)
 ├── design/
 │   ├── brand/design-system.md       # Color palette, typography, animation specs
 │   ├── brand/design-handoff-spec.md # Component specs with copy-paste code
 │   └── ui-mockups/                  # HTML prototypes (reference only)
 └── CLAUDE.md                   # This file
 ```
+
+### Admin panel (`/admin/`)
+- Runs on `127.0.0.1:5174` — separate from the marketing site (`5173`).
+- Password-gated (`VITE_ADMIN_PASSWORD`), session-scoped auth.
+- Uses the Supabase **service role** key and bypasses RLS. Local-only; never deploy as-is.
+- Day-1 screens: Users (role filter), Bookings (status filter + joined names), Revenue (7d/30d/90d/all-time; earned vs pipeline), SOS events (Acknowledge/Resolve actions + Google Maps link).
+- No guide-approval queue — guides auto-approve per product spec.
+
+Run: `cd admin && npm install && cp .env.local.example .env.local` then fill in env vars and `npm run dev`.
 
 ---
 

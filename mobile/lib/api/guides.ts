@@ -1,6 +1,13 @@
 import { supabase } from '../supabase';
 import { PRIMARY_CITY } from '@/config/constants';
-import type { GuideProfile, Itinerary, Review, StoryBlock } from '@/types';
+import type {
+  GuideProfile,
+  GuidePrompt,
+  Itinerary,
+  Review,
+  StoryBlock,
+  TourPrompt,
+} from '@/types';
 
 interface RawGuideProfileRow {
   id: string;
@@ -20,6 +27,9 @@ interface RawGuideProfileRow {
   avatar_url?: string | null;
   hometown?: string | null;
   categories?: unknown;
+  // Editorial-zine fields (migration 20260420160000)
+  prompts?: unknown;
+  pull_quote?: string | null;
 }
 
 interface RawItineraryStopRow {
@@ -49,6 +59,8 @@ interface RawItineraryRow {
   gallery_urls?: unknown;
   video_url?: string | null;
   video_duration_seconds?: number | null;
+  // Hinge-style prompts (migration 20260420160000)
+  prompts?: unknown;
 }
 
 function asString(value: unknown): string | null {
@@ -72,6 +84,20 @@ function toTagList(value: unknown, preferredKey: 'language' | 'name'): string[] 
     .filter((tag): tag is string => !!tag);
 
   return Array.from(new Set(tags));
+}
+
+function normalizePromptArray(value: unknown): { question: string; answer: string }[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null;
+      const rec = item as Record<string, unknown>;
+      const q = asString(rec.question);
+      const a = asString(rec.answer);
+      if (!q || !a) return null;
+      return { question: q, answer: a };
+    })
+    .filter((p): p is { question: string; answer: string } => p !== null);
 }
 
 function normalizeGuideProfile(row: RawGuideProfileRow): GuideProfile {
@@ -99,6 +125,8 @@ function normalizeGuideProfile(row: RawGuideProfileRow): GuideProfile {
     hometown: asString(row.hometown),
     categories: row.categories ? toTagList(row.categories, 'name') : toTagList(row.skills, 'name'),
     created_at: row.created_at,
+    prompts: normalizePromptArray(row.prompts) as GuidePrompt[],
+    pull_quote: asString(row.pull_quote),
   };
 }
 
@@ -148,6 +176,7 @@ function normalizeItinerary(row: RawItineraryRow): Itinerary {
     video_url: row.video_url ?? null,
     video_duration_seconds:
       typeof row.video_duration_seconds === 'number' ? row.video_duration_seconds : null,
+    prompts: normalizePromptArray(row.prompts) as TourPrompt[],
   };
 }
 

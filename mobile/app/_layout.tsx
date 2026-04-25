@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRouter, useSegments } from 'expo-router';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { Loading } from '@/components/ui/Loading';
+import { useFavoritesStore } from '@/lib/stores/favorites';
 
 // expo-system-ui cannot set color scheme on web in dev mode — suppress the toast
 LogBox.ignoreLogs(['Cannot manually set color scheme']);
@@ -15,6 +16,20 @@ function RootLayoutNav() {
   const { session, role, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const hydrateFavorites = useFavoritesStore((s) => s.hydrate);
+  const resetFavorites = useFavoritesStore((s) => s.reset);
+
+  // Keep the favorites cache in sync with the signed-in user. We re-run on
+  // sign-in (new user id) and reset on sign-out so a shared device can't
+  // leak one user's hearts into the next session.
+  useEffect(() => {
+    if (loading) return;
+    if (session?.user?.id) {
+      void hydrateFavorites(session.user.id);
+    } else {
+      resetFavorites();
+    }
+  }, [session?.user?.id, loading, hydrateFavorites, resetFavorites]);
 
   useEffect(() => {
     if (loading) return;
