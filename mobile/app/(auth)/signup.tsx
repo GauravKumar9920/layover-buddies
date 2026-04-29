@@ -12,7 +12,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { Link } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
@@ -89,9 +89,16 @@ function FloatingPhoto({ uri, style: posStyle, w, h, rot, delay, dur }: {
   );
 }
 
+function getRoleFromParam(value: string | string[] | undefined): UserRole | null {
+  const first = Array.isArray(value) ? value[0] : value;
+  if (first === 'guide' || first === 'traveler') return first;
+  return null;
+}
+
 export default function SignUpScreen() {
   const { width: W, height: H } = useWindowDimensions();
-  const [role, setRole]         = useState<UserRole>('traveler');
+  const { role: roleParam }     = useLocalSearchParams<{ role?: string | string[] }>();
+  const [role, setRole]         = useState<UserRole>(() => getRoleFromParam(roleParam) ?? 'traveler');
   const [name, setName]         = useState('');
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -104,6 +111,14 @@ export default function SignUpScreen() {
     cardY.value       = withSpring(0, { damping: 18, stiffness: 100 });
     cardOpacity.value = withTiming(1, { duration: 700 });
   }, []);
+
+  useEffect(() => {
+    const nextRole = getRoleFromParam(roleParam);
+    if (nextRole) {
+      setRole(nextRole);
+    }
+  }, [roleParam]);
+
   const cardStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: cardY.value }],
     opacity: cardOpacity.value,

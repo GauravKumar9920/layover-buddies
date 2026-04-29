@@ -3,12 +3,14 @@ import { View, Text, ScrollView, Alert, TouchableOpacity, ActivityIndicator } fr
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
+import { pickImage } from '@/lib/imagePicker';
+import { uploadImage } from '@/lib/imageUpload';
 import { Header } from '@/components/ui/Header';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
+import { StopEditor, type EditableStop } from '@/components/guides/StopEditor';
 import { supabase } from '@/lib/supabase';
 import { updateItinerary } from '@/lib/api/itineraries';
 import { getItineraryPhoto } from '@/config/photoLibrary';
@@ -40,7 +42,7 @@ function normalizeItineraryRow(row: Record<string, unknown>): Itinerary {
     cover_image_url: typeof row.cover_image_url === 'string' ? row.cover_image_url : null,
     estimated_duration_hours: Number(row.duration_hours ?? 0),
     buddy_cost_inr: Number(row.buddy_cost ?? 0),
-    max_travelers: 1,
+    max_travelers: Number(row.max_travelers ?? 1),
     is_active: Boolean(row.is_published ?? false),
     created_at: String(row.created_at ?? new Date().toISOString()),
     stops: [],
@@ -61,8 +63,12 @@ export default function EditItineraryScreen() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [duration, setDuration] = useState('');
+  const [maxTravelers, setMaxTravelers] = useState('1');
   const [category, setCategory] = useState('custom');
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
+  const [stops, setStops] = useState<EditableStop[]>([]);
+  // Snapshot of stops as loaded — used to diff inserts/updates/deletes on save.
+  const [originalStops, setOriginalStops] = useState<EditableStop[]>([]);
 
   const previewPhoto = coverImageUrl ?? getItineraryPhoto({
     id: itin?.id ?? 'preview',
@@ -82,8 +88,9 @@ export default function EditItineraryScreen() {
       try {
         const { data, error } = await supabase
           .from('itineraries')
-          .select('*')
+          .select('*, stops:itinerary_stops(*)')
           .eq('id', id)
+          .is('deleted_at', null)
           .single();
 
         if (error) throw error;
@@ -95,8 +102,29 @@ export default function EditItineraryScreen() {
         setDescription(normalized.description ?? '');
         setPrice(String(normalized.buddy_cost_inr));
         setDuration(String(normalized.estimated_duration_hours));
+        setMaxTravelers(String(normalized.max_travelers ?? 1));
         setCategory(normalized.category ?? 'custom');
         setCoverImageUrl(normalized.cover_image_url ?? null);
+
+        const rawStops = Array.isArray((data as Record<string, unknown>).stops)
+          ? ((data as Record<string, unknown>).stops as Array<Record<string, unknown>>)
+          : [];
+        const parsedStops: EditableStop[] = rawStops
+          .map((s) => ({
+            id: typeof s.id === 'string' ? s.id : undefined,
+            order: Number(s.stop_order ?? 0),
+            location: typeof s.name === 'string' ? s.name : '',
+            description: typeof s.description === 'string' ? s.description : '',
+            estimated_duration_minutes: Number(s.estimated_duration_minutes ?? 30),
+          }))
+          .sort((a, b) => a.order - b.order)
+          .map(({ order: _order, ...stop }) => stop);
+
+        const seedStops = parsedStops.length > 0
+          ? parsedStops
+          : [{ location: '', description: '', estimated_duration_minutes: 30 } satisfies EditableStop];
+        setStops(seedStops);
+        setOriginalStops(parsedStops);
       } catch (err: unknown) {
         Alert.alert('Unable to load tour', err instanceof Error ? err.message : 'Please try again.');
       } finally {
@@ -109,38 +137,26 @@ export default function EditItineraryScreen() {
   }, [id]);
 
   async function handlePickPhoto() {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.8,
-    });
+    const picked = await pickImage({ aspect: [16, 9], quality: 0.8, allowsEditing: true });
+    if (!picked) return;
 
-    if (result.canceled || !result.assets[0]) return;
-
-    const uri = result.assets[0].uri;
     const user = (await supabase.auth.getUser()).data.user;
     if (!user) return;
 
     setUploadingPhoto(true);
     try {
-      const ext = uri.split('.').pop() ?? 'jpg';
+      const ext = picked.fileName.split('.').pop() ?? 'jpg';
       const path = `${user.id}/${id ?? Date.now()}.${ext}`;
-
-      const response = await fetch(uri);
-      const blob = await response.blob();
-
-      const { error: uploadErr } = await supabase.storage
-        .from('itinerary-photos')
-        .upload(path, blob, { upsert: true, contentType: `image/${ext}` });
-
-      if (uploadErr) {
-        Alert.alert('Upload failed', uploadErr.message);
-        return;
-      }
-
-      const { data: urlData } = supabase.storage.from('itinerary-photos').getPublicUrl(path);
-      setCoverImageUrl(urlData.publicUrl);
+      const { publicUrl } = await uploadImage({
+        blob: picked.blob,
+        bucket: 'itinerary-photos',
+        path,
+        contentType: picked.mimeType,
+        blobUri: picked.uri,
+      });
+      setCoverImageUrl(publicUrl);
+    } catch (err: unknown) {
+      Alert.alert('Upload failed', err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setUploadingPhoto(false);
     }
@@ -150,14 +166,19 @@ export default function EditItineraryScreen() {
     if (!id) return;
     setSaving(true);
     try {
-      await updateItinerary(id, {
-        name: name.trim(),
-        description: description.trim(),
-        buddy_cost_inr: Number(price),
-        estimated_duration_hours: Number(duration),
-        category,
-        cover_image_url: coverImageUrl,
-      });
+      await updateItinerary(
+        id,
+        {
+          name: name.trim(),
+          description: description.trim(),
+          buddy_cost_inr: Number(price),
+          estimated_duration_hours: Number(duration),
+          max_travelers: Math.max(1, Math.min(12, Number(maxTravelers) || 1)),
+          category,
+          cover_image_url: coverImageUrl,
+        },
+        { current: stops, original: originalStops },
+      );
       Alert.alert('✅ Updated', 'Tour updated successfully.', [
         { text: 'OK', onPress: () => router.back() },
       ]);
@@ -258,14 +279,26 @@ export default function EditItineraryScreen() {
               style={{ flex: 1 }}
             />
             <Input
-              label="Price (₹)"
-              value={price}
-              onChangeText={setPrice}
+              label="Max Travelers"
+              value={maxTravelers}
+              onChangeText={setMaxTravelers}
               keyboardType="numeric"
               style={{ flex: 1 }}
             />
           </View>
+
+          <Input
+            label="Price (₹)"
+            value={price}
+            onChangeText={setPrice}
+            keyboardType="numeric"
+            style={{ marginTop: 12 }}
+          />
         </Card>
+
+        <View style={{ marginTop: 16 }}>
+          <StopEditor stops={stops} onChange={setStops} />
+        </View>
       </ScrollView>
       <View style={{ position: 'absolute', bottom: insets.bottom + 16, left: 20, right: 20 }}>
         <Button title="Save Changes" onPress={handleSave} loading={saving} size="lg" />

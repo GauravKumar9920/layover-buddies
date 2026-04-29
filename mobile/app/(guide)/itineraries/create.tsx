@@ -3,11 +3,13 @@ import { View, Text, ScrollView, Alert, TouchableOpacity, ActivityIndicator } fr
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
+import { pickImage } from '@/lib/imagePicker';
+import { uploadImage } from '@/lib/imageUpload';
 import { Header } from '@/components/ui/Header';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { StopEditor, type EditableStop } from '@/components/guides/StopEditor';
 import { createItinerary } from '@/lib/api/itineraries';
 import { getItineraryPhoto } from '@/config/photoLibrary';
 import { supabase } from '@/lib/supabase';
@@ -25,12 +27,6 @@ const ITINERARY_CATEGORIES: { value: string; label: string }[] = [
   { value: 'custom', label: 'Custom' },
 ];
 
-interface Stop {
-  location: string;
-  description: string;
-  estimated_duration_minutes: number;
-}
-
 export default function CreateItineraryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -45,7 +41,7 @@ export default function CreateItineraryScreen() {
   const [price, setPrice] = useState('');
   const [maxTravelers, setMaxTravelers] = useState('1');
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
-  const [stops, setStops] = useState<Stop[]>([{ location: '', description: '', estimated_duration_minutes: 30 }]);
+  const [stops, setStops] = useState<EditableStop[]>([{ location: '', description: '', estimated_duration_minutes: 30 }]);
 
   const previewPhoto = coverImageUrl ?? getItineraryPhoto({
     id: 'preview',
@@ -55,56 +51,29 @@ export default function CreateItineraryScreen() {
   });
 
   async function handlePickPhoto() {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.8,
-    });
+    const picked = await pickImage({ aspect: [16, 9], quality: 0.8, allowsEditing: true });
+    if (!picked) return;
 
-    if (result.canceled || !result.assets[0]) return;
-
-    const uri = result.assets[0].uri;
     const user = (await supabase.auth.getUser()).data.user;
     if (!user) return;
 
     setUploadingPhoto(true);
     try {
-      const ext = uri.split('.').pop() ?? 'jpg';
+      const ext = picked.fileName.split('.').pop() ?? 'jpg';
       const path = `${user.id}/${Date.now()}.${ext}`;
-
-      const response = await fetch(uri);
-      const blob = await response.blob();
-
-      const { error: uploadErr } = await supabase.storage
-        .from('itinerary-photos')
-        .upload(path, blob, { upsert: true, contentType: `image/${ext}` });
-
-      if (uploadErr) {
-        Alert.alert('Upload failed', uploadErr.message);
-        return;
-      }
-
-      const { data: urlData } = supabase.storage.from('itinerary-photos').getPublicUrl(path);
-      setCoverImageUrl(urlData.publicUrl);
+      const { publicUrl } = await uploadImage({
+        blob: picked.blob,
+        bucket: 'itinerary-photos',
+        path,
+        contentType: picked.mimeType,
+        blobUri: picked.uri,
+      });
+      setCoverImageUrl(publicUrl);
+    } catch (err: unknown) {
+      Alert.alert('Upload failed', err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setUploadingPhoto(false);
     }
-  }
-
-  function addStop() {
-    setStops([...stops, { location: '', description: '', estimated_duration_minutes: 30 }]);
-  }
-
-  function updateStop(idx: number, field: keyof Stop, value: string | number) {
-    const updated = [...stops];
-    (updated[idx] as Record<keyof Stop, string | number>)[field] = value;
-    setStops(updated);
-  }
-
-  function removeStop(idx: number) {
-    if (stops.length <= 1) return;
-    setStops(stops.filter((_, i) => i !== idx));
   }
 
   async function handleSave() {
@@ -128,6 +97,7 @@ export default function CreateItineraryScreen() {
         description: description.trim(),
         estimated_duration_hours: Number(duration),
         buddy_cost_inr: Number(price),
+        max_travelers: Math.max(1, Math.min(12, Number(maxTravelers) || 1)),
         category,
         cover_image_url: coverImageUrl,
         stops: stops
@@ -284,67 +254,7 @@ export default function CreateItineraryScreen() {
         </Card>
 
         {/* Stops */}
-        <Card>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text }}>
-              Itinerary Stops
-            </Text>
-            <TouchableOpacity
-              onPress={addStop}
-              style={{
-                backgroundColor: theme.colors.primaryLight,
-                borderRadius: theme.borderRadius.sm,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-              }}
-            >
-              <Text style={{ color: theme.colors.primary, fontSize: 13, fontWeight: '600' }}>+ Add Stop</Text>
-            </TouchableOpacity>
-          </View>
-
-          {stops.map((stop, idx) => (
-            <View
-              key={idx}
-              style={{
-                marginBottom: idx < stops.length - 1 ? 16 : 0,
-                paddingBottom: idx < stops.length - 1 ? 16 : 0,
-                borderBottomWidth: idx < stops.length - 1 ? 1 : 0,
-                borderBottomColor: theme.colors.divider,
-              }}
-            >
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: theme.colors.primary }}>
-                  Stop {idx + 1}
-                </Text>
-                {stops.length > 1 && (
-                  <TouchableOpacity onPress={() => removeStop(idx)}>
-                    <Text style={{ color: theme.colors.error, fontSize: 13 }}>Remove</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-              <Input
-                label="Location"
-                value={stop.location}
-                onChangeText={(v) => updateStop(idx, 'location', v)}
-                placeholder="e.g. Gateway of India"
-              />
-              <Input
-                label="Description (optional)"
-                value={stop.description}
-                onChangeText={(v) => updateStop(idx, 'description', v)}
-                placeholder="What will travelers see here?"
-                style={{ marginTop: 8 }}
-              />
-              <Input
-                label="Duration (minutes)"
-                value={String(stop.estimated_duration_minutes)}
-                onChangeText={(v) => updateStop(idx, 'estimated_duration_minutes', Number(v) || 30)}
-                keyboardType="numeric"
-                style={{ marginTop: 8 }}
-              />
-            </View>
-          ))}
-        </Card>
+        <StopEditor stops={stops} onChange={setStops} />
       </ScrollView>
 
       <View style={{ position: 'absolute', bottom: insets.bottom + 16, left: 20, right: 20 }}>

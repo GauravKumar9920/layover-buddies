@@ -25,7 +25,6 @@ interface RawGuideProfileRow {
   // Legacy fields (if present in older schemas/views)
   name?: string | null;
   avatar_url?: string | null;
-  hometown?: string | null;
   categories?: unknown;
   // Editorial-zine fields (migration 20260420160000)
   prompts?: unknown;
@@ -51,6 +50,7 @@ interface RawItineraryRow {
   cover_image_url: string | null;
   duration_hours: number | null;
   buddy_cost: number | null;
+  max_travelers: number | null;
   is_published: boolean | null;
   created_at: string;
   stops?: RawItineraryStopRow[];
@@ -122,7 +122,7 @@ function normalizeGuideProfile(row: RawGuideProfileRow): GuideProfile {
     total_reviews: Number(row.total_reviews ?? 0),
     is_active: row.is_active ?? true,
     languages: toTagList(row.languages, 'language'),
-    hometown: asString(row.hometown),
+    hometown: null,
     categories: row.categories ? toTagList(row.categories, 'name') : toTagList(row.skills, 'name'),
     created_at: row.created_at,
     prompts: normalizePromptArray(row.prompts) as GuidePrompt[],
@@ -157,7 +157,7 @@ function normalizeItinerary(row: RawItineraryRow): Itinerary {
     cover_image_url: row.cover_image_url ?? null,
     estimated_duration_hours: Number(row.duration_hours ?? 0),
     buddy_cost_inr: Number(row.buddy_cost ?? 0),
-    max_travelers: 1,
+    max_travelers: Number(row.max_travelers ?? 1),
     is_active: row.is_published ?? false,
     created_at: row.created_at,
     stops: Array.isArray(row.stops)
@@ -194,7 +194,8 @@ async function fetchGuideIdsByCity(_city: string): Promise<string[]> {
   const { data, error } = await supabase
     .from('itineraries')
     .select('guide_id')
-    .eq('is_published', true);
+    .eq('is_published', true)
+    .is('deleted_at', null);
 
   if (error) throw error;
 
@@ -236,6 +237,7 @@ export async function fetchItineraryById(id: string): Promise<Itinerary | null> 
     .from('itineraries')
     .select('*, stops:itinerary_stops(*)')
     .eq('id', id)
+    .is('deleted_at', null)
     .maybeSingle();
 
   if (error) throw error;
@@ -249,6 +251,7 @@ export async function fetchGuideItineraries(guideId: string, includeUnpublished 
     .from('itineraries')
     .select('*, stops:itinerary_stops(*)')
     .eq('guide_id', resolvedGuideUserId)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false });
 
   if (!includeUnpublished) {
@@ -300,11 +303,10 @@ export async function searchGuides(query: string): Promise<GuideProfile[]> {
 
 export async function updateGuideProfile(
   guideId: string,
-  updates: Partial<Pick<GuideProfile, 'name' | 'bio' | 'avatar_url' | 'languages' | 'hometown' | 'is_active'>>,
+  updates: Partial<Pick<GuideProfile, 'name' | 'bio' | 'avatar_url' | 'languages' | 'is_active'>>,
 ): Promise<void> {
   // name and avatar_url live on the users table, not guide_profiles.
-  // hometown does not exist in the schema — ignored.
-  const { name, avatar_url, hometown: _hometown, ...guideUpdates } = updates;
+  const { name, avatar_url, ...guideUpdates } = updates;
 
   const { data: guideLookup } = await supabase
     .from('guide_profiles')

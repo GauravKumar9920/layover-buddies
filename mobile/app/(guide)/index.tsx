@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,7 +21,6 @@ import { theme } from '@/config/theme';
 import { getItineraryPhoto } from '@/config/photoLibrary';
 import { BOOKING_STATUS } from '@/config/constants';
 import type { Booking } from '@/types';
-import { useEffect as useLayoutEffect } from 'react';
 
 function StatCard({ value, label, delay }: { value: string; label: string; delay: number }) {
   const opacity = useSharedValue(0);
@@ -59,9 +58,9 @@ export default function GuideDashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [guideName, setGuideName] = useState('Guide');
 
-  const dashboardHeroPhoto =
-    getItineraryPhoto({ id: 'guide-dashboard-hero', city: 'Mumbai', category: 'culture', name: 'Guide Dashboard' }) ??
-    'https://images.unsplash.com/photo-1529253355930-ddbe423a2ac7?auto=format&fit=crop&w=1200&q=80';
+  // Use Marine Drive as the fixed dashboard hero — seed-based picking from
+  // MUMBAI_CITY_PHOTOS can land on non-cityscape photos depending on seed hash.
+  const dashboardHeroPhoto = 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1200&q=80';
 
   const loadData = useCallback(async () => {
     const user = (await supabase.auth.getUser()).data.user;
@@ -193,7 +192,7 @@ export default function GuideDashboardScreen() {
                 showGuide={false}
                 showTraveler
                 unreadCount={unreadCounts[b.id] ?? 0}
-                onPress={() => router.push(`/(shared)/messages/${b.id}` as never)}
+                onPress={() => router.push(`/(guide)/bookings/${b.id}` as never)}
               />
             ))}
           </View>

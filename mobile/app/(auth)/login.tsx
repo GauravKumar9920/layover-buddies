@@ -26,6 +26,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { signIn } from '@/lib/auth';
 import { isSupabaseConfigured } from '@/lib/supabase';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { hapticError, hapticImpactMedium, hapticSuccess, hapticWarning } from '@/lib/haptics';
 
 // ─── Photo data ───
@@ -92,10 +93,15 @@ function FloatingPhoto({ uri, style: posStyle, w, h, rot, delay, dur }: {
 
 export default function LoginScreen() {
   const { width: W, height: H } = useWindowDimensions();
+  const { bootstrapError } = useAuth();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading]   = useState(false);
   const [focused, setFocused]   = useState<string | null>(null);
+  // Mirror bootstrapError into local state so we can dismiss it on input
+  // without needing a setter on useAuth. Re-syncs whenever bootstrapError changes.
+  const [bootstrapBanner, setBootstrapBanner] = useState<string | null>(bootstrapError);
+  useEffect(() => { setBootstrapBanner(bootstrapError); }, [bootstrapError]);
 
   // Card entrance
   const cardY       = useSharedValue(50);
@@ -202,13 +208,23 @@ export default function LoginScreen() {
                 </View>
               )}
 
+              {bootstrapBanner && (
+                <View style={{ backgroundColor: 'rgba(239,68,68,0.16)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.40)', borderRadius: 12, padding: 12, marginBottom: 22 }}>
+                  <Text style={{ fontSize: 12, color: '#EF4444', fontWeight: '700' }}>⚠️ Session notice</Text>
+                  <Text style={{ fontSize: 12, color: 'rgba(239,68,68,0.85)', marginTop: 3, lineHeight: 18 }}>{bootstrapBanner}</Text>
+                </View>
+              )}
+
               <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '700', letterSpacing: -0.3, marginBottom: 4 }}>Welcome back</Text>
               <Text style={{ color: 'rgba(255,255,255,0.40)', fontSize: 13, marginBottom: 26 }}>Sign in to your Mumbai Buddies account</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.30)', fontSize: 12, marginBottom: 18, lineHeight: 18 }}>
+                Guides and travelers use the same login. New account? Choose a role below.
+              </Text>
 
               {/* Email */}
               <View style={{ marginBottom: 14 }}>
                 <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 }}>Email</Text>
-                <TextInput value={email} onChangeText={setEmail} placeholder="you@example.com" placeholderTextColor="rgba(255,255,255,0.28)"
+                <TextInput value={email} onChangeText={(v) => { setEmail(v); setBootstrapBanner(null); }} placeholder="you@example.com" placeholderTextColor="rgba(255,255,255,0.28)"
                   keyboardType="email-address" autoCapitalize="none" autoComplete="email"
                   style={inputStyle('email')} onFocus={() => setFocused('email')} onBlur={() => setFocused(null)} />
               </View>
@@ -223,7 +239,7 @@ export default function LoginScreen() {
                     </TouchableOpacity>
                   </Link>
                 </View>
-                <TextInput value={password} onChangeText={setPassword} placeholder="••••••••" placeholderTextColor="rgba(255,255,255,0.28)"
+                <TextInput value={password} onChangeText={(v) => { setPassword(v); setBootstrapBanner(null); }} placeholder="••••••••" placeholderTextColor="rgba(255,255,255,0.28)"
                   secureTextEntry autoComplete="password"
                   style={inputStyle('password')} onFocus={() => setFocused('password')} onBlur={() => setFocused(null)} />
               </View>
@@ -252,12 +268,43 @@ export default function LoginScreen() {
                 <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Continue with Google</Text>
               </TouchableOpacity>
 
-              {/* Signup link */}
-              <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 22, gap: 4 }}>
-                <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>New here?</Text>
-                <Link href="/(auth)/signup" asChild>
-                  <TouchableOpacity><Text style={{ color: '#F97316', fontSize: 13, fontWeight: '700' }}>Create an account</Text></TouchableOpacity>
-                </Link>
+              {/* Signup links by role */}
+              <View style={{ marginTop: 22 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, textAlign: 'center', marginBottom: 10 }}>New here? Join as:</Text>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <Link href="/(auth)/signup?role=traveler" asChild>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      style={{
+                        flex: 1,
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: 'rgba(255,255,255,0.14)',
+                        backgroundColor: 'rgba(255,255,255,0.05)',
+                        paddingVertical: 12,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '700' }}>Traveler</Text>
+                    </TouchableOpacity>
+                  </Link>
+                  <Link href="/(auth)/signup?role=guide" asChild>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      style={{
+                        flex: 1,
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: 'rgba(249,115,22,0.70)',
+                        backgroundColor: 'rgba(249,115,22,0.14)',
+                        paddingVertical: 12,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text style={{ color: '#F97316', fontSize: 13, fontWeight: '700' }}>Guide</Text>
+                    </TouchableOpacity>
+                  </Link>
+                </View>
               </View>
             </Animated.View>
           </View>

@@ -8,6 +8,15 @@ interface RawUserJoin {
   avatar_url: string | null;
 }
 
+interface RawTravelerProfileJoin {
+  nationality: string | null;
+}
+
+interface RawTravelerJoin extends RawUserJoin {
+  // PostgREST may embed as a single object (1:1 via UNIQUE FK) or array — handle both.
+  traveler_profile?: RawTravelerProfileJoin | RawTravelerProfileJoin[] | null;
+}
+
 interface RawItineraryStopRow {
   id: string;
   itinerary_id: string;
@@ -27,6 +36,7 @@ interface RawItineraryRow {
   cover_image_url: string | null;
   duration_hours: number | null;
   buddy_cost: number | null;
+  max_travelers: number | null;
   is_published: boolean | null;
   created_at: string;
   stops?: RawItineraryStopRow[];
@@ -48,7 +58,7 @@ interface RawBookingRow {
   payment_status: string;
   created_at: string;
   guide?: RawUserJoin;
-  traveler?: RawUserJoin;
+  traveler?: RawTravelerJoin;
   itinerary?: RawItineraryRow;
 }
 
@@ -96,7 +106,7 @@ function normalizeItinerary(row?: RawItineraryRow): Booking['itinerary'] {
     cover_image_url: row.cover_image_url ?? null,
     estimated_duration_hours: Number(row.duration_hours ?? 0),
     buddy_cost_inr: Number(row.buddy_cost ?? 0),
-    max_travelers: 1,
+    max_travelers: Number(row.max_travelers ?? 1),
     is_active: row.is_published ?? false,
     created_at: row.created_at,
     stops: Array.isArray(row.stops)
@@ -132,15 +142,19 @@ function normalizeGuideUser(row?: RawUserJoin): Booking['guide'] {
   };
 }
 
-function normalizeTravelerUser(row?: RawUserJoin): Booking['traveler'] {
+function normalizeTravelerUser(row?: RawTravelerJoin): Booking['traveler'] {
   if (!row) return undefined;
+
+  const profile = Array.isArray(row.traveler_profile)
+    ? row.traveler_profile[0] ?? null
+    : row.traveler_profile ?? null;
 
   return {
     id: row.id,
     user_id: row.id,
     name: row.full_name ?? 'Traveler',
     avatar_url: row.avatar_url ?? null,
-    nationality: null,
+    nationality: profile?.nationality ?? null,
     phone: null,
     created_at: new Date().toISOString(),
   };
@@ -183,11 +197,12 @@ export async function createBooking(req: CreateBookingRequest): Promise<Booking>
   const tourEndTime = toIsoOrNull(req.end_date, '17:00:00.000Z');
   const arrivalTime = toIsoOrNull(req.flight_date, '00:00:00.000Z');
 
-  // Fetch itinerary to get price
+  // Fetch itinerary to get price (deleted tours can't be booked)
   const { data: itin, error: itinErr } = await supabase
     .from('itineraries')
     .select('buddy_cost')
     .eq('id', req.itinerary_id)
+    .is('deleted_at', null)
     .single();
 
   if (itinErr || !itin) throw new Error('Itinerary not found');
@@ -236,7 +251,7 @@ export async function fetchGuideBookings(guideId: string): Promise<Booking[]> {
   const { data, error } = await supabase
     .from('bookings')
     .select(
-      '*, traveler:users!traveler_id(id, full_name, avatar_url), itinerary:itineraries(*)',
+      '*, traveler:users!traveler_id(id, full_name, avatar_url, traveler_profile:traveler_profiles(nationality)), itinerary:itineraries(*)',
     )
     .eq('guide_id', guideId)
     .order('created_at', { ascending: false });
@@ -248,7 +263,7 @@ export async function fetchGuideBookings(guideId: string): Promise<Booking[]> {
 export async function fetchPendingRequests(guideId: string): Promise<Booking[]> {
   const { data, error } = await supabase
     .from('bookings')
-    .select('*, traveler:users!traveler_id(id, full_name, avatar_url), itinerary:itineraries(*)')
+    .select('*, traveler:users!traveler_id(id, full_name, avatar_url, traveler_profile:traveler_profiles(nationality)), itinerary:itineraries(*)')
     .eq('guide_id', guideId)
     .eq('status', BOOKING_STATUS.PENDING)
     .order('created_at', { ascending: false });
@@ -320,7 +335,7 @@ export async function updateBookingPayment(
 export async function fetchBookingById(bookingId: string): Promise<Booking | null> {
   const { data, error } = await supabase
     .from('bookings')
-    .select('*, guide:users!guide_id(id, full_name, avatar_url), traveler:users!traveler_id(id, full_name, avatar_url), itinerary:itineraries(*, stops:itinerary_stops(*))')
+    .select('*, guide:users!guide_id(id, full_name, avatar_url), traveler:users!traveler_id(id, full_name, avatar_url, traveler_profile:traveler_profiles(nationality)), itinerary:itineraries(*, stops:itinerary_stops(*))')
     .eq('id', bookingId)
     .maybeSingle();
 

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
+import { pickImage } from '@/lib/imagePicker';
+import { uploadImage } from '@/lib/imageUpload';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Header } from '@/components/ui/Header';
 import { Input } from '@/components/ui/Input';
@@ -20,10 +21,10 @@ export default function GuideProfileScreen() {
   const [profile, setProfile] = useState<GuideProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
-  const [hometown, setHometown] = useState('');
   const [languages, setLanguages] = useState('');
 
   useEffect(() => {
@@ -47,22 +48,41 @@ export default function GuideProfileScreen() {
   }
 
   async function loadProfile() {
-    const user = (await supabase.auth.getUser()).data.user;
-    if (!user) return;
+    try {
+      setLoadError(null);
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) {
+        setLoadError('Please sign in again to view your profile.');
+        return;
+      }
 
-    const { data } = await supabase
-      .from('guide_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+      let { data, error } = await supabase
+        .from('guide_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-    const { data: userData } = await supabase
-      .from('users')
-      .select('full_name, avatar_url')
-      .eq('id', user.id)
-      .maybeSingle();
+      if (error) throw error;
 
-    if (data) {
+      // Self-heal: if the auth-sync trigger didn't run (older accounts), create
+      // a placeholder row so the rest of the screen has something to bind to.
+      if (!data) {
+        const { data: created, error: createError } = await supabase
+          .from('guide_profiles')
+          .insert({ user_id: user.id, is_active: true })
+          .select('*')
+          .single();
+
+        if (createError) throw createError;
+        data = created;
+      }
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('full_name, avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+
       const normalizedLanguages = toTagList(data.languages, 'language');
       const normalizedCategories = toTagList(data.skills, 'name');
 
@@ -85,10 +105,12 @@ export default function GuideProfileScreen() {
       setProfile(mappedProfile);
       setName(userData?.full_name ?? '');
       setBio(data.bio ?? '');
-      setHometown('');
       setLanguages(normalizedLanguages.join(', '));
+    } catch (err: unknown) {
+      setLoadError(err instanceof Error ? err.message : 'Failed to load your profile.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function handleSave() {
@@ -98,7 +120,6 @@ export default function GuideProfileScreen() {
       await updateGuideProfile(profile.id, {
         name: name.trim(),
         bio: bio.trim() || null,
-        hometown: hometown.trim() || null,
         languages: languages.split(',').map((l) => l.trim()).filter(Boolean),
       });
       Alert.alert('✅ Saved', 'Your profile has been updated.');
@@ -110,39 +131,28 @@ export default function GuideProfileScreen() {
   }
 
   async function handlePickImage() {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
+    const picked = await pickImage({ aspect: [1, 1], quality: 0.7, allowsEditing: true });
+    if (!picked) return;
 
-    if (result.canceled || !result.assets[0]) return;
-
-    const uri = result.assets[0].uri;
     const user = (await supabase.auth.getUser()).data.user;
     if (!user) return;
 
-    // Upload to Supabase Storage
-    const ext = uri.split('.').pop() ?? 'jpg';
-    const path = `avatars/${user.id}.${ext}`;
-
-    const response = await fetch(uri);
-    const blob = await response.blob();
-
-    const { error: uploadErr } = await supabase.storage
-      .from('avatars')
-      .upload(path, blob, { upsert: true, contentType: `image/${ext}` });
-
-    if (uploadErr) {
-      Alert.alert('Upload failed', uploadErr.message);
-      return;
-    }
-
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
-    if (profile) {
-      await updateGuideProfile(profile.id, { avatar_url: urlData.publicUrl });
-      setProfile({ ...profile, avatar_url: urlData.publicUrl });
+    try {
+      const ext = picked.fileName.split('.').pop() ?? 'jpg';
+      const path = `avatars/${user.id}.${ext}`;
+      const { publicUrl } = await uploadImage({
+        blob: picked.blob,
+        bucket: 'avatars',
+        path,
+        contentType: picked.mimeType,
+        blobUri: picked.uri,
+      });
+      if (profile) {
+        await updateGuideProfile(profile.id, { avatar_url: publicUrl });
+        setProfile({ ...profile, avatar_url: publicUrl });
+      }
+    } catch (err: unknown) {
+      Alert.alert('Upload failed', err instanceof Error ? err.message : 'Unknown error');
     }
   }
 
@@ -159,6 +169,14 @@ export default function GuideProfileScreen() {
         contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}
         showsVerticalScrollIndicator={false}
       >
+        {loadError && (
+          <Card style={{ marginBottom: 16, borderWidth: 1, borderColor: '#FCA5A5' }}>
+            <Text style={{ fontSize: 13, color: theme.colors.error }}>
+              {loadError}
+            </Text>
+          </Card>
+        )}
+
         {/* Avatar */}
         <View style={{ alignItems: 'center', marginBottom: 28 }}>
           <TouchableOpacity onPress={handlePickImage}>
@@ -216,7 +234,6 @@ export default function GuideProfileScreen() {
             Edit Profile
           </Text>
           <Input label="Full Name" value={name} onChangeText={setName} autoCapitalize="words" />
-          <Input label="Hometown" value={hometown} onChangeText={setHometown} placeholder="e.g. Mumbai, Maharashtra" />
           <Input
             label="Languages (comma separated)"
             value={languages}
