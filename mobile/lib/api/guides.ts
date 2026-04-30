@@ -13,6 +13,7 @@ interface RawGuideProfileRow {
   id: string;
   user_id: string;
   university: string | null;
+  hometown: string | null;
   bio: string | null;
   avg_rating: number | null;
   total_reviews: number | null;
@@ -86,7 +87,7 @@ function toTagList(value: unknown, preferredKey: 'language' | 'name'): string[] 
   return Array.from(new Set(tags));
 }
 
-function normalizePromptArray(value: unknown): { question: string; answer: string }[] {
+export function normalizePromptArray(value: unknown): { question: string; answer: string }[] {
   if (!Array.isArray(value)) return [];
   return value
     .map((item) => {
@@ -122,7 +123,7 @@ function normalizeGuideProfile(row: RawGuideProfileRow): GuideProfile {
     total_reviews: Number(row.total_reviews ?? 0),
     is_active: row.is_active ?? true,
     languages: toTagList(row.languages, 'language'),
-    hometown: null,
+    hometown: asString(row.hometown),
     categories: row.categories ? toTagList(row.categories, 'name') : toTagList(row.skills, 'name'),
     created_at: row.created_at,
     prompts: normalizePromptArray(row.prompts) as GuidePrompt[],
@@ -303,7 +304,20 @@ export async function searchGuides(query: string): Promise<GuideProfile[]> {
 
 export async function updateGuideProfile(
   guideId: string,
-  updates: Partial<Pick<GuideProfile, 'name' | 'bio' | 'avatar_url' | 'languages' | 'is_active'>>,
+  updates: Partial<
+    Pick<
+      GuideProfile,
+      | 'name'
+      | 'bio'
+      | 'avatar_url'
+      | 'languages'
+      | 'is_active'
+      | 'university'
+      | 'hometown'
+      | 'pull_quote'
+      | 'prompts'
+    >
+  >,
 ): Promise<void> {
   // name and avatar_url live on the users table, not guide_profiles.
   const { name, avatar_url, ...guideUpdates } = updates;

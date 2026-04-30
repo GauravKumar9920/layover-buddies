@@ -1,0 +1,13 @@
+{
+  "root": true,
+  "extends": "expo",
+  "ignorePatterns": [
+    "node_modules",
+    ".expo",
+    "babel.config.js",
+    "metro.config.js"
+  ],
+  "rules": {
+    "react-hooks/exhaustive-deps": "warn"
+  }
+}

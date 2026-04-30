@@ -11,10 +11,19 @@ import { Card } from '@/components/ui/Card';
 import { StarRating } from '@/components/ui/StarRating';
 import { Loading } from '@/components/ui/Loading';
 import { supabase } from '@/lib/supabase';
-import { updateGuideProfile } from '@/lib/api/guides';
+import { updateGuideProfile, normalizePromptArray } from '@/lib/api/guides';
 import { signOut } from '@/lib/auth';
 import { theme } from '@/config/theme';
-import type { GuideProfile } from '@/types';
+import type { GuideProfile, GuidePrompt } from '@/types';
+
+// The same three questions that the traveler-facing fallback uses
+// (mobile/app/(traveler)/guide/[id].tsx:78-95). Keeping them identical
+// means guides see familiar prompts and only fill in the answers.
+const DEFAULT_PROMPTS: GuidePrompt[] = [
+  { question: 'Three things about me', answer: '' },
+  { question: 'Hosting travelers has taught me…', answer: '' },
+  { question: 'You should skip my walk if…', answer: '' },
+];
 
 export default function GuideProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -23,9 +32,16 @@ export default function GuideProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  // Card 1 — basics
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [languages, setLanguages] = useState('');
+  const [university, setUniversity] = useState('');
+  const [hometown, setHometown] = useState('');
+
+  // Card 2 — "Your Story" (the editorial-zine fields)
+  const [pullQuote, setPullQuote] = useState('');
+  const [prompts, setPrompts] = useState<GuidePrompt[]>(DEFAULT_PROMPTS);
 
   useEffect(() => {
     loadProfile();
@@ -85,6 +101,7 @@ export default function GuideProfileScreen() {
 
       const normalizedLanguages = toTagList(data.languages, 'language');
       const normalizedCategories = toTagList(data.skills, 'name');
+      const existingPrompts = normalizePromptArray(data.prompts);
 
       const mappedProfile: GuideProfile = {
         id: data.id,
@@ -97,15 +114,28 @@ export default function GuideProfileScreen() {
         total_reviews: Number(data.total_reviews ?? 0),
         is_active: data.is_active ?? true,
         languages: normalizedLanguages,
-        hometown: null,
+        hometown: data.hometown ?? null,
         categories: normalizedCategories,
         created_at: data.created_at ?? new Date().toISOString(),
+        prompts: existingPrompts as GuidePrompt[],
+        pull_quote: data.pull_quote ?? null,
       };
 
       setProfile(mappedProfile);
       setName(userData?.full_name ?? '');
       setBio(data.bio ?? '');
       setLanguages(normalizedLanguages.join(', '));
+      setUniversity(data.university ?? '');
+      setHometown(data.hometown ?? '');
+      setPullQuote(data.pull_quote ?? '');
+
+      // If the guide has saved 3 prompts, pre-fill from those. Otherwise keep
+      // the empty scaffold so all 3 question slots are visible to fill in.
+      if (existingPrompts.length === 3) {
+        setPrompts(existingPrompts as GuidePrompt[]);
+      } else {
+        setPrompts(DEFAULT_PROMPTS);
+      }
     } catch (err: unknown) {
       setLoadError(err instanceof Error ? err.message : 'Failed to load your profile.');
     } finally {
@@ -117,10 +147,21 @@ export default function GuideProfileScreen() {
     if (!profile) return;
     setSaving(true);
     try {
+      // Only persist prompts whose answer is non-empty so the traveler view
+      // falls back gracefully (to fabricated content) rather than rendering
+      // empty Q/A cards.
+      const filledPrompts = prompts
+        .filter((p) => p.answer.trim().length > 0)
+        .map((p) => ({ question: p.question, answer: p.answer.trim() }));
+
       await updateGuideProfile(profile.id, {
         name: name.trim(),
         bio: bio.trim() || null,
         languages: languages.split(',').map((l) => l.trim()).filter(Boolean),
+        university: university.trim() || null,
+        hometown: hometown.trim() || null,
+        pull_quote: pullQuote.trim() || null,
+        prompts: filledPrompts,
       });
       Alert.alert('✅ Saved', 'Your profile has been updated.');
     } catch (err: unknown) {
@@ -128,6 +169,10 @@ export default function GuideProfileScreen() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function updatePromptAnswer(index: number, answer: string) {
+    setPrompts((prev) => prev.map((p, i) => (i === index ? { ...p, answer } : p)));
   }
 
   async function handlePickImage() {
@@ -228,12 +273,27 @@ export default function GuideProfileScreen() {
           )}
         </View>
 
-        {/* Form */}
+        {/* Card 1 — basics */}
         <Card style={{ gap: 16 }}>
           <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text, marginBottom: 4 }}>
             Edit Profile
           </Text>
           <Input label="Full Name" value={name} onChangeText={setName} autoCapitalize="words" />
+          <Input
+            label="University"
+            value={university}
+            onChangeText={setUniversity}
+            placeholder="e.g. IIT Bombay"
+            autoCapitalize="words"
+          />
+          <Input
+            label="Hometown"
+            value={hometown}
+            onChangeText={setHometown}
+            placeholder="e.g. Mumbai"
+            hint="Shown alongside your university on your profile."
+            autoCapitalize="words"
+          />
           <Input
             label="Languages (comma separated)"
             value={languages}
@@ -252,8 +312,51 @@ export default function GuideProfileScreen() {
               numberOfLines={4}
             />
           </View>
-          <Button title="Save Changes" onPress={handleSave} loading={saving} />
         </Card>
+
+        {/* Card 2 — Your Story (editorial-zine fields) */}
+        <Card style={{ gap: 16, marginTop: 16 }}>
+          <View>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text }}>
+              Your Story
+            </Text>
+            <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginTop: 4, lineHeight: 18 }}>
+              This is what travelers see first on your profile. Leave blank to use a friendly default.
+            </Text>
+          </View>
+
+          <View>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.textSecondary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+              Headline quote
+            </Text>
+            <Input
+              value={pullQuote}
+              onChangeText={setPullQuote}
+              placeholder="The best part of Mumbai isn't on anyone's checklist…"
+              multiline
+              numberOfLines={3}
+              hint="Shown large and italic at the top of your profile. Aim for under 30 words."
+            />
+          </View>
+
+          {prompts.map((prompt, idx) => (
+            <View key={idx}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.textSecondary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+                {prompt.question}
+              </Text>
+              <Input
+                value={prompt.answer}
+                onChangeText={(v) => updatePromptAnswer(idx, v)}
+                placeholder="Your answer..."
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+          ))}
+        </Card>
+
+        {/* Single shared Save button — handleSave writes both cards atomically */}
+        <Button title="Save Changes" onPress={handleSave} loading={saving} style={{ marginTop: 16 }} />
 
         {/* Active Status Toggle */}
         {profile && (

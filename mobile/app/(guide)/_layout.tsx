@@ -53,6 +53,12 @@ export default function GuideLayout() {
         }}
       />
       <Tabs.Screen
+        name="messages/index"
+        options={{
+          tabBarIcon: ({ focused }) => <TabIcon emoji="💬" label="Inbox" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           tabBarIcon: ({ focused }) => <TabIcon emoji="👤" label="Profile" focused={focused} />,

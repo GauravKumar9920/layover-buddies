@@ -53,6 +53,12 @@ export default function TravelerLayout() {
         }}
       />
       <Tabs.Screen
+        name="messages/index"
+        options={{
+          tabBarIcon: ({ focused }) => <TabIcon emoji="💬" label="Inbox" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="trips/index"
         options={{
           tabBarIcon: ({ focused }) => <TabIcon emoji="🎒" label="My Trips" focused={focused} />,

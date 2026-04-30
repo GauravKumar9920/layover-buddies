@@ -1,5 +1,7 @@
 import { supabase } from '../supabase';
-import type { Message, SendMessageRequest } from '@/types';
+import { fetchTravelerBookings, fetchGuideBookings } from './bookings';
+import { BOOKING_STATUS } from '@/config/constants';
+import type { Booking, Message, SendMessageRequest } from '@/types';
 
 export async function sendMessage(req: SendMessageRequest): Promise<Message> {
   const user = (await supabase.auth.getUser()).data.user;
@@ -65,4 +67,41 @@ export async function fetchUnreadCounts(bookingIds: string[]): Promise<Record<st
     counts[row.booking_id] = (counts[row.booking_id] ?? 0) + 1;
   }
   return counts;
+}
+
+/**
+ * Returns the bookings the current user can hold a conversation in — i.e.
+ * bookings that have moved past the "pending" stage. Combines traveler-side
+ * and guide-side bookings (a single user might play both roles), de-dupes
+ * by id, and sorts most-recently-created first.
+ *
+ * Powers the shared Inbox tab. The conversation screen
+ * (mobile/app/(shared)/messages/[bookingId].tsx) is reachable from here as
+ * well as from individual booking detail screens.
+ */
+export async function fetchInbox(userId: string): Promise<Booking[]> {
+  const [travelerBookings, guideBookings] = await Promise.all([
+    fetchTravelerBookings(userId),
+    fetchGuideBookings(userId),
+  ]);
+
+  const activeStatuses: string[] = [
+    BOOKING_STATUS.GUIDE_ACCEPTED,
+    BOOKING_STATUS.CONFIRMED,
+    BOOKING_STATUS.IN_PROGRESS,
+    BOOKING_STATUS.COMPLETED,
+  ];
+
+  const seen = new Set<string>();
+  const merged: Booking[] = [];
+  for (const b of [...travelerBookings, ...guideBookings]) {
+    if (seen.has(b.id)) continue;
+    if (!activeStatuses.includes(b.status)) continue;
+    seen.add(b.id);
+    merged.push(b);
+  }
+
+  return merged.sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
 }

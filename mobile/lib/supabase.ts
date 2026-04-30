@@ -59,7 +59,11 @@ const supabaseOrigins = buildLocalSupabaseOrigins(supabaseUrl);
 let activeSupabaseOrigin = supabaseOrigins[0];
 
 const supabaseFetch: typeof fetch = async (input, init) => {
-  const requestUrl = typeof input === 'string' ? input : input.url;
+  // `input` can be string | URL | Request. URL doesn't have .url/.clone(), so
+  // narrow against Request explicitly — that's the only branch with extras.
+  const isRequest = typeof Request !== 'undefined' && input instanceof Request;
+  const requestUrl =
+    typeof input === 'string' ? input : isRequest ? input.url : input.toString();
   const requestedPath = (() => {
     try {
       const parsed = new URL(requestUrl);
@@ -75,7 +79,7 @@ const supabaseFetch: typeof fetch = async (input, init) => {
   }
 
   const orderedOrigins = [activeSupabaseOrigin, ...supabaseOrigins.filter((o) => o !== activeSupabaseOrigin)];
-  const requestTemplate = typeof input === 'string' ? null : input.clone();
+  const requestTemplate = isRequest ? input.clone() : null;
   let lastError: unknown;
 
   for (const origin of orderedOrigins) {
@@ -115,8 +119,11 @@ export const isSupabaseConfigured =
 // the next bootstrap call.
 const isWeb = typeof document !== 'undefined';
 
-const noopLock: (name: string, acquireTimeout: number, fn: () => Promise<void>) => Promise<void> =
-  (_name, _timeout, fn) => fn();
+// Supabase's LockFunc is generic — `<R>(...) => Promise<R>`. A typed function
+// expression can't capture the type parameter, so use a `function` declaration.
+function noopLock<R>(_name: string, _timeout: number, fn: () => Promise<R>): Promise<R> {
+  return fn();
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
