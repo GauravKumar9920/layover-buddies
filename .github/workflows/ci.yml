@@ -1,0 +1,108 @@
+name: CI
+
+# Runs on every push to main and every pull request targeting main.
+# Independent jobs run in parallel — fast feedback, and a failure in one
+# workspace doesn't mask issues in the others.
+#
+# What this catches:
+#   - TypeScript errors (wrong field names, missing imports, type mismatches)
+#   - ESLint violations (unused vars, dead code, common React mistakes)
+#   - Migrations that fail to apply cleanly (syntax errors, missing columns,
+#     conflicts with previous migrations, broken RLS policies)
+#   - Broken admin or marketing-site production builds
+#
+# What this does NOT catch:
+#   - Runtime errors, layout bugs, or anything you can only see by running the app.
+#     For those, see TESTING.md at the repo root.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  mobile-typecheck:
+    name: mobile · typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+      - name: Install
+        run: npm --prefix mobile ci
+      - name: Type check
+        run: npm --prefix mobile run type-check
+
+  mobile-lint:
+    name: mobile · lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+      - name: Install
+        run: npm --prefix mobile ci
+      - name: Lint
+        run: npm --prefix mobile run lint
+
+  admin-build:
+    name: admin · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: admin/package-lock.json
+      - name: Install
+        run: npm --prefix admin ci
+      # admin's build script runs `tsc -b && vite build` — covers type-check
+      # and the production bundle in one job. Skip env vars: vite ignores
+      # missing VITE_* at build time, only fails at runtime.
+      - name: Build
+        run: npm --prefix admin run build
+
+  marketing-build:
+    name: marketing · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Build static site
+        run: npm run build
+
+  db-migrations:
+    name: db · migrations apply cleanly
+    runs-on: ubuntu-latest
+    # Spins up the full local Supabase stack and applies every migration in
+    # `supabase/migrations/`. If a migration has bad SQL, references a column
+    # that doesn't exist, or conflicts with a previous migration, this step
+    # fails loudly. Then we run `db reset --no-seed` to verify the migrations
+    # apply cleanly to a *fresh* database, not just on top of cached state.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start Supabase (applies migrations)
+        run: supabase start
+      - name: Reset DB and re-apply migrations from scratch
+        run: supabase db reset --no-seed
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup

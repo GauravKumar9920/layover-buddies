@@ -1,0 +1,81 @@
+name: Deploy Supabase Migrations
+
+# Manual-trigger pipeline that pushes pending migrations from
+# `supabase/migrations/` to the linked production Supabase project.
+#
+# WHY MANUAL ONLY (workflow_dispatch):
+#   Auto-running migrations on every push to `main` is risky — a destructive
+#   migration would land in prod before anyone can review it. Keep it manual
+#   until we have a staging project + a non-trivial review workflow.
+#
+# REQUIRED REPOSITORY SECRETS (configure at Settings → Secrets and variables → Actions):
+#   - SUPABASE_ACCESS_TOKEN     — generate at https://supabase.com/dashboard/account/tokens
+#   - SUPABASE_PROJECT_REF      — the 20-char project ref from the dashboard URL
+#   - SUPABASE_DB_PASSWORD      — database password for the project (or use --linked auth)
+#
+# HOW TO RUN:
+#   GitHub → Actions tab → Deploy Supabase Migrations → "Run workflow"
+#
+# WHAT THIS DOES:
+#   1. Validates the migration set applies cleanly locally first (same job as CI).
+#   2. Links to the prod project using the access token.
+#   3. Runs `supabase db push` which applies any new migrations not yet in prod.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (print SQL, don't execute)"
+        type: boolean
+        default: true
+
+jobs:
+  deploy:
+    name: Push migrations to prod
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Bail out if secrets not configured
+        env:
+          ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          if [ -z "$ACCESS_TOKEN" ] || [ -z "$PROJECT_REF" ]; then
+            echo "::error::Missing SUPABASE_ACCESS_TOKEN or SUPABASE_PROJECT_REF. See workflow header for setup."
+            exit 1
+          fi
+
+      - name: Validate migrations apply cleanly locally
+        run: |
+          supabase start
+          supabase db reset --no-seed
+
+      - name: Link to production project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+
+      - name: Push migrations (dry run)
+        if: ${{ inputs.dry_run }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase db push --dry-run
+
+      - name: Push migrations
+        if: ${{ !inputs.dry_run }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase db push
+
+      - name: Stop local Supabase
+        if: always()
+        run: supabase stop --no-backup || true
