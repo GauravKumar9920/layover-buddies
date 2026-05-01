@@ -82,12 +82,15 @@ const supabaseFetch: typeof fetch = async (input, init) => {
   const requestTemplate = isRequest ? input.clone() : null;
   let lastError: unknown;
 
+  // On web, use the intercepting fetch that clears stale refresh tokens on 400.
+  const baseFetch = _webFetch ?? fetch;
+
   for (const origin of orderedOrigins) {
     const attemptUrl = `${origin}${requestedPath}`;
     try {
       const response = requestTemplate
-        ? await fetch(new Request(attemptUrl, requestTemplate.clone()))
-        : await fetch(attemptUrl, init);
+        ? await baseFetch(new Request(attemptUrl, requestTemplate.clone()))
+        : await baseFetch(attemptUrl, init);
 
       if (origin !== activeSupabaseOrigin && typeof __DEV__ !== 'undefined' && __DEV__) {
         console.warn('[supabase] Switched to fallback origin:', origin);
@@ -117,6 +120,40 @@ export const isSupabaseConfigured =
 // single-user dev is safe without it. Also disable autoRefreshToken on web to
 // prevent the concurrent-refresh race that rotates the token out from under
 // the next bootstrap call.
+//
+// Additionally: intercept failed refresh-token requests on web and immediately
+// clear the stored session so the client stops retrying. Without this, a stale
+// refresh token (e.g. after `supabase db reset`) causes every subsequent API
+// call to hang waiting for auth that will never resolve.
+const _isWeb = typeof document !== 'undefined';
+const _nativeFetch = typeof fetch !== 'undefined' ? fetch : undefined;
+const _webFetch: typeof fetch | undefined =
+  _isWeb && _nativeFetch
+    ? async (input, init) => {
+        const url =
+          typeof input === 'string'
+            ? input
+            : input instanceof Request
+            ? input.url
+            : input.toString();
+        const isRefresh = url.includes('grant_type=refresh_token');
+        const res = await _nativeFetch!(input, init);
+        if (isRefresh && res.status === 400) {
+          // Stale refresh token — purge from storage so the client stops looping.
+          // We can't call supabase.auth.signOut() here (circular dep at module
+          // init time), so remove the token key from whatever storage is in use.
+          try {
+            const storageKey = Object.keys(localStorage).find(
+              (k) => k.includes('supabase') || k.includes('sb-'),
+            );
+            if (storageKey) localStorage.removeItem(storageKey);
+          } catch {
+            // localStorage unavailable (SSR) — ignore
+          }
+        }
+        return res;
+      }
+    : undefined;
 const isWeb = typeof document !== 'undefined';
 
 // Supabase's LockFunc is generic — `<R>(...) => Promise<R>`. A typed function
