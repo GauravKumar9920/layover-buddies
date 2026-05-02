@@ -27,6 +27,10 @@ import { theme } from '@/config/theme';
 import { format, isSameDay } from 'date-fns';
 import type { Message, Booking } from '@/types';
 
+type RenderItem =
+  | { kind: 'message'; message: Message; isMine: boolean; showAvatar: boolean; showTime: boolean }
+  | { kind: 'day'; key: string; date: Date };
+
 // ─── Header — avatar + name + status, Instagram-style ────────────────────────
 function ConversationHeader({
   name,
@@ -222,15 +226,9 @@ export default function MessagesScreen() {
     ? booking?.guide?.avatar_url ?? null
     : booking?.traveler?.avatar_url ?? null;
 
-  if (loading || !currentUserId) return <Loading fullScreen message="Loading messages..." />;
-
   // Build a renderable list with day separators interleaved between messages.
-  // We compute, for each message, whether it should show its sender avatar
-  // (last in a streak from that sender) and whether a day separator precedes it.
-  type RenderItem =
-    | { kind: 'message'; message: Message; isMine: boolean; showAvatar: boolean; showTime: boolean }
-    | { kind: 'day'; key: string; date: Date };
-
+  // Memoised so that typing in the input (which triggers re-renders) doesn't
+  // rebuild the entire list on every keystroke.
   const renderItems = useMemo(() => {
     const items: RenderItem[] = [];
     let lastDate: Date | null = null;
@@ -257,6 +255,8 @@ export default function MessagesScreen() {
 
     return items;
   }, [messages, currentUserId]);
+
+  if (loading || !currentUserId) return <Loading fullScreen message="Loading messages..." />;
 
   return (
     <KeyboardAvoidingView
