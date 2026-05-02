@@ -141,12 +141,16 @@ const _webFetch: typeof fetch | undefined =
         if (isRefresh && res.status === 400) {
           // Stale refresh token — purge from storage so the client stops looping.
           // We can't call supabase.auth.signOut() here (circular dep at module
-          // init time), so remove the token key from whatever storage is in use.
+          // init time), so remove all auth-related keys for this project.
           try {
-            const storageKey = Object.keys(localStorage).find(
-              (k) => k.includes('supabase') || k.includes('sb-'),
+            const projectRef = supabaseUrl.split('https://')[1]?.split('.')[0] || '';
+            const keysToRemove = Object.keys(localStorage).filter(
+              (k) =>
+                k.includes(`sb-${projectRef}`) ||
+                k.includes('supabase-auth-token') ||
+                (k.includes('supabase') && (k.includes('auth') || k.includes('token'))),
             );
-            if (storageKey) localStorage.removeItem(storageKey);
+            keysToRemove.forEach((k) => localStorage.removeItem(k));
           } catch {
             // localStorage unavailable (SSR) — ignore
           }

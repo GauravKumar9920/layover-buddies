@@ -45,8 +45,8 @@ CREATE POLICY "Public read of profile rows" ON public.users
 
 -- 2. Drop the table-wide SELECT grant from authenticated/anon and re-grant
 --    only the safe columns. After this, attempting to SELECT email or phone
---    from public.users as an authenticated/anon role returns a permission
---    error from PostgREST — the joined response simply omits those columns.
+--    from public.users as an authenticated/anon role will return a permission
+--    error from PostgREST; callers must request only the granted columns.
 REVOKE SELECT ON public.users FROM authenticated, anon;
 GRANT SELECT (id, full_name, avatar_url, role, is_verified, created_at)
   ON public.users

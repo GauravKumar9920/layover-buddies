@@ -344,6 +344,7 @@ export default function GuideDetailScreen() {
                 shadowOpacity: 0.35,
                 shadowRadius: 8,
                 shadowOffset: { width: 0, height: 4 },
+                elevation: 6,
               }}
             >
               {avatarUrl ? (

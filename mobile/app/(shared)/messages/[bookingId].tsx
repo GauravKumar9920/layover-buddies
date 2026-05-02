@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -231,28 +231,32 @@ export default function MessagesScreen() {
     | { kind: 'message'; message: Message; isMine: boolean; showAvatar: boolean; showTime: boolean }
     | { kind: 'day'; key: string; date: Date };
 
-  const renderItems: RenderItem[] = [];
-  let lastDate: Date | null = null;
+  const renderItems = useMemo(() => {
+    const items: RenderItem[] = [];
+    let lastDate: Date | null = null;
 
-  messages.forEach((msg, i) => {
-    const date = new Date(msg.created_at);
-    if (!lastDate || !isSameDay(date, lastDate)) {
-      renderItems.push({ kind: 'day', key: 'day-' + msg.id, date });
-      lastDate = date;
-    }
-    const isMine = msg.sender_id === currentUserId;
-    const next = messages[i + 1];
-    const sameSenderNext = next && next.sender_id === msg.sender_id;
-    const sameDayNext = next && isSameDay(new Date(next.created_at), date);
-    const isLastInStreak = !next || !sameSenderNext || !sameDayNext;
-    renderItems.push({
-      kind: 'message',
-      message: msg,
-      isMine,
-      showAvatar: !isMine && isLastInStreak,
-      showTime: isLastInStreak,
+    messages.forEach((msg, i) => {
+      const date = new Date(msg.created_at);
+      if (!lastDate || !isSameDay(date, lastDate)) {
+        items.push({ kind: 'day', key: 'day-' + msg.id, date });
+        lastDate = date;
+      }
+      const isMine = msg.sender_id === currentUserId;
+      const next = messages[i + 1];
+      const sameSenderNext = next && next.sender_id === msg.sender_id;
+      const sameDayNext = next && isSameDay(new Date(next.created_at), date);
+      const isLastInStreak = !next || !sameSenderNext || !sameDayNext;
+      items.push({
+        kind: 'message',
+        message: msg,
+        isMine,
+        showAvatar: !isMine && isLastInStreak,
+        showTime: isLastInStreak,
+      });
     });
-  });
+
+    return items;
+  }, [messages, currentUserId]);
 
   return (
     <KeyboardAvoidingView
