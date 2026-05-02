@@ -19,21 +19,23 @@
 -- Fix
 -- ---
 -- Two-part change:
---   1. Add a row-level policy that lets authenticated AND anonymous callers
---      read any row in public.users.
---   2. Use Postgres column-level GRANTs to keep `email` and `phone` private —
---      the `authenticated` and `anon` roles can only SELECT a small set of
---      profile columns. Everything else (admin pages, server-side functions
---      with SECURITY DEFINER, the service role) is unaffected.
+--   1. Add a row-level policy that lets authenticated callers read any row
+--      in public.users. anon (unauthenticated) is deliberately excluded —
+--      the app requires sign-in before browsing, so there is no legitimate
+--      unauthenticated use-case, and including anon would allow user
+--      enumeration/scraping by anyone without an account.
+--   2. Use Postgres column-level GRANTs to expose only the three fields every
+--      PostgREST join actually requests (id, full_name, avatar_url). All other
+--      columns (email, phone, role, is_verified, created_at, …) remain
+--      inaccessible to the authenticated role. The admin panel uses the service
+--      role key which bypasses both RLS and column-level GRANTs.
 --
 -- Why this is safe
 -- ----------------
--- The mobile client does not read `email` or `phone` from public.users — it
--- gets the current user's email/phone from `supabase.auth.getUser()` (which
--- talks to auth.users, a separate table). A grep of `mobile/lib/` and
--- `mobile/app/` confirms no `select('email')` or `select('phone')` against
--- `public.users` anywhere. The admin panel uses the service role key, which
--- bypasses both RLS and column-level GRANTs.
+-- Every join in mobile/lib/api/ that touches public.users requests exactly
+-- (id, full_name, avatar_url). No mobile query selects role, is_verified, or
+-- created_at from this table — those fields come from guide_profiles or
+-- supabase.auth.getUser() instead.
 --
 -- View safety
 -- -----------
@@ -44,21 +46,19 @@
 -- so they remain admin-only (accessible via the service-role key).
 -- ============================================================================
 
--- 1. Row-level policy: anyone can read user rows. The column GRANT below is
---    what actually keeps the sensitive columns private.
-CREATE POLICY "Public read of profile rows" ON public.users
+-- 1. Row-level policy: authenticated users can read any user's profile row.
+CREATE POLICY "Authenticated read of profile rows" ON public.users
   FOR SELECT
-  TO authenticated, anon
+  TO authenticated
   USING (true);
 
--- 2. Drop the table-wide SELECT grant from authenticated/anon and re-grant
---    only the safe columns. After this, attempting to SELECT email or phone
---    from public.users as an authenticated/anon role will return a permission
---    error from PostgREST; callers must request only the granted columns.
+-- 2. Drop the table-wide SELECT grant and re-grant only the three columns
+--    every PostgREST join in the app actually needs. anon is intentionally
+--    excluded — unauthenticated clients have no need to resolve user profiles.
 REVOKE SELECT ON public.users FROM authenticated, anon;
-GRANT SELECT (id, full_name, avatar_url, role, is_verified, created_at)
+GRANT SELECT (id, full_name, avatar_url)
   ON public.users
-  TO authenticated, anon;
+  TO authenticated;
 
 -- 3. Revoke SELECT on views that expose email/phone so they cannot bypass
 --    the column-level GRANTs above. These views are used by the admin panel

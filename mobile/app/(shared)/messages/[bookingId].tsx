@@ -9,8 +9,8 @@ import {
   Platform,
   ActivityIndicator,
   RefreshControl,
-  Image,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -107,6 +107,7 @@ function Avatar({
     return (
       <Image
         source={{ uri }}
+        contentFit="cover"
         style={{
           width: size,
           height: size,
