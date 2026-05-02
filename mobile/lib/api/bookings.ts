@@ -83,7 +83,7 @@ function normalizeBookingStatus(status: string): BookingStatus {
     status === 'confirmed' ||
     status === 'in_progress' ||
     status === 'completed' ||
-    status === 'declined' ||
+    status === 'cancelled_pre_signing' ||
     status === 'cancelled'
   ) {
     return status;
@@ -284,7 +284,7 @@ export async function acceptBooking(bookingId: string): Promise<void> {
 export async function declineBooking(bookingId: string): Promise<void> {
   const { error } = await supabase
     .from('bookings')
-    .update({ status: BOOKING_STATUS.DECLINED, cancelled_by: 'guide' })
+    .update({ status: BOOKING_STATUS.CANCELLED_PRE_SIGNING, cancelled_by: 'guide' })
     .eq('id', bookingId);
 
   if (error) throw error;

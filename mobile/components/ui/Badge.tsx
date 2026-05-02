@@ -47,7 +47,7 @@ export function bookingStatusVariant(status: string): BadgeVariant {
     case BOOKING_STATUS.CONFIRMED: return 'success';
     case BOOKING_STATUS.IN_PROGRESS: return 'purple';
     case BOOKING_STATUS.COMPLETED: return 'neutral';
-    case BOOKING_STATUS.DECLINED:
+    case BOOKING_STATUS.CANCELLED_PRE_SIGNING:
     case BOOKING_STATUS.CANCELLED: return 'error';
     default: return 'neutral';
   }
@@ -61,7 +61,7 @@ export function bookingStatusLabel(status: string): string {
     confirmed: 'Confirmed',
     in_progress: 'Happening Now',
     completed: 'Completed',
-    declined: 'Declined',
+    cancelled_pre_signing: 'Cancelled',
     cancelled: 'Cancelled',
   };
   return labels[status] ?? status;
