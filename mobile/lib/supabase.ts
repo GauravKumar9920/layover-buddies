@@ -55,6 +55,59 @@ function isNetworkFailure(err: unknown): boolean {
   );
 }
 
+// ─── Web-only helpers ─────────────────────────────────────────────────────────
+// Defined before supabaseFetch so the dependency order is explicit.
+//
+// On web the Supabase JS client uses the Web Locks API to serialize auth
+// token operations. When multiple app instances share the same origin
+// (e.g. preview iframes, multiple tabs, HMR) they fight over the same lock
+// causing NavigatorLockAcquireTimeoutError and an infinite loading spinner.
+// Replacing the lock with a no-op serializes nothing but avoids the deadlock;
+// single-user dev is safe without it. Also disable autoRefreshToken on web to
+// prevent the concurrent-refresh race that rotates the token out from under
+// the next bootstrap call.
+//
+// Additionally: intercept failed refresh-token requests on web and immediately
+// clear the stored session so the client stops retrying. Without this, a stale
+// refresh token (e.g. after `supabase db reset`) causes every subsequent API
+// call to hang waiting for auth that will never resolve.
+export const isWeb = typeof document !== 'undefined';
+const _nativeFetch = typeof fetch !== 'undefined' ? fetch : undefined;
+const _webFetch: typeof fetch | undefined =
+  isWeb && _nativeFetch
+    ? async (input, init) => {
+        const url =
+          typeof input === 'string'
+            ? input
+            : input instanceof Request
+            ? input.url
+            : input.toString();
+        const isRefresh = url.includes('grant_type=refresh_token');
+        const res = await _nativeFetch!(input, init);
+        if (isRefresh && res.status === 400) {
+          // Stale refresh token — purge from storage so the client stops looping.
+          // We can't call supabase.auth.signOut() here (circular dep at module
+          // init time), so remove all auth-related keys for this project.
+          try {
+            // Derive the exact storage key the Supabase JS client uses:
+            // "sb-<first hostname segment>-auth-token"
+            // new URL() handles both https:// (cloud) and http:// (local dev).
+            const hostname = new URL(supabaseUrl).hostname;        // "abcdef.supabase.co" | "127.0.0.1"
+            const ref = hostname.split('.')[0];                    // "abcdef" | "127"
+            const authKey = `sb-${ref}-auth-token`;
+            const keysToRemove = Object.keys(localStorage).filter(
+              (k) => k === authKey || k.startsWith(`${authKey}.`),
+            );
+            keysToRemove.forEach((k) => localStorage.removeItem(k));
+          } catch {
+            // localStorage unavailable (SSR) or invalid URL — ignore
+          }
+        }
+        return res;
+      }
+    : undefined;
+
+// ─── Multi-origin fetch with web interceptor ──────────────────────────────────
 const supabaseOrigins = buildLocalSupabaseOrigins(supabaseUrl);
 let activeSupabaseOrigin = supabaseOrigins[0];
 
@@ -111,56 +164,6 @@ const supabaseFetch: typeof fetch = async (input, init) => {
 export const isSupabaseConfigured =
   !!process.env.EXPO_PUBLIC_SUPABASE_URL &&
   !!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
-// On web the Supabase JS client uses the Web Locks API to serialize auth
-// token operations. When multiple app instances share the same origin
-// (e.g. preview iframes, multiple tabs, HMR) they fight over the same lock
-// causing NavigatorLockAcquireTimeoutError and an infinite loading spinner.
-// Replacing the lock with a no-op serializes nothing but avoids the deadlock;
-// single-user dev is safe without it. Also disable autoRefreshToken on web to
-// prevent the concurrent-refresh race that rotates the token out from under
-// the next bootstrap call.
-//
-// Additionally: intercept failed refresh-token requests on web and immediately
-// clear the stored session so the client stops retrying. Without this, a stale
-// refresh token (e.g. after `supabase db reset`) causes every subsequent API
-// call to hang waiting for auth that will never resolve.
-const _isWeb = typeof document !== 'undefined';
-const _nativeFetch = typeof fetch !== 'undefined' ? fetch : undefined;
-const _webFetch: typeof fetch | undefined =
-  _isWeb && _nativeFetch
-    ? async (input, init) => {
-        const url =
-          typeof input === 'string'
-            ? input
-            : input instanceof Request
-            ? input.url
-            : input.toString();
-        const isRefresh = url.includes('grant_type=refresh_token');
-        const res = await _nativeFetch!(input, init);
-        if (isRefresh && res.status === 400) {
-          // Stale refresh token — purge from storage so the client stops looping.
-          // We can't call supabase.auth.signOut() here (circular dep at module
-          // init time), so remove all auth-related keys for this project.
-          try {
-            // Derive the exact storage key the Supabase JS client uses:
-            // "sb-<first hostname segment>-auth-token"
-            // new URL() handles both https:// (cloud) and http:// (local dev).
-            const hostname = new URL(supabaseUrl).hostname;        // "abcdef.supabase.co" | "127.0.0.1"
-            const ref = hostname.split('.')[0];                    // "abcdef" | "127"
-            const authKey = `sb-${ref}-auth-token`;
-            const keysToRemove = Object.keys(localStorage).filter(
-              (k) => k === authKey || k.startsWith(`${authKey}.`),
-            );
-            keysToRemove.forEach((k) => localStorage.removeItem(k));
-          } catch {
-            // localStorage unavailable (SSR) or invalid URL — ignore
-          }
-        }
-        return res;
-      }
-    : undefined;
-const isWeb = typeof document !== 'undefined';
 
 // Supabase's LockFunc is generic — `<R>(...) => Promise<R>`. A typed function
 // expression can't capture the type parameter, so use a `function` declaration.
