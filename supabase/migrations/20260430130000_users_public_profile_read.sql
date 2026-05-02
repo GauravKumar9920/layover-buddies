@@ -60,9 +60,13 @@ GRANT SELECT (id, full_name, avatar_url)
   ON public.users
   TO authenticated;
 
--- 3. Revoke SELECT on views that expose email/phone so they cannot bypass
---    the column-level GRANTs above. These views are used by the admin panel
---    (service role) only — anon/authenticated have no legitimate need for them.
-REVOKE SELECT ON public.active_guides         FROM authenticated, anon;
-REVOKE SELECT ON public.pending_bookings      FROM authenticated, anon;
+-- 3. Revoke SELECT on admin-only views from authenticated/anon.
+--    Each view is restricted for a different reason:
+--      active_guides:          includes u.email, which bypasses the column-level
+--                              GRANTs on public.users
+--      pending_bookings:       exposes operational booking data (traveler_id,
+--                              guide_id, amounts, status) — admin dashboard only
+--      guide_earnings_summary: exposes financial aggregate data — admin only
+REVOKE SELECT ON public.active_guides          FROM authenticated, anon;
+REVOKE SELECT ON public.pending_bookings       FROM authenticated, anon;
 REVOKE SELECT ON public.guide_earnings_summary FROM authenticated, anon;
