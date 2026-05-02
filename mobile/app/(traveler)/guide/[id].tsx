@@ -195,7 +195,17 @@ export default function GuideDetailScreen() {
     return <EmptyState title="Guide not found" style={{ flex: 1 }} />;
   }
 
-  const heroPhoto = guide.avatar_url ?? getGuideHeroPhoto(guide);
+  // Two distinct images: the full-bleed editorial scene (Mumbai/walks),
+  // and the guide's actual portrait (circular avatar above the name).
+  const heroPhoto = getGuideHeroPhoto(guide);
+  const avatarUrl = guide.avatar_url;
+  const initials = guide.name
+    .split(' ')
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
   const issueN = issueNumberFor(guide.id);
 
   // Real prompts win; fall back to fabricated ones keyed off the guide.
@@ -316,6 +326,44 @@ export default function GuideDetailScreen() {
               },
             ]}
           >
+            {/* Circular profile photo — sits above the byline */}
+            <View
+              style={{
+                width: 76,
+                height: 76,
+                borderRadius: 38,
+                marginBottom: 14,
+                borderWidth: 3,
+                borderColor: 'rgba(255,255,255,0.85)',
+                backgroundColor: theme.colors.primary,
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                // Use theme shadow preset — includes elevation for Android
+                ...theme.shadows.md,
+              }}
+            >
+              {avatarUrl ? (
+                <Image
+                  source={{ uri: avatarUrl }}
+                  contentFit="cover"
+                  style={{ width: '100%', height: '100%' }}
+                  transition={250}
+                />
+              ) : (
+                <Text
+                  style={{
+                    color: '#FFFFFF',
+                    fontSize: 30,
+                    fontWeight: '800',
+                    letterSpacing: -0.5,
+                  }}
+                >
+                  {initials || '?'}
+                </Text>
+              )}
+            </View>
+
             <Text
               style={{
                 color: 'rgba(255,255,255,0.75)',

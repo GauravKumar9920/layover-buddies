@@ -53,9 +53,12 @@ jobs:
           fi
 
       - name: Validate migrations apply cleanly locally
-        run: |
-          supabase start
-          supabase db reset --no-seed
+        # Uses supabase start only — consistent with the CI workflow.
+        # supabase start on a fresh runner already applies all migrations to
+        # a brand-new database; db reset --no-seed is redundant and causes
+        # flaky 502 errors from the container-restart health-check race on
+        # GitHub-hosted runners.
+        run: supabase start
 
       - name: Link to production project
         env:
