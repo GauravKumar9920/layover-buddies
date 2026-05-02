@@ -89,20 +89,22 @@ jobs:
     name: db · migrations apply cleanly
     runs-on: ubuntu-latest
     # Spins up the full local Supabase stack and applies every migration in
-    # `supabase/migrations/`. If a migration has bad SQL, references a column
-    # that doesn't exist, or conflicts with a previous migration, this step
-    # fails loudly. Then we run `db reset --no-seed` to verify the migrations
-    # apply cleanly to a *fresh* database, not just on top of cached state.
+    # `supabase/migrations/` to a fresh database. If a migration has bad SQL,
+    # references a column that doesn't exist, or conflicts with a previous
+    # migration, this step fails loudly.
+    #
+    # NOTE: `supabase db reset --no-seed` was removed. In CI every runner
+    # starts clean, so `supabase start` already applies migrations to a brand-
+    # new DB — the reset step was redundant and caused flaky 502 errors from
+    # the container-restart health-check race that follows a reset.
     steps:
       - uses: actions/checkout@v4
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
         with:
           version: latest
-      - name: Start Supabase (applies migrations)
+      - name: Start Supabase (applies migrations to fresh DB)
         run: supabase start
-      - name: Reset DB and re-apply migrations from scratch
-        run: supabase db reset --no-seed
       - name: Stop Supabase
         if: always()
         run: supabase stop --no-backup
