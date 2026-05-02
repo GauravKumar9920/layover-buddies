@@ -339,12 +339,8 @@ export default function GuideDetailScreen() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 overflow: 'hidden',
-                // Subtle drop shadow so the circle reads against any hero photo
-                shadowColor: '#000',
-                shadowOpacity: 0.35,
-                shadowRadius: 8,
-                shadowOffset: { width: 0, height: 4 },
-                elevation: 6,
+                // Use theme shadow preset — includes elevation for Android
+                ...theme.shadows.md,
               }}
             >
               {avatarUrl ? (

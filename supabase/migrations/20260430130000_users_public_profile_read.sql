@@ -34,6 +34,14 @@
 -- `mobile/app/` confirms no `select('email')` or `select('phone')` against
 -- `public.users` anywhere. The admin panel uses the service role key, which
 -- bypasses both RLS and column-level GRANTs.
+--
+-- View safety
+-- -----------
+-- Column-level GRANTs on a table do NOT restrict what views can expose. The
+-- initial schema defines views (e.g. active_guides) that include u.email.
+-- If anon/authenticated hold SELECT on those views, email is still reachable
+-- via PostgREST. We revoke SELECT on all views that include sensitive columns
+-- so they remain admin-only (accessible via the service-role key).
 -- ============================================================================
 
 -- 1. Row-level policy: anyone can read user rows. The column GRANT below is
@@ -51,3 +59,10 @@ REVOKE SELECT ON public.users FROM authenticated, anon;
 GRANT SELECT (id, full_name, avatar_url, role, is_verified, created_at)
   ON public.users
   TO authenticated, anon;
+
+-- 3. Revoke SELECT on views that expose email/phone so they cannot bypass
+--    the column-level GRANTs above. These views are used by the admin panel
+--    (service role) only — anon/authenticated have no legitimate need for them.
+REVOKE SELECT ON public.active_guides         FROM authenticated, anon;
+REVOKE SELECT ON public.pending_bookings      FROM authenticated, anon;
+REVOKE SELECT ON public.guide_earnings_summary FROM authenticated, anon;

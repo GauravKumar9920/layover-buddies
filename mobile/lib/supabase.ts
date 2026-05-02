@@ -143,16 +143,18 @@ const _webFetch: typeof fetch | undefined =
           // We can't call supabase.auth.signOut() here (circular dep at module
           // init time), so remove all auth-related keys for this project.
           try {
-            const projectRef = supabaseUrl.split('https://')[1]?.split('.')[0] || '';
+            // Derive the exact storage key the Supabase JS client uses:
+            // "sb-<first hostname segment>-auth-token"
+            // new URL() handles both https:// (cloud) and http:// (local dev).
+            const hostname = new URL(supabaseUrl).hostname;        // "abcdef.supabase.co" | "127.0.0.1"
+            const ref = hostname.split('.')[0];                    // "abcdef" | "127"
+            const authKey = `sb-${ref}-auth-token`;
             const keysToRemove = Object.keys(localStorage).filter(
-              (k) =>
-                k.includes(`sb-${projectRef}`) ||
-                k.includes('supabase-auth-token') ||
-                (k.includes('supabase') && (k.includes('auth') || k.includes('token'))),
+              (k) => k === authKey || k.startsWith(`${authKey}.`),
             );
             keysToRemove.forEach((k) => localStorage.removeItem(k));
           } catch {
-            // localStorage unavailable (SSR) — ignore
+            // localStorage unavailable (SSR) or invalid URL — ignore
           }
         }
         return res;
