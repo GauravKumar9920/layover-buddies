@@ -19,6 +19,16 @@
 --   disputed        → unchanged
 -- ============================================================================
 
+-- NOTE — state inconsistency trade-off (acknowledged):
+-- These mappings advance bookings to states that imply related records exist
+-- (e.g. balance_paid implies a payment_events row; awaiting_deposits implies
+-- both parties signed an agreement). For pre-Phase-1 rows those ancillary
+-- records do not exist. This is an accepted operational inconsistency: the
+-- financial tables are additive (new bookings will have them), and any legacy
+-- rows that surface in the UI will display neutrally via the mobile fallback
+-- rather than crashing. Ops can retroactively backfill or reclassify rows
+-- as needed. Phase 2+ will not create bookings without the full record set.
+
 UPDATE bookings SET status = 'agreement_sent'        WHERE status = 'pending';
 UPDATE bookings SET status = 'awaiting_deposits'     WHERE status = 'guide_accepted';
 UPDATE bookings SET status = 'balance_paid'          WHERE status = 'confirmed';

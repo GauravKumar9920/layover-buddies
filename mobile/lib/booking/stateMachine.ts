@@ -48,9 +48,22 @@ export type BookingEvent =
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type GuardContext = {
-  /** true when both agreements.traveler_signed_at and buddy_signed_at are set */
+  /**
+   * true when both agreements.traveler_signed_at and buddy_signed_at are set.
+   *
+   * IMPORTANT — evaluation order: callers must write the triggering action to
+   * the DB FIRST (e.g. set buddy_signed_at), then read the updated row to
+   * compute this field, and THEN call `transition()`. The guard reflects the
+   * post-write state of the DB, not the state before the action.
+   */
   bothSignaturesPresent: boolean;
-  /** true when both deposits.status = 'held' rows exist for this booking */
+  /**
+   * true when both deposits.status = 'held' rows exist for this booking.
+   *
+   * Same evaluation-order contract as bothSignaturesPresent: capture the
+   * deposit in the DB first, then derive this value from the new DB state
+   * before calling `transition()`.
+   */
   bothDepositsHeld: boolean;
 };
 
@@ -159,8 +172,10 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
   // ── 7. deposits_held ─────────────────────────────────────────────────────
   // Both ₹500 deposits are in escrow. Booking committed.
   // deposits_held → awaiting_balance is a backend-only write triggered by
-  // the Razorpay webhook handler (Phase 2). The state machine leaves this
-  // as a stable state; no outgoing event here.
+  // the Razorpay webhook handler (Phase 2). The state machine intentionally
+  // has no outgoing events for this state in Phase 1 — the Phase 2 webhook
+  // handler writes awaiting_balance directly after confirming deposits_held,
+  // so no client-side event is ever dispatched from this state.
   ['deposits_held', []],
 
   // ── 8. awaiting_balance ──────────────────────────────────────────────────
@@ -173,6 +188,11 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
       guard: (e) => e.kind === 'cancel' && e.actor === 'traveler',
       next:  'cancelled_traveler_voluntary',
     },
+    {
+      event: 'cancel',
+      guard: (e) => e.kind === 'cancel' && e.actor === 'buddy',
+      next:  'cancelled_buddy',
+    },
     { event: 'force_majeure_verified', next: 'cancelled_force_majeure' },
   ]],
 
@@ -181,6 +201,17 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
   ['late_fee_due', [
     { event: 'balance_captured',   next: 'balance_paid' },   // pays balance + late fee
     { event: 't_minus_12_reached', next: 'cancelled_no_pay' },
+    {
+      event: 'cancel',
+      guard: (e) => e.kind === 'cancel' && e.actor === 'traveler',
+      next:  'cancelled_traveler_voluntary',
+    },
+    {
+      event: 'cancel',
+      guard: (e) => e.kind === 'cancel' && e.actor === 'buddy',
+      next:  'cancelled_buddy',
+    },
+    { event: 'force_majeure_verified', next: 'cancelled_force_majeure' },
   ]],
 
   // ── 10. balance_paid ─────────────────────────────────────────────────────

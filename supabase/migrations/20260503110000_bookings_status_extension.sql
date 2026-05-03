@@ -1,7 +1,7 @@
 -- ============================================================================
 -- BOOKINGS STATUS EXTENSION (Phase 1, Migration 2 of 3)
 -- ============================================================================
--- Adds the 18 new booking_status enum values from §3 of the financial-model
+-- Adds the 20 new booking_status enum values from §3 of the financial-model
 -- handoff plus four new bookings columns for the OTP/QR scan flow.
 --
 -- Data migration is split into a SEPARATE follow-on file

@@ -53,12 +53,23 @@ CREATE POLICY "agreements_read" ON agreements
 DROP POLICY IF EXISTS "agreements_write_buddy"     ON agreements;
 CREATE POLICY "agreements_write_buddy" ON agreements
   FOR INSERT
-  WITH CHECK (drafted_by_user_id = auth.uid());
+  WITH CHECK (
+    drafted_by_user_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM bookings b
+      WHERE b.id = booking_id AND b.guide_id = auth.uid()
+    )
+  );
 
+-- Only the buddy (guide) who drafted the agreement may update it before signing
+-- (e.g. editing line items, attaching PDF). The traveler's signing action is
+-- performed by a Phase 2 Edge Function under the service-role key, not via this
+-- authenticated policy, so there is intentionally no traveler UPDATE path here.
 DROP POLICY IF EXISTS "agreements_update_parties"  ON agreements;
-CREATE POLICY "agreements_update_parties" ON agreements
+DROP POLICY IF EXISTS "agreements_update_buddy"    ON agreements;
+CREATE POLICY "agreements_update_buddy" ON agreements
   FOR UPDATE
-  USING (user_can_see_booking(booking_id));
+  USING (drafted_by_user_id = auth.uid());
 
 -- ─────────────────────────────────────────────────────────────────
 -- cost_line_items
@@ -112,7 +123,13 @@ CREATE POLICY "expense_proofs_read" ON expense_proofs
 DROP POLICY IF EXISTS "expense_proofs_write_buddy"  ON expense_proofs;
 CREATE POLICY "expense_proofs_write_buddy" ON expense_proofs
   FOR INSERT
-  WITH CHECK (uploaded_by_user_id = auth.uid());
+  WITH CHECK (
+    uploaded_by_user_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM bookings b
+      WHERE b.id = booking_id AND b.guide_id = auth.uid()
+    )
+  );
 
 -- ─────────────────────────────────────────────────────────────────
 -- payout_dispatches  (renamed from handoff's `payouts`)
@@ -121,6 +138,33 @@ DROP POLICY IF EXISTS "payout_dispatches_read"      ON payout_dispatches;
 CREATE POLICY "payout_dispatches_read" ON payout_dispatches
   FOR SELECT
   USING (user_can_see_booking(booking_id));
+
+-- ─────────────────────────────────────────────────────────────────
+-- Column-level grants: strip sensitive payment-processor fields from
+-- the authenticated role's SELECT on payment_events and payout_dispatches.
+-- RLS controls which ROWS are visible; column grants control which COLUMNS.
+-- Razorpay internal identifiers (signature, fund_account_id) are only
+-- needed by server-side Edge Functions running under service-role, which
+-- bypasses both RLS and column grants.
+-- ─────────────────────────────────────────────────────────────────
+
+-- payment_events: all columns except razorpay_signature
+REVOKE SELECT ON payment_events FROM authenticated;
+GRANT  SELECT (
+  id, booking_id, user_id, kind,
+  amount_paise, original_amount_minor_units, original_currency, fx_rate_at_capture,
+  status, razorpay_order_id, razorpay_payment_id,
+  initiated_at, captured_at, failed_reason
+) ON payment_events TO authenticated;
+
+-- payout_dispatches: all columns except razorpay_fund_account_id
+REVOKE SELECT ON payout_dispatches FROM authenticated;
+GRANT  SELECT (
+  id, booking_id, recipient_user_id, kind,
+  gross_paise, tds_paise, buffer_clawback_paise, deposit_component_paise, net_paise,
+  status, razorpay_payout_id,
+  initiated_at, completed_at, failed_reason
+) ON payout_dispatches TO authenticated;
 
 -- ─────────────────────────────────────────────────────────────────
 -- Note on INSERT/UPDATE/DELETE for the financial tables

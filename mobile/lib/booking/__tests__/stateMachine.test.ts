@@ -240,6 +240,24 @@ describe('Cancellation edges', () => {
     ).toBe('cancelled_buddy');
   });
 
+  test('awaiting_balance + cancel (buddy) → cancelled_buddy', () => {
+    expect(
+      next('awaiting_balance', { kind: 'cancel', actor: 'buddy', reason: 'emergency' }),
+    ).toBe('cancelled_buddy');
+  });
+
+  test('late_fee_due + cancel (traveler) → cancelled_traveler_voluntary', () => {
+    expect(
+      next('late_fee_due', { kind: 'cancel', actor: 'traveler', reason: 'gave_up' }),
+    ).toBe('cancelled_traveler_voluntary');
+  });
+
+  test('late_fee_due + cancel (buddy) → cancelled_buddy', () => {
+    expect(
+      next('late_fee_due', { kind: 'cancel', actor: 'buddy', reason: 'unavailable' }),
+    ).toBe('cancelled_buddy');
+  });
+
   test('trip_ready + cancel (buddy) → cancelled_buddy', () => {
     expect(
       next('trip_ready', { kind: 'cancel', actor: 'buddy', reason: 'no_show' }),
@@ -260,6 +278,18 @@ describe('Force-majeure and dispute edges', () => {
 
   test('trip_ready + force_majeure_verified → cancelled_force_majeure', () => {
     expect(next('trip_ready', { kind: 'force_majeure_verified' })).toBe(
+      'cancelled_force_majeure',
+    );
+  });
+
+  test('awaiting_balance + force_majeure_verified → cancelled_force_majeure', () => {
+    expect(next('awaiting_balance', { kind: 'force_majeure_verified' })).toBe(
+      'cancelled_force_majeure',
+    );
+  });
+
+  test('late_fee_due + force_majeure_verified → cancelled_force_majeure', () => {
+    expect(next('late_fee_due', { kind: 'force_majeure_verified' })).toBe(
       'cancelled_force_majeure',
     );
   });
