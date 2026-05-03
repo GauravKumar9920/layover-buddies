@@ -9,6 +9,14 @@ export const MAX_BOOKING_ADVANCE_DAYS = 90;   // can't book more than 90 days ah
 export const CURRENCY = 'INR' as const;
 export const CURRENCY_SYMBOL = '₹' as const;
 
+// ── Phase 2 financial-model constants ───────────────────────────────────────
+// All amounts in integer paise (1 INR = 100 paise) per the financial-model
+// handoff §2. The ₹500 deposit and 20% buffer are LOCKED — they're enforced
+// in the DB by CHECK constraints (migration 20260510100000_agreement_invariants)
+// and by the agreement-snapshot helper.
+export const DEPOSIT_PAISE = 50_000;     // ₹500 refundable deposit per side
+export const BUFFER_PERCENT = 0.20;      // 20% of itinerary fund
+
 export const BOOKING_STATUS = {
   PENDING: 'pending',
   GUIDE_ACCEPTED: 'guide_accepted',

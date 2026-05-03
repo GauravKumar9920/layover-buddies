@@ -9,11 +9,13 @@ import { Card } from '@/components/ui/Card';
 import { Badge, bookingStatusLabel, bookingStatusVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
+import { AgreementCtaBlock } from '@/components/bookings/AgreementCtaBlock';
 import { fetchBookingById, cancelBooking } from '@/lib/api/bookings';
 import { supabase } from '@/lib/supabase';
 import { getItineraryPhoto } from '@/config/photoLibrary';
 import { theme } from '@/config/theme';
 import { BOOKING_STATUS } from '@/config/constants';
+import type { BookingState } from '@/lib/booking/stateMachine';
 import type { Booking } from '@/types';
 
 export default function TripDetailScreen() {
@@ -130,6 +132,13 @@ export default function TripDetailScreen() {
             </Text>
           )}
         </View>
+
+        {/* Phase 2 — Agreement & Deposit CTA */}
+        <AgreementCtaBlock
+          bookingId={booking.id}
+          bookingStatus={booking.status as BookingState}
+          viewer="traveler"
+        />
 
         {/* Tour Info */}
         <Card style={{ marginBottom: 16 }}>

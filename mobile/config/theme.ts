@@ -31,6 +31,9 @@ export const theme = {
     error:   '#EF4444',
     purple:  '#6C5CE7',  // Mumbai Purple — special events
 
+    // Muted surface (light grey — used for secondary/info CTA backgrounds)
+    surfaceMuted: '#F5F5F5',
+
     // Borders / dividers
     divider: '#E2E8F0',
 

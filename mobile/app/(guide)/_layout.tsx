@@ -67,6 +67,8 @@ export default function GuideLayout() {
       <Tabs.Screen name="itineraries/create" options={{ href: null }} />
       <Tabs.Screen name="itineraries/[id]" options={{ href: null }} />
       <Tabs.Screen name="bookings/[id]" options={{ href: null }} />
+      {/* Phase 2 — buddy-side agreement drafting screen, reachable via router.push */}
+      <Tabs.Screen name="bookings/agreement-draft/[bookingId]" options={{ href: null }} />
     </Tabs>
   );
 }

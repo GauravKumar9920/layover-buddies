@@ -320,6 +320,9 @@ export default function MessagesScreen() {
         </View>
       )}
 
+      {/* Phase 2 — Agreement chip (above input bar) */}
+      {booking && <AgreementChip booking={booking} isTraveler={isTraveler} />}
+
       {/* Input Bar */}
       <View
         style={{
@@ -457,6 +460,60 @@ function MessageBubble({
           </Text>
         )}
       </View>
+    </View>
+  );
+}
+
+// ─── Phase 2 — agreement chip above the composer ─────────────────────────────
+// Surfaces a one-tap entry into either the buddy-side drafting screen or the
+// shared viewer/sign screen depending on viewer + booking.status. Hidden when
+// no agreement-related action is relevant (e.g. booking is past awaiting_balance
+// or in a terminal state).
+function AgreementChip({ booking, isTraveler }: { booking: Booking; isTraveler: boolean }) {
+  const router = useRouter();
+  const status = booking.status as string;
+
+  const draftingStatuses = ['chat_open', 'agreement_drafting'];
+  const viewableStatuses = [
+    'agreement_sent',
+    'agreement_signed_traveler',
+    'agreement_signed_buddy',
+    'awaiting_deposits',
+    'deposits_held',
+    'awaiting_balance',
+  ];
+
+  let label: string | null = null;
+  let route: string | null = null;
+
+  if (!isTraveler && draftingStatuses.includes(status)) {
+    label = status === 'chat_open' ? '📋 Draft agreement' : '📋 Continue draft';
+    route = `/(guide)/bookings/agreement-draft/${booking.id}`;
+  } else if (viewableStatuses.includes(status)) {
+    label = '📋 View agreement';
+    route = `/(shared)/agreements/${booking.id}`;
+  }
+
+  if (!label || !route) return null;
+
+  return (
+    <View style={{ paddingHorizontal: 12, paddingBottom: 6 }}>
+      <TouchableOpacity
+        onPress={() => router.push(route as never)}
+        style={{
+          alignSelf: 'flex-start',
+          paddingHorizontal: 14,
+          paddingVertical: 8,
+          borderRadius: 999,
+          backgroundColor: theme.colors.primaryLight ?? '#FFEFE0',
+          borderWidth: 1,
+          borderColor: theme.colors.primary,
+        }}
+      >
+        <Text style={{ color: theme.colors.primary, fontWeight: '600', fontSize: 13 }}>
+          {label}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
