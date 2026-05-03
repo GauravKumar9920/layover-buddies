@@ -26,6 +26,13 @@
 -- Enums
 -- ─────────────────────────────────────────────────────────────────
 
+-- Note on "guide" vs "buddy" terminology in agreement_status vs booking_status:
+-- agreement_status uses `signed_guide` (the legal signatory term used in the
+-- agreement document), while booking_status uses `agreement_signed_buddy`
+-- (the product-facing term used in the mobile app and state machine).
+-- These are the same role — student "buddy" == "guide" == "local experience host".
+-- The two enums intentionally use different terms for their respective audiences:
+-- agreements are legal documents (guide); booking status is a UX label (buddy).
 DO $$ BEGIN
   CREATE TYPE agreement_status AS ENUM (
     'draft', 'sent', 'signed_traveler', 'signed_guide', 'fully_signed',

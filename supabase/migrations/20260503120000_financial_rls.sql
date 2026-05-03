@@ -28,8 +28,13 @@ ALTER TABLE payout_dispatches ENABLE ROW LEVEL SECURITY;
 -- ─────────────────────────────────────────────────────────────────
 -- Helper: link booking → user_ids on both sides
 -- ─────────────────────────────────────────────────────────────────
+-- SET search_path pins the function's resolution context so that a rogue
+-- schema earlier in the default search path cannot shadow `bookings` or
+-- `auth` (PostgreSQL CVE-2018-1058 mitigation). auth.uid() is schema-
+-- qualified in the call so it resolves correctly even with a pinned path.
 CREATE OR REPLACE FUNCTION user_can_see_booking(b_id uuid)
-RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER AS $$
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public AS $$
   SELECT EXISTS (
     SELECT 1 FROM bookings b
     WHERE b.id = b_id
@@ -116,3 +121,16 @@ DROP POLICY IF EXISTS "payout_dispatches_read"      ON payout_dispatches;
 CREATE POLICY "payout_dispatches_read" ON payout_dispatches
   FOR SELECT
   USING (user_can_see_booking(booking_id));
+
+-- ─────────────────────────────────────────────────────────────────
+-- Note on INSERT/UPDATE/DELETE for the financial tables
+-- ─────────────────────────────────────────────────────────────────
+-- deposits, payment_events, and payout_dispatches intentionally have
+-- no INSERT/UPDATE policies for the authenticated role. All writes to
+-- these tables are performed by Razorpay webhook Edge Functions running
+-- under the service-role key, which bypasses RLS entirely. This is
+-- verified by design in Phase 2; any attempt to write from an anon or
+-- authenticated JWT will be silently blocked by the absence of a write
+-- policy, rather than returning an explicit permission error.
+-- expense_proofs and agreements do have write policies (buddy-scoped
+-- INSERT) since those are written from the mobile client directly.

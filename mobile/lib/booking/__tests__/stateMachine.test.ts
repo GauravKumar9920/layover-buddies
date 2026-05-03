@@ -10,6 +10,7 @@
 //   - Cancellation and force-majeure edges
 //   - Illegal transition rejection (negative tests)
 //   - canTransition utility
+//   - Legacy state forward-compat shims (pending / guide_accepted / confirmed)
 //   - Canonical math fixture assertions (§2 worked example)
 // ============================================================================
 
@@ -427,28 +428,98 @@ describe('Canonical fixture — §2 worked example', () => {
     expect(rupeesToPaise(2032.5)).toBe(203_250);
   });
 
-  test('full reconciliation balances: escrow ≡ all outflows', () => {
-    // From §4: 7,142.50 = 700 traveler refund + 2,232.50 buddy net
-    //          + 3,400 vendor spend + 500 platform + 310 govt
-    // We verify the traveler side in paise:
-    const escrowPaise = travelerTotalPaise + depositPaise; // traveler total + buddy deposit
-    const travelerRefund = travelerRefundAtEndPaise;
-    const buddyNet = buddyNetPayoutPaise;
-    const vendorSpend = spentPaise;
-    const platformFee = buddyFeePaise - buddyFeeNetPaise; // 200_000 − 175_000 = 25_000
-    const tds = tdsPaise;
-    const gst = travelerGstPaise;
-    const razorpayFees = 24_570; // ~4% of ₹6,142.50 balance (from handoff §2)
-    void razorpayFees; // used in comment below for audit clarity, not in assertions
+  test('platform fee: gross = traveler-side + buddy-side', () => {
+    const { platformFeeGrossPaise, platformFeeTravelerSidePaise, platformFeeBuddySidePaise } =
+      CANONICAL_DERIVED;
+    expect(platformFeeGrossPaise).toBe(platformFeeTravelerSidePaise + platformFeeBuddySidePaise);
+  });
 
-    // Total allocated from escrow must ≤ escrow (≈ with Razorpay fees difference)
-    const totalOut = travelerRefund + buddyNet + vendorSpend + platformFee + tds + gst;
-    // All paise values from the canonical fixture must be positive
+  test('platform fee traveler-side = buddyFeeTravelerViewPaise − buddyFeePaise', () => {
+    const { platformFeeTravelerSidePaise, buddyFeeTravelerViewPaise } = CANONICAL_DERIVED;
+    expect(platformFeeTravelerSidePaise).toBe(
+      buddyFeeTravelerViewPaise - buddyFeePaise,
+    );
+  });
+
+  test('platform fee buddy-side = buddyFeePaise − buddyFeeNetPaise', () => {
+    const { platformFeeBuddySidePaise, buddyFeeNetPaise } = CANONICAL_DERIVED;
+    expect(platformFeeBuddySidePaise).toBe(buddyFeePaise - buddyFeeNetPaise);
+  });
+
+  test('full reconciliation balances: escrow ≡ all outflows', () => {
+    // The escrow releases money in two tranches:
+    //   (A) At QR scan:  tripPot (360k) → buddy UPI for day-of vendor payments
+    //   (B) At trip end: buddyFinalPayout + travelerRefund + platformFee + GST + TDS
+    //
+    // The unused buffer (20k) is NOT a separate escrow return — it is netted out
+    // of the buddy's final payment formula, so the escrow only ever releases
+    // the full trip pot (360k) in tranche A, not the actual spend (340k).
+    //
+    // §4 identity: 714,250 = 360,000 (trip pot) + 203,250 (buddy final)
+    //                       + 70,000 (traveler refund) + 50,000 (platform)
+    //                       + 29,250 (GST) + 1,750 (TDS) = 714,250 ✓
+    const {
+      tripPotPaise,            // 360_000 — released at QR scan to buddy UPI
+      buddyNetPayoutPaise: buddyFinalPayout,
+      travelerRefundAtEndPaise: travelerRefund,
+      platformFeeGrossPaise,   // 50_000 — total 25% gross (both sides combined)
+    } = CANONICAL_DERIVED;
+
+    const escrowPaise = travelerTotalPaise + depositPaise; // 664_250 + 50_000 = 714_250
+
+    const totalOut = tripPotPaise + buddyFinalPayout + travelerRefund
+                   + platformFeeGrossPaise + travelerGstPaise + tdsPaise;
+
+    // All individual components must be positive
+    expect(tripPotPaise).toBeGreaterThan(0);
+    expect(buddyFinalPayout).toBeGreaterThan(0);
     expect(travelerRefund).toBeGreaterThan(0);
-    expect(buddyNet).toBeGreaterThan(0);
-    expect(platformFee).toBeGreaterThan(0);
-    expect(gst).toBeGreaterThan(0);
-    // Sanity: total out is close to escrow (difference = Razorpay gateway fees)
-    expect(totalOut).toBeLessThanOrEqual(escrowPaise);
+    expect(platformFeeGrossPaise).toBe(50_000);
+
+    // Exact check: the six outflow streams account for every paise of escrow
+    expect(totalOut).toBe(escrowPaise);
+    expect(escrowPaise).toBe(714_250);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 11. Legacy state forward-compat shims
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Legacy state shims', () => {
+  test('pending behaves like agreement_sent: traveler_signs → agreement_signed_traveler', () => {
+    expect(next('pending', { kind: 'traveler_signs' })).toBe('agreement_signed_traveler');
+  });
+
+  test('pending behaves like agreement_sent: buddy_signs → agreement_signed_buddy', () => {
+    expect(next('pending', { kind: 'buddy_signs' })).toBe('agreement_signed_buddy');
+  });
+
+  test('pending behaves like agreement_sent: cancel → cancelled_pre_signing', () => {
+    expect(
+      next('pending', { kind: 'cancel', actor: 'traveler', reason: 'changed_mind' }),
+    ).toBe('cancelled_pre_signing');
+  });
+
+  test('guide_accepted behaves like awaiting_deposits: deposit_captured (both held) → deposits_held', () => {
+    expect(
+      next('guide_accepted', { kind: 'deposit_captured', side: 'traveler' }, CTX_BOTH_DEPOSITS),
+    ).toBe('deposits_held');
+  });
+
+  test('guide_accepted behaves like awaiting_deposits: deposit_window_expired → cancelled_no_deposit', () => {
+    expect(next('guide_accepted', { kind: 'deposit_window_expired' })).toBe(
+      'cancelled_no_deposit',
+    );
+  });
+
+  test('confirmed behaves like balance_paid: t_minus_12_reached → trip_ready', () => {
+    expect(next('confirmed', { kind: 't_minus_12_reached' })).toBe('trip_ready');
+  });
+
+  test('confirmed behaves like balance_paid: force_majeure_verified → cancelled_force_majeure', () => {
+    expect(next('confirmed', { kind: 'force_majeure_verified' })).toBe(
+      'cancelled_force_majeure',
+    );
   });
 });

@@ -45,5 +45,14 @@ export const CANONICAL_DERIVED = {
   travelerRefundAtEndPaise:   70_000, // unusedBuffer + deposit = 20_000 + 50_000
 
   // ── Platform unit economics ──────────────────────────────────────────────────
-  platformFeePaise:           50_000, // 25% × 200_000 buddy fee
+  // The 25% platform take is split symmetrically: 12.5% added to the traveler's
+  // view of the buddy fee, and 12.5% deducted from the buddy's payout.
+  //   platformFeeGrossPaise  = total take  = 12.5% up  + 12.5% down  = 50_000
+  //   platformFeeTravelerSidePaise         = 12.5% added on top      = 25_000
+  //   platformFeeBuddySidePaise            = 12.5% deducted from net = 25_000
+  // Use the gross value for P&L accounting; use the side values for per-party
+  // payment math.  buddyFeeNetPaise = buddyFeePaise − platformFeeBuddySidePaise.
+  platformFeeGrossPaise:       50_000, // 25% × 200_000 — total gross platform take
+  platformFeeTravelerSidePaise: 25_000, // 12.5% × 200_000 — embedded in traveler view
+  platformFeeBuddySidePaise:   25_000, // 12.5% × 200_000 — deducted from buddy gross
 } as const;

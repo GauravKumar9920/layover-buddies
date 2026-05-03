@@ -255,11 +255,22 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
   ['cancelled_pre_signing',       []],
   ['cancelled_no_deposit',        []],
 
-  // ── Legacy states (data migrated away — kept for enum completeness) ────────
-  ['pending',         []],
-  ['guide_accepted',  []],
-  ['confirmed',       []],
 ]);
+
+// ── Legacy state forward-compat shims ─────────────────────────────────────────
+// All pre-Phase-1 rows were migrated by 20260503110100_bookings_status_data_migration.sql:
+//   pending        → agreement_sent
+//   guide_accepted → awaiting_deposits
+//   confirmed      → balance_paid
+//
+// These entries let the reducer handle any row that survived migration (e.g. a
+// manual write, a test fixture, or a stale mobile client that skipped the DB
+// upgrade) without silently getting stuck. They share the same rule array
+// references as their canonical equivalents so there is no logic duplication.
+// (Populated after Map construction so the canonical entries exist to reference.)
+TRANSITIONS.set('pending',       TRANSITIONS.get('agreement_sent')!);
+TRANSITIONS.set('guide_accepted', TRANSITIONS.get('awaiting_deposits')!);
+TRANSITIONS.set('confirmed',      TRANSITIONS.get('balance_paid')!);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public API
