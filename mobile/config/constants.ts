@@ -15,7 +15,10 @@ export const BOOKING_STATUS = {
   CONFIRMED: 'confirmed',
   IN_PROGRESS: 'in_progress',
   COMPLETED: 'completed',
-  DECLINED: 'declined',
+  // 'declined' was never in the DB enum (latent bug — fixed in migration
+  // 20260503110100_bookings_status_data_migration.sql).
+  // Any rows with that value are remapped to cancelled_pre_signing on deploy.
+  CANCELLED_PRE_SIGNING: 'cancelled_pre_signing',
   CANCELLED: 'cancelled',
 } as const;
 

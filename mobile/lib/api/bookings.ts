@@ -76,19 +76,31 @@ function normalizePaymentStatus(status: string): PaymentStatus {
   return 'pending';
 }
 
+// All booking_status values that are valid in the DB post Phase 1 migration.
+// New financial-lifecycle states are passed through as-is; the mobile UI
+// falls back gracefully (BookingCard shows a neutral badge for unknown states).
+const VALID_BOOKING_STATUSES = new Set<string>([
+  // Legacy values (data migrated but enum values still present)
+  'pending', 'guide_accepted', 'confirmed',
+  // Unchanged from original schema
+  'in_progress', 'completed', 'cancelled', 'disputed',
+  // Phase 1 financial lifecycle states
+  'chat_open', 'agreement_drafting', 'agreement_sent',
+  'agreement_signed_traveler', 'agreement_signed_buddy',
+  'awaiting_deposits', 'deposits_held',
+  'awaiting_balance', 'late_fee_due', 'balance_paid',
+  'trip_ready', 'awaiting_proofs', 'reconciling', 'rated',
+  'cancelled_no_pay', 'cancelled_traveler_voluntary', 'cancelled_buddy',
+  'cancelled_force_majeure', 'cancelled_pre_signing', 'cancelled_no_deposit',
+]);
+
 function normalizeBookingStatus(status: string): BookingStatus {
-  if (
-    status === 'pending' ||
-    status === 'guide_accepted' ||
-    status === 'confirmed' ||
-    status === 'in_progress' ||
-    status === 'completed' ||
-    status === 'declined' ||
-    status === 'cancelled'
-  ) {
-    return status;
+  if (VALID_BOOKING_STATUSES.has(status)) {
+    return status as BookingStatus;
   }
-  return BOOKING_STATUS.PENDING;
+  // Unrecognised value from DB — default to chat_open rather than 'pending'
+  // so it surfaces as a real (visible) state rather than an orphan.
+  return 'chat_open' as BookingStatus;
 }
 
 function normalizeItinerary(row?: RawItineraryRow): Booking['itinerary'] {
@@ -224,7 +236,9 @@ export async function createBooking(req: CreateBookingRequest): Promise<Booking>
       buddy_cost: buddyCost,
       platform_fee: commission,
       total_amount: buddyCost + estimatedExpenses + commission,
-      status: BOOKING_STATUS.PENDING,
+      // New bookings start at chat_open (Phase 1 lifecycle).
+      // BOOKING_STATUS.PENDING is kept in constants for legacy read-compat only.
+      status: 'chat_open',
       payment_status: 'pending',
     })
     .select('*')
@@ -261,11 +275,15 @@ export async function fetchGuideBookings(guideId: string): Promise<Booking[]> {
 }
 
 export async function fetchPendingRequests(guideId: string): Promise<Booking[]> {
+  // Phase 1: bookings start at chat_open, not pending. All existing `pending`
+  // rows were migrated to `agreement_sent` by migration 20260503110100. Query
+  // both so any row that survived the migration or was created by an old client
+  // still shows up on the guide's requests dashboard.
   const { data, error } = await supabase
     .from('bookings')
     .select('*, traveler:users!traveler_id(id, full_name, avatar_url, traveler_profile:traveler_profiles(nationality)), itinerary:itineraries(*)')
     .eq('guide_id', guideId)
-    .eq('status', BOOKING_STATUS.PENDING)
+    .in('status', ['chat_open', 'agreement_sent'])
     .order('created_at', { ascending: false });
 
   if (error) throw error;
@@ -273,9 +291,12 @@ export async function fetchPendingRequests(guideId: string): Promise<Booking[]> 
 }
 
 export async function acceptBooking(bookingId: string): Promise<void> {
+  // Phase 1: accepting a request means the guide is starting to draft the
+  // binding agreement, so we advance to agreement_drafting.
+  // BOOKING_STATUS.GUIDE_ACCEPTED is kept in constants for legacy read-compat.
   const { error } = await supabase
     .from('bookings')
-    .update({ status: BOOKING_STATUS.GUIDE_ACCEPTED })
+    .update({ status: 'agreement_drafting' })
     .eq('id', bookingId);
 
   if (error) throw error;
@@ -284,7 +305,7 @@ export async function acceptBooking(bookingId: string): Promise<void> {
 export async function declineBooking(bookingId: string): Promise<void> {
   const { error } = await supabase
     .from('bookings')
-    .update({ status: BOOKING_STATUS.DECLINED, cancelled_by: 'guide' })
+    .update({ status: BOOKING_STATUS.CANCELLED_PRE_SIGNING, cancelled_by: 'guide' })
     .eq('id', bookingId);
 
   if (error) throw error;
