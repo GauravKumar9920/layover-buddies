@@ -78,7 +78,7 @@ export type CaptureOutcome =
  *  In production this is the supabase-js admin client; in tests it's a mock.
  */
 export async function handleDepositCaptured(
-  db: any,
+  db: SupabaseLike,
   payload: CapturedPayload,
 ): Promise<CaptureOutcome> {
   // ── 1. Idempotency check ─────────────────────────────────────────────────
@@ -189,7 +189,7 @@ export async function handleDepositCaptured(
  * Phase 3 cron `bookings.deposit_window_expire` cleans up after 24h.
  */
 export async function handleDepositFailed(
-  db: any,
+  db: SupabaseLike,
   payload: FailedPayload,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const r = await db

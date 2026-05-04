@@ -23,9 +23,11 @@ import { useMessages } from '@/lib/hooks/useMessages';
 import { supabase } from '@/lib/supabase';
 import { fetchBookingById } from '@/lib/api/bookings';
 import { markMessagesRead } from '@/lib/api/messages';
+import { getBookingCta } from '@/lib/booking/cta';
 import { theme } from '@/config/theme';
 import { format, isSameDay } from 'date-fns';
 import type { Message, Booking } from '@/types';
+import type { BookingState } from '@/lib/booking/stateMachine';
 
 type RenderItem =
   | { kind: 'message'; message: Message; isMine: boolean; showAvatar: boolean; showTime: boolean }
@@ -465,36 +467,19 @@ function MessageBubble({
 }
 
 // ─── Phase 2 — agreement chip above the composer ─────────────────────────────
-// Surfaces a one-tap entry into either the buddy-side drafting screen or the
-// shared viewer/sign screen depending on viewer + booking.status. Hidden when
-// no agreement-related action is relevant (e.g. booking is past awaiting_balance
-// or in a terminal state).
+// Surfaces a one-tap entry into the agreement screen. Derives its label and
+// route from `getBookingCta` (cta.ts) — the single source of truth for
+// status × viewer → action — so future state-machine changes only need one
+// edit. Hidden when there's no navigable agreement action (cta.route === null).
 function AgreementChip({ booking, isTraveler }: { booking: Booking; isTraveler: boolean }) {
-  const router = useRouter();
-  const status = booking.status as string;
+  const router  = useRouter();
+  const viewer  = isTraveler ? 'traveler' : 'buddy';
+  const cta     = getBookingCta(booking.status as BookingState, viewer);
 
-  const draftingStatuses = ['chat_open', 'agreement_drafting'];
-  const viewableStatuses = [
-    'agreement_sent',
-    'agreement_signed_traveler',
-    'agreement_signed_buddy',
-    'awaiting_deposits',
-    'deposits_held',
-    'awaiting_balance',
-  ];
+  // Only show when there is an agreement screen to navigate to.
+  if (!cta.label || !cta.route) return null;
 
-  let label: string | null = null;
-  let route: string | null = null;
-
-  if (!isTraveler && draftingStatuses.includes(status)) {
-    label = status === 'chat_open' ? '📋 Draft agreement' : '📋 Continue draft';
-    route = `/(guide)/bookings/agreement-draft/${booking.id}`;
-  } else if (viewableStatuses.includes(status)) {
-    label = '📋 View agreement';
-    route = `/(shared)/agreements/${booking.id}`;
-  }
-
-  if (!label || !route) return null;
+  const route = cta.route.pathname.replace('[bookingId]', booking.id);
 
   return (
     <View style={{ paddingHorizontal: 12, paddingBottom: 6 }}>
@@ -505,13 +490,13 @@ function AgreementChip({ booking, isTraveler }: { booking: Booking; isTraveler: 
           paddingHorizontal: 14,
           paddingVertical: 8,
           borderRadius: 999,
-          backgroundColor: theme.colors.primaryLight ?? '#FFEFE0',
+          backgroundColor: theme.colors.primaryLight,
           borderWidth: 1,
           borderColor: theme.colors.primary,
         }}
       >
         <Text style={{ color: theme.colors.primary, fontWeight: '600', fontSize: 13 }}>
-          {label}
+          📋 {cta.label}
         </Text>
       </TouchableOpacity>
     </View>

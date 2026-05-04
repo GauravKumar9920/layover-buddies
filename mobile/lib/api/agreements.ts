@@ -341,7 +341,18 @@ export async function sendAgreement(agreementId: string): Promise<Agreement> {
   if (!result.ok) {
     // Roll back agreement status to draft so the buddy can retry once
     // the booking-side issue is resolved.
-    await supabase.from('agreements').update({ status: 'draft', sent_at: null }).eq('id', agreementId);
+    const { error: rollbackErr } = await supabase
+      .from('agreements')
+      .update({ status: 'draft', sent_at: null })
+      .eq('id', agreementId);
+    if (rollbackErr) {
+      // Both the state-machine rejection and the rollback failed — surface the
+      // combined error so the caller knows the agreement is in a dirty state.
+      throw new SendAgreementError(
+        'rollback_failed',
+        `Cannot send from status "${booking.status}" and rollback also failed: ${rollbackErr.message}`,
+      );
+    }
     throw new SendAgreementError(
       'illegal_booking_transition',
       `Cannot send agreement from booking status "${booking.status}".`,

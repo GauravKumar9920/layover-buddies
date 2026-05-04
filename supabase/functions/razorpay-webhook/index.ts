@@ -104,10 +104,15 @@ serve(async (req: Request) => {
 
   // ── Dispatch ─────────────────────────────────────────────────────────────
   if (event.event === 'payment.captured') {
+    // Note: payment.razorpay_signature (checkout HMAC) is a different field
+    // from the webhook's x-razorpay-signature header (payload HMAC). We don't
+    // store the webhook header in payment_events — it's already verified above
+    // and has no per-row meaning. The checkout signature is not present on
+    // server-side webhook payloads, so we leave the field empty here.
     const result = await handleDepositCaptured(db, {
       paymentId:     payment.id,
       orderId:       payment.order_id,
-      signature:     sigHeader ?? '',
+      signature:     '',   // empty — checkout signature not available in webhook payload
       notes,
       capturedAtIso,
     });

@@ -21,7 +21,6 @@ import { adminClient, getUserFromRequest } from '../_shared/supabaseAdmin.ts';
 
 const RAZORPAY_API = 'https://api.razorpay.com/v1/orders';
 const DEPOSIT_PAISE = 50_000;     // ₹500 — see mobile/config/constants.ts
-const ORDER_REUSE_WINDOW_MS = 15 * 60 * 1000;  // re-use a pending order if younger than 15 min
 
 interface RequestBody {
   booking_id: string;
@@ -93,12 +92,11 @@ serve(async (req: Request) => {
     return errorResponse('deposit_already_held', 409);
   }
 
-  // Re-use a recent pending order if available (idempotency for retries).
-  if (
-    existing?.razorpay_order_id
-    && existing.status === 'pending'
-    && Date.now() - new Date(existing.created_at).getTime() < ORDER_REUSE_WINDOW_MS
-  ) {
+  // Re-use any pending order that already has a Razorpay order_id. Razorpay
+  // orders don't expire short-term, so a pending row always has a valid order
+  // to retry the checkout against. Using `created_at` for a recency window was
+  // broken because that timestamp never changes after insert.
+  if (existing?.razorpay_order_id && existing.status === 'pending') {
     return jsonResponse({
       order_id:     existing.razorpay_order_id,
       amount_paise: DEPOSIT_PAISE,

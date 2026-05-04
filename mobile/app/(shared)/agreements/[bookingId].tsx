@@ -38,6 +38,7 @@ import { signAgreement, SignAgreementError } from '@/lib/api/agreementSign';
 import {
   createDepositOrder,
   openDepositCheckout,
+  fetchDeposits,
   type DepositSide,
 } from '@/lib/api/deposits';
 import {
@@ -133,17 +134,22 @@ export default function AgreementViewerScreen() {
         // User cancellation also throws — quietly ignore.
         return;
       }
-      // Show a "Confirming…" state until the webhook flips our row to held.
+      // Poll for webhook confirmation — break as soon as our deposit row
+      // flips to 'held'. We query directly instead of relying on the stale
+      // `myDeposit` closure value; the Realtime subscription handles the
+      // re-render in parallel.
       setConfirmingDeposit(true);
-      const start = Date.now();
+      const start      = Date.now();
       const TIMEOUT_MS = 30_000;
-      while (Date.now() - start < TIMEOUT_MS) {
+      let held = false;
+      while (!held && Date.now() - start < TIMEOUT_MS) {
         await new Promise((r) => setTimeout(r, 1500));
-        await reload();
-        // The reload mutates state; bail out as soon as our deposit is held.
-        // Re-read via fresh closure on the next loop tick.
-        // (We rely on useAgreement's internal state — myDeposit captured
-        //  above is stale, so use a direct re-fetch.)
+        try {
+          const fresh = await fetchDeposits(bookingId!);
+          held = fresh.some((d) => d.side === viewerSide && d.status === 'held');
+        } catch {
+          // transient read error — continue polling
+        }
       }
       setConfirmingDeposit(false);
     } catch (err) {

@@ -81,7 +81,8 @@ export async function fetchDeposits(bookingId: string): Promise<Deposit[]> {
   const { data, error } = await supabase
     .from('deposits')
     .select('*')
-    .eq('booking_id', bookingId);
+    .eq('booking_id', bookingId)
+    .order('side');   // deterministic: buddy < traveler alphabetically
 
   if (error) throw error;
   return data ?? [];

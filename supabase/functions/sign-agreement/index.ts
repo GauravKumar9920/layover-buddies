@@ -89,12 +89,8 @@ serve(async (req: Request) => {
   if (agrErr)     return errorResponse(`db_error: ${agrErr.message}`, 500);
   if (!agreement) return errorResponse('agreement_not_found', 404);
 
-  const signableStatuses = ['sent', 'signed_traveler', 'signed_guide'];
-  if (!signableStatuses.includes(agreement.status)) {
-    return errorResponse('agreement_not_signable', 409, { current_status: agreement.status });
-  }
-
-  // Already signed by this side? Treat as idempotent success.
+  // Already signed by this side? Idempotent success — check before the
+  // status gate so `fully_signed` also returns 200 for replays.
   const alreadySigned =
     (body.side === 'traveler' && agreement.traveler_signed_at !== null)
     || (body.side === 'buddy' && agreement.buddy_signed_at !== null);
@@ -107,11 +103,19 @@ serve(async (req: Request) => {
     });
   }
 
+  const signableStatuses = ['sent', 'signed_traveler', 'signed_guide'];
+  if (!signableStatuses.includes(agreement.status)) {
+    return errorResponse('agreement_not_signable', 409, { current_status: agreement.status });
+  }
+
   // ── Atomic timestamp + agreement_status write via RPC ────────────────────
+  // Pass the full_name so it is persisted alongside the timestamp as the
+  // audit record for the e-signature (IT Act 2000 §10A).
   const { data: rpcResult, error: rpcErr } = await supabase
     .rpc('sign_agreement_tx', {
       p_agreement_id: agreement.id,
       p_side:         body.side,
+      p_signed_name:  body.full_name.trim(),
     })
     .single();
 
