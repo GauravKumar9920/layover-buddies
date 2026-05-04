@@ -1,4 +1,5 @@
 import type { BOOKING_STATUS, PAYMENT_STATUS } from '@/config/constants';
+import type { BookingState } from '@/lib/booking/stateMachine';
 
 // ─── Auth ───────────────────────────────────────────────────────────────────
 
@@ -117,6 +118,10 @@ export interface Itinerary {
 // ─── Bookings ─────────────────────────────────────────────────────────────────
 
 export type BookingStatus = typeof BOOKING_STATUS[keyof typeof BOOKING_STATUS];
+// Alias so consumers can use either name — BookingState is the comprehensive
+// 25-value union from stateMachine.ts; BookingStatus is the legacy 7-value
+// subset from BOOKING_STATUS constants.
+export type { BookingState };
 export type PaymentStatus = typeof PAYMENT_STATUS[keyof typeof PAYMENT_STATUS];
 
 export interface Booking {
@@ -130,7 +135,10 @@ export interface Booking {
   end_date: string;
   total_price: number;
   commission: number;
-  status: BookingStatus;
+  /** Runtime booking state — the full 25-value union from the Phase 1 state
+   *  machine (stateMachine.ts). The legacy `BookingStatus` type covers only
+   *  the 7 pre-Phase-1 values; both are kept for backward compatibility. */
+  status: BookingState;
   payment_intent_id: string | null;
   payment_status: PaymentStatus;
   created_at: string;

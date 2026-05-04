@@ -1,3 +1,20 @@
+// ============================================================================
+// PAYMENTS — legacy booking-flow checkout (pre-Phase-2)
+// ============================================================================
+// This module powers `mobile/app/(traveler)/book/payment/[bookingId].tsx`,
+// the legacy single-shot "pay full booking total now" path that advances
+// bookings.status to 'confirmed' on capture (see line 149 below).
+//
+// PHASE 2 NOTE: Deposits do NOT route through `recordPaymentResult`. They go
+// through `mobile/lib/api/deposits.ts → createDepositOrder → Razorpay → the
+// `razorpay-webhook` Edge Function. The webhook is the source of truth for
+// deposit capture; the mobile client only displays a "Confirming…" spinner
+// after the checkout sheet closes.
+//
+// Phase 3 will retire this legacy flow in favour of separate deposit/balance
+// checkout screens.
+// ============================================================================
+
 import { supabase } from '../supabase';
 import { env } from '@/config/env';
 import { Platform } from 'react-native';

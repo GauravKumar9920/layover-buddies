@@ -9,8 +9,10 @@ import { Card } from '@/components/ui/Card';
 import { Badge, bookingStatusLabel, bookingStatusVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
+import { AgreementCtaBlock } from '@/components/bookings/AgreementCtaBlock';
 import { fetchBookingById } from '@/lib/api/bookings';
 import { theme } from '@/config/theme';
+import type { BookingState } from '@/lib/booking/stateMachine';
 import type { Booking } from '@/types';
 
 export default function GuideBookingDetailScreen() {
@@ -113,6 +115,13 @@ export default function GuideBookingDetailScreen() {
             <Badge label={bookingStatusLabel(booking.status)} variant={bookingStatusVariant(booking.status)} />
           </View>
         </Card>
+
+        {/* Phase 2 — Agreement & Deposit CTA */}
+        <AgreementCtaBlock
+          bookingId={booking.id}
+          bookingStatus={booking.status as BookingState}
+          viewer="buddy"
+        />
 
         {/* Flight & schedule */}
         <Card style={{ marginBottom: 16, gap: 6 }}>

@@ -23,9 +23,11 @@ import { useMessages } from '@/lib/hooks/useMessages';
 import { supabase } from '@/lib/supabase';
 import { fetchBookingById } from '@/lib/api/bookings';
 import { markMessagesRead } from '@/lib/api/messages';
+import { getBookingCta } from '@/lib/booking/cta';
 import { theme } from '@/config/theme';
 import { format, isSameDay } from 'date-fns';
 import type { Message, Booking } from '@/types';
+import type { BookingState } from '@/lib/booking/stateMachine';
 
 type RenderItem =
   | { kind: 'message'; message: Message; isMine: boolean; showAvatar: boolean; showTime: boolean }
@@ -320,6 +322,9 @@ export default function MessagesScreen() {
         </View>
       )}
 
+      {/* Phase 2 — Agreement chip (above input bar) */}
+      {booking && <AgreementChip booking={booking} isTraveler={isTraveler} />}
+
       {/* Input Bar */}
       <View
         style={{
@@ -457,6 +462,43 @@ function MessageBubble({
           </Text>
         )}
       </View>
+    </View>
+  );
+}
+
+// ─── Phase 2 — agreement chip above the composer ─────────────────────────────
+// Surfaces a one-tap entry into the agreement screen. Derives its label and
+// route from `getBookingCta` (cta.ts) — the single source of truth for
+// status × viewer → action — so future state-machine changes only need one
+// edit. Hidden when there's no navigable agreement action (cta.route === null).
+function AgreementChip({ booking, isTraveler }: { booking: Booking; isTraveler: boolean }) {
+  const router  = useRouter();
+  const viewer  = isTraveler ? 'traveler' : 'buddy';
+  const cta     = getBookingCta(booking.status as BookingState, viewer);
+
+  // Only show when there is an agreement screen to navigate to.
+  if (!cta.label || !cta.route) return null;
+
+  const route = cta.route.pathname.replace('[bookingId]', booking.id);
+
+  return (
+    <View style={{ paddingHorizontal: 12, paddingBottom: 6 }}>
+      <TouchableOpacity
+        onPress={() => router.push(route as never)}
+        style={{
+          alignSelf: 'flex-start',
+          paddingHorizontal: 14,
+          paddingVertical: 8,
+          borderRadius: 999,
+          backgroundColor: theme.colors.primaryLight,
+          borderWidth: 1,
+          borderColor: theme.colors.primary,
+        }}
+      >
+        <Text style={{ color: theme.colors.primary, fontWeight: '600', fontSize: 13 }}>
+          📋 {cta.label}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
