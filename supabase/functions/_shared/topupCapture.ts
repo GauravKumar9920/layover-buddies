@@ -81,6 +81,17 @@ export async function handleTopUpCaptured(
       .single();
 
     if (insErr) throw new Error(`topup capture insert failed: ${insErr.message}`);
+
+    // Also flip the top_up_request — same update needed in this fallback path.
+    await db
+      .from('top_up_requests')
+      .update({
+        status:           'captured',
+        payment_event_id: inserted.id,
+      })
+      .eq('id', top_up_request_id)
+      .in('status', ['approved', 'pending']);
+
     return { ok: true, payment_event_id: inserted.id };
   }
 

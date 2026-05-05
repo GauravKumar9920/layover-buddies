@@ -79,8 +79,8 @@ serve(async (req: Request) => {
   if (bErr || !booking) return errorResponse('booking_not_found', 404);
 
   // ── Authz: caller must be a party ────────────────────────────────────────
-  const isTraveler = booking.traveler_id === caller.id;
-  const isBuddy    = booking.guide_id    === caller.id;
+  const isTraveler = booking.traveler_id === caller.userId;
+  const isBuddy    = booking.guide_id    === caller.userId;
   if (!isTraveler && !isBuddy) return errorResponse('forbidden', 403);
 
   // ── Guard: booking must be in a cancellable state ────────────────────────
@@ -131,7 +131,7 @@ serve(async (req: Request) => {
           .eq('booking_id', booking_id)
           .in('kind', ['deposit', 'balance'])
           .eq('status', 'captured')
-          .order('created_at', { ascending: true })
+          .order('initiated_at', { ascending: true })
           .limit(1)
           .single();
 

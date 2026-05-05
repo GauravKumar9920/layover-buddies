@@ -34,21 +34,30 @@ DECLARE
   v_threshold    integer;
   v_kind         text;
 BEGIN
+  -- LATERAL join ensures we use the latest agreement only (avoids duplicate
+  -- rows when a booking has multiple agreement revisions).
   FOR v_booking_id, v_traveler_id, v_hours_until IN
     SELECT b.id, b.traveler_id,
-           EXTRACT(EPOCH FROM (a.trip_starts_at - now())) / 3600.0
+           EXTRACT(EPOCH FROM (latest_a.trip_starts_at - now())) / 3600.0
       FROM bookings b
-      JOIN agreements a ON a.booking_id = b.id
+      CROSS JOIN LATERAL (
+        SELECT a.trip_starts_at
+          FROM agreements a
+         WHERE a.booking_id = b.id
+         ORDER BY a.created_at DESC
+         LIMIT 1
+      ) latest_a
      WHERE b.status = 'awaiting_balance'
-       AND a.trip_starts_at > now()
-       AND a.trip_starts_at - now() <= interval '84 hours'
-     ORDER BY a.trip_starts_at
+       AND latest_a.trip_starts_at > now()
+       AND latest_a.trip_starts_at - now() <= interval '84 hours'
+     ORDER BY latest_a.trip_starts_at
   LOOP
     -- Determine which threshold this booking has crossed.
     FOREACH v_threshold IN ARRAY ARRAY[18, 24, 48, 84]
     LOOP
       IF v_hours_until <= v_threshold THEN
-        v_kind := 'balance_reminder_t' || v_threshold;
+        -- e.g. 'balance_reminder_18h', 'balance_reminder_24h' — matches migration 100400 names.
+        v_kind := 'balance_reminder_' || v_threshold || 'h';
         BEGIN
           INSERT INTO notifications
             (booking_id, recipient_user_id, kind, payload)
@@ -83,12 +92,18 @@ BEGIN
   FOR v_booking_id IN
     SELECT b.id
       FROM bookings b
-      JOIN agreements a ON a.booking_id = b.id
+      CROSS JOIN LATERAL (
+        SELECT a.trip_starts_at
+          FROM agreements a
+         WHERE a.booking_id = b.id
+         ORDER BY a.created_at DESC
+         LIMIT 1
+      ) latest_a
      WHERE b.status = 'awaiting_balance'
        AND b.late_fee_assessed_at IS NULL
-       AND a.trip_starts_at - now() <= interval '72 hours'
-       AND a.trip_starts_at > now()     -- don't assess fees for already-started trips
-     ORDER BY a.trip_starts_at
+       AND latest_a.trip_starts_at - now() <= interval '72 hours'
+       AND latest_a.trip_starts_at > now()     -- don't assess fees for already-started trips
+     ORDER BY latest_a.trip_starts_at
   LOOP
     BEGIN
       UPDATE bookings
@@ -121,11 +136,17 @@ BEGIN
   FOR v_booking_id IN
     SELECT b.id
       FROM bookings b
-      JOIN agreements a ON a.booking_id = b.id
+      CROSS JOIN LATERAL (
+        SELECT a.trip_starts_at
+          FROM agreements a
+         WHERE a.booking_id = b.id
+         ORDER BY a.created_at DESC
+         LIMIT 1
+      ) latest_a
      WHERE b.status = 'balance_paid'
-       AND a.trip_starts_at - now() <= interval '12 hours'
-       AND a.trip_starts_at > now() - interval '24 hours'  -- don't advance very stale rows
-     ORDER BY a.trip_starts_at
+       AND latest_a.trip_starts_at - now() <= interval '12 hours'
+       AND latest_a.trip_starts_at > now() - interval '24 hours'  -- don't advance very stale rows
+     ORDER BY latest_a.trip_starts_at
   LOOP
     BEGIN
       UPDATE bookings

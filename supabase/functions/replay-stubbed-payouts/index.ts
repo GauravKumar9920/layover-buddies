@@ -38,8 +38,9 @@ function isServiceRole(req: Request): boolean {
   return bearer === (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
 }
 
+// buddy_fee_cancellation_refund = Razorpay Refund back to the traveler (NOT a payout).
 const REFUND_KINDS  = new Set(['traveler_refund', 'traveler_deposit_refund', 'buddy_deposit_refund', 'trip_fund_cancellation_refund', 'buddy_fee_cancellation_refund']);
-const PAYOUT_KINDS  = new Set(['buddy_fee_final', 'trip_pot_release', 'buddy_fee_cancellation_refund']);
+const PAYOUT_KINDS  = new Set(['buddy_fee_final', 'trip_pot_release']);
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -78,7 +79,7 @@ serve(async (req: Request) => {
           .eq('booking_id', dispatch.booking_id)
           .in('kind', ['balance', 'deposit'])
           .eq('status', 'captured')
-          .order('created_at', { ascending: false })
+          .order('initiated_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 

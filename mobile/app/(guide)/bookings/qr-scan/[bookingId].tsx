@@ -14,7 +14,7 @@
 // ============================================================================
 
 import { useState } from 'react';
-import { View, Text, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Header } from '@/components/ui/Header';
@@ -30,24 +30,23 @@ let CameraView: React.ComponentType<{
   barcodeScannerSettings?: { barcodeTypes: string[] };
   onBarcodeScanned?: (e: { data: string }) => void;
 }> | null = null;
-let useCameraPermissions: (() => [
-  { granted: boolean } | null,
-  () => Promise<{ granted: boolean }>
-]) | null = null;
+
+// Module-level stable hook reference — satisfies Rules of Hooks (the hook must
+// be called unconditionally in the component body; the conditional logic lives
+// here, at module scope, not inside the render function).
+type PermissionHookReturn = [{ granted: boolean } | null, () => Promise<{ granted: boolean }>];
+const _nullHook = (): PermissionHookReturn => [null, async () => ({ granted: false })];
+let _useCameraHook: () => PermissionHookReturn = _nullHook;
 
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const cam = require('expo-camera');
-  CameraView = cam.CameraView;
-  useCameraPermissions = cam.useCameraPermissions;
+  CameraView = cam.CameraView ?? null;
+  if (typeof cam.useCameraPermissions === 'function') {
+    _useCameraHook = cam.useCameraPermissions;
+  }
 } catch {
   CameraView = null;
-  useCameraPermissions = null;
-}
-
-// ── Fallback hook when expo-camera isn't available ───────────────────────────
-function useFallbackPermission(): [null, () => Promise<{ granted: boolean }>] {
-  return [null, async () => ({ granted: false })];
 }
 
 export default function GuideQrScanScreen() {
@@ -56,12 +55,8 @@ export default function GuideQrScanScreen() {
   const insets  = useSafeAreaInsets();
   const copy    = financialCopy.tripQrInstructions;
 
-  // Use real hook or fallback depending on whether expo-camera is available.
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [permission, requestPermission] = useCameraPermissions
-    ? useCameraPermissions()
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    : useFallbackPermission();
+  // Always call the stable module-level hook reference — satisfies Rules of Hooks.
+  const [permission, requestPermission] = _useCameraHook();
 
   const [scanning,    setScanning]    = useState(false);
   const [scanned,     setScanned]     = useState(false);
@@ -123,7 +118,7 @@ export default function GuideQrScanScreen() {
   }
 
   // ── Camera not available ───────────────────────────────────────────────────
-  if (!CameraView || !useCameraPermissions) {
+  if (!CameraView || _useCameraHook === _nullHook) {
     return (
       <View style={[styles.root, { paddingBottom: insets.bottom }]}>
         <Header title="Scan QR" />

@@ -39,14 +39,18 @@ CREATE TABLE IF NOT EXISTS payout_dispatches (
   created_at            timestamptz NOT NULL DEFAULT now(),
   completed_at          timestamptz,
 
-  -- Idempotency: one pending/sent row per (booking, kind) for standard kinds.
-  -- Cancellations can have multiple rows (one per component). Uniqueness is
-  -- enforced per-kind for reconciliation payouts; cancellation rows are
-  -- distinguished by recipient.
-  CONSTRAINT uniq_payout_dispatch_reconcile
-    UNIQUE NULLS NOT DISTINCT (booking_id, kind, recipient_user_id)
-    WHERE kind IN ('buddy_fee_final','traveler_refund','trip_pot_release')
+  -- Idempotency for the three reconciliation kinds is enforced by the partial
+  -- unique index below (partial unique constraints with WHERE cannot be declared
+  -- inline in CREATE TABLE in PostgreSQL).
+  CONSTRAINT chk_payout_net_lte_gross CHECK (net_paise <= gross_paise)
 );
+
+-- Partial unique index: one row per (booking, kind, recipient) for the three
+-- standard reconciliation payouts. PostgreSQL partial UNIQUE constraints with
+-- WHERE must be expressed as an index, not an inline table constraint.
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_payout_dispatch_reconcile
+  ON payout_dispatches(booking_id, kind, recipient_user_id)
+ WHERE kind IN ('buddy_fee_final','traveler_refund','trip_pot_release');
 
 -- Partial index for the replay-stubbed-payouts drain.
 CREATE INDEX IF NOT EXISTS idx_payout_dispatches_pending_stub

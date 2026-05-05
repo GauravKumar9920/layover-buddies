@@ -28,7 +28,7 @@ import type { PayoutDispatch } from '@/lib/api/tripLifecycle';
 export default function GuideReceiptScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
   const insets  = useSafeAreaInsets();
-  const { booking, agreement, expenseProofs, payoutDispatches, loading, error }
+  const { booking, agreement, expenseProofs, payoutDispatches, topUpRequests, loading, error }
     = useTrip(bookingId ?? null);
 
   if (loading) {
@@ -48,7 +48,9 @@ export default function GuideReceiptScreen() {
   }
 
   // Compute snapshot from live data (should match what Postgres computed).
-  const capturedTopUpsPaise = 0; // top-ups aggregated in Stage E; safe default
+  const capturedTopUpsPaise = topUpRequests
+    .filter(r => r.status === 'captured')
+    .reduce((sum, r) => sum + r.requested_paise, 0);
   const declaredSpendPaise  = expenseProofs.reduce((s, p) => s + p.amount_paise, 0);
 
   const snapshot = computeReconciliationSnapshot({

@@ -98,17 +98,17 @@ export default function PayoutsPage() {
   const columns: Column<PayoutRow>[] = [
     {
       key: 'created_at',
-      label: 'Created',
+      header: 'Created',
       render: r => <span className="text-sm text-muted">{relative(r.created_at)}</span>,
     },
     {
       key: 'kind',
-      label: 'Kind',
+      header: 'Kind',
       render: r => <span className="text-sm font-mono">{r.kind}</span>,
     },
     {
       key: 'recipient',
-      label: 'Recipient',
+      header: 'Recipient',
       render: r => (
         <div className="text-sm">
           <div className="font-medium">{r.recipient?.full_name ?? '—'}</div>
@@ -118,7 +118,7 @@ export default function PayoutsPage() {
     },
     {
       key: 'net_paise',
-      label: 'Net amount',
+      header: 'Net amount',
       render: r => (
         <span className="text-sm font-semibold tabular-nums">
           {formatINR(r.net_paise / 100)}
@@ -127,7 +127,7 @@ export default function PayoutsPage() {
     },
     {
       key: 'status',
-      label: 'Status',
+      header: 'Status',
       render: r => (
         <div className="flex flex-col gap-1">
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium w-fit ${statusStyle(r.status)}`}>
@@ -146,7 +146,7 @@ export default function PayoutsPage() {
     },
     {
       key: 'id',
-      label: 'Action',
+      header: 'Action',
       render: r => {
         if (!isStuck(r)) return null;
         return (
@@ -210,10 +210,10 @@ export default function PayoutsPage() {
 
       <DataTable
         columns={columns}
-        data={filtered}
+        rows={filtered}
+        rowKey={(r) => r.id}
         loading={loading}
         emptyMessage="No payout dispatches yet."
-        keyExtractor={r => r.id}
       />
     </div>
   );

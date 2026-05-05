@@ -26,7 +26,7 @@ export default function TravelerReceiptScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
-  const { booking, agreement, expenseProofs, payoutDispatches, loading, error }
+  const { booking, agreement, expenseProofs, payoutDispatches, topUpRequests, loading, error }
     = useTrip(bookingId ?? null);
 
   if (loading) {
@@ -46,19 +46,21 @@ export default function TravelerReceiptScreen() {
   }
 
   const declaredSpendPaise = expenseProofs.reduce((s, p) => s + p.amount_paise, 0);
+  const capturedTopUpsPaise = topUpRequests
+    .filter(r => r.status === 'captured')
+    .reduce((sum, r) => sum + r.requested_paise, 0);
 
   const snapshot = computeReconciliationSnapshot({
     buddyFeePaise:       agreement.buddy_fee_paise,
     itineraryFundPaise:  agreement.itinerary_fund_paise,
     bufferPaise:         agreement.buffer_paise,
-    capturedTopUpsPaise: 0,
+    capturedTopUpsPaise,
     declaredSpendPaise,
   });
 
   const copy = financialCopy.reconciliationReceipt.traveler;
 
   const refundDispatch = payoutDispatches.find(d => d.kind === 'traveler_refund');
-  const isStubbed      = refundDispatch?.failed_reason === 'razorpay_live_not_configured';
 
   return (
     <View style={[styles.root, { paddingBottom: insets.bottom }]}>

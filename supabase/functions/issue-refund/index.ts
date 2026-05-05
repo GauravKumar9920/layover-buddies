@@ -76,13 +76,24 @@ serve(async (req: Request) => {
   if (dErr) return errorResponse('db_error', 500);
   if (!dispatches?.length) return jsonResponse({ dispatched: 0, succeeded: 0, failed: [] });
 
+  // Explicit routing sets — endsWith('_refund') is too broad (buddy_fee_cancellation_refund
+  // is a Razorpay Refund back to the traveler, NOT a Payout to the buddy).
+  const REFUND_KINDS = new Set([
+    'traveler_refund',
+    'traveler_deposit_refund',
+    'buddy_deposit_refund',
+    'trip_fund_cancellation_refund',
+    'buddy_fee_cancellation_refund',
+  ]);
+  const PAYOUT_KINDS = new Set(['buddy_fee_final', 'trip_pot_release']);
+
   const results: { id: string; ok: boolean; error?: string }[] = [];
 
   for (const dispatch of dispatches) {
     try {
       const iKey = await idempotencyKey([dispatch.id, dispatch.kind, dispatch.booking_id]);
 
-      if (dispatch.kind.endsWith('_refund')) {
+      if (REFUND_KINDS.has(dispatch.kind)) {
         // Find the payment to refund against.
         const { data: payEvent } = await db
           .from('payment_events')
@@ -90,7 +101,7 @@ serve(async (req: Request) => {
           .eq('booking_id', dispatch.booking_id)
           .in('kind', ['deposit', 'balance'])
           .eq('status', 'captured')
-          .order('created_at', { ascending: true })
+          .order('initiated_at', { ascending: true })
           .limit(1)
           .single();
 
@@ -114,7 +125,7 @@ serve(async (req: Request) => {
             completed_at:       new Date().toISOString(),
           })
           .eq('id', dispatch.id);
-      } else {
+      } else if (PAYOUT_KINDS.has(dispatch.kind)) {
         // Payout to fund account.
         const { data: recipient } = await db
           .from('users')
@@ -155,6 +166,8 @@ serve(async (req: Request) => {
             completed_at:             new Date().toISOString(),
           })
           .eq('id', dispatch.id);
+      } else {
+        throw new Error(`unroutable_kind: ${dispatch.kind}`);
       }
 
       results.push({ id: dispatch.id, ok: true });

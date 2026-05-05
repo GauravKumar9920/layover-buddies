@@ -8,10 +8,19 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { formatDateTime, formatINR, relative } from '@/lib/format';
+import { formatINR, relative } from '@/lib/format';
 import PageHeader from '@/components/PageHeader';
 import DataTable, { Column } from '@/components/DataTable';
 import StatusBadge from '@/components/StatusBadge';
+
+interface DispatchRow {
+  id: string;
+  kind: string;
+  net_paise: number;
+  status: string;
+  failed_reason: string | null;
+  completed_at: string | null;
+}
 
 interface CancellationRow {
   id: string;
@@ -21,19 +30,10 @@ interface CancellationRow {
   cancelled_resolution_jsonb: Record<string, unknown> | null;
   traveler: { full_name: string | null; email: string } | null;
   guide:    { full_name: string | null; email: string } | null;
-  payout_dispatches: PayoutRow[];
+  payout_dispatches: DispatchRow[];
 }
 
-interface PayoutRow {
-  id: string;
-  kind: string;
-  net_paise: number;
-  status: string;
-  failed_reason: string | null;
-  completed_at: string | null;
-}
-
-type TierFilter = 'all' | 'gt_72h' | '24_to_72h' | 'lt_24h' | 'late_no_pay' | 'buddy_cancel' | 'force_majeure' | 'pre_signing';
+type TierFilter = 'all' | 'voluntary' | 't_minus_12_no_pay' | 'force_majeure_verified' | 'deposit_window_expired';
 
 function tierLabel(trigger: string | null): string {
   switch (trigger) {
@@ -105,24 +105,23 @@ export default function CancellationsPage() {
 
   const filtered = filter === 'all'
     ? rows
-    : rows.filter(r => r.cancellation_trigger_event === filter ||
-        r.status === `cancelled_${filter}`);
+    : rows.filter(r => r.cancellation_trigger_event === filter);
 
   const columns: Column<CancellationRow>[] = [
     {
       key: 'cancelled_at',
-      label: 'Cancelled',
-      render: r => <span className="text-sm text-muted">{relative(r.cancelled_at)}</span>,
+      header: 'Cancelled',
+      render: (r) => <span className="text-sm text-muted">{relative(r.cancelled_at)}</span>,
     },
     {
       key: 'status',
-      label: 'Status',
-      render: r => <StatusBadge status={r.status} />,
+      header: 'Status',
+      render: (r) => <StatusBadge value={r.status} />,
     },
     {
       key: 'cancellation_trigger_event',
-      label: 'Trigger',
-      render: r => (
+      header: 'Trigger',
+      render: (r) => (
         <span className="text-sm font-medium">
           {tierLabel(r.cancellation_trigger_event)}
         </span>
@@ -130,8 +129,8 @@ export default function CancellationsPage() {
     },
     {
       key: 'traveler',
-      label: 'Traveler',
-      render: r => (
+      header: 'Traveler',
+      render: (r) => (
         <span className="text-sm">
           {r.traveler?.full_name ?? r.traveler?.email ?? '—'}
         </span>
@@ -139,8 +138,8 @@ export default function CancellationsPage() {
     },
     {
       key: 'guide',
-      label: 'Buddy',
-      render: r => (
+      header: 'Buddy',
+      render: (r) => (
         <span className="text-sm">
           {r.guide?.full_name ?? r.guide?.email ?? '—'}
         </span>
@@ -148,8 +147,8 @@ export default function CancellationsPage() {
     },
     {
       key: 'payout_dispatches',
-      label: 'Payout dispatches',
-      render: r => (
+      header: 'Payout dispatches',
+      render: (r) => (
         <div className="flex flex-col gap-1">
           {r.payout_dispatches?.length ? r.payout_dispatches.map(d => (
             <div key={d.id} className="flex items-center gap-2">
@@ -166,8 +165,8 @@ export default function CancellationsPage() {
     },
     {
       key: 'id',
-      label: 'Actions',
-      render: r => {
+      header: 'Actions',
+      render: (r) => {
         const hasStuck = r.payout_dispatches?.some(
           d => d.status === 'pending' || d.failed_reason === 'razorpay_live_not_configured',
         );
@@ -186,11 +185,11 @@ export default function CancellationsPage() {
   ];
 
   const TIER_FILTERS: { value: TierFilter; label: string }[] = [
-    { value: 'all',              label: 'All' },
-    { value: 'voluntary',        label: 'Voluntary' } as unknown as { value: TierFilter; label: string },
-    { value: 't_minus_12_no_pay', label: 'No-pay' } as unknown as { value: TierFilter; label: string },
-    { value: 'force_majeure_verified', label: 'Force majeure' } as unknown as { value: TierFilter; label: string },
-    { value: 'deposit_window_expired', label: 'Pre-signing' } as unknown as { value: TierFilter; label: string },
+    { value: 'all',                        label: 'All' },
+    { value: 'voluntary',                  label: 'Voluntary' },
+    { value: 't_minus_12_no_pay',          label: 'No-pay' },
+    { value: 'force_majeure_verified',     label: 'Force majeure' },
+    { value: 'deposit_window_expired',     label: 'Pre-signing' },
   ];
 
   return (
@@ -205,7 +204,7 @@ export default function CancellationsPage() {
         {TIER_FILTERS.map(({ value, label }) => (
           <button
             key={value}
-            onClick={() => setFilter(value as TierFilter)}
+            onClick={() => setFilter(value)}
             className={[
               'px-3 py-1.5 rounded-lg text-sm font-medium transition',
               filter === value
@@ -224,10 +223,10 @@ export default function CancellationsPage() {
 
       <DataTable
         columns={columns}
-        data={filtered}
+        rows={filtered}
+        rowKey={(r) => r.id}
         loading={loading}
         emptyMessage="No cancellations yet."
-        keyExtractor={r => r.id}
       />
     </div>
   );
