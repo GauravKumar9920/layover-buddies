@@ -1,10 +1,14 @@
 // ============================================================================
 // BOOKING CTA MAPPING — status × viewer → button label + route
 // ============================================================================
-// Centralises the Phase 2 status-conditional CTA logic for both the traveler
-// trip-detail screen and the buddy booking-detail screen, and the chat
-// composer "📋 Agreement" button. Pure function — no React imports — so it
-// can be tested with describe.each() in cta.test.ts.
+// Centralises the Phase 2+3+4 status-conditional CTA logic for both the
+// traveler trip-detail screen and the buddy booking-detail screen, and the
+// chat composer "📋 Agreement" button. Pure function — no React imports — so
+// it can be tested with describe.each() in cta.test.ts.
+//
+// Phase 2 covers: chat_open → awaiting_balance.
+// Phase 3 covers: late_fee_due → balance_paid.
+// Phase 4 covers: trip_ready → rated, all cancelled_* states.
 //
 // See plan §"CTA wiring" for the table.
 // ============================================================================
@@ -24,7 +28,7 @@ export interface BookingCta {
   /** True when the CTA is visible but disabled (greyed out). */
   disabled: boolean;
   /** Variant — drives styling in the consuming screen. */
-  variant: 'primary' | 'secondary' | 'info' | 'success';
+  variant: 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'danger';
 }
 
 const VIEWER_AGREEMENT: Record<BookingState, Partial<Record<Viewer, BookingCta>>> = {
@@ -57,29 +61,83 @@ const VIEWER_AGREEMENT: Record<BookingState, Partial<Record<Viewer, BookingCta>>
     buddy:    { label: 'Deposits secured. Awaiting traveler balance.', route: null, disabled: true, variant: 'success' },
   },
   awaiting_balance: {
-    traveler: { label: 'Deposits secured. Balance flow opens soon.', route: null, disabled: true, variant: 'success' },
-    buddy:    { label: 'Deposits secured. Awaiting traveler balance.', route: null, disabled: true, variant: 'success' },
+    // Phase 3: balance payment is now a real screen.
+    traveler: { label: 'Pay trip balance', route: { pathname: '/(traveler)/trips/balance/[bookingId]' }, disabled: false, variant: 'primary' },
+    buddy:    { label: 'Awaiting traveler balance', route: null, disabled: true, variant: 'info' },
   },
-  // ── States past awaiting_balance — Phase 2 doesn't surface a CTA here ──
-  // (the existing pre-Phase-2 trip-detail screens already render their own
-  //  status-specific CTAs for these states; we return the empty CTA so the
-  //  Phase 2 block hides itself).
-  late_fee_due:                 {},
-  balance_paid:                 {},
-  trip_ready:                   {},
-  in_progress:                  {},
-  awaiting_proofs:              {},
-  reconciling:                  {},
-  completed:                    {},
-  rated:                        {},
-  disputed:                     {},
-  cancelled:                    {},
-  cancelled_no_pay:             {},
-  cancelled_traveler_voluntary: {},
-  cancelled_buddy:              {},
-  cancelled_force_majeure:      {},
-  cancelled_pre_signing:        {},
-  cancelled_no_deposit:         {},
+  // ── Phase 3: balance + late-fee states ─────────────────────────────────────
+  late_fee_due: {
+    // Balance + ₹1,000 late fee bundled. Amount shown dynamically by the screen.
+    traveler: { label: 'Pay balance + ₹1,000 late fee', route: { pathname: '/(traveler)/trips/balance/[bookingId]' }, disabled: false, variant: 'warning' },
+    buddy:    { label: 'Awaiting traveler balance',      route: null, disabled: true,  variant: 'info' },
+  },
+  balance_paid: {
+    // Countdown shown by the screen itself; this is just the navigator anchor.
+    traveler: { label: 'Trip confirmed',      route: null, disabled: true, variant: 'success' },
+    buddy:    { label: 'Trip confirmed',      route: null, disabled: true, variant: 'success' },
+  },
+
+  // ── Phase 4: trip lifecycle states ──────────────────────────────────────────
+  trip_ready: {
+    // Traveler shows QR; buddy scans it.
+    traveler: { label: 'Show your QR code',  route: { pathname: '/(traveler)/trips/qr/[bookingId]' },        disabled: false, variant: 'primary' },
+    buddy:    { label: 'Scan traveler QR',   route: { pathname: '/(guide)/bookings/qr-scan/[bookingId]' },   disabled: false, variant: 'primary' },
+  },
+  in_progress: {
+    traveler: { label: 'Trip in progress',   route: { pathname: '/(traveler)/trips/live/[id]' },             disabled: false, variant: 'info' },
+    buddy:    { label: 'Trip in progress',   route: { pathname: '/(guide)/bookings/in-trip/[bookingId]' },   disabled: false, variant: 'info' },
+  },
+  awaiting_proofs: {
+    traveler: { label: 'Buddy is wrapping up', route: null, disabled: true, variant: 'info' },
+    buddy:    { label: 'Upload expense proofs', route: { pathname: '/(guide)/bookings/upload-proofs/[bookingId]' }, disabled: false, variant: 'primary' },
+  },
+  reconciling: {
+    traveler: { label: 'Settling up…', route: null, disabled: true, variant: 'info' },
+    buddy:    { label: 'Settling up…', route: null, disabled: true, variant: 'info' },
+  },
+  completed: {
+    traveler: { label: 'See day receipt',    route: { pathname: '/(traveler)/trips/receipt/[bookingId]' },   disabled: false, variant: 'success' },
+    buddy:    { label: 'See payout receipt', route: { pathname: '/(guide)/bookings/receipt/[bookingId]' },   disabled: false, variant: 'success' },
+  },
+  rated: {
+    traveler: { label: 'Thanks for the rating!', route: null, disabled: true, variant: 'success' },
+    buddy:    { label: 'Trip complete',           route: null, disabled: true, variant: 'success' },
+  },
+  disputed: {
+    traveler: { label: 'Under review with support', route: null, disabled: true, variant: 'info' },
+    buddy:    { label: 'Under review with support', route: null, disabled: true, variant: 'info' },
+  },
+
+  // ── Cancellation terminal states ──────────────────────────────────────────
+  cancelled: {
+    traveler: { label: 'View cancellation', route: { pathname: '/(traveler)/trips/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+    buddy:    { label: 'View cancellation', route: { pathname: '/(guide)/bookings/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+  },
+  cancelled_no_pay: {
+    traveler: { label: 'View cancellation', route: { pathname: '/(traveler)/trips/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+    buddy:    { label: 'View cancellation', route: { pathname: '/(guide)/bookings/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+  },
+  cancelled_traveler_voluntary: {
+    traveler: { label: 'View cancellation', route: { pathname: '/(traveler)/trips/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+    buddy:    { label: 'View cancellation', route: { pathname: '/(guide)/bookings/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+  },
+  cancelled_buddy: {
+    traveler: { label: 'View cancellation', route: { pathname: '/(traveler)/trips/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+    buddy:    { label: 'View cancellation', route: { pathname: '/(guide)/bookings/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+  },
+  cancelled_force_majeure: {
+    traveler: { label: 'View cancellation', route: { pathname: '/(traveler)/trips/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+    buddy:    { label: 'View cancellation', route: { pathname: '/(guide)/bookings/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+  },
+  cancelled_pre_signing: {
+    traveler: { label: 'View cancellation', route: { pathname: '/(traveler)/trips/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+    buddy:    { label: 'View cancellation', route: { pathname: '/(guide)/bookings/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+  },
+  cancelled_no_deposit: {
+    traveler: { label: 'View cancellation', route: { pathname: '/(traveler)/trips/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+    buddy:    { label: 'View cancellation', route: { pathname: '/(guide)/bookings/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+  },
+
   // Legacy enum values still permitted by the DB enum.
   pending:        {},
   guide_accepted: {},

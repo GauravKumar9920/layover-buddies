@@ -31,12 +31,15 @@ export function AgreementCtaBlock({ bookingId, bookingStatus, viewer }: Agreemen
 
   if (!cta.label) return null;
 
-  const variantStyles = {
+  const VARIANT_STYLES: Record<string, { bg: string; fg: string }> = {
     primary:   { bg: theme.colors.primary, fg: '#FFFFFF' },
     secondary: { bg: theme.colors.surfaceMuted ?? '#F5F5F5', fg: theme.colors.text },
     info:      { bg: theme.colors.surfaceMuted ?? '#F5F5F5', fg: theme.colors.textSecondary },
     success:   { bg: '#DCFCE7', fg: '#166534' },
-  }[cta.variant];
+    warning:   { bg: '#FEF9C3', fg: '#854D0E' },
+    danger:    { bg: '#FEE2E2', fg: '#991B1B' },
+  };
+  const variantStyles = VARIANT_STYLES[cta.variant] ?? VARIANT_STYLES.info;
 
   const handlePress = () => {
     if (cta.disabled || !cta.route) return;

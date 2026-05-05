@@ -69,6 +69,14 @@ export default function GuideLayout() {
       <Tabs.Screen name="bookings/[id]" options={{ href: null }} />
       {/* Phase 2 — buddy-side agreement drafting screen, reachable via router.push */}
       <Tabs.Screen name="bookings/agreement-draft/[bookingId]" options={{ href: null }} />
+      {/* Phase 3 */}
+      <Tabs.Screen name="bookings/cancellation-receipt/[bookingId]" options={{ href: null }} />
+      {/* Phase 4 */}
+      <Tabs.Screen name="bookings/qr-scan/[bookingId]" options={{ href: null }} />
+      <Tabs.Screen name="bookings/in-trip/[bookingId]" options={{ href: null }} />
+      <Tabs.Screen name="bookings/upload-proofs/[bookingId]" options={{ href: null }} />
+      <Tabs.Screen name="bookings/receipt/[bookingId]" options={{ href: null }} />
+      <Tabs.Screen name="profile/payout-vpa" options={{ href: null }} />
     </Tabs>
   );
 }
