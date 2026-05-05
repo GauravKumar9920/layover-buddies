@@ -62,13 +62,17 @@ serve(async (req: Request) => {
   }
 
   // ── 3. Transition to reconciling ──────────────────────────────────────────
-  const { error: r1Err } = await db
+  // Use .select('id') to detect races: if 0 rows come back, the booking was
+  // already transitioned by a concurrent request — return 409.
+  const { data: transitioned, error: r1Err } = await db
     .from('bookings')
     .update({ status: 'reconciling' })
     .eq('id', body.booking_id)
-    .eq('status', 'awaiting_proofs');
+    .eq('status', 'awaiting_proofs')
+    .select('id');
 
   if (r1Err) return errorResponse(`reconciling_transition_failed: ${r1Err.message}`, 500);
+  if (!transitioned?.length) return errorResponse('booking_already_reconciling_or_complete', 409);
 
   // ── 4. Run the Postgres reconciliation function ───────────────────────────
   const { data: snapshot, error: rpcErr } = await db

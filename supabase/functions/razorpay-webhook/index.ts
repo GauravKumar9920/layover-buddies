@@ -50,6 +50,7 @@ interface RazorpayPayment {
   id: string;
   order_id: string;
   status: string;
+  amount?: number | string; // paise; Razorpay may send as number or numeric string
   notes?: RazorpayPaymentNotes;
   error_description?: string;
   error_reason?: string;

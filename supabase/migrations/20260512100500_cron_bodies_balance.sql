@@ -52,7 +52,10 @@ BEGIN
        AND latest_a.trip_starts_at - now() <= interval '84 hours'
      ORDER BY latest_a.trip_starts_at
   LOOP
-    -- Determine which threshold this booking has crossed.
+    -- Find the SMALLEST threshold the booking has crossed and fire that one.
+    -- Iterate ascending so we pick the tightest threshold first and EXIT
+    -- immediately, preventing e.g. a T-20h booking from generating both
+    -- balance_reminder_24h AND balance_reminder_48h in the same run.
     FOREACH v_threshold IN ARRAY ARRAY[18, 24, 48, 84]
     LOOP
       IF v_hours_until <= v_threshold THEN
@@ -69,6 +72,7 @@ BEGIN
           RAISE WARNING 'cron_balance_reminder: notification insert failed for % / %: %',
             v_booking_id, v_kind, SQLERRM;
         END;
+        EXIT; -- Only emit one notification per booking per cron run.
       END IF;
     END LOOP;
   END LOOP;

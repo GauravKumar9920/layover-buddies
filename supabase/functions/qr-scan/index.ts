@@ -53,7 +53,10 @@ serve(async (req: Request) => {
   if (booking.trip_qr_token !== token)    return errorResponse('invalid_token', 409);
 
   // ── 2. Atomic status transition ──────────────────────────────────────────
-  const { error: transErr } = await db
+  // Use .select('id') so Supabase returns the updated row — if 0 rows are
+  // returned, a concurrent scan already transitioned the booking and we return
+  // 409 instead of silently proceeding.
+  const { data: updated, error: transErr } = await db
     .from('bookings')
     .update({
       status:                    'in_progress',
@@ -62,9 +65,11 @@ serve(async (req: Request) => {
     })
     .eq('id', booking_id)
     .eq('status', 'trip_ready')
-    .eq('trip_qr_token', token);
+    .eq('trip_qr_token', token)
+    .select('id');
 
   if (transErr) return errorResponse(`transition_failed: ${transErr.message}`, 500);
+  if (!updated?.length) return errorResponse('booking_already_transitioned', 409);
 
   // ── 3. Load agreement for trip pot amount ────────────────────────────────
   const { data: agreement } = await db

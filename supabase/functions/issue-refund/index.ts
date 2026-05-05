@@ -40,9 +40,12 @@ serve(async (req: Request) => {
   if (req.method !== 'POST')    return errorResponse('method_not_allowed', 405);
 
   // ── Service-role only ────────────────────────────────────────────────────
+  // Use strict equality (not includes) to prevent a key that happens to be a
+  // substring of a longer token from accidentally passing the check.
   const authHeader = req.headers.get('Authorization') ?? '';
+  const bearer     = authHeader.replace(/^Bearer\s+/i, '');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  if (!serviceKey || !authHeader.includes(serviceKey)) {
+  if (!serviceKey || bearer !== serviceKey) {
     return errorResponse('forbidden: service_role required', 403);
   }
 
