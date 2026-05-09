@@ -39,6 +39,12 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
+    "notification": {
+      "iosDisplayInForeground": true,
+      "androidMode": "default",
+      "androidCollapsedTitle": "Mumbai Buddies",
+      "color": "#F97316"
+    },
     "plugins": [
       "expo-router",
       [
@@ -52,12 +58,23 @@
         {
           "cameraPermission": "Mumbai Buddies uses your camera for profile photos."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#F97316"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
     },
     "newArchEnabled": true,
-    "scheme": "mumbaibuddies"
+    "scheme": "mumbaibuddies",
+    "extra": {
+      "eas": {
+        "projectId": "PLACEHOLDER_RUN_EAS_INIT_TO_GENERATE"
+      }
+    }
   }
 }

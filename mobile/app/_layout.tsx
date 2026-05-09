@@ -8,6 +8,8 @@ import { useRouter, useSegments } from 'expo-router';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { Loading } from '@/components/ui/Loading';
 import { useFavoritesStore } from '@/lib/stores/favorites';
+import { setupAndroidNotificationChannels } from '@/lib/push/notificationChannels';
+import { setupNotificationTapRouting } from '@/lib/push/notificationHandler';
 
 // expo-system-ui cannot set color scheme on web in dev mode — suppress the toast
 LogBox.ignoreLogs(['Cannot manually set color scheme']);
@@ -30,6 +32,14 @@ function RootLayoutNav() {
       resetFavorites();
     }
   }, [session?.user?.id, loading, hydrateFavorites, resetFavorites]);
+
+  // Push notification setup. Channels (Android) + tap-to-deep-link routing.
+  // Runs once on mount; subscription cleaned up on unmount.
+  useEffect(() => {
+    void setupAndroidNotificationChannels();
+    const subscription = setupNotificationTapRouting(router);
+    return () => { subscription.remove(); };
+  }, [router]);
 
   useEffect(() => {
     if (loading) return;
