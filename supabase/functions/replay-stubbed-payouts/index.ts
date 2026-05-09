@@ -58,7 +58,7 @@ serve(async (req: Request) => {
     .from('payout_dispatches')
     .select('*')
     .eq('failed_reason', 'razorpay_live_not_configured')
-    .order('created_at', { ascending: true })
+    .order('initiated_at', { ascending: true })
     .limit(limit);
 
   if (qErr) return errorResponse(`fetch_failed: ${qErr.message}`, 500);

@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS payout_dispatches (
   status                text        NOT NULL DEFAULT 'pending'
                           CHECK (status IN ('pending','sent','failed','cancelled')),
   failed_reason         text,
-  created_at            timestamptz NOT NULL DEFAULT now(),
+  initiated_at          timestamptz NOT NULL DEFAULT now(),  -- matches financial_core column name
   completed_at          timestamptz,
 
   -- Idempotency for the three reconciliation kinds is enforced by the partial
@@ -52,9 +52,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS uniq_payout_dispatch_reconcile
   ON payout_dispatches(booking_id, kind, recipient_user_id)
  WHERE kind IN ('buddy_fee_final','traveler_refund','trip_pot_release');
 
+-- Add razorpay_refund_id if not already present (financial_core only has razorpay_payout_id).
+ALTER TABLE payout_dispatches ADD COLUMN IF NOT EXISTS razorpay_refund_id text;
+
 -- Partial index for the replay-stubbed-payouts drain.
+-- Uses initiated_at (the column name from financial_core.sql, not created_at).
 CREATE INDEX IF NOT EXISTS idx_payout_dispatches_pending_stub
-  ON payout_dispatches(created_at)
+  ON payout_dispatches(initiated_at)
   WHERE status = 'pending' AND failed_reason = 'razorpay_live_not_configured';
 
 -- RLS for payout_dispatches: both booking parties may read their own rows.

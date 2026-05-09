@@ -91,7 +91,7 @@ export interface PayoutDispatch {
   deposit_component_paise?: number;
   status:                  'pending' | 'sent' | 'failed' | 'cancelled';
   failed_reason?:          string;
-  created_at:              string;
+  initiated_at:            string;  // financial_core uses initiated_at, not created_at
   completed_at?:           string;
 }
 
@@ -100,7 +100,7 @@ export async function fetchPayoutDispatches(bookingId: string): Promise<PayoutDi
     .from('payout_dispatches')
     .select('*')
     .eq('booking_id', bookingId)
-    .order('created_at', { ascending: true });
+    .order('initiated_at', { ascending: true });
   if (error) throw error;
   return (data ?? []) as PayoutDispatch[];
 }

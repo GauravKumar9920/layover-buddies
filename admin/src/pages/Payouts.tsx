@@ -20,7 +20,7 @@ interface PayoutRow {
   tds_paise: number | null;
   status: string;
   failed_reason: string | null;
-  created_at: string;
+  initiated_at: string;  // financial_core uses initiated_at, not created_at
   completed_at: string | null;
   recipient: { full_name: string | null; email: string } | null;
 }
@@ -37,7 +37,7 @@ function statusStyle(status: string): string {
 function isStuck(row: PayoutRow): boolean {
   if (row.status === 'failed') return true;
   if (row.status === 'pending') {
-    const ageMs = Date.now() - new Date(row.created_at).getTime();
+    const ageMs = Date.now() - new Date(row.initiated_at).getTime();
     return ageMs > 60 * 60 * 1_000; // > 1 hour
   }
   return false;
@@ -58,10 +58,10 @@ export default function PayoutsPage() {
         .from('payout_dispatches')
         .select(`
           id, booking_id, kind, gross_paise, net_paise, tds_paise,
-          status, failed_reason, created_at, completed_at,
+          status, failed_reason, initiated_at, completed_at,
           recipient:recipient_user_id(full_name, email)
         `)
-        .order('created_at', { ascending: false })
+        .order('initiated_at', { ascending: false })
         .limit(500);
       if (qErr) throw qErr;
       setRows((data ?? []) as unknown as PayoutRow[]);
@@ -97,9 +97,9 @@ export default function PayoutsPage() {
 
   const columns: Column<PayoutRow>[] = [
     {
-      key: 'created_at',
+      key: 'initiated_at',
       header: 'Created',
-      render: r => <span className="text-sm text-muted">{relative(r.created_at)}</span>,
+      render: r => <span className="text-sm text-muted">{relative(r.initiated_at)}</span>,
     },
     {
       key: 'kind',

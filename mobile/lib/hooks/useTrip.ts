@@ -101,7 +101,7 @@ export function useTrip(bookingId: string | null): UseTripResult {
           .eq('booking_id', bookingId).order('created_at', { ascending: true }),
 
         supabase.from('payout_dispatches').select('*')
-          .eq('booking_id', bookingId).order('created_at', { ascending: true }),
+          .eq('booking_id', bookingId).order('initiated_at', { ascending: true }),
       ]);
 
       if (bRes.error)  throw bRes.error;
