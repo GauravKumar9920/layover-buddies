@@ -19,24 +19,36 @@
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 
 -- ─────────────────────────────────────────────────────────────────
--- notifications table
--- The storage layer for in-app banners (Phase 3+4) and Expo Push (Phase 5).
--- Cron jobs INSERT rows; the mobile app's notifications hook subscribes via
--- Realtime and renders banners. recipient_user_id targets one party at a time.
+-- notifications table — extend the Phase 1 table (initial_schema.sql)
+-- with Phase 3+4 columns instead of re-creating it.
+--
+-- initial_schema has: id, user_id (NOT NULL), type (enum, NOT NULL),
+--   title (NOT NULL), body, data, is_read, created_at
+--
+-- Phase 3+4 needs:    booking_id, recipient_user_id, kind (text), payload,
+--   sent_at, read_at, dismissed_at
+--
+-- We ADD the new columns and make the old Phase-1 NOT NULL columns nullable
+-- so cron-inserted rows (which have no title/type/user_id) don't violate
+-- constraints. Phase 5 push-notification code will populate those columns.
 -- ─────────────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS notifications (
-  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  booking_id          uuid REFERENCES bookings(id) ON DELETE CASCADE,
-  recipient_user_id   uuid NOT NULL REFERENCES users(id),
-  -- text rather than enum so cron jobs and edge fns can introduce kinds without enum migrations:
+ALTER TABLE notifications
+  ADD COLUMN IF NOT EXISTS booking_id        uuid REFERENCES bookings(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS recipient_user_id uuid REFERENCES users(id),
+  -- text kind replaces the enum; richer vocabulay without enum migrations:
   --   'balance_reminder_84h', 'balance_reminder_48h', 'balance_reminder_24h', 'balance_reminder_18h',
-  --   'late_fee_assessed', 'no_pay_cancelled', 'proofs_overdue', 'rating_link', 'top_up_request', etc.
-  kind                text NOT NULL,
-  payload             jsonb NOT NULL DEFAULT '{}'::jsonb,
-  sent_at             timestamptz NOT NULL DEFAULT now(),
-  read_at             timestamptz,
-  dismissed_at        timestamptz
-);
+  --   'late_fee_assessed', 'no_pay_cancelled', 'proofs_overdue', 'rating_link', 'top_up_request'
+  ADD COLUMN IF NOT EXISTS kind              text,
+  ADD COLUMN IF NOT EXISTS payload           jsonb NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS sent_at           timestamptz NOT NULL DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS read_at           timestamptz,
+  ADD COLUMN IF NOT EXISTS dismissed_at      timestamptz;
+
+-- Make Phase-1 columns nullable so cron rows (no push-notification fields) are valid.
+ALTER TABLE notifications
+  ALTER COLUMN user_id DROP NOT NULL,
+  ALTER COLUMN type    DROP NOT NULL,
+  ALTER COLUMN title   DROP NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_notifications_recipient
   ON notifications(recipient_user_id, sent_at DESC);
