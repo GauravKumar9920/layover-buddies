@@ -17,6 +17,22 @@ export const CURRENCY_SYMBOL = '₹' as const;
 export const DEPOSIT_PAISE = 50_000;     // ₹500 refundable deposit per side
 export const BUFFER_PERCENT = 0.20;      // 20% of itinerary fund
 
+// ── Phase 3 — balance, late fees, cancellations ─────────────────────────────
+export const LATE_FEE_PAISE         = 100_000;  // ₹1,000 fixed late fee
+export const TDS_RATE               = 0.01;     // Section 194C — 1% on buddy fee
+export const PLATFORM_FEE_DOWN_RATE = 0.125;    // 12.5% buddy-side platform-down
+export const PLATFORM_FEE_UP_RATE   = 0.125;    // 12.5% traveler-side platform-up (mirror)
+export const T_MINUS_72_HOURS       = 72;       // late-fee accrual cutoff
+export const T_MINUS_12_HOURS       = 12;       // no-pay cancel + trip-ready promotion
+export const BALANCE_REMINDER_HOURS = [84, 48, 24, 18] as const;
+export const PG_FEE_RATE            = 0.02;     // Razorpay PG fee — recorded but borne by platform in v1
+
+// ── Phase 4 — trip lifecycle, top-ups, reconciliation ───────────────────────
+export const PROOFS_DUE_HOURS       = 24;       // buddy has 24h post-trip to upload proofs
+export const TOP_UP_EXPIRY_MINUTES  = 15;       // traveler has 15 min to decide on a top-up
+export const RATING_LINK_HOURS      = 3;        // T+3h post-completion → rating link sent
+export const PLATFORM_CREDIT_PAISE  = 50_000;   // ₹500 platform credit on buddy-cancellation
+
 export const BOOKING_STATUS = {
   PENDING: 'pending',
   GUIDE_ACCEPTED: 'guide_accepted',

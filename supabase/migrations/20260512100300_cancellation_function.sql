@@ -1,0 +1,470 @@
+-- ============================================================================
+-- CANCELLATION RESOLUTION FUNCTION — Phase 3
+-- ============================================================================
+-- SECURITY DEFINER plpgsql function that implements the §7 cancellation
+-- truth table and writes all side-effects atomically:
+--   1. Computes tier + per-component fates from booking state.
+--   2. Inserts payout_dispatches rows (status='pending') for every cash move.
+--   3. Writes cancelled_resolution_jsonb on bookings.
+--   4. Transitions bookings.status to the appropriate cancelled_* state.
+--   5. Sets users.is_banned=true for buddy_cancel tier.
+--
+-- TS mirror: mobile/lib/booking/cancellationSnapshot.ts — must match exactly.
+-- ============================================================================
+
+-- ─── Support: payout_dispatches table (if not already present) ─────────────
+-- This table is also referenced by the reconciliation function (migration
+-- 100200) and the phase3 columns migration (100000). We use CREATE TABLE IF
+-- NOT EXISTS so this migration is idempotent across ordering.
+
+CREATE TABLE IF NOT EXISTS payout_dispatches (
+  id                    uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  booking_id            uuid        NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+  kind                  payout_kind NOT NULL,
+  recipient_user_id     uuid        NOT NULL REFERENCES users(id),
+  gross_paise           integer     NOT NULL CHECK (gross_paise >= 0),
+  net_paise             integer     NOT NULL CHECK (net_paise >= 0),
+  -- Reconciliation-specific breakdown fields (nullable for cancellation rows)
+  tds_paise             integer     CHECK (tds_paise >= 0),
+  buffer_clawback_paise integer     CHECK (buffer_clawback_paise >= 0),
+  deposit_component_paise integer   CHECK (deposit_component_paise >= 0),
+  -- Razorpay binding (populated when dispatched; null while pending)
+  razorpay_payout_id    text,
+  razorpay_refund_id    text,
+  razorpay_fund_account_id text,
+  -- Lifecycle
+  status                text        NOT NULL DEFAULT 'pending'
+                          CHECK (status IN ('pending','sent','failed','cancelled')),
+  failed_reason         text,
+  initiated_at          timestamptz NOT NULL DEFAULT now(),  -- matches financial_core column name
+  completed_at          timestamptz,
+
+  -- Idempotency for the three reconciliation kinds is enforced by the partial
+  -- unique index below (partial unique constraints with WHERE cannot be declared
+  -- inline in CREATE TABLE in PostgreSQL).
+  CONSTRAINT chk_payout_net_lte_gross CHECK (net_paise <= gross_paise)
+);
+
+-- Partial unique index: one row per (booking, kind, recipient) for the three
+-- standard reconciliation payouts. PostgreSQL partial UNIQUE constraints with
+-- WHERE must be expressed as an index, not an inline table constraint.
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_payout_dispatch_reconcile
+  ON payout_dispatches(booking_id, kind, recipient_user_id)
+ WHERE kind IN ('buddy_fee_final','traveler_refund','trip_pot_release');
+
+-- Add razorpay_refund_id if not already present (financial_core only has razorpay_payout_id).
+ALTER TABLE payout_dispatches ADD COLUMN IF NOT EXISTS razorpay_refund_id text;
+
+-- Partial index for the replay-stubbed-payouts drain.
+-- Uses initiated_at (the column name from financial_core.sql, not created_at).
+CREATE INDEX IF NOT EXISTS idx_payout_dispatches_pending_stub
+  ON payout_dispatches(initiated_at)
+  WHERE status = 'pending' AND failed_reason = 'razorpay_live_not_configured';
+
+-- RLS for payout_dispatches: both booking parties may read their own rows.
+ALTER TABLE payout_dispatches ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  -- Drop & recreate to stay idempotent across replays.
+  DROP POLICY IF EXISTS payout_dispatches_party_read ON payout_dispatches;
+  CREATE POLICY payout_dispatches_party_read
+    ON payout_dispatches FOR SELECT
+    USING (
+      recipient_user_id = auth.uid()
+      OR EXISTS (
+        SELECT 1 FROM bookings b
+         WHERE b.id = booking_id
+           AND (b.traveler_id = auth.uid() OR b.guide_id = auth.uid())
+      )
+    );
+END $$;
+
+GRANT SELECT ON payout_dispatches TO authenticated;
+GRANT ALL    ON payout_dispatches TO service_role;
+
+-- ─── Main function ──────────────────────────────────────────────────────────
+
+CREATE OR REPLACE FUNCTION compute_cancellation_resolution_tx(
+  p_booking_id   uuid,
+  p_trigger      text,   -- 'voluntary' | 't_minus_12_no_pay' | 'force_majeure_verified' | 'deposit_window_expired'
+  p_actor        text    -- 'traveler' | 'buddy' | 'system'
+) RETURNS jsonb
+  LANGUAGE plpgsql
+  SECURITY DEFINER
+  SET search_path = public
+AS $$
+DECLARE
+  v_booking            bookings%ROWTYPE;
+  v_agreement          agreements%ROWTYPE;
+  v_tier               text;
+  v_next_status        text;
+  v_traveler_deposit   jsonb;
+  v_buddy_deposit      jsonb;
+  v_itin_buffer        jsonb;
+  v_buddy_fee          jsonb;
+  v_late_fee           jsonb;
+  v_platform_credit    jsonb;
+  v_buddy_ban          boolean := false;
+  v_total_refunded     integer := 0;
+  v_pg_fee             integer;
+  v_resolution         jsonb;
+  v_hours_until_trip   numeric;
+  v_balance_paid       boolean := false;   -- true when payment_events has a captured 'balance' row
+  v_trip_pot_paise     integer := 0;       -- itinerary_fund + buffer + captured top-ups
+  -- payout constants
+  c_deposit_paise      constant integer := 50000;     -- ₹500
+  c_platform_credit    constant integer := 50000;     -- ₹500
+  c_pg_fee_rate        constant numeric := 0.02;      -- 2%
+BEGIN
+  -- ── Lock the booking row for this transaction ──────────────────────────
+  SELECT * INTO v_booking
+    FROM bookings
+   WHERE id = p_booking_id
+     FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Booking % not found', p_booking_id;
+  END IF;
+
+  -- ── Load latest agreement (for amounts) ───────────────────────────────
+  SELECT * INTO v_agreement
+    FROM agreements
+   WHERE booking_id = p_booking_id
+   ORDER BY created_at DESC
+   LIMIT 1;
+
+  -- ── Compute hours until trip (using agreements.trip_starts_at) ─────────
+  IF v_agreement.trip_starts_at IS NOT NULL THEN
+    v_hours_until_trip := EXTRACT(EPOCH FROM (v_agreement.trip_starts_at - now())) / 3600.0;
+  ELSE
+    -- Fallback to bookings.tour_start_time for pre-Phase-2 bookings.
+    v_hours_until_trip := EXTRACT(EPOCH FROM (v_booking.tour_start_time - now())) / 3600.0;
+  END IF;
+
+  -- ── Check whether the balance payment has been captured ───────────────
+  SELECT EXISTS (
+    SELECT 1 FROM payment_events
+     WHERE booking_id = p_booking_id
+       AND kind = 'balance'
+       AND status = 'captured'
+  ) INTO v_balance_paid;
+
+  -- ── Compute trip pot (itin + buffer + captured top-ups) ───────────────
+  IF v_agreement.id IS NOT NULL THEN
+    SELECT v_agreement.itinerary_fund_paise + v_agreement.buffer_paise +
+           COALESCE((
+             SELECT SUM(amount_paise)
+               FROM payment_events
+              WHERE booking_id = p_booking_id
+                AND kind = 'top_up'
+                AND status = 'captured'
+           ), 0)
+    INTO v_trip_pot_paise;
+  END IF;
+
+  -- ── Determine the tier ─────────────────────────────────────────────────
+  IF p_trigger = 'force_majeure_verified' THEN
+    v_tier        := 'force_majeure';
+    v_next_status := 'cancelled_force_majeure';
+  ELSIF p_trigger = 'deposit_window_expired' THEN
+    v_tier        := 'pre_signing';
+    v_next_status := 'cancelled_no_deposit';
+  ELSIF p_trigger = 't_minus_12_no_pay' THEN
+    v_tier        := 'late_no_pay';
+    v_next_status := 'cancelled_no_pay';
+  ELSIF p_actor = 'buddy' THEN
+    v_tier        := 'buddy_cancel';
+    v_next_status := 'cancelled_buddy';
+  ELSIF p_actor IN ('traveler', 'system') THEN
+    IF v_hours_until_trip > 72 THEN
+      v_tier := 'gt_72h';
+    ELSIF v_hours_until_trip >= 24 THEN
+      v_tier := '24_to_72h';
+    ELSE
+      v_tier := 'lt_24h';
+    END IF;
+    v_next_status := 'cancelled_traveler_voluntary';
+  ELSE
+    RAISE EXCEPTION 'Unknown actor: %', p_actor;
+  END IF;
+
+  -- ── Resolve each component per the truth table ─────────────────────────
+
+  -- Helper patterns (inline with CASE):
+  --   deposit held?  → FROM deposits WHERE booking_id AND side
+  -- We check the deposits table for current status.
+
+  -- Defaults
+  v_traveler_deposit := '{"fate":"not_paid","amount_paise":0}'::jsonb;
+  v_buddy_deposit    := '{"fate":"not_paid","amount_paise":0}'::jsonb;
+  v_itin_buffer      := '{"fate":"not_paid","amount_paise":0}'::jsonb;
+  v_buddy_fee        := '{"fate":"not_paid","amount_paise":0}'::jsonb;
+  v_late_fee         := '{"fate":"waived","amount_paise":0}'::jsonb;
+  v_platform_credit  := jsonb_build_object('issue_to_user_id', NULL, 'amount_paise', 0);
+
+  CASE v_tier
+
+    WHEN 'gt_72h', 'pre_signing' THEN
+      -- Full refund of held deposits; buffer/fee not paid yet (or full refund if paid).
+      IF EXISTS (SELECT 1 FROM deposits WHERE booking_id = p_booking_id AND side = 'traveler' AND status = 'held') THEN
+        v_traveler_deposit := jsonb_build_object('fate','refunded','amount_paise',c_deposit_paise);
+        v_total_refunded   := v_total_refunded + c_deposit_paise;
+      END IF;
+      IF EXISTS (SELECT 1 FROM deposits WHERE booking_id = p_booking_id AND side = 'buddy' AND status = 'held') THEN
+        v_buddy_deposit  := jsonb_build_object('fate','refunded','amount_paise',c_deposit_paise);
+        v_total_refunded := v_total_refunded + c_deposit_paise;
+      END IF;
+      IF v_balance_paid AND v_agreement.id IS NOT NULL THEN
+        v_itin_buffer    := jsonb_build_object('fate','refunded','amount_paise', v_trip_pot_paise);
+        v_buddy_fee      := jsonb_build_object('fate','refunded','amount_paise', v_agreement.buddy_fee_paise);
+        v_total_refunded := v_total_refunded + v_trip_pot_paise + v_agreement.buddy_fee_paise;
+      END IF;
+
+    WHEN '24_to_72h' THEN
+      IF EXISTS (SELECT 1 FROM deposits WHERE booking_id = p_booking_id AND side = 'traveler' AND status = 'held') THEN
+        v_traveler_deposit := jsonb_build_object('fate','refunded','amount_paise', c_deposit_paise / 2);
+        v_total_refunded   := v_total_refunded + c_deposit_paise / 2;
+      END IF;
+      IF EXISTS (SELECT 1 FROM deposits WHERE booking_id = p_booking_id AND side = 'buddy' AND status = 'held') THEN
+        v_buddy_deposit  := jsonb_build_object('fate','refunded','amount_paise', c_deposit_paise);
+        v_total_refunded := v_total_refunded + c_deposit_paise;
+      END IF;
+      IF v_balance_paid AND v_agreement.id IS NOT NULL THEN
+        v_itin_buffer    := jsonb_build_object('fate','refunded','amount_paise', v_trip_pot_paise / 2);
+        v_buddy_fee      := jsonb_build_object('fate','refunded','amount_paise', v_agreement.buddy_fee_paise / 2);
+        v_total_refunded := v_total_refunded + v_trip_pot_paise / 2 + v_agreement.buddy_fee_paise / 2;
+      END IF;
+
+    WHEN 'lt_24h' THEN
+      IF EXISTS (SELECT 1 FROM deposits WHERE booking_id = p_booking_id AND side = 'traveler' AND status = 'held') THEN
+        v_traveler_deposit := jsonb_build_object('fate','voucher','amount_paise',c_deposit_paise,'voucher_paise',c_deposit_paise);
+      END IF;
+      IF EXISTS (SELECT 1 FROM deposits WHERE booking_id = p_booking_id AND side = 'buddy' AND status = 'held') THEN
+        v_buddy_deposit  := jsonb_build_object('fate','refunded','amount_paise',c_deposit_paise);
+        v_total_refunded := v_total_refunded + c_deposit_paise;
+      END IF;
+      IF v_balance_paid AND v_agreement.id IS NOT NULL THEN
+        v_itin_buffer := jsonb_build_object('fate','voucher','amount_paise',v_trip_pot_paise,'voucher_paise',v_trip_pot_paise);
+        v_buddy_fee   := jsonb_build_object('fate','voucher','amount_paise',v_agreement.buddy_fee_paise,'voucher_paise',v_agreement.buddy_fee_paise);
+      END IF;
+
+    WHEN 'late_no_pay' THEN
+      IF EXISTS (SELECT 1 FROM deposits WHERE booking_id = p_booking_id AND side = 'traveler' AND status = 'held') THEN
+        v_traveler_deposit := jsonb_build_object('fate','forfeited','amount_paise',c_deposit_paise);
+      END IF;
+      IF EXISTS (SELECT 1 FROM deposits WHERE booking_id = p_booking_id AND side = 'buddy' AND status = 'held') THEN
+        v_buddy_deposit  := jsonb_build_object('fate','refunded','amount_paise',c_deposit_paise);
+        v_total_refunded := v_total_refunded + c_deposit_paise;
+      END IF;
+      IF v_booking.late_fee_paise > 0 THEN
+        v_late_fee := jsonb_build_object('fate','forfeited','amount_paise',v_booking.late_fee_paise);
+      ELSE
+        v_late_fee := '{"fate":"waived","amount_paise":0}'::jsonb;
+      END IF;
+
+    WHEN 'buddy_cancel' THEN
+      IF EXISTS (SELECT 1 FROM deposits WHERE booking_id = p_booking_id AND side = 'traveler' AND status = 'held') THEN
+        v_traveler_deposit := jsonb_build_object('fate','refunded','amount_paise',c_deposit_paise);
+        v_total_refunded   := v_total_refunded + c_deposit_paise;
+      END IF;
+      IF EXISTS (SELECT 1 FROM deposits WHERE booking_id = p_booking_id AND side = 'buddy' AND status = 'held') THEN
+        v_buddy_deposit := jsonb_build_object('fate','forfeited','amount_paise',c_deposit_paise);
+      END IF;
+      IF v_balance_paid AND v_agreement.id IS NOT NULL THEN
+        v_itin_buffer    := jsonb_build_object('fate','refunded','amount_paise',v_trip_pot_paise);
+        v_buddy_fee      := jsonb_build_object('fate','refunded','amount_paise',v_agreement.buddy_fee_paise);
+        v_total_refunded := v_total_refunded + v_trip_pot_paise + v_agreement.buddy_fee_paise;
+      END IF;
+      v_platform_credit := jsonb_build_object('issue_to_user_id', v_booking.traveler_id::text, 'amount_paise', c_platform_credit);
+      v_buddy_ban       := true;
+
+    WHEN 'force_majeure' THEN
+      IF EXISTS (SELECT 1 FROM deposits WHERE booking_id = p_booking_id AND side = 'traveler' AND status = 'held') THEN
+        v_traveler_deposit := jsonb_build_object('fate','refunded','amount_paise',c_deposit_paise);
+        v_total_refunded   := v_total_refunded + c_deposit_paise;
+      END IF;
+      IF EXISTS (SELECT 1 FROM deposits WHERE booking_id = p_booking_id AND side = 'buddy' AND status = 'held') THEN
+        v_buddy_deposit  := jsonb_build_object('fate','refunded','amount_paise',c_deposit_paise);
+        v_total_refunded := v_total_refunded + c_deposit_paise;
+      END IF;
+      IF v_balance_paid AND v_agreement.id IS NOT NULL THEN
+        v_itin_buffer    := jsonb_build_object('fate','refunded','amount_paise',v_trip_pot_paise);
+        v_buddy_fee      := jsonb_build_object('fate','refunded','amount_paise',v_agreement.buddy_fee_paise);
+        v_total_refunded := v_total_refunded + v_trip_pot_paise + v_agreement.buddy_fee_paise;
+      END IF;
+      IF v_booking.late_fee_paise > 0 THEN
+        v_late_fee := jsonb_build_object('fate','waived','amount_paise',v_booking.late_fee_paise);
+      END IF;
+
+  END CASE;
+
+  -- ── PG fee: 2% of cash-moving components, borne by platform ───────────
+  v_pg_fee := ROUND(v_total_refunded * c_pg_fee_rate);
+
+  -- ── Build resolution JSONB ─────────────────────────────────────────────
+  v_resolution := jsonb_build_object(
+    'trigger',              p_trigger,
+    'trigger_actor',        p_actor,
+    'tier',                 v_tier,
+    'hours_until_trip',     v_hours_until_trip,
+    'traveler_deposit',     v_traveler_deposit,
+    'buddy_deposit',        v_buddy_deposit,
+    'itinerary_buffer',     v_itin_buffer,
+    'buddy_fee',            v_buddy_fee,
+    'late_fee',             v_late_fee,
+    'platform_credit',      v_platform_credit,
+    'pg_fee_paise',         v_pg_fee,
+    'pg_fee_borne_by',      'platform',
+    'buddy_ban',            v_buddy_ban,
+    'next_booking_status',  v_next_status
+  );
+
+  -- ── Side-effects ───────────────────────────────────────────────────────
+
+  -- 1. Write payout_dispatches rows for cash moves (status='pending').
+  --    Refunds go back to whoever originally paid.
+  --    Each row uses INSERT ... ON CONFLICT DO NOTHING for idempotency.
+
+  -- Traveler deposit refund
+  IF (v_traveler_deposit->>'fate') = 'refunded' THEN
+    INSERT INTO payout_dispatches
+      (booking_id, kind, recipient_user_id, gross_paise, net_paise)
+    VALUES
+      (p_booking_id, 'traveler_deposit_refund', v_booking.traveler_id,
+       (v_traveler_deposit->>'amount_paise')::integer,
+       (v_traveler_deposit->>'amount_paise')::integer)
+    ON CONFLICT (booking_id, kind, recipient_user_id) DO NOTHING;
+  END IF;
+
+  -- Buddy deposit refund
+  IF (v_buddy_deposit->>'fate') = 'refunded' THEN
+    INSERT INTO payout_dispatches
+      (booking_id, kind, recipient_user_id, gross_paise, net_paise)
+    VALUES
+      (p_booking_id, 'buddy_deposit_refund', v_booking.guide_id,
+       (v_buddy_deposit->>'amount_paise')::integer,
+       (v_buddy_deposit->>'amount_paise')::integer)
+    ON CONFLICT (booking_id, kind, recipient_user_id) DO NOTHING;
+  END IF;
+
+  -- Trip fund refund to traveler (itin+buffer component)
+  IF (v_itin_buffer->>'fate') = 'refunded' THEN
+    INSERT INTO payout_dispatches
+      (booking_id, kind, recipient_user_id, gross_paise, net_paise)
+    VALUES
+      (p_booking_id, 'trip_fund_cancellation_refund', v_booking.traveler_id,
+       (v_itin_buffer->>'amount_paise')::integer,
+       (v_itin_buffer->>'amount_paise')::integer)
+    ON CONFLICT (booking_id, kind, recipient_user_id) DO NOTHING;
+  END IF;
+
+  -- Buddy fee refund (buddy_cancel / force_majeure)
+  IF (v_buddy_fee->>'fate') = 'refunded' THEN
+    INSERT INTO payout_dispatches
+      (booking_id, kind, recipient_user_id, gross_paise, net_paise)
+    VALUES
+      (p_booking_id, 'buddy_fee_cancellation_refund', v_booking.traveler_id,
+       (v_buddy_fee->>'amount_paise')::integer,
+       (v_buddy_fee->>'amount_paise')::integer)
+    ON CONFLICT (booking_id, kind, recipient_user_id) DO NOTHING;
+  END IF;
+
+  -- 2. Update deposits to 'refunded' where fate = 'refunded'
+  IF (v_traveler_deposit->>'fate') = 'refunded' THEN
+    UPDATE deposits SET status = 'refunded' WHERE booking_id = p_booking_id AND side = 'traveler' AND status = 'held';
+  END IF;
+  IF (v_buddy_deposit->>'fate') = 'refunded' THEN
+    UPDATE deposits SET status = 'refunded' WHERE booking_id = p_booking_id AND side = 'buddy'    AND status = 'held';
+  END IF;
+
+  -- 3. Ban buddy if necessary
+  IF v_buddy_ban THEN
+    UPDATE users SET is_banned = true, banned_at = now(), banned_reason = 'buddy_cancel'
+     WHERE id = v_booking.guide_id AND (is_banned IS NULL OR is_banned = false);
+  END IF;
+
+  -- 4. Write resolution + transition booking status
+  UPDATE bookings
+     SET status                     = v_next_status::booking_status,
+         cancelled_at               = now(),
+         cancelled_by_user_id       = CASE p_actor
+                                        WHEN 'traveler' THEN v_booking.traveler_id
+                                        WHEN 'buddy'    THEN v_booking.guide_id
+                                        ELSE NULL END,
+         cancellation_trigger_event = p_trigger,
+         cancelled_resolution_jsonb = v_resolution
+   WHERE id = p_booking_id;
+
+  RETURN v_resolution;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION compute_cancellation_resolution_tx(uuid, text, text) TO service_role;
+
+-- ─── Fill in the cron function bodies that depend on this resolver ──────────
+-- These were created as stubs in migration 100400. Now that the resolver
+-- exists, we fill them in.
+
+CREATE OR REPLACE FUNCTION cron_no_pay_cancel()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_rec bookings%ROWTYPE;
+BEGIN
+  FOR v_rec IN
+    SELECT b.*
+      FROM bookings b
+      JOIN agreements a ON a.booking_id = b.id
+     WHERE b.status = 'late_fee_due'
+       AND a.trip_starts_at - now() <= interval '12 hours'
+       AND a.trip_starts_at - now() > interval '-24 hours'  -- safety: don't process very old rows
+     ORDER BY a.trip_starts_at
+  LOOP
+    BEGIN
+      PERFORM compute_cancellation_resolution_tx(v_rec.id, 't_minus_12_no_pay', 'system');
+    EXCEPTION WHEN OTHERS THEN
+      -- Log and continue — one bad row must not block the batch.
+      RAISE WARNING 'cron_no_pay_cancel: failed for booking %: %', v_rec.id, SQLERRM;
+    END;
+  END LOOP;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION cron_deposit_window_expire()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_rec bookings%ROWTYPE;
+BEGIN
+  FOR v_rec IN
+    SELECT *
+      FROM bookings
+     WHERE status = 'awaiting_deposits'
+       AND now() - created_at > interval '24 hours'
+     ORDER BY created_at
+  LOOP
+    BEGIN
+      PERFORM compute_cancellation_resolution_tx(v_rec.id, 'deposit_window_expired', 'system');
+    EXCEPTION WHEN OTHERS THEN
+      RAISE WARNING 'cron_deposit_window_expire: failed for booking %: %', v_rec.id, SQLERRM;
+    END;
+  END LOOP;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION cron_no_pay_cancel()        TO service_role, postgres;
+GRANT EXECUTE ON FUNCTION cron_deposit_window_expire() TO service_role, postgres;
+
+-- ─── Extend payout_kind enum for cancellation dispatch rows ─────────────────
+DO $$ BEGIN
+  ALTER TYPE payout_kind ADD VALUE IF NOT EXISTS 'traveler_deposit_refund';
+  ALTER TYPE payout_kind ADD VALUE IF NOT EXISTS 'buddy_deposit_refund';
+  ALTER TYPE payout_kind ADD VALUE IF NOT EXISTS 'trip_fund_cancellation_refund';
+  ALTER TYPE payout_kind ADD VALUE IF NOT EXISTS 'buddy_fee_cancellation_refund';
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;

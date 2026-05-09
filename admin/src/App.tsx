@@ -6,6 +6,8 @@ import UsersPage from '@/pages/Users';
 import BookingsPage from '@/pages/Bookings';
 import RevenuePage from '@/pages/Revenue';
 import SosPage from '@/pages/SOS';
+import CancellationsPage from '@/pages/Cancellations';
+import PayoutsPage from '@/pages/Payouts';
 import { isAuthed } from '@/lib/auth';
 
 export default function App() {
@@ -29,6 +31,8 @@ export default function App() {
         <Route path="/bookings" element={<BookingsPage />} />
         <Route path="/revenue" element={<RevenuePage />} />
         <Route path="/sos" element={<SosPage />} />
+        <Route path="/cancellations" element={<CancellationsPage />} />
+        <Route path="/payouts" element={<PayoutsPage />} />
         <Route path="*" element={<Navigate to="/users" replace />} />
       </Route>
     </Routes>

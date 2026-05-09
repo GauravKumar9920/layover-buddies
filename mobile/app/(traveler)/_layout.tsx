@@ -72,6 +72,13 @@ export default function TravelerLayout() {
       <Tabs.Screen name="trips/[id]" options={{ href: null }} />
       <Tabs.Screen name="trips/live/[id]" options={{ href: null }} />
       <Tabs.Screen name="trips/review/[id]" options={{ href: null }} />
+      {/* Phase 3 */}
+      <Tabs.Screen name="trips/balance/[bookingId]" options={{ href: null }} />
+      <Tabs.Screen name="trips/cancel/[bookingId]" options={{ href: null }} />
+      <Tabs.Screen name="trips/cancellation-receipt/[bookingId]" options={{ href: null }} />
+      {/* Phase 4 */}
+      <Tabs.Screen name="trips/qr/[bookingId]" options={{ href: null }} />
+      <Tabs.Screen name="trips/receipt/[bookingId]" options={{ href: null }} />
     </Tabs>
   );
 }

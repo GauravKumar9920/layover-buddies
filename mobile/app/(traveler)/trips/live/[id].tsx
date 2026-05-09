@@ -5,7 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Header } from '@/components/ui/Header';
 import { Card } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
+import { TopUpApprovalModal } from '@/components/bookings/TopUpApprovalModal';
 import { fetchBookingById } from '@/lib/api/bookings';
+import { useTopUpRequest } from '@/lib/hooks/useTopUpRequest';
 import { supabase } from '@/lib/supabase';
 import { theme } from '@/config/theme';
 import type { Booking } from '@/types';
@@ -28,6 +30,19 @@ export default function LiveTourScreen() {
   const [guideLocation, setGuideLocation] = useState<LocationPoint | null>(null);
   const [loading, setLoading] = useState(true);
   const [connectionMessage, setConnectionMessage] = useState<string | null>(null);
+  const [topUpModalVisible, setTopUpModalVisible] = useState(false);
+
+  // Phase 4 — top-up approval
+  const { activeRequest } = useTopUpRequest(id ?? null);
+
+  // Auto-open modal when a top-up request arrives.
+  useEffect(() => {
+    if (activeRequest) {
+      setTopUpModalVisible(true);
+    } else {
+      setTopUpModalVisible(false);
+    }
+  }, [activeRequest?.id]);
 
   useEffect(() => {
     if (!id) return;
@@ -117,6 +132,15 @@ export default function LiveTourScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background, paddingTop: insets.top }}>
       <Header title="Live Tour" showBack />
+
+      {/* Phase 4 — top-up approval modal */}
+      <TopUpApprovalModal
+        visible={topUpModalVisible}
+        request={activeRequest}
+        bookingId={id ?? ''}
+        buddyName={booking?.guide?.name ?? 'Your buddy'}
+        onDismiss={() => setTopUpModalVisible(false)}
+      />
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         {connectionMessage && (
