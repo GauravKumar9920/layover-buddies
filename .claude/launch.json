@@ -8,6 +8,12 @@
       "port": 9999
     },
     {
+      "name": "Themed Preview (Night/Light)",
+      "runtimeExecutable": "/opt/homebrew/bin/python3",
+      "runtimeArgs": ["-m", "http.server", "8765", "--directory", "design/themed-preview"],
+      "port": 8765
+    },
+    {
       "name": "Marketing Website (Vite)",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
