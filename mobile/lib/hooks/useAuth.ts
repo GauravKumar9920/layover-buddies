@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../supabase';
 import { getUserRole } from '../auth';
+import { registerPushTokenIfPossible } from '../push/registerPushToken';
 import type { UserRole } from '@/types';
 
 interface AuthState {
@@ -83,6 +84,10 @@ export function useAuth(): AuthState {
           loading: false,
           bootstrapError: null,
         });
+        // Best-effort: register an Expo Push token so balance reminders,
+        // late-fee alerts, and top-up requests can reach this device.
+        // Never throws; safe to fire-and-forget.
+        void registerPushTokenIfPossible(session.user.id);
       } else {
         clearToSignedOut();
       }
@@ -105,6 +110,7 @@ export function useAuth(): AuthState {
             loading: false,
             bootstrapError: null,
           });
+          void registerPushTokenIfPossible(session.user.id);
         } else {
           clearToSignedOut();
         }
