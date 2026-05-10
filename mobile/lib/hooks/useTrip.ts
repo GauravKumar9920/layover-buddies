@@ -7,7 +7,7 @@
 // Mirrors the useAgreement pattern: initial fetch + four Realtime channels.
 // ============================================================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useId } from 'react';
 import { supabase } from '../supabase';
 import type { BookingState } from '../booking/stateMachine';
 import type { CancellationResolution } from '../booking/cancellationSnapshot';
@@ -67,6 +67,12 @@ export interface UseTripResult {
 }
 
 export function useTrip(bookingId: string | null): UseTripResult {
+  // Unique suffix per hook mount so channel names never collide when navigating
+  // between screens that both use useTrip for the same booking. useId() is
+  // guaranteed unique per component instance — better than Date.now() which
+  // can collide on fast unmount→remount cycles within the same millisecond.
+  const mountId = useId();
+
   const [booking,          setBooking]          = useState<TripBooking | null>(null);
   const [agreement,        setAgreement]        = useState<TripAgreement | null>(null);
   const [topUpRequests,    setTopUpRequests]    = useState<TopUpRequest[]>([]);
@@ -127,7 +133,7 @@ export function useTrip(bookingId: string | null): UseTripResult {
     if (!bookingId) return;
 
     const channels = [
-      supabase.channel(`trip_booking_${bookingId}`)
+      supabase.channel(`trip_booking_${bookingId}_${mountId}`)
         .on('postgres_changes', {
           event: 'UPDATE', schema: 'public', table: 'bookings',
           filter: `id=eq.${bookingId}`,
@@ -136,21 +142,21 @@ export function useTrip(bookingId: string | null): UseTripResult {
         })
         .subscribe(),
 
-      supabase.channel(`trip_topup_${bookingId}`)
+      supabase.channel(`trip_topup_${bookingId}_${mountId}`)
         .on('postgres_changes', {
           event: '*', schema: 'public', table: 'top_up_requests',
           filter: `booking_id=eq.${bookingId}`,
         }, () => { reload(); })
         .subscribe(),
 
-      supabase.channel(`trip_proofs_${bookingId}`)
+      supabase.channel(`trip_proofs_${bookingId}_${mountId}`)
         .on('postgres_changes', {
           event: '*', schema: 'public', table: 'expense_proofs',
           filter: `booking_id=eq.${bookingId}`,
         }, () => { reload(); })
         .subscribe(),
 
-      supabase.channel(`trip_dispatches_${bookingId}`)
+      supabase.channel(`trip_dispatches_${bookingId}_${mountId}`)
         .on('postgres_changes', {
           event: '*', schema: 'public', table: 'payout_dispatches',
           filter: `booking_id=eq.${bookingId}`,
@@ -159,7 +165,11 @@ export function useTrip(bookingId: string | null): UseTripResult {
     ];
 
     return () => { channels.forEach(c => supabase.removeChannel(c)); };
-  }, [bookingId, reload]);
+    // reload is intentionally omitted — channels only need to re-bind when
+    // bookingId changes. Including reload would re-subscribe on every render
+    // cycle and crash with "cannot add postgres_changes callbacks after subscribe()".
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingId]);
 
   const cancellationResolution = booking?.cancelled_resolution_jsonb ?? null;
 
