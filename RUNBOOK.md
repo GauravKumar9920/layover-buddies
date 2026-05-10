@@ -288,27 +288,60 @@ npm run dev --prefix /Users/gaurav/Desktop/mumbai-buddies/admin
 
 ## Test Accounts
 
-These are seeded into the local Supabase database.
+All accounts are created automatically by `supabase db reset`. Every account uses password **`Test1234!`**.
 
-| Role | Email | Password | Notes |
-|---|---|---|---|
-| Traveler | `testtraveler@layoverbuddies.test` | `Test1234!` | Full traveler journey |
-| Guide | `rohan@layoverbuddies.test` | *(not set — use Supabase Studio to reset)* | St. Xavier's, 4.9★ |
-| Guide | `aarav@layoverbuddies.test` | *(not set)* | IIT Bombay, 4.8★ |
+### Travelers
 
-To reset a user's password via Supabase Studio:
-1. Go to `http://127.0.0.1:54323`
-2. Navigate to Authentication → Users
-3. Click the user → Edit → update password
+| Email | Password | Character |
+|---|---|---|
+| `emma.wilson@gmail.com` | `Test1234!` | US traveler — has 2 completed tours with Aarav |
+| `james.tanaka@outlook.com` | `Test1234!` | Japanese traveler — completed Bandra walk with Rohan |
+| `sofia.mueller@proton.me` | `Test1234!` | German traveler — has a pending heritage tour with Priya |
 
-Or via CLI:
+### Guides
+
+| Email | Password | Profile |
+|---|---|---|
+| `rohan.dsouza@xaviers.edu` | `Test1234!` | St. Xavier's · 4.9★ · culture & nightlife |
+| `aarav.patil@vjti.ac.in` | `Test1234!` | VJTI · 4.8★ · food & history |
+| `priya.sharma@iitb.ac.in` | `Test1234!` | IIT Bombay · 4.6★ · architecture & photography |
+| `sneha.mehta@nmims.edu` | `Test1234!` | NMIMS · 4.5★ · business & photography |
+| `kabir.joshi@mithibai.ac.in` | `Test1234!` | Mithibai · new (0 reviews) · hidden gems |
+
+### Re-seeding after a db reset
+
+`supabase db reset` wipes all auth users and public data, then re-applies migrations and re-runs `seed.sql` — so all accounts above are recreated automatically with the right UUIDs and passwords. Just reset and log straight in:
+
 ```bash
-curl -s -X PUT http://127.0.0.1:54321/auth/v1/admin/users/<user-id> \
-  -H "apikey: <service_role_key>" \
-  -H "Authorization: Bearer <service_role_key>" \
-  -H "Content-Type: application/json" \
-  -d '{"password":"Test1234!","email_confirm":true}'
+cd /Users/gaurav/Desktop/mumbai-buddies
+npx supabase db reset
 ```
+
+### If accounts still don't work after reset
+
+The seed inserts into `auth.users` directly via SQL. If something went wrong you can re-create any account via the admin API (get your `service_role_key` from `npx supabase status`):
+
+```bash
+# Replace SERVICE_ROLE_KEY and adjust email/uuid as needed
+SERVICE_ROLE_KEY="<paste key here>"
+
+# Example: recreate Emma (traveler)
+curl -s -X POST http://127.0.0.1:54321/auth/v1/admin/users \
+  -H "apikey: $SERVICE_ROLE_KEY" \
+  -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id":             "aaaaaaaa-0000-4000-a000-000000000011",
+    "email":          "emma.wilson@gmail.com",
+    "password":       "Test1234!",
+    "email_confirm":  true
+  }'
+```
+
+Or browse / reset any account in Supabase Studio:
+1. Go to `http://127.0.0.1:54323`
+2. Authentication → Users
+3. Click a user → Edit → set a new password
 
 ---
 
@@ -356,15 +389,15 @@ curl -s -X PUT http://127.0.0.1:54321/auth/v1/admin/users/<user-id> \
 
 | Feature | Status | Notes |
 |---|---|---|
-| Razorpay payments | 🔜 Stubbed | `mobile/lib/api/payments.ts` exists, no real key wired yet |
+| Razorpay payments | 🔜 Stubbed | `mobile/lib/api/payments.ts` exists; needs real key + company registration |
 | Google Maps live tour | 🔜 Stubbed | `.native.tsx` variant exists; needs `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` in `app.json` |
-| Push notifications | 🔜 Deferred | Expo Push + Supabase edge function needed |
+| Push notifications | ✅ Done (PR #6) | Expo Push token registration, Edge fn delivery, cron polling, deep-link tap routing |
 | Google OAuth | 🔜 UI exists | Button is on login screen; Supabase provider not configured |
 | Marketing site real links | 🔜 Placeholder | Replace `localhost:8081`, WhatsApp, Instagram, Twitter/X URLs |
 | Marketing site images | 🔜 Missing | ~30 images in `/public/images/` return 404 |
 | Marketing site colors | 🔜 Off-brand | Uses indigo `#4F46E5`; should be saffron `#F97316` |
-| CI/CD pipeline | 🔜 Deferred | No GitHub Actions yet |
-| EAS / production build | 🔜 Deferred | `eas.json` exists; not configured for prod |
+| CI/CD pipeline | ✅ Done | 5-job GitHub Actions suite (lint, typecheck, migrations, build, edge tests) |
+| EAS / production build | 🔜 Needs setup | Run `eas init` in `mobile/` to replace the placeholder projectId in `app.json` |
 
 ---
 

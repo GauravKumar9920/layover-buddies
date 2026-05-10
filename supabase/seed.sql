@@ -10,9 +10,97 @@
 -- Pattern: aaaaaaaa-0000-4000-a000-{table}{row} (easy to grep/debug)
 
 -- ============================================================================
+-- 0. AUTH ACCOUNTS
+-- ============================================================================
+-- Creates Supabase Auth entries for every seeded user so they can log in
+-- immediately after `supabase db reset`.  All accounts use password: Test1234!
+-- These must be inserted before the public.users rows (FK order).
+-- ============================================================================
+
+INSERT INTO auth.users (
+  id, aud, role, email, encrypted_password,
+  email_confirmed_at, created_at, updated_at,
+  raw_app_meta_data, raw_user_meta_data,
+  is_super_admin, instance_id,
+  -- GoTrue's Go model scans these as non-pointer strings; NULL panics the scan.
+  -- Set them all to '' so GoTrue can deserialize the row cleanly.
+  confirmation_token, recovery_token,
+  email_change, email_change_token_new
+) VALUES
+-- Guides
+('aaaaaaaa-0000-4000-a000-000000000001', 'authenticated', 'authenticated',
+ 'aarav.patil@vjti.ac.in',     crypt('Test1234!', gen_salt('bf')),
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ '', '', '', ''),
+('aaaaaaaa-0000-4000-a000-000000000002', 'authenticated', 'authenticated',
+ 'priya.sharma@iitb.ac.in',    crypt('Test1234!', gen_salt('bf')),
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ '', '', '', ''),
+('aaaaaaaa-0000-4000-a000-000000000003', 'authenticated', 'authenticated',
+ 'rohan.dsouza@xaviers.edu',   crypt('Test1234!', gen_salt('bf')),
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ '', '', '', ''),
+('aaaaaaaa-0000-4000-a000-000000000004', 'authenticated', 'authenticated',
+ 'sneha.mehta@nmims.edu',      crypt('Test1234!', gen_salt('bf')),
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ '', '', '', ''),
+('aaaaaaaa-0000-4000-a000-000000000005', 'authenticated', 'authenticated',
+ 'kabir.joshi@mithibai.ac.in', crypt('Test1234!', gen_salt('bf')),
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ '', '', '', ''),
+-- Travelers
+('aaaaaaaa-0000-4000-a000-000000000011', 'authenticated', 'authenticated',
+ 'emma.wilson@gmail.com',      crypt('Test1234!', gen_salt('bf')),
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ '', '', '', ''),
+('aaaaaaaa-0000-4000-a000-000000000012', 'authenticated', 'authenticated',
+ 'james.tanaka@outlook.com',   crypt('Test1234!', gen_salt('bf')),
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ '', '', '', ''),
+('aaaaaaaa-0000-4000-a000-000000000013', 'authenticated', 'authenticated',
+ 'sofia.mueller@proton.me',    crypt('Test1234!', gen_salt('bf')),
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ '', '', '', '')
+ON CONFLICT (id) DO NOTHING;
+
+-- Auth identities (required so the email+password flow resolves the user)
+INSERT INTO auth.identities (
+  id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at, provider_id
+) VALUES
+('aaaaaaaa-0000-4000-a000-000000000001', 'aaaaaaaa-0000-4000-a000-000000000001',
+ '{"sub":"aaaaaaaa-0000-4000-a000-000000000001","email":"aarav.patil@vjti.ac.in","email_verified":true}'::jsonb,
+ 'email', now(), now(), now(), 'aarav.patil@vjti.ac.in'),
+('aaaaaaaa-0000-4000-a000-000000000002', 'aaaaaaaa-0000-4000-a000-000000000002',
+ '{"sub":"aaaaaaaa-0000-4000-a000-000000000002","email":"priya.sharma@iitb.ac.in","email_verified":true}'::jsonb,
+ 'email', now(), now(), now(), 'priya.sharma@iitb.ac.in'),
+('aaaaaaaa-0000-4000-a000-000000000003', 'aaaaaaaa-0000-4000-a000-000000000003',
+ '{"sub":"aaaaaaaa-0000-4000-a000-000000000003","email":"rohan.dsouza@xaviers.edu","email_verified":true}'::jsonb,
+ 'email', now(), now(), now(), 'rohan.dsouza@xaviers.edu'),
+('aaaaaaaa-0000-4000-a000-000000000004', 'aaaaaaaa-0000-4000-a000-000000000004',
+ '{"sub":"aaaaaaaa-0000-4000-a000-000000000004","email":"sneha.mehta@nmims.edu","email_verified":true}'::jsonb,
+ 'email', now(), now(), now(), 'sneha.mehta@nmims.edu'),
+('aaaaaaaa-0000-4000-a000-000000000005', 'aaaaaaaa-0000-4000-a000-000000000005',
+ '{"sub":"aaaaaaaa-0000-4000-a000-000000000005","email":"kabir.joshi@mithibai.ac.in","email_verified":true}'::jsonb,
+ 'email', now(), now(), now(), 'kabir.joshi@mithibai.ac.in'),
+('aaaaaaaa-0000-4000-a000-000000000011', 'aaaaaaaa-0000-4000-a000-000000000011',
+ '{"sub":"aaaaaaaa-0000-4000-a000-000000000011","email":"emma.wilson@gmail.com","email_verified":true}'::jsonb,
+ 'email', now(), now(), now(), 'emma.wilson@gmail.com'),
+('aaaaaaaa-0000-4000-a000-000000000012', 'aaaaaaaa-0000-4000-a000-000000000012',
+ '{"sub":"aaaaaaaa-0000-4000-a000-000000000012","email":"james.tanaka@outlook.com","email_verified":true}'::jsonb,
+ 'email', now(), now(), now(), 'james.tanaka@outlook.com'),
+('aaaaaaaa-0000-4000-a000-000000000013', 'aaaaaaaa-0000-4000-a000-000000000013',
+ '{"sub":"aaaaaaaa-0000-4000-a000-000000000013","email":"sofia.mueller@proton.me","email_verified":true}'::jsonb,
+ 'email', now(), now(), now(), 'sofia.mueller@proton.me')
+ON CONFLICT DO NOTHING;
+
+-- ============================================================================
 -- 1. USERS (5 guides + 3 travelers)
 -- ============================================================================
 
+-- The auth trigger (on_auth_user_created) already inserted skeleton rows into
+-- public.users when auth.users was seeded above.  Use ON CONFLICT DO UPDATE to
+-- fill in the full profile fields (phone, full_name, role, etc.) that the
+-- trigger leaves blank.
 INSERT INTO users (id, email, phone, full_name, role, avatar_url, is_verified, auth_provider) VALUES
 -- Guides
 ('aaaaaaaa-0000-4000-a000-000000000001', 'aarav.patil@vjti.ac.in',       '+919876543201', 'Aarav Patil',     'guide',    NULL, TRUE,  'email'),
@@ -23,7 +111,14 @@ INSERT INTO users (id, email, phone, full_name, role, avatar_url, is_verified, a
 -- Travelers
 ('aaaaaaaa-0000-4000-a000-000000000011', 'emma.wilson@gmail.com',        '+14155551234',  'Emma Wilson',     'traveler', NULL, TRUE,  'google'),
 ('aaaaaaaa-0000-4000-a000-000000000012', 'james.tanaka@outlook.com',     '+81901234567',  'James Tanaka',    'traveler', NULL, TRUE,  'email'),
-('aaaaaaaa-0000-4000-a000-000000000013', 'sofia.mueller@proton.me',      '+491761234567', 'Sofia Mueller',   'traveler', NULL, TRUE,  'apple');
+('aaaaaaaa-0000-4000-a000-000000000013', 'sofia.mueller@proton.me',      '+491761234567', 'Sofia Mueller',   'traveler', NULL, TRUE,  'apple')
+ON CONFLICT (id) DO UPDATE SET
+  phone        = EXCLUDED.phone,
+  full_name    = EXCLUDED.full_name,
+  role         = EXCLUDED.role,
+  avatar_url   = EXCLUDED.avatar_url,
+  is_verified  = EXCLUDED.is_verified,
+  auth_provider = EXCLUDED.auth_provider;
 
 
 -- ============================================================================
@@ -92,10 +187,17 @@ INSERT INTO guide_profiles (
 -- 3. TRAVELER PROFILES
 -- ============================================================================
 
+-- The auth trigger inserts skeleton traveler_profiles rows for every user
+-- (it can't know role yet when auth.users fires).  Upsert to fill in real fields.
 INSERT INTO traveler_profiles (id, user_id, nationality, preferred_language, emergency_contact_name, emergency_contact_phone) VALUES
 ('cccccccc-0000-4000-a000-000000000011', 'aaaaaaaa-0000-4000-a000-000000000011', 'United States',  'English', 'Mark Wilson',    '+14155559876'),
 ('cccccccc-0000-4000-a000-000000000012', 'aaaaaaaa-0000-4000-a000-000000000012', 'Japan',          'English', 'Yuki Tanaka',    '+81901239876'),
-('cccccccc-0000-4000-a000-000000000013', 'aaaaaaaa-0000-4000-a000-000000000013', 'Germany',        'English', 'Klaus Mueller',   '+491769876543');
+('cccccccc-0000-4000-a000-000000000013', 'aaaaaaaa-0000-4000-a000-000000000013', 'Germany',        'English', 'Klaus Mueller',   '+491769876543')
+ON CONFLICT (user_id) DO UPDATE SET
+  nationality              = EXCLUDED.nationality,
+  preferred_language       = EXCLUDED.preferred_language,
+  emergency_contact_name   = EXCLUDED.emergency_contact_name,
+  emergency_contact_phone  = EXCLUDED.emergency_contact_phone;
 
 
 -- ============================================================================
