@@ -1,90 +1,39 @@
-// Supabase Edge Function — creates a Razorpay order for a booking.
-// The Razorpay secret key NEVER leaves this function.
-// Deploy secret: supabase secrets set RAZORPAY_KEY_SECRET=<secret>
+// Supabase Edge Function — DEPRECATED legacy single-shot booking payment.
+//
+// SECURITY: The previous version accepted unauthenticated requests with a
+// client-supplied `amount_inr`, which let anyone mint Razorpay orders for
+// arbitrary booking IDs at arbitrary amounts on the project's account.
+// That was a real money-loss vector and is closed here.
+//
+// REPLACEMENT: Phase 2+ uses the agreement → deposit → balance lifecycle:
+//   - supabase/functions/create-deposit-order   (per-side ₹500 deposit)
+//   - supabase/functions/create-balance-order   (traveler balance)
+//   - supabase/functions/create-topup-order     (in-trip top-up)
+// Mobile clients should never call this endpoint again. It is kept as a
+// stub that returns 410 Gone so any stragglers (older builds, scripts)
+// crash loudly rather than silently bypassing the new flow.
+//
+// If you genuinely need a single-shot payment for a legacy flow, build a
+// new function with: getUserFromRequest() auth, party-check against the
+// booking row, and server-side amount lookup (do NOT trust the client).
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-
-const RAZORPAY_API = 'https://api.razorpay.com/v1/orders';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req: Request) => {
-  // Handle CORS preflight
+serve((req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
-
-  try {
-    const keyId = Deno.env.get('RAZORPAY_KEY_ID');
-    const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
-
-    if (!keyId || !keySecret) {
-      return new Response(
-        JSON.stringify({ error: 'Razorpay credentials not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
-
-    const { booking_id, amount_inr } = await req.json() as {
-      booking_id: string;
-      amount_inr: number;
-    };
-
-    if (!booking_id || !amount_inr || amount_inr <= 0) {
-      return new Response(
-        JSON.stringify({ error: 'booking_id and amount_inr are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
-
-    // Razorpay amounts are in paise (smallest unit of INR: 1 INR = 100 paise)
-    const amountPaise = Math.round(amount_inr * 100);
-    const credentials = btoa(`${keyId}:${keySecret}`);
-
-    const razorpayRes = await fetch(RAZORPAY_API, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${credentials}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        amount: amountPaise,
-        currency: 'INR',
-        receipt: `booking_${booking_id.slice(0, 20)}`,
-        notes: { booking_id },
-      }),
-    });
-
-    if (!razorpayRes.ok) {
-      const err = await razorpayRes.text();
-      return new Response(
-        JSON.stringify({ error: `Razorpay error: ${err}` }),
-        { status: razorpayRes.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
-
-    const order = await razorpayRes.json() as {
-      id: string;
-      amount: number;
-      currency: string;
-      status: string;
-    };
-
-    return new Response(
-      JSON.stringify({
-        order_id: order.id,
-        amount_paise: order.amount,
-        currency: order.currency,
-        key_id: keyId,
-      }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
-  } catch (err) {
-    return new Response(
-      JSON.stringify({ error: String(err) }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
-  }
+  return new Response(
+    JSON.stringify({
+      error: 'gone',
+      message:
+        'create-booking-payment is deprecated. Use create-deposit-order, ' +
+        'create-balance-order, or create-topup-order. Upgrade the mobile client.',
+    }),
+    { status: 410, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+  );
 });

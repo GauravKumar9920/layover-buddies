@@ -14,6 +14,7 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient } from '../_shared/supabaseAdmin.ts';
+import { timingSafeEqual } from '../_shared/razorpaySignature.ts';
 import {
   drainOnce,
   makeExpoFetch,
@@ -26,7 +27,9 @@ function isServiceRole(req: Request): boolean {
   const auth   = req.headers.get('authorization') ?? req.headers.get('Authorization') ?? '';
   const bearer = auth.replace(/^Bearer\s+/i, '');
   const expected = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  return expected.length > 0 && bearer === expected;
+  // Constant-time compare: protects the highest-privilege secret in the
+  // system against timing-oracle attacks.
+  return expected.length > 0 && timingSafeEqual(bearer, expected);
 }
 
 /** Adapt the live supabase-js client to the DbLike interface used by drainOnce. */
