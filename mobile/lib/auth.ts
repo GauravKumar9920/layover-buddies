@@ -1,4 +1,6 @@
 import { supabase } from './supabase';
+import { invalidateOwnPushTokenOnLogout } from './push/registerPushToken';
+
 async function syncCurrentAuthUser(): Promise<void> {
   const { error } = await supabase.rpc('sync_current_auth_user');
 
@@ -45,6 +47,14 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signOut() {
+  // Invalidate this device's Expo Push token BEFORE signing out, so the
+  // session is still valid when we run the DB write. Without this, a shared
+  // phone keeps receiving pushes addressed to the previous user — and the
+  // user_push_tokens row stays `is_valid=true` until the server next sees
+  // a delivery failure. Best-effort: swallow errors so a logout that fails
+  // to reach the DB doesn't block the user from signing out.
+  await invalidateOwnPushTokenOnLogout().catch(() => { /* best-effort */ });
+
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 }

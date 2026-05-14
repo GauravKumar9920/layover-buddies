@@ -15,7 +15,7 @@ import { supabase } from '@/lib/supabase';
 import { getItineraryPhoto } from '@/config/photoLibrary';
 import { theme } from '@/config/theme';
 import { BOOKING_STATUS } from '@/config/constants';
-import type { BookingState } from '@/lib/booking/stateMachine';
+import { isActiveBookingState, type BookingState } from '@/lib/booking/stateMachine';
 import type { Booking } from '@/types';
 
 export default function TripDetailScreen() {
@@ -89,12 +89,35 @@ export default function TripDetailScreen() {
   if (loading) return <Loading fullScreen />;
   if (!booking) return <View style={{ flex: 1 }}><Text>Booking not found</Text></View>;
 
-  const canChat = ['guide_accepted', 'confirmed', 'in_progress'].includes(booking.status);
-  const canLive = booking.status === BOOKING_STATUS.IN_PROGRESS;
-  const canReview = booking.status === BOOKING_STATUS.COMPLETED;
+  // Chat is available throughout the entire non-terminal lifecycle. Both legacy
+  // (`guide_accepted`, `confirmed`, `in_progress`) and Phase 1+ states
+  // (`chat_open`, `agreement_*`, `awaiting_*`, `balance_paid`, `trip_ready`,
+  // `awaiting_proofs`, `reconciling`) need to be chat-able — the previous
+  // 3-state whitelist hid the button for every Phase 1+ booking.
+  const canChat = isActiveBookingState(booking.status);
+  // Live tour map is available once the trip is actually under way. The
+  // state machine transitions trip_ready → in_progress on the buddy's QR scan
+  // (qr_scanned is the event, not a state), so `in_progress` is the only
+  // value the live map needs to gate on.
+  const canLive = booking.status === 'in_progress';
+  // Review unlocks once the trip is completed (whether or not it's been rated).
+  const canReview = booking.status === 'completed';
+  // Cancel is allowed in pre-trip states. The actual policy (refunds, tiers)
+  // lives in compute_cancellation_resolution_tx; we just gate the button visibility.
   const canCancel =
     booking.status === BOOKING_STATUS.PENDING ||
-    booking.status === BOOKING_STATUS.GUIDE_ACCEPTED;
+    booking.status === BOOKING_STATUS.GUIDE_ACCEPTED ||
+    booking.status === 'chat_open' ||
+    booking.status === 'agreement_drafting' ||
+    booking.status === 'agreement_sent' ||
+    booking.status === 'agreement_signed_traveler' ||
+    booking.status === 'agreement_signed_buddy' ||
+    booking.status === 'awaiting_deposits' ||
+    booking.status === 'deposits_held' ||
+    booking.status === 'awaiting_balance' ||
+    booking.status === 'balance_paid' ||
+    booking.status === 'late_fee_due' ||
+    booking.status === 'trip_ready';
   const isGuide = currentUserId === booking.guide_id;
   const chatLabel = isGuide ? '💬 Message Traveler' : '💬 Message Guide';
   const itineraryPhoto = booking.itinerary ? getItineraryPhoto(booking.itinerary) : null;
