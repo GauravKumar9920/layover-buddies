@@ -553,3 +553,56 @@ describe('Legacy state shims', () => {
     );
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// State-classification helpers (added 2026-05-14 review fix #19-21)
+// ─────────────────────────────────────────────────────────────────────────────
+
+import {
+  isUpcomingBookingState,
+  isActiveBookingState,
+  PAST_BOOKING_STATES,
+  TERMINAL_BOOKING_STATES,
+} from '../stateMachine';
+
+describe('isUpcomingBookingState / isActiveBookingState', () => {
+  test.each([
+    ['chat_open',                    true,  true ],
+    ['agreement_drafting',           true,  true ],
+    ['agreement_sent',               true,  true ],
+    ['agreement_signed_traveler',    true,  true ],
+    ['agreement_signed_buddy',       true,  true ],
+    ['awaiting_deposits',            true,  true ],
+    ['deposits_held',                true,  true ],
+    ['awaiting_balance',             true,  true ],
+    ['balance_paid',                 true,  true ],
+    ['late_fee_due',                 true,  true ],
+    ['trip_ready',                   true,  true ],
+    ['in_progress',                  true,  true ],
+    ['awaiting_proofs',              true,  true ],
+    ['reconciling',                  true,  true ],
+    // completed is "past" from the user's perspective but still has one
+    // outgoing transition (rating_submitted → rated), so it remains "active".
+    ['completed',                    false, true ],
+    ['rated',                        false, false],
+    ['disputed',                     false, false],
+    ['cancelled',                    false, false],
+    ['cancelled_no_pay',             false, false],
+    ['cancelled_traveler_voluntary', false, false],
+    ['cancelled_buddy',              false, false],
+    ['cancelled_force_majeure',      false, false],
+    ['cancelled_pre_signing',        false, false],
+    ['cancelled_no_deposit',         false, false],
+  ] as const)('classifies %s → upcoming=%s active=%s', (state, upcoming, active) => {
+    expect(isUpcomingBookingState(state as never)).toBe(upcoming);
+    expect(isActiveBookingState(state as never)).toBe(active);
+  });
+
+  test('PAST_BOOKING_STATES is TERMINAL ∪ {completed}', () => {
+    expect(PAST_BOOKING_STATES.has('completed')).toBe(true);
+    for (const t of TERMINAL_BOOKING_STATES) {
+      expect(PAST_BOOKING_STATES.has(t)).toBe(true);
+    }
+    expect(PAST_BOOKING_STATES.size).toBe(TERMINAL_BOOKING_STATES.size + 1);
+  });
+});

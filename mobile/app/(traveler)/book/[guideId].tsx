@@ -566,7 +566,13 @@ export default function BookingScreen() {
 
       hapticSuccess();
       confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 });
-      router.replace(`/(traveler)/book/payment/${booking.id}` as never);
+      // Phase 2+ lifecycle: a fresh booking starts in `chat_open` and progresses
+      // through agreement → signing → deposits → balance via dedicated screens.
+      // Landing on the trip detail (instead of the legacy single-shot payment
+      // screen) lets the agreement flow drive payments. The legacy
+      // `book/payment/[bookingId]` route is preserved for now but no new
+      // bookings should hit it. (Review 2026-05-14 #9.)
+      router.replace(`/(traveler)/trips/${booking.id}` as never);
     } catch (err: unknown) {
       hapticError();
       confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 });

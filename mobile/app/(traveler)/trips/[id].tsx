@@ -14,8 +14,7 @@ import { fetchBookingById, cancelBooking } from '@/lib/api/bookings';
 import { supabase } from '@/lib/supabase';
 import { getItineraryPhoto } from '@/config/photoLibrary';
 import { theme } from '@/config/theme';
-import { BOOKING_STATUS } from '@/config/constants';
-import type { BookingState } from '@/lib/booking/stateMachine';
+import { canTransition, isActiveBookingState, type BookingState } from '@/lib/booking/stateMachine';
 import type { Booking } from '@/types';
 
 export default function TripDetailScreen() {
@@ -89,12 +88,28 @@ export default function TripDetailScreen() {
   if (loading) return <Loading fullScreen />;
   if (!booking) return <View style={{ flex: 1 }}><Text>Booking not found</Text></View>;
 
-  const canChat = ['guide_accepted', 'confirmed', 'in_progress'].includes(booking.status);
-  const canLive = booking.status === BOOKING_STATUS.IN_PROGRESS;
-  const canReview = booking.status === BOOKING_STATUS.COMPLETED;
-  const canCancel =
-    booking.status === BOOKING_STATUS.PENDING ||
-    booking.status === BOOKING_STATUS.GUIDE_ACCEPTED;
+  // Chat is available throughout the entire non-terminal lifecycle. Both legacy
+  // (`guide_accepted`, `confirmed`, `in_progress`) and Phase 1+ states
+  // (`chat_open`, `agreement_*`, `awaiting_*`, `balance_paid`, `trip_ready`,
+  // `awaiting_proofs`, `reconciling`) need to be chat-able — the previous
+  // 3-state whitelist hid the button for every Phase 1+ booking.
+  const canChat = isActiveBookingState(booking.status);
+  // Live tour map is available once the trip is actually under way. The
+  // state machine transitions trip_ready → in_progress on the buddy's QR scan
+  // (qr_scanned is the event, not a state), so `in_progress` is the only
+  // value the live map needs to gate on.
+  const canLive = booking.status === 'in_progress';
+  // Review unlocks once the trip is completed (whether or not it's been rated).
+  const canReview = booking.status === 'completed';
+  // Cancel-button visibility is derived directly from the state machine's
+  // TRANSITIONS map — `canTransition(state, 'cancel')` returns true iff the
+  // state has a 'cancel' rule. That keeps this UI in lock-step with the FSM
+  // (including the legacy state shims: `pending`, `guide_accepted`, and
+  // `confirmed` all alias to their Phase 1+ canonical equivalents, so they
+  // inherit the same cancel rules — earlier whitelists missed `confirmed`).
+  // The actual refund/tier policy lives in compute_cancellation_resolution_tx
+  // on the backend; we just gate the button visibility here.
+  const canCancel = canTransition(booking.status, 'cancel');
   const isGuide = currentUserId === booking.guide_id;
   const chatLabel = isGuide ? '💬 Message Traveler' : '💬 Message Guide';
   const itineraryPhoto = booking.itinerary ? getItineraryPhoto(booking.itinerary) : null;

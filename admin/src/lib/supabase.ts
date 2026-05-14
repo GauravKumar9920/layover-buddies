@@ -5,8 +5,28 @@ import { createClient } from '@supabase/supabase-js';
 //
 // Never deploy this bundle publicly. If we ever do, swap to a server-side
 // proxy that keeps the service key on the backend.
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_KEY as string | undefined;
+//
+// PRODUCTION-BUILD GUARD: Vite inlines VITE_* env vars into the client
+// bundle at build time, so `npm run build` followed by any kind of deploy
+// would ship the service-role key as plain text in the JS output. Refuse
+// to import this module in a production build unless an explicit escape
+// hatch is set, so an accidental `vercel --prod` (or similar) crashes
+// loudly rather than silently leaking god-mode DB access.
+const env = import.meta.env;
+if (env.PROD && !env.VITE_ADMIN_LOCAL_BUILD) {
+  throw new Error(
+    '[admin] Refusing to run a production build. The admin panel embeds ' +
+      'a Supabase service-role key (VITE_SUPABASE_SERVICE_KEY) in the ' +
+      'client bundle. Deploying that publicly leaks read/write to every ' +
+      'table. If you are intentionally building locally for static preview, ' +
+      'set VITE_ADMIN_LOCAL_BUILD=1 in admin/.env.local. To deploy this for ' +
+      'real, first move Supabase calls to a server-side proxy that keeps ' +
+      'the service key server-only.',
+  );
+}
+
+const url = env.VITE_SUPABASE_URL as string | undefined;
+const serviceKey = env.VITE_SUPABASE_SERVICE_KEY as string | undefined;
 
 if (!url || !serviceKey) {
   // eslint-disable-next-line no-console

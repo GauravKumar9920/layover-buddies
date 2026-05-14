@@ -73,7 +73,15 @@ export default function CancellationsPage() {
             guide:guide_id(full_name, email),
             payout_dispatches(id, kind, net_paise, status, failed_reason, completed_at)
           `)
-          .like('status', 'cancelled%')
+          .in('status', [
+            'cancelled',
+            'cancelled_no_pay',
+            'cancelled_traveler_voluntary',
+            'cancelled_buddy',
+            'cancelled_force_majeure',
+            'cancelled_pre_signing',
+            'cancelled_no_deposit',
+          ])
           .order('cancelled_at', { ascending: false })
           .limit(200);
 

@@ -74,19 +74,40 @@ export default function RevenuePage() {
       const gst = Number(r.gst_amount ?? 0);
       const buddyCost = Number(r.buddy_cost ?? 0);
 
-      if (r.status === 'completed' && r.payment_status === 'paid') {
+      // Earned: completed trips with money captured.
+      // Phase 1 used payment_status='paid'; Phase 2+ extended the enum to use 'captured' (and 'released' once
+      // the buddy payout has been dispatched). Count any of those as earned.
+      const isEarnedPayment = r.payment_status === 'paid' || r.payment_status === 'captured' || r.payment_status === 'released';
+      if (r.status === 'completed' && isEarnedPayment) {
         earnedGross += total;
         earnedPlatform += platformFee;
         earnedGst += gst;
         earnedGuidePayout += buddyCost;
         earnedCount += 1;
       } else if (
-        (r.status === 'confirmed' || r.status === 'in_progress' || r.status === 'guide_accepted') &&
+        // Pipeline: any non-terminal in-flight booking that hasn't been refunded.
+        // Includes both legacy (guide_accepted/confirmed/in_progress) and Phase 1+ in-flight states.
+        (r.status === 'confirmed' ||
+          r.status === 'in_progress' ||
+          r.status === 'guide_accepted' ||
+          r.status === 'chat_open' ||
+          r.status === 'agreement_drafting' ||
+          r.status === 'agreement_sent' ||
+          r.status === 'agreement_signed_traveler' ||
+          r.status === 'agreement_signed_buddy' ||
+          r.status === 'awaiting_deposits' ||
+          r.status === 'deposits_held' ||
+          r.status === 'awaiting_balance' ||
+          r.status === 'balance_paid' ||
+          r.status === 'late_fee_due' ||
+          r.status === 'trip_ready' ||
+          r.status === 'awaiting_proofs' ||
+          r.status === 'reconciling') &&
         r.payment_status !== 'refunded'
       ) {
         pipelineGross += total;
         pipelineCount += 1;
-      } else if (r.status === 'cancelled') {
+      } else if (r.status === 'cancelled' || r.status.startsWith('cancelled_')) {
         cancelledCount += 1;
       }
     }

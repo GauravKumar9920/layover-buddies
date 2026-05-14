@@ -11,6 +11,11 @@ import { fetchUnreadCounts } from '@/lib/api/messages';
 import { supabase } from '@/lib/supabase';
 import { theme } from '@/config/theme';
 import type { Booking } from '@/types';
+import {
+  isActiveBookingState,
+  isUpcomingBookingState,
+  PAST_BOOKING_STATES,
+} from '@/lib/booking/stateMachine';
 
 export default function TripsScreen() {
   const router = useRouter();
@@ -25,9 +30,10 @@ export default function TripsScreen() {
     if (!user) return;
     const data = await fetchTravelerBookings(user.id);
     setBookings(data);
-    const activeIds = data
-      .filter((b) => ['guide_accepted', 'confirmed', 'in_progress'].includes(b.status))
-      .map((b) => b.id);
+    // Phase 1+ lifecycle has many non-terminal in-flight states (chat_open,
+    // agreement_*, awaiting_*, balance_paid, trip_ready, etc.). Any of them
+    // can have unread messages, not just the three legacy states.
+    const activeIds = data.filter((b) => isActiveBookingState(b.status)).map((b) => b.id);
     if (activeIds.length > 0) {
       const counts = await fetchUnreadCounts(activeIds);
       setUnreadCounts(counts);
@@ -43,10 +49,13 @@ export default function TripsScreen() {
     loadBookings().finally(() => setRefreshing(false));
   }
 
-  const upcoming = bookings.filter((b) =>
-    ['pending', 'guide_accepted', 'confirmed', 'in_progress'].includes(b.status),
-  );
-  const past = bookings.filter((b) => ['completed', 'declined', 'cancelled'].includes(b.status));
+  // Partition by terminal-state membership instead of an enumerated whitelist.
+  // The previous whitelist `['pending','guide_accepted','confirmed','in_progress']`
+  // silently dropped every Phase 1+ state (chat_open, agreement_drafting,
+  // awaiting_deposits, balance_paid, trip_ready, etc.), so a brand-new traveler
+  // with a brand-new booking saw "No trips yet". (Review 2026-05-14 #20.)
+  const upcoming = bookings.filter((b) => isUpcomingBookingState(b.status));
+  const past = bookings.filter((b) => PAST_BOOKING_STATES.has(b.status));
 
   if (loading) return <Loading fullScreen message="Loading your trips..." />;
 
