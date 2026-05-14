@@ -62,8 +62,9 @@ These all crash on web with `RAZORPAY_WEB_UNSUPPORTED_MESSAGE`. On iOS they shou
 - [ ] Verify `user_push_tokens` table has row with `platform='ios'` and `is_valid=true`
 - [ ] Trigger a notification: another user sends a message → push received in foreground (banner) and background (lock screen)
 - [ ] Tap push from lock screen → app opens to correct deep link (booking/chat)
-- [ ] Sign out → `invalidate_token` should be called (currently NOT — see Mobile finding HIGH #18)
+- [ ] Sign out → `mobile/lib/auth.ts:signOut()` now calls `invalidateOwnPushTokenOnLogout()` before the session is cleared. Verify the row in `user_push_tokens` for this device has `is_valid=false` and `invalidated_reason='user_logout'` after sign-out.
 - [ ] Re-launch on another sim with same Apple ID → token swap works
+- [ ] Sign back in on this device → a fresh `user_push_tokens` row is re-registered with `is_valid=true`
 
 ## 5. Camera & Image Picker
 
@@ -80,7 +81,8 @@ These all crash on web with `RAZORPAY_WEB_UNSUPPORTED_MESSAGE`. On iOS they shou
 - [ ] In `awaiting_proofs`, guide uploads bill + UPI payment proof
 - [ ] Both files upload to `expense-proofs/{booking_id}/` (private bucket)
 - [ ] DB row in `expense_proofs` has `bill_url` and `payment_proof_url` set
-- **Confirmed risk:** mobile/lib/api/expenseProofs.ts line 59 — bill upload is unawaited; if it silently fails, the DB row has a 404 URL. Test by killing wifi mid-upload.
+- [ ] **Failure mode test:** kill wifi mid-upload — `mobile/lib/api/expenseProofs.ts` now awaits the bill upload result and throws on `billErr`. Expected: the whole `uploadExpenseProof()` call rejects with the storage error and **no DB row is inserted** (so no stale `bill_url` resolving to 404).
+- [ ] **Hermes regression check (Phase 4):** trigger any proof upload at least once on iOS to confirm `uuidv4()` works — older builds called `crypto.randomUUID()` which Hermes doesn't ship, causing a `TypeError` on the first upload.
 
 ## 6. Haptics
 

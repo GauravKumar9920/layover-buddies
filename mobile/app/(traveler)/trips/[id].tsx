@@ -14,8 +14,7 @@ import { fetchBookingById, cancelBooking } from '@/lib/api/bookings';
 import { supabase } from '@/lib/supabase';
 import { getItineraryPhoto } from '@/config/photoLibrary';
 import { theme } from '@/config/theme';
-import { BOOKING_STATUS } from '@/config/constants';
-import { isActiveBookingState, type BookingState } from '@/lib/booking/stateMachine';
+import { canTransition, isActiveBookingState, type BookingState } from '@/lib/booking/stateMachine';
 import type { Booking } from '@/types';
 
 export default function TripDetailScreen() {
@@ -102,22 +101,15 @@ export default function TripDetailScreen() {
   const canLive = booking.status === 'in_progress';
   // Review unlocks once the trip is completed (whether or not it's been rated).
   const canReview = booking.status === 'completed';
-  // Cancel is allowed in pre-trip states. The actual policy (refunds, tiers)
-  // lives in compute_cancellation_resolution_tx; we just gate the button visibility.
-  const canCancel =
-    booking.status === BOOKING_STATUS.PENDING ||
-    booking.status === BOOKING_STATUS.GUIDE_ACCEPTED ||
-    booking.status === 'chat_open' ||
-    booking.status === 'agreement_drafting' ||
-    booking.status === 'agreement_sent' ||
-    booking.status === 'agreement_signed_traveler' ||
-    booking.status === 'agreement_signed_buddy' ||
-    booking.status === 'awaiting_deposits' ||
-    booking.status === 'deposits_held' ||
-    booking.status === 'awaiting_balance' ||
-    booking.status === 'balance_paid' ||
-    booking.status === 'late_fee_due' ||
-    booking.status === 'trip_ready';
+  // Cancel-button visibility is derived directly from the state machine's
+  // TRANSITIONS map — `canTransition(state, 'cancel')` returns true iff the
+  // state has a 'cancel' rule. That keeps this UI in lock-step with the FSM
+  // (including the legacy state shims: `pending`, `guide_accepted`, and
+  // `confirmed` all alias to their Phase 1+ canonical equivalents, so they
+  // inherit the same cancel rules — earlier whitelists missed `confirmed`).
+  // The actual refund/tier policy lives in compute_cancellation_resolution_tx
+  // on the backend; we just gate the button visibility here.
+  const canCancel = canTransition(booking.status, 'cancel');
   const isGuide = currentUserId === booking.guide_id;
   const chatLabel = isGuide ? '💬 Message Traveler' : '💬 Message Guide';
   const itineraryPhoto = booking.itinerary ? getItineraryPhoto(booking.itinerary) : null;
