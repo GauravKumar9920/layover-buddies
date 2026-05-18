@@ -520,9 +520,16 @@ export default function BookingScreen() {
   }, [guideId]);
 
   const selectedItin = itineraries.find((i) => i.id === selectedItinId);
-  const buddyCost = selectedItin?.buddy_cost_inr ?? 0;
-  const estimatedExpenses = Math.round(buddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
-  const commission = calcCommission(buddyCost);
+  // Group-size scaling: createBooking multiplies every line by num_travelers
+  // before writing to the DB (see mobile/lib/api/bookings.ts), so the preview
+  // here has to match or travelers will see a different total at checkout.
+  const groupSize = Math.max(1, Math.min(10, parseInt(numTravelers, 10) || 1));
+  const perPersonBuddyCost = selectedItin?.buddy_cost_inr ?? 0;
+  const perPersonExpenses = Math.round(perPersonBuddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
+  const perPersonCommission = calcCommission(perPersonBuddyCost);
+  const buddyCost = perPersonBuddyCost * groupSize;
+  const estimatedExpenses = perPersonExpenses * groupSize;
+  const commission = perPersonCommission * groupSize;
   const total = buddyCost + estimatedExpenses + commission;
 
   async function handleConfirm() {
@@ -562,6 +569,7 @@ export default function BookingScreen() {
         flight_date: arrivalDate || undefined,
         start_date: tourStartDate,
         end_date: tourEndDate || tourStartDate,
+        num_travelers: travelers,
       });
 
       hapticSuccess();

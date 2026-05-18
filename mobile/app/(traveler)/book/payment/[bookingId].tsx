@@ -189,6 +189,17 @@ export default function PaymentScreen() {
       withSpring(1, { damping: 12 }),
     );
 
+    // The Phase-2+ deposit lifecycle MUST go through create-deposit-order +
+    // razorpay-webhook (see mobile/lib/api/deposits.ts and the
+    // (shared)/agreements/[bookingId] screen). The legacy createRazorpayOrder
+    // path used below charges `booking.total_price` and immediately flips the
+    // booking to `confirmed` via recordPaymentResult — both of which are
+    // wrong for a deposit. Route the user to the agreements screen instead.
+    if (payOption === 'deposit') {
+      router.replace(`/(shared)/agreements/${bookingId}` as never);
+      return;
+    }
+
     setProcessing(true);
     let orderCreated = false;
     try {
@@ -385,7 +396,7 @@ export default function PaymentScreen() {
             // initial Razorpay charge.
             title={
               payOption === 'deposit'
-                ? `Pay ₹${(DEPOSIT_PAISE / 100).toLocaleString('en-IN')} booking fee`
+                ? `Continue to deposits →`
                 : `Pay full ₹${booking.total_price.toLocaleString('en-IN')}`
             }
             onPress={handlePay}

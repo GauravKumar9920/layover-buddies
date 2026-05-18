@@ -373,16 +373,21 @@ function TripProgressBar({ booking }: { booking: Booking }) {
 
 // ─── Safety Bar — SOS / Help / Contact ──────────────────────────────────────
 // All three buttons are visible whenever the live tour screen is mounted.
-// SOS is currently a STUB — it logs and shows a confirmation message.
-// Once the sos_events table + Edge Function are wired up we'll swap
-// the handler to insert a row and notify the on-call line.
+// SOS is currently a STUB — it logs and shows an explicit "preview" alert
+// telling the user this does NOT contact anyone. Until the sos_events table
+// + Edge Function ship, the button must not be advertised as a real safety
+// affordance: the label, accessibility hint, and confirmation copy are all
+// scoped to "preview" so testers can't mistake it for a live signal.
 function SafetyBar({ insets, guideName }: { insets: { bottom: number }, guideName: string }) {
   function sos() {
-    const msg = `🚨 SOS triggered (dummy). In production this notifies on-call ops + ${guideName} + emergency contact.`;
+    const msg =
+      `⚠️ PREVIEW ONLY — this button does NOT contact anyone yet.\n\n` +
+      `In production it will alert on-call ops + ${guideName} + your emergency contact. ` +
+      `For a real emergency right now, call 112 (India national emergency) or contact ${guideName} directly.`;
     if (Platform.OS === 'web') window.alert(msg);
-    else Alert.alert('SOS sent', msg);
+    else Alert.alert('SOS preview', msg);
     // eslint-disable-next-line no-console
-    console.log('[SOS] dummy event for live trip screen');
+    console.log('[SOS] preview event for live trip screen (no backend wiring)');
   }
   function help() {
     const msg = `Need help? In production this opens the help center / chat-to-ops. For now, message ${guideName} directly.`;
@@ -405,7 +410,9 @@ function SafetyBar({ insets, guideName }: { insets: { bottom: number }, guideNam
     }}>
       <TouchableOpacity
         onPress={sos}
-        accessibilityLabel="Send SOS"
+        accessibilityRole="button"
+        accessibilityLabel="SOS preview button"
+        accessibilityHint="This is a preview — does not contact anyone. For a real emergency call 112."
         style={{
           flex: 1.4, paddingVertical: 12, borderRadius: 12,
           backgroundColor: theme.colors.error,
@@ -414,7 +421,10 @@ function SafetyBar({ insets, guideName }: { insets: { bottom: number }, guideNam
         }}
       >
         <Text style={{ fontSize: 14 }}>🚨</Text>
-        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>SOS</Text>
+        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>SOS</Text>
+        <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 9, opacity: 0.85 }}>
+          (preview)
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={help}

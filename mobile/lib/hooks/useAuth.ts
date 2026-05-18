@@ -63,14 +63,25 @@ export function useAuth(): AuthState {
     // ---- Onboarding probe ----------------------------------------------------
     // For travelers we check whether `traveler_profiles.onboarded_at` is set.
     // Returns false on errors or for non-traveler roles — never blocks routing.
+    //
+    // PostgREST returns errors via the `{ data, error }` tuple rather than
+    // throwing, so a permission / network / schema failure would leave
+    // `data === null` and naively return `true` (forcing onboarding). Treat
+    // any explicit `error`, plus the existing throw path, as "don't block".
     const probeOnboarding = async (userId: string, role: UserRole | null): Promise<boolean> => {
       if (role !== 'traveler') return false;
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('traveler_profiles')
           .select('onboarded_at')
           .eq('user_id', userId)
           .maybeSingle();
+        if (error) {
+          // Surface in dev but don't gate routing on transient failures.
+          // eslint-disable-next-line no-console
+          console.warn('[useAuth] probeOnboarding error, allowing through:', error.message);
+          return false;
+        }
         return !data?.onboarded_at;
       } catch {
         return false;

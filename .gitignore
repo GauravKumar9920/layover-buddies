@@ -35,3 +35,9 @@ mobile/.claude/
 # them out of version control.
 mobile/ios/
 mobile/android/
+
+# Per-developer Claude config — references gitignored helpers (settings.json
+# calls .claude/helpers/*.cjs, which is not committed). Leaving it tracked
+# means anyone enabling Claude hooks downstream gets broken hook commands.
+.claude/settings.json
+.claude/settings.local.json
