@@ -3,15 +3,37 @@ import type { BookingState } from '@/lib/booking/stateMachine';
 
 // ─── Auth ───────────────────────────────────────────────────────────────────
 
+/**
+ * Mirrors `public.users` (the table the auth-sync trigger populates from
+ * `auth.users` — see migration `20260426_auth_sync.sql`). Most of the time
+ * code reads `users.full_name` (via PostgREST JOINs) — the legacy `name`
+ * field doesn't exist on the DB and shouldn't be referenced.
+ */
 export interface User {
   id: string;
   email: string;
-  phone?: string;
+  full_name: string | null;
+  phone?: string | null;
+  role?: 'traveler' | 'guide' | 'admin' | null;
+  avatar_url?: string | null;
+  is_verified?: boolean | null;
   created_at: string;
 }
 
 // ─── Profiles ────────────────────────────────────────────────────────────────
 
+/**
+ * App-facing guide profile. NOTE on schema drift vs DB:
+ *   - `name` and `avatar_url` are NOT columns on `guide_profiles` directly —
+ *     they are JOINed from `public.users.full_name / users.avatar_url` by
+ *     `lib/api/guides.ts → normalizeGuideProfile`. The normalizer falls back
+ *     to literal `'Guide'` / `'Traveler'` when the join is empty. Always
+ *     populate via the normalizer; don't write these fields back to the
+ *     `guide_profiles` table.
+ *   - `categories` lives on `guide_profiles` as JSONB and is hydrated into
+ *     a string[] by the normalizer. Older review docs said this column
+ *     didn't exist — verify when touching schema.
+ */
 export interface GuideProfile {
   id: string;
   user_id: string;
@@ -128,7 +150,12 @@ export interface Booking {
   id: string;
   traveler_id: string;
   guide_id: string;
-  itinerary_id: string;
+  /**
+   * Nullable on the DB side — `bookings.itinerary_id` has
+   * `REFERENCES itineraries(id) ON DELETE SET NULL`, so a booking can outlive
+   * its (soft-deleted) itinerary. UI code that reads this must handle null.
+   */
+  itinerary_id: string | null;
   flight_number: string | null;
   flight_date: string | null;
   start_date: string;
@@ -148,6 +175,12 @@ export interface Booking {
    *  machine (stateMachine.ts). The legacy `BookingStatus` type covers only
    *  the 7 pre-Phase-1 values; both are kept for backward compatibility. */
   status: BookingState;
+  /**
+   * Razorpay payment id. The DB column is `bookings.payment_id`; this field
+   * is named with the legacy `_intent_` infix for backward compatibility with
+   * code written against the pre-Razorpay (Stripe-era) types. The normalizer
+   * maps DB `payment_id` → TS `payment_intent_id`.
+   */
   payment_intent_id: string | null;
   payment_status: PaymentStatus;
   created_at: string;

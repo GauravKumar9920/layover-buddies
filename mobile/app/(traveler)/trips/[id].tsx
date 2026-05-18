@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity, RefreshControl, Platform } from 'react-native';
+import { View, Text, ScrollView, Alert, TouchableOpacity, RefreshControl } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
@@ -11,12 +11,10 @@ import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
 import { AgreementCtaBlock } from '@/components/bookings/AgreementCtaBlock';
 import { fetchBookingById, cancelBooking } from '@/lib/api/bookings';
-import { safeBack } from '@/lib/navigation';
 import { supabase } from '@/lib/supabase';
 import { getItineraryPhoto } from '@/config/photoLibrary';
 import { theme } from '@/config/theme';
-import { BOOKING_STATUS } from '@/config/constants';
-import type { BookingState } from '@/lib/booking/stateMachine';
+import { canTransition, isActiveBookingState, type BookingState } from '@/lib/booking/stateMachine';
 import type { Booking } from '@/types';
 
 export default function TripDetailScreen() {
@@ -69,78 +67,56 @@ export default function TripDetailScreen() {
   }
 
   async function handleCancel() {
-    if (!id) return;
-
-    // React Native Web's Alert.alert ignores multi-button dialogs (no native
-    // modal exists), so the destructive button never fires and clicking
-    // "Cancel Booking" feels broken. Use window.confirm on web; keep the
-    // native Alert.alert flow on iOS/Android.
-    const proceed = await new Promise<boolean>((resolve) => {
-      if (Platform.OS === 'web') {
-        resolve(window.confirm('Cancel this booking? This cannot be undone.'));
-        return;
-      }
-      Alert.alert('Cancel Booking', 'Are you sure you want to cancel this booking?', [
-        { text: 'Keep It', style: 'cancel', onPress: () => resolve(false) },
-        { text: 'Cancel Booking', style: 'destructive', onPress: () => resolve(true) },
-      ], { onDismiss: () => resolve(false) });
-    });
-
-    if (!proceed) return;
-
-    try {
-      await cancelBooking(id);
-      // After cancelling, ensure we always land somewhere even if there's no
-      // history (e.g. user opened this trip via direct link).
-      safeBack(router, '/(traveler)/trips');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Please try again.';
-      if (Platform.OS === 'web') {
-        window.alert(`Unable to cancel: ${msg}`);
-      } else {
-        Alert.alert('Unable to cancel', msg);
-      }
-    }
+    Alert.alert('Cancel Booking', 'Are you sure you want to cancel this booking?', [
+      { text: 'Keep It', style: 'cancel' },
+      {
+        text: 'Cancel Booking',
+        style: 'destructive',
+        onPress: async () => {
+          if (!id) return;
+          try {
+            await cancelBooking(id);
+            router.back();
+          } catch (err: unknown) {
+            Alert.alert('Unable to cancel', err instanceof Error ? err.message : 'Please try again.');
+          }
+        },
+      },
+    ]);
   }
 
   if (loading) return <Loading fullScreen />;
   if (!booking) return <View style={{ flex: 1 }}><Text>Booking not found</Text></View>;
 
-  // Chat is available from the very first state (chat_open) all the way
-  // through the trip and reconciliation — basically anything except a
-  // terminal cancellation. This is the entire premise of the chat-first
-  // booking flow.
-  const TERMINAL_STATUSES = new Set<string>([
-    BOOKING_STATUS.CANCELLED,
-    BOOKING_STATUS.CANCELLED_PRE_SIGNING,
-    'cancelled_no_pay', 'cancelled_traveler_voluntary', 'cancelled_buddy',
-    'cancelled_force_majeure', 'cancelled_no_deposit',
-  ]);
-  const canChat = !TERMINAL_STATUSES.has(booking.status);
-  const canLive = booking.status === BOOKING_STATUS.IN_PROGRESS || booking.status === 'in_progress';
-  const canReview = booking.status === BOOKING_STATUS.COMPLETED;
-  // A traveler can cancel any time before the trip actually starts.  The
-  // Phase 1 lifecycle starts new bookings at `chat_open` (not `pending`), and
-  // adds the full agreement/deposit/balance sequence before the trip.  All
-  // of these are pre-trip and refundable per the cancellation tier math.
-  const PRE_TRIP_STATUSES = new Set<string>([
-    'chat_open', 'agreement_drafting', 'agreement_sent',
-    'agreement_signed_traveler', 'agreement_signed_buddy',
-    'awaiting_deposits', 'deposits_held',
-    'awaiting_balance', 'late_fee_due', 'balance_paid',
-    'trip_ready',
-    BOOKING_STATUS.PENDING,
-    BOOKING_STATUS.GUIDE_ACCEPTED,
-    BOOKING_STATUS.CONFIRMED,
-  ]);
-  const canCancel = PRE_TRIP_STATUSES.has(booking.status);
+  // Chat is available throughout the entire non-terminal lifecycle. Both legacy
+  // (`guide_accepted`, `confirmed`, `in_progress`) and Phase 1+ states
+  // (`chat_open`, `agreement_*`, `awaiting_*`, `balance_paid`, `trip_ready`,
+  // `awaiting_proofs`, `reconciling`) need to be chat-able — the previous
+  // 3-state whitelist hid the button for every Phase 1+ booking.
+  const canChat = isActiveBookingState(booking.status);
+  // Live tour map is available once the trip is actually under way. The
+  // state machine transitions trip_ready → in_progress on the buddy's QR scan
+  // (qr_scanned is the event, not a state), so `in_progress` is the only
+  // value the live map needs to gate on.
+  const canLive = booking.status === 'in_progress';
+  // Review unlocks once the trip is completed (whether or not it's been rated).
+  const canReview = booking.status === 'completed';
+  // Cancel-button visibility is derived directly from the state machine's
+  // TRANSITIONS map — `canTransition(state, 'cancel')` returns true iff the
+  // state has a 'cancel' rule. That keeps this UI in lock-step with the FSM
+  // (including the legacy state shims: `pending`, `guide_accepted`, and
+  // `confirmed` all alias to their Phase 1+ canonical equivalents, so they
+  // inherit the same cancel rules — earlier whitelists missed `confirmed`).
+  // The actual refund/tier policy lives in compute_cancellation_resolution_tx
+  // on the backend; we just gate the button visibility here.
+  const canCancel = canTransition(booking.status, 'cancel');
   const isGuide = currentUserId === booking.guide_id;
   const chatLabel = isGuide ? '💬 Message Traveler' : '💬 Message Guide';
   const itineraryPhoto = booking.itinerary ? getItineraryPhoto(booking.itinerary) : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background, paddingTop: insets.top }}>
-      <Header title="Trip Details" showBack backFallback="/(traveler)/(tabs)/trips" />
+      <Header title="Trip Details" showBack />
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.colors.primary} />}
@@ -196,25 +172,7 @@ export default function TripDetailScreen() {
           <Text style={{ fontSize: 17, fontWeight: '700', color: theme.colors.text, marginBottom: 12 }}>
             Payment
           </Text>
-          {booking.num_travelers > 1 && (
-            <InfoRow label="Travelers" value={String(booking.num_travelers)} />
-          )}
-          <InfoRow
-            label="Buddy fee"
-            value={`₹${(booking.buddy_cost || booking.total_price).toLocaleString('en-IN')}`}
-          />
-          {booking.estimated_expenses > 0 && (
-            <InfoRow
-              label="Estimated expenses"
-              value={`₹${booking.estimated_expenses.toLocaleString('en-IN')}`}
-            />
-          )}
-          {booking.commission > 0 && (
-            <InfoRow
-              label="Platform fee"
-              value={`₹${booking.commission.toLocaleString('en-IN')}`}
-            />
-          )}
+          <InfoRow label="Buddy Cost" value={`₹${booking.total_price.toLocaleString('en-IN')}`} />
           <View style={{ height: 1, backgroundColor: theme.colors.divider, marginVertical: 10 }} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text }}>Total</Text>

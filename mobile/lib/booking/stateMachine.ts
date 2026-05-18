@@ -341,3 +341,48 @@ export function canTransition(
 ): boolean {
   return (TRANSITIONS.get(state) ?? []).some((r) => r.event === eventKind);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// State classification — used by UI for partitioning bookings into upcoming/past
+// and deciding when an action (chat, cancel, review) makes sense.
+//
+// These exist because pre-Phase-1 the UI hardcoded literals like ['pending',
+// 'guide_accepted', 'confirmed', 'in_progress'], which silently drop every new
+// Phase 1+ state (chat_open, agreement_*, awaiting_*, balance_paid, trip_ready,
+// etc.). The result: a brand-new traveler with a brand-new booking sees
+// "No trips yet" — confirmed live during the 2026-05-14 review pass.
+// Centralising the predicate here keeps the legacy and modern paths consistent.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Terminal states — no further transitions are possible. */
+export const TERMINAL_BOOKING_STATES = new Set<BookingState>([
+  'rated',
+  'disputed',
+  'cancelled',
+  'cancelled_no_pay',
+  'cancelled_traveler_voluntary',
+  'cancelled_buddy',
+  'cancelled_force_majeure',
+  'cancelled_pre_signing',
+  'cancelled_no_deposit',
+]);
+
+/**
+ * Past states — terminal states plus `completed`. From the user's perspective
+ * a `completed` booking belongs in "past trips" even though the state machine
+ * still allows `completed → rated` via `rating_submitted`.
+ */
+export const PAST_BOOKING_STATES = new Set<BookingState>([
+  ...TERMINAL_BOOKING_STATES,
+  'completed',
+]);
+
+/** Returns true for any booking that should appear in "Upcoming trips". */
+export function isUpcomingBookingState(state: BookingState): boolean {
+  return !PAST_BOOKING_STATES.has(state);
+}
+
+/** Returns true for any booking the user could still take action on (chat, etc.). */
+export function isActiveBookingState(state: BookingState): boolean {
+  return !TERMINAL_BOOKING_STATES.has(state);
+}

@@ -24,6 +24,7 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient } from '../_shared/supabaseAdmin.ts';
+import { timingSafeEqual } from '../_shared/razorpaySignature.ts';
 import {
   createRefund,
   createPayout,
@@ -32,10 +33,13 @@ import {
 } from '../_shared/razorpayClient.ts';
 
 // Service-role-only guard: caller must present the service role key as bearer.
+// Constant-time compare protects against timing-oracle attacks on the
+// highest-privilege secret in the system.
 function isServiceRole(req: Request): boolean {
   const auth   = req.headers.get('authorization') ?? '';
   const bearer = auth.replace(/^Bearer\s+/i, '');
-  return bearer === (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
+  const expected = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  return expected.length > 0 && timingSafeEqual(bearer, expected);
 }
 
 // buddy_fee_cancellation_refund = Razorpay Refund back to the traveler (NOT a payout).

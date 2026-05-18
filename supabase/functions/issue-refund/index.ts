@@ -22,6 +22,7 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient } from '../_shared/supabaseAdmin.ts';
+import { timingSafeEqual } from '../_shared/razorpaySignature.ts';
 import {
   createRefund,
   createPayout,
@@ -40,12 +41,14 @@ serve(async (req: Request) => {
   if (req.method !== 'POST')    return errorResponse('method_not_allowed', 405);
 
   // ── Service-role only ────────────────────────────────────────────────────
-  // Use strict equality (not includes) to prevent a key that happens to be a
+  // Strict equality (not includes) to prevent a key that happens to be a
   // substring of a longer token from accidentally passing the check.
+  // Constant-time compare: the service-role key is the highest-privilege
+  // secret in the system, so a timing-oracle attack would be catastrophic.
   const authHeader = req.headers.get('Authorization') ?? '';
   const bearer     = authHeader.replace(/^Bearer\s+/i, '');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  if (!serviceKey || bearer !== serviceKey) {
+  if (!serviceKey || !timingSafeEqual(bearer, serviceKey)) {
     return errorResponse('forbidden: service_role required', 403);
   }
 

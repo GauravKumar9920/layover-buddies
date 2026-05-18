@@ -1,305 +1,273 @@
-# Code Review & Live Test — Mumbai Buddies
-**Date:** 2026-05-14 / 2026-05-15  
-**Reviewer:** Claude Code (via Claude Preview, static analysis, Supabase CLI)  
-**Scope:** Full-stack — Marketing site, Admin panel, Mobile web export (Expo), Backend (Supabase)
+# Mumbai Buddies — Code Review & Live Test Report
+**Date:** 2026-05-14
+**Scope:** Marketing site, Mobile app, Admin panel, Supabase backend (29 migrations, 15 Edge Functions, pg_cron)
+**Method:** 3 parallel review agents + live Claude Preview testing + read-only psql/curl smoke against local Supabase
 
 ---
 
 ## Executive Summary
 
-Mumbai Buddies is in strong shape for a pre-launch product. All three surfaces start, render their core flows, and handle empty/error states cleanly. The financial math (commission, GST, escrow logic) is correct in every place it was checked. No critical security holes were found. The main issues are a cluster of **Medium polish bugs** (silent form validation, pronoun template error, sticky-CTA overlap, admin NavLink lag) plus a handful of **known placeholder items** (marketing site colors/assets, Razorpay web support) that are already tracked in CLAUDE.md.
+Mumbai Buddies has shipped an impressive amount of architecture: a 25-state booking FSM (Phase 1–5), Razorpay deposit/balance/top-up flows, atomic reconciliation/cancellation RPCs, pg_cron lifecycle automation, push notifications, and an editorial-zine UI that actually looks like a real product. The bones are strong.
 
-**Top 5 must-fix before any public launch:**
-1. **[HIGH]** Marketing site colors/fonts don't match design system — users see Indigo/Sky Blue instead of Saffron/Pink
-2. **[HIGH]** ~30 marketing site images + 1 video are 404 — page looks broken in production
-3. **[MEDIUM]** Booking form silent failure — "Confirm Booking" with no date set gives zero feedback
-4. **[MEDIUM]** "in her own words" pronoun bug on guide profiles (hard-coded "her" regardless of guide gender)
-5. **[MEDIUM]** Admin sidebar NavLink one-step-behind — active item always shows the previous route
+The review found **210 numbered findings** across the surfaces. The top issues are concentrated, not diffuse — fixing roughly a dozen items would move the project from "demo-ready" to "ready for a real beta cohort." Three findings are existential and should be fixed before any external user touches the system:
+
+**Top 5 must-fix before beta:**
+
+1. **Admin panel ships the Supabase `service_role` key in the client bundle.** Any deploy of `admin/` (even by accident) hands god-mode DB access to anyone with the URL. The `VITE_*` prefix means Vite inlines it at build time — there is no "local only" enforcement in code. Move to a server-side proxy or refuse `vite build` when `NODE_ENV=production`. *(Admin #1)*
+2. **`create-booking-payment` Edge Function has no JWT check and trusts a client-supplied amount.** Anyone with a valid `booking_id` can mint Razorpay orders for arbitrary amounts on the project's account. Either delete (it's superseded by `create-balance-order`/`create-deposit-order`) or add `getUserFromRequest()` + server-side amount lookup. *(Backend #1)*
+3. **Mobile booking flow routes new bookings to the legacy single-shot payment screen**, short-circuiting the entire agreement → sign → deposit → balance lifecycle. Travelers end up in a `confirmed` state with no signed agreement. Remove the route at [book/[guideId].tsx:565](mobile/app/(traveler)/book/[guideId].tsx) and land on the trip detail instead. *(Mobile #9)*
+4. **Admin Cancellations page is 100% broken** — fails with PostgREST `42883: operator does not exist: booking_status ~~ unknown` because `.like('status', 'cancelled%')` runs against an enum column. Cast to text or use `.in(...)`. Confirmed live in Claude Preview. *(Admin #4 / live)*
+5. **Admin Revenue page shows ₹0 for everything** — filters on `payment_status='paid'` but Phase 2 extended the enum to `captured`. Confirmed live: 6 completed+captured bookings exist but Revenue reports zero. *(Admin #11 / live)*
+
+After those, the next tier is concentrated in: (a) **TS/DB schema drift** (`User.name`, `GuideProfile.categories`, `Booking.payment_intent_id` all reference fields that don't exist on the DB or have different names), (b) **legacy-status filters** in mobile that hide all Phase 1+ bookings from My Trips / Inbox / cancel CTAs, and (c) **non-atomic two-step writes** in deposit/balance capture handlers that can leave bookings stuck mid-state.
+
+Overall health: **B-**. The financial-state logic is unusually careful (FSM, atomic RPCs, payment idempotency keys). The seams between phases (legacy status filters, `as unknown as` casts, admin schema drift) are the weak spots.
 
 ---
 
 ## Findings by Surface
 
-### A. Marketing Site (port 5173)
+### Mobile App (100 findings — 10 critical, 25 high)
 
-| # | Severity | File | Finding | Fix |
-|---|----------|------|---------|-----|
-| A1 | HIGH | `index.html`, `tailwind.config.js`, `src/style.css` | Primary color is Indigo `#4F46E5`, secondary is Sky Blue `#0EA5E9` — contradicts design system which specifies Saffron `#F97316` + Pink `#EC4899`. Fonts are system fonts instead of Plus Jakarta Sans / Inter / DM Sans. | Replace color tokens in `tailwind.config.js`; add Google Fonts import for Plus Jakarta Sans + Inter. |
-| A2 | HIGH | `index.html`, `know-more.html` | ~30 `<img>` tags and 1 `<video>` src are 404. Images in `/public/images/` (hero, gallery, testimonials, guide avatars) and `/public/videos/layover-reel.mp4` are missing. | Source and place assets. |
-| A3 | MEDIUM | `index.html` (8+ occurrences), `know-more.html` | Placeholder links remain: `http://localhost:8081` (booking CTA), `https://wa.me/910000000000` (WhatsApp), `https://instagram.com` (no handle), `https://x.com` (no handle). | Replace with real production URLs before any public sharing. |
-| A4 | LOW | `index.html` | Brand name is "Layover Buddies" in several headings but the product is called "Mumbai Buddies" — inconsistent. | Decide on canonical name and apply consistently. |
-| A5 | STYLE | `index.html`, `know-more.html` | Both pages share near-identical header/nav/footer HTML — duplicated verbatim. | Extract into a shared partial or JS include. |
+Full agent report archived in conversation history. Highest-priority items:
 
-**Live test results:** Both pages loaded. All text sections present in accessibility tree. Navigation links render. Mobile layout at 375px collapsed header correctly. Console errors: 0 JS errors (all 404s are image/video network failures, not script errors).
+**CRITICAL**
 
----
+| # | File | Issue |
+|---|---|---|
+| 1 | [mobile/lib/api/expenseProofs.ts:44,58](mobile/lib/api/expenseProofs.ts) | `crypto.randomUUID()` not in Hermes; throws on first proof upload. Add polyfill or `nanoid/non-secure`. |
+| 2 | [mobile/lib/api/expenseProofs.ts:59](mobile/lib/api/expenseProofs.ts) | Bill upload `.upload()` is unawaited → on failure, DB row gets 404 URL. |
+| 3 | [mobile/lib/api/payments.ts:77](mobile/lib/api/payments.ts) | `assertRazorpayCheckoutAvailable()` only called in legacy `book/payment`; balance/deposit/top-up flows surface raw `require()` failures. |
+| 4 | [mobile/app/(shared)/agreements/[bookingId].tsx:241](mobile/app/(shared)/agreements/[bookingId].tsx) | "Buddy fee" pricing label mis-derived for non-zero GST — viewer shows a number that doesn't match what the buddy entered. |
+| 5 | [mobile/lib/api/itineraries.ts:97-101](mobile/lib/api/itineraries.ts) | Compensating delete on stop-insert failure is racy + hard-deletes (bypasses soft-delete invariant). |
+| 6 | [mobile/app/(traveler)/trips/[id].tsx:54-62](mobile/app/(traveler)/trips/[id].tsx) | 15s polling fights Realtime; unhandled promise rejection on network blip. |
+| 7 | [mobile/lib/api/bookings.ts:308](mobile/lib/api/bookings.ts) | `declineBooking` / `cancelBooking` bypass the state machine and write legacy enum values. |
+| 8 | [mobile/types/index.ts:6-11](mobile/types/index.ts) | `User.name`, `GuideProfile.categories`, `Booking.payment_intent_id` don't exist on DB — fallback strings ("Guide", "Traveler") render silently. |
+| 9 | [mobile/app/(traveler)/book/[guideId].tsx:565-569](mobile/app/(traveler)/book/[guideId].tsx) | New bookings route into legacy single-shot payment screen, skipping agreement/sign/deposit lifecycle. |
+| 10 | [mobile/lib/api/agreements.ts:269-369](mobile/lib/api/agreements.ts) | `sendAgreement` rollback is best-effort; mid-flight DB error leaves agreement `sent` while booking still `agreement_drafting`. |
 
-### B. Admin Panel (port 5174)
+**HIGH (selected)**
 
-| # | Severity | File | Finding | Fix |
-|---|----------|------|---------|-----|
-| B1 | MEDIUM | `admin/src/components/Shell.tsx` | Sidebar NavLink active state is **one step behind** on every navigation — you see the previous route highlighted, not the current one. Cause: React Router v6 `<NavLink>` state is stale when `PopStateEvent` is used for navigation (or a subtle double-render race). | Use React Router `<Link>` navigation everywhere (no `window.history.pushState` calls) and verify `NavLink`'s `end` prop is correct on each route. |
-| B2 | MEDIUM | `admin/src/pages/Revenue.tsx` | Time-filter button active highlight (7d / 30d / 90d / All) does not update on click when triggered by synthetic mouse events. Data subtitle does update. Affects testing only — real user mouse-clicks likely fire correctly. May be a missed `preventDefault` or event propagation issue. | Inspect `onClick` handler; ensure `setWindow` state setter is called regardless of event origin. Add a `data-testid` on each button for e2e coverage. |
-| B3 | LOW | `admin/src/pages/Cancellations.tsx`, `admin/src/pages/Payouts.tsx` | Both pages use `alert()` for destructive-action confirmations (Re-issue payout, Retry). This is jarring UX and blocks the browser thread. | Replace with inline confirmation UI (e.g., a small confirmation row or modal). |
-| B4 | LOW | `admin/src/pages/Users.tsx`, `admin/src/pages/Bookings.tsx` | Hard-coded 500-row / 200-row Supabase query caps. If the user base grows, admins will silently see incomplete data with no warning. | Add a visible "Showing first N results" notice and wire up a "Load more" / pagination control. |
-| B5 | LOW | `admin/src/lib/supabase.ts` | Service-role key is read from `import.meta.env.VITE_SUPABASE_SERVICE_KEY`. The `VITE_` prefix means it's bundled into the client JS. This is intentional (local-only tool per README) but needs a comment warning and must never be deployed to a public host. | Add `// WARNING: VITE_ prefix intentionally exposes this key — this app must never be deployed publicly` comment; add a `README` note to the deploy checklist. |
-| B6 | STYLE | `admin/src/pages/*.tsx` | Multiple `as unknown as` type casts (`data as unknown as SosRow[]`, etc.) — masking potential type mismatches between Supabase response shapes and local interfaces. | Generate types from schema with `supabase gen types typescript` and remove the casts. |
+- [#11–14] `as unknown as TripBooking` cast hides shape drift; client-side trip-start time check is bypassable; no agreement-expiry check before signing; realtime channels show error banners but never auto-reconnect.
+- [#15] `fetchActiveGuides(city)` and `searchGuides(city)` ignore the `city` argument — Mumbai is hardcoded.
+- [#16] Unknown booking_status normalised to `chat_open` — manual ops fixes get silently misrepresented.
+- [#18] **`signOut` doesn't invalidate push token** despite `invalidateOwnPushTokenOnLogout` existing. Shared phone leaks notifications.
+- **[#19–21] CONFIRMED LIVE: Legacy status filter excludes Phase 1+ bookings from My Trips upcoming, Inbox, and cancel CTAs.** Tested in Claude Preview: "4 total · 0 upcoming" but only 3 cards visible; 1 booking in `chat_open` state invisible to the user.
+- [#22, 23] No pagination on `fetchTravelerBookings`, `fetchActiveGuides` (hardcoded limit 30 — 31st+ guide invisible).
+- [#24] Avg rating recompute is client-side and racy.
+- [#28] In-trip elapsed timer re-renders entire screen every 1 second.
 
-**Live test results (all pages loaded with seed data):**
-- **Users:** 6 users (5 guides + 1 traveler from signup). Role filter chips work (All/Traveler/Guide/Admin).
-- **Bookings:** 5 seed bookings show with guide + traveler names joined correctly.
-- **Revenue:** ₹6,188 gross · ₹1,238 platform take (20%) · ₹4,950 guide payouts · ₹223 GST · 0 pipeline · 0 cancelled. Math verified: 5 bookings × avg ₹1,238. "All" filter active correctly.
-- **SOS:** Page loads; Google Maps modal triggered via fiber injection — iframe rendered `maps.google.com/embed` with correct lat/lng from mock row; close button and "Open in Google Maps ↗" link functional.
-- **Cancellations:** "Load failed" error banner shown (not silent). Filter chips: All / Voluntary / No-pay / Force majeure / Pre-signing — render correctly.
-- **Payouts:** 0 dispatches. Filter chips: All / Pending / Sent / Failed. "Refresh" button present.
+**MEDIUM/LOW (selected)**
 
----
-
-### C. Mobile App — Web Export (port 8081)
-
-#### Auth & Onboarding
-
-| # | Severity | File | Finding | Fix |
-|---|----------|------|---------|-----|
-| C1 | LOW | `mobile/app/_layout.tsx` | Auth guard checks `segments[0] === '(traveler)'` for redirect, but direct URL navigation to `/messages` or `/inbox` (skipping Expo Router's group resolution) sends segments as `['messages', 'index']` — matching neither `(traveler)` nor `(shared)` — causing redirect to `/(traveler)`. Affects web deep-links only (native uses in-app navigation). | For web, use `window.navigation.navigate('/(traveler)/messages')` (verified working); document this in dev notes. Long-term: ensure all CTAs use `router.push` not URL manipulation. |
-| C2 | LOW | `mobile/app/_layout.tsx:211` | "in her own words" is hardcoded in the pull-quote attribution on guide profiles. Renders "Aarav, in her own words" which is grammatically wrong for male guides. | Replace with `guide.pronouns === 'she/her' ? 'in her own words' : 'in their own words'` (or store a `pronoun_preference` field). |
-
-#### Browse & Search
-
-| # | Severity | File | Finding | Fix |
-|---|----------|------|---------|-----|
-| C3 | LOW | `mobile/app/(traveler)/index.tsx:57–65` | Category filter works correctly client-side. "Food" correctly shows 2 guides (#Foodie), "Photography" shows 2 (#Photography). However, `TouchableOpacity.onPress` does not fire from programmatic synthetic `onClick` events in web — only React fiber `queue.dispatch` triggers it. This means E2E tests using DOM click simulation will fail silently. | Add `testID` props to filter chips and use Playwright/Detox native event dispatch for E2E testing. |
-| C4 | STYLE | `mobile/app/(traveler)/index.tsx` | `firstName` extracted from `user_metadata.full_name`. If `full_name` is null (possible for social-auth users), falls back to 'Traveler'. Good — but the greeting "Good day, Test ✈️" shows the raw first segment of the test email username. | No fix needed — display name is set at signup from `full_name` field. Working as intended. |
-
-#### Guide Profile
-
-| # | Severity | File | Finding | Fix |
-|---|----------|------|---------|-----|
-| C5 | MEDIUM | `mobile/app/(traveler)/guide/[id].tsx` (pull-quote section) | Pronoun hardcoded as "her" — see C2. | Same fix as C2. |
-| C6 | LOW | `supabase/seed.sql` | "Real Mumbai: Mills to Malls" and "Midnight Mumbai: Dawn to Dawn" (two of Aarav's three itineraries) show **0 stops** on the guide profile card. The `itinerary_stops` seed only inserts stops for itinerary 101 (Food Sprint). | Add seed data for itinerary 102 and 103 stops. |
-| C7 | LOW | `mobile/app/(traveler)/guide/[id].tsx` | All 5 guides use the same stock Taj Mahal / Gateway of India cover photos. Not a code bug — asset gap. | Source real Mumbai photos for each guide's cover. |
-
-#### Booking Flow
-
-| # | Severity | File | Finding | Fix |
-|---|----------|------|---------|-----|
-| C8 | MEDIUM | `mobile/app/(traveler)/book/[guideId].tsx` | Tapping "Confirm Booking →" with no start date selected produces **zero user feedback** — the handler returns early silently. The user has no idea why nothing happened. | Add inline validation: highlight the empty date field in red, scroll to it, show "Please select a tour start date." |
-| C9 | MEDIUM | `mobile/app/(traveler)/book/[guideId].tsx` | The sticky "Confirm Booking →" CTA (pinned to bottom of screen) **visually overlaps** the "TOUR START DATE *" form field when the page is in certain scroll positions. The required field is obscured by the button that needs it filled. | Add `paddingBottom` to the ScrollView content equal to the CTA height (~64px) so fields are never hidden behind the button. |
-| C10 | LOW | `mobile/app/(traveler)/book/[guideId].tsx` | Price breakdown shows "Platform commission (25%)" — CLAUDE.md notes this rate is **unconfirmed** (spec says 15%, code ships 25%). | Gaurav to confirm canonical commission rate. |
-| C11 | DEFERRED | `mobile/app/(traveler)/book/payment/[bookingId].tsx` | `react-native-razorpay` throws on web — expected, documented. | Native-only; test on iOS Simulator. |
-
-#### Itinerary Detail
-
-| # | Severity | File | Finding | Fix |
-|---|----------|------|---------|-----|
-| C12 | LOW | `mobile/app/(traveler)/itinerary/[id].tsx` | Same sticky CTA overlap issue as C9 — stop 4 description is partially hidden behind "Book · ₹800" button. | Same fix: add bottom padding to scroll content. |
-| C13 | STYLE | `mobile/app/(traveler)/itinerary/[id].tsx` | "Stop by stop" section shows "0 stops" for itineraries without seed data — renders a blank section with just the header. No empty state message. | Add "No stops listed yet" placeholder text when `stops.length === 0`. |
-
-#### Navigation (Tabs)
-
-| # | Severity | File | Finding | Fix |
-|---|----------|------|---------|-----|
-| C14 | LOW | `mobile/app/(traveler)/_layout.tsx` | Tapping Inbox and My Trips tab buttons in the web export redirects to Explore instead of the target tab. Root cause: Expo Router's `<Tabs>` component on web fires a press event that goes through the Responder system, but the segments check in `_layout.tsx` re-routes immediately. Only reproducible in browser — native navigation works correctly. | Use `window.navigation.navigate('/(traveler)/messages')` for web or add a `Platform.OS === 'web'` guard in the auth routing effect. |
+- Console statements ungated by `__DEV__` in [favorites.ts:71,115](mobile/lib/stores/favorites.ts), [registerPushToken.ts:103,138](mobile/lib/push/registerPushToken.ts).
+- [book/[guideId].tsx](mobile/app/(traveler)/book/[guideId].tsx) is 861 lines — needs splitting; traveler count captured but never sent to `createBooking`; past-date validation uses UTC midnight on `parseISO` (IST edge-of-day rejections).
+- [app.json:76](mobile/app.json) EAS `projectId: "PLACEHOLDER_RUN_EAS_INIT_TO_GENERATE"` — push token registration will fail in production builds.
+- Unused deps: `axios`, possibly `ajv`. ~20 KB gzipped each.
+- Pronoun bug spotted live: guide profile says "Rohan, in **her** own words" — hardcoded copy, should be neutral.
 
 ---
 
-### D. Backend / Supabase
+### Admin Panel (50 findings — 3 critical, 6 high)
 
-*(Based on static analysis from plan exploration phase — no destructive operations run.)*
+**CRITICAL**
 
-| # | Severity | Location | Finding | Fix |
-|---|----------|----------|---------|-----|
-| D1 | MEDIUM | `mobile/lib/api/expenseProofs.ts` | Uses `crypto.randomUUID()` directly — no polyfill for web environments where `crypto.randomUUID` may be absent (non-HTTPS localhost). | Use `expo-crypto`'s `randomUUID()` or the `uuid` package which polyfills correctly. |
-| D2 | MEDIUM | `mobile/types/index.ts` | `User.name` field exists in the type but the DB column is `users.full_name`. Any code reading `user.name` silently gets `undefined`. | Rename `name` → `full_name` in the `User` type; fix all read sites. |
-| D3 | MEDIUM | `mobile/types/index.ts` | `Booking.payment_intent_id` field exists in the type but this column does not exist in `bookings` table (Razorpay uses `order_id` / `payment_id` stored separately). Dead field causing type confusion. | Remove `payment_intent_id` from the `Booking` type or add the column if it's needed. |
-| D4 | MEDIUM | `supabase/migrations/20260512100600_fix_payout_dispatch_conflict.sql` | Migration 100400 clobbered the `pg_cron` job bodies defined in 100200 and 100300. This was patched in 100700 (`restore_cron_bodies`). The pattern of migrations overwriting each other is fragile — any future pg_cron migration must be aware of all prior jobs or it will silently un-schedule them. | Document the cron job list in a single canonical file (`supabase/cron_jobs.md`); each migration that touches cron should read that file. Add a CI check that verifies the expected cron job count after migration. |
-| D5 | LOW | Multiple migration files | `console.warn` and `console.log` calls in `mobile/lib/supabase.ts` and `mobile/lib/stores/favorites.ts` are not gated by `__DEV__`. These will appear in production builds. | Wrap all debug logging in `if (__DEV__)` blocks. |
-| D6 | LOW | `supabase/migrations/` (cron function) | `late_fee_paise` hardcoded to `100000` (₹1,000) in the cron job that triggers late fees. This is a business-logic constant that should be in a config table or environment variable. | Move to `app_config` table or `supabase/config.toml` env. |
-| D7 | LOW | `supabase/migrations/` | No `UNIQUE` constraint on `bookings.trip_qr_token`. Two concurrent QR scan requests for the same booking could potentially both succeed before the token is consumed. | `ALTER TABLE bookings ADD CONSTRAINT bookings_trip_qr_token_unique UNIQUE (trip_qr_token);` — already flagged in plan; confirm it was added in a migration or add it. |
-| D8 | LOW | `supabase/migrations/` (RLS) | The `get_my_role()` helper was previously recursive (a known RLS infinite-loop risk in Supabase). The fix was applied in a later migration. The fix is correct but the pattern should be noted for any future role-checking policies. | Document the `SECURITY DEFINER` + `SET search_path` pattern in a `CONTRIBUTING.md` note on RLS policy authoring. |
-| D9 | STYLE | `admin/src/pages/*.tsx` | Multiple `as unknown as T[]` casts on Supabase query results. | Run `npx supabase gen types typescript --local > mobile/types/database.types.ts` and use the generated types for all query results. |
+1. **`VITE_SUPABASE_SERVICE_KEY` is inlined into the client bundle by Vite.** A single accidental deploy leaks read/write to every row. Move to a server-side proxy; at minimum add a top-of-file `throw if (import.meta.env.PROD)` guard. [admin/src/lib/supabase.ts:9](admin/src/lib/supabase.ts)
+2. **Empty-password bypass**: `VITE_ADMIN_PASSWORD=` (empty after `=`) is parsed by Vite as `""`, and `password === ""` matches. [admin/src/lib/auth.ts:18-34](admin/src/lib/auth.ts) — require length ≥ 8.
+3. **No schema validation** on Supabase responses; `as unknown as BookingRow[]` casts everywhere hide PostgREST nested-relation shape mismatches. Once schema drifts, location links render `https://maps.google.com/?q=undefined,undefined`.
+
+**HIGH**
+
+- **[#4 confirmed live] `.like('status', 'cancelled%')` on enum column** — Cancellations page returns `42883: operator does not exist: booking_status ~~ unknown`. Cast to text: `.like('status::text', 'cancelled%')` or use `.in('status', ['cancelled_voluntary', 'cancelled_no_pay', ...])`.
+- **[#11 confirmed live] Revenue page shows ₹0** for all metrics because it filters `payment_status='paid'` but the Phase-2 enum value is `captured`. Live data has 6 completed+captured bookings totaling >₹7000 that aren't counted.
+- **PostgREST nested-relation drift trap** in Bookings/SOS/Cancellations/Payouts — `traveler: b.traveler?.full_name` works today only because PostgREST flattens single-row joins; if any join becomes multi-row, every name silently renders "—".
+- **`alert()` modals** for Cancellations re-issue / Payouts retry. Replace with toasts; `await load()` on success (Cancellations currently tells the user to manually refresh).
+- **SOS optimistic update never reloads** — divergence risk with DB triggers; `acknowledged_at` (server timestamp) silently missing.
+- **Revenue date filter uses local-time `.toISOString()`** — IST admins see numbers shift by up to ±1 day depending on what hour they load the page.
+- **`SOS.tsx:114` `r.latitude.toFixed(4)`** — no null guard; one bad row crashes the entire SOS table render.
+
+**MEDIUM/LOW (selected)**
+
+- Silent pagination caps: 500 rows on most pages, 200 on Cancellations. Only Users + Bookings surface "(cap 500)" in subtitle.
+- Cross-tab signout via `storage` event **does not fire for `sessionStorage`** — the listener at [App.tsx:18-22](admin/src/App.tsx) is dead code. Comment is misleading.
+- `Window` type shadows global `window` in Revenue.tsx — rename to `TimeWindow`.
+- React Router future flags set for v7, but `package.json` pins `^6.26.0` — confirm intent.
+- Missing `lint` / `typecheck` scripts in `admin/package.json`.
+- Sidebar nav active-state appears to accumulate previous selections (live observation) — likely a NavLink `end` flag missing.
 
 ---
 
-## Live Test Results Summary
+### Backend / Supabase (60 findings — 7 critical, 15 high)
+
+**CRITICAL**
+
+1. **`create-booking-payment` accepts unauthenticated calls + client-supplied amount.** Delete or harden. [supabase/functions/create-booking-payment/index.ts](supabase/functions/create-booking-payment/index.ts)
+2. **Service-role bearer checks use non-timing-safe `===`** in `issue-refund`, `send-push`, `replay-stubbed-payouts`. The `_shared/razorpaySignature.ts:timingSafeEqual` helper already exists — reuse it.
+3. **Migration order fragility** in `compute_reconciliation_tx` / `compute_cancellation_resolution_tx`: `ON CONFLICT (booking_id, kind, recipient_user_id)` references a unique constraint added later (migration 100600). Partial-migrate states throw 42P10. Also, 100300 duplicates `CREATE TABLE IF NOT EXISTS payout_dispatches` with a `CHECK (status IN ('pending','sent','failed','cancelled'))` that contradicts the real `payout_dispatch_status` enum.
+4. **`notifications` table schema mutation** (migration 100400) drops NOT NULL on `user_id`, `type`, `title` so Phase-1 and Phase-3 schemas coexist. Phase-1 RLS filters by `user_id` while Phase-3 rows have `user_id IS NULL` and use `recipient_user_id` — two read paths over the same table are not coherent.
+5. **Hardcoded `late_fee_paise = 100000`** duplicated in SQL cron body, TS edge fn, mobile constants. No single source of truth.
+6. **Concurrent webhook race in `depositCapture.ts:80-184` and `balanceCapture.ts:52-136`** — idempotency check + write not wrapped in a transaction, no `FOR UPDATE` lock. Two retried webhooks for the same payment can both proceed, leaving booking stuck in `deposits_held` if the mid-write `awaiting_balance` update fails (the TODO comment at line 167-168 acknowledges this).
+7. **Lossy data migration in 20260503110100** rewrites pre-Phase-1 bookings to Phase-1 states without backfilling required `agreements` rows. Cron jobs silently skip these orphans; `cron_deposit_window_expire` may throw on missing agreement.
+
+**HIGH (selected)**
+
+- **`USING (true)` on `public.users` for authenticated SELECT** — defense-in-depth only via column-level GRANT; one wrong future migration re-exposes email/phone/role/banned_reason/payout_vpa to every logged-in user.
+- **Storage policies for `itinerary-photos` and `avatars` only check `auth.uid() IS NOT NULL`** — any authenticated user can overwrite anyone's avatar or itinerary photos. Fix with `(storage.foldername(name))[1] = auth.uid()::text`.
+- **`bookings.trip_qr_token` has no UNIQUE constraint** — only a partial index. Confirmed live: only `idx_bookings_qr_token` exists. Add `UNIQUE` or partial unique constraint.
+- **`cron_send_pending_pushes` silently returns on missing `app.settings.supabase_url`** — notifications stop with zero observability.
+- **`payment_events` lacks GRANTs for Phase-3 columns** (`is_late_fee_component`, `idempotency_key`) — authenticated clients reading those columns will fail or get nulls.
+- **`issue-refund` routes all deposit refunds against the EARLIEST captured payment** — a `buddy_deposit_refund` is dispatched against the traveler's payment_id.
+- **`qr-scan` returns 200 with `error: 'vpa_missing'` in body** — naive clients treat as success; trip starts, payout silently fails.
+- **`balanceCapture.ts` best-effort T-12h jump swallows errors** — booking can be stuck in `balance_paid` past the 24h stale guard in cron.
+
+**MEDIUM/LOW (selected)**
+
+- `top_up_requests_insert_buddy` has no max bound on `requested_paise` — buddy can request ₹10,000,000 and hope the traveler taps Approve.
+- `cost_line_items.estimated_paise` has no `CHECK (estimated_paise >= 0)`.
+- Auth-trigger `backfill_public_users_from_auth()` runs in a single transaction at migration time — multi-minute on large databases.
+- `active_guides` VIEW doesn't have `WITH (security_invoker = true)` — column-level GRANT on `public.users` doesn't protect view consumers.
+
+---
 
 ### Marketing Site
-| Screen | Status | Notes |
-|--------|--------|-------|
-| index.html | ✅ Loads | All sections in DOM; images 404 |
-| know-more.html | ✅ Loads | Same issues |
-| Mobile 375px | ✅ Works | Header collapses correctly |
-| Console errors | ✅ 0 JS errors | Only 404s for assets |
 
-### Admin Panel
-| Page | Status | Notes |
-|------|--------|-------|
-| Login gate | ✅ Works | Correct pw → in; wrong → stays |
-| Users | ✅ Works | 6 users loaded, filter chips work |
-| Bookings | ✅ Works | 5 bookings, guide+traveler names joined |
-| Revenue | ✅ Works | ₹6,188 gross, math correct |
-| SOS | ✅ Works | Maps modal renders Google Maps iframe |
-| Cancellations | ⚠️ Partial | "Load failed" banner; structure correct |
-| Payouts | ✅ Works | Empty state, filters visible |
-| Console errors | ✅ 0 errors | Clean |
+Tested live in Claude Preview at `http://localhost:5173`. Both `index.html` and `know-more.html` load cleanly:
 
-### Mobile Web Export
-| Screen | Status | Notes |
-|--------|--------|-------|
-| Signup (traveler) | ✅ Works | Auth + profile creation end-to-end |
-| Browse / Explore | ✅ Works | 5 guides, greeting, search bar |
-| Category filter | ✅ Works | Food→2, Photography→2, correct |
-| Search tab | ✅ Works | Live search, instant results |
-| Guide profile | ✅ Works | Full editorial-zine layout |
-| Booking form | ⚠️ Partial | UI correct; silent validation failure (C8) |
-| Price breakdown | ✅ Works | ₹800 + ₹240 + ₹200 = ₹1,240 ✅ |
-| Itinerary detail | ✅ Works | Pull quotes + numbered stops |
-| Saved tab | ✅ Works | Empty state |
-| Inbox tab | ✅ Works | Empty state (requires `window.navigation` nav) |
-| My Trips tab | ✅ Works | Empty state |
-| Payment flow | ⛔ Web-blocked | `react-native-razorpay` unsupported on web — expected |
-| Live map | ⛔ Web-fallback | Static Google Maps iframe shown — expected |
-| QR scan | ⛔ Web-blocked | `expo-camera` unavailable — expected |
-| Push tokens | ⛔ No-op | `expo-notifications` no-op on web — expected |
+- **No 404s, no console errors, no failed requests.** 19 images all load (the "missing images" TODO in `CLAUDE.md` is out of date — all images are present).
+- **Brand colors are aligned with the design system** — hero is saffron→coral, not Indigo/Sky Blue. The pre-flagged design-system mismatch has been resolved.
+- **Placeholder URLs replaced:** Instagram (`instagram.com/mumbaibuddies`), X (`x.com/mumbaibuddies`), and no `localhost:8081` placeholders remain.
+
+Real findings (still open):
+
+- **Design-system fonts NOT loaded.** `h1` computed `font-family` is `ui-sans-serif, system-ui, sans-serif` — Plus Jakarta Sans / Inter / DM Sans (the design tokens) are not referenced or loaded from a CDN. Mobile uses them via NativeWind; marketing site falls back to system fonts.
+- **WhatsApp link absent entirely** (`waLinks` returns `[]`). If WhatsApp is the intended contact channel per `CLAUDE.md` (replacing `wa.me/910000000000`), the real link needs to be added.
+- **Gray gradient placeholders below the hero on `know-more.html`** — likely intentional CSS gradients in lieu of images, but visually read as "broken" on first impression.
 
 ---
 
-## Type-Mismatch Reconciliation
+## Live-Test Results Summary
 
-| DB Column | `mobile/types/index.ts` | Gap |
-|-----------|------------------------|-----|
-| `users.full_name` | `User.name` | Field name mismatch — `user.name` returns `undefined` at runtime |
-| `guide_profiles.categories` | `GuideProfile.categories: string[]` | DB stores as `text[]` — shape matches but generated types would catch future changes |
-| `bookings.order_id` / `bookings.payment_id` | `Booking.payment_intent_id` | DB uses Razorpay fields; type has a non-existent Stripe-style field |
-| `bookings.status` enum | `Booking.status` union type | Visual inspection suggests alignment; run `supabase gen types` to confirm |
+| Surface | Outcome | Findings confirmed live |
+|---|---|---|
+| Marketing site (Vite, :5173) | ✅ All sections render, no errors | Fonts not loaded; WhatsApp link missing |
+| Admin login (Vite, :5174) | ✅ Password gate works | Session-storage `storage` listener is dead |
+| Admin Users page | ✅ 8 users displayed (3 travelers, 5 guides) | None |
+| Admin Bookings page | ✅ 8 bookings with joined names | Status `chat_open` rendered as "Chat Open" — confirms Phase-2 flow created bookings |
+| Admin Revenue page | ❌ **All ₹0** — filters on `payment_status='paid'` excludes Phase-2 `captured` | Confirmed Admin #11 |
+| Admin SOS page | ✅ "No open SOS — all clear" | None |
+| Admin Cancellations page | ❌ **"Load failed" banner** — PostgREST 42883: LIKE on enum column | Confirmed Admin #4 (real root cause found via curl) |
+| Admin Payouts page | ✅ Empty state renders | None |
+| Mobile Explore (Web export) | ✅ 5 guides render with images, ratings, categories | Favorites query 403 (RLS — seeded user has no auth.users) |
+| Mobile Guide profile | ✅ Editorial-zine layout renders | **Pronoun bug**: "Rohan, in *her* own words" |
+| Mobile My Trips | ❌ "4 total · 0 upcoming" but only 3 cards | Confirms Mobile #20 (legacy status filter) |
+| Mobile Inbox | ❌ "3 conversations" — same 4th booking missing | Confirms Mobile #21 (`fetchInbox` legacy filter) |
+| Supabase health (psql) | ✅ All containers healthy | None |
+| Cron jobs | ✅ 8 jobs scheduled, last 10 runs all succeeded | None |
+| Edge Functions reachability | ✅ All return 401 (JWT-protected) | None |
+| Storage buckets | ✅ 3 buckets exist (avatars + itinerary-photos public, expense-proofs private) | None |
+| RLS policy coverage | ✅ 25 tables with policies, 67 policies total | None |
+| `trip_qr_token` UNIQUE | ❌ Only partial index, no UNIQUE constraint | Confirms Backend #11 |
+
+---
+
+## Type-Mismatch Reconciliation (TS ↔ DB)
+
+| TS field | DB column | Status | Fix |
+|---|---|---|---|
+| `User.name` | `users.full_name` | Drift — TS field absent; normalizer falls back to `'Guide'`/`'Traveler'` | Add `full_name` to TS type; remove the fallback string defaults |
+| `GuideProfile.categories: string[]` | (no column) | Missing | Either add `categories` column or read from `itineraries.category` aggregation |
+| `Booking.payment_intent_id` | `bookings.payment_id` | Renamed (legacy Stripe field name) | Rename TS field to `payment_id` |
+| `Booking.itinerary_id: string` | `bookings.itinerary_id` (nullable per FK ON DELETE SET NULL) | Type too narrow | Make `string \| null` |
+| `payment_status='paid'` | enum: `pending\|authorized\|captured\|released\|failed\|refunded` | Legacy value | Update Revenue page filter to include `captured` |
+| `BookingStatus` (mobile constants) | enum: 27 values | Mobile uses 7-value subset | Centralize via `stateMachine.ts` |
 
 ---
 
 ## Security Posture
 
-| Area | Status | Notes |
-|------|--------|-------|
-| RLS coverage | ✅ Comprehensive | All tables have policies. `get_my_role()` infinite-recursion bug fixed. |
-| Razorpay HMAC webhook | ✅ Correct | `razorpay-webhook` function verifies signature before any DB write. |
-| QR scan concurrency | ⚠️ Needs UNIQUE | No `UNIQUE` on `trip_qr_token` — double-scan window exists (D7). |
-| Service-role key | ✅ Intentional | Admin panel only; local-only per README; `VITE_` prefix is a known trade-off. |
-| Storage buckets | ✅ Correct | `expense-proofs` private; `avatars` + `itinerary-photos` public — correct split. |
-| `SECURITY DEFINER` RPCs | ✅ Reviewed | `compute_reconciliation_tx`, `compute_cancellation_resolution_tx` use fixed `search_path`. |
-| Edge Function CORS | ✅ Correct | Non-webhook functions return CORS headers; webhook rejects cross-origin by signature check. |
+**Strong:**
+- Razorpay webhook HMAC signature verification uses timing-safe compare (`_shared/razorpaySignature.ts`).
+- Financial RPCs (`sign_agreement_tx`, `compute_reconciliation_tx`, `compute_cancellation_resolution_tx`) are SECURITY DEFINER, EXECUTE-REVOKED from authenticated, called only from Edge Functions with service-role.
+- Column-level GRANTs restrict `razorpay_*` fields to service_role.
+- `expense-proofs` bucket is private; storage RLS keyed by booking party.
+- Phase-1 RLS policy coverage is comprehensive (67 policies across 25 tables).
+
+**Weak (security debt):**
+- Admin panel service-role key in client bundle (the existential risk).
+- `create-booking-payment` unauthenticated.
+- Service-role bearer checks not timing-safe.
+- `public.users` `USING (true)` SELECT policy + column-GRANT pattern — defense-in-depth only.
+- Public buckets (`avatars`, `itinerary-photos`) allow any authenticated user to overwrite anyone's file.
+- `set_top_up_status` has no max-amount bound — social-engineering surface.
 
 ---
 
-## Open Questions / Decisions Needed
+## Open Questions / Product Decisions Needed
 
-1. **Commission rate:** Code ships 25%. Spec says 15%. CLAUDE.md notes "pending Gaurav's confirmation." This affects every price breakdown shown to users. **Decision needed.**
-2. **Canonical brand name:** "Mumbai Buddies" (app, admin) vs "Layover Buddies" (marketing site headings). **Decision needed.**
-3. **Guide gender pronouns:** Store a `pronoun_preference` field on `guide_profiles` or default to "their own words"? **Decision needed.**
-4. **`late_fee_paise` value:** Hardcoded ₹1,000. Is this the intended amount? **Confirm.**
-5. **Marketing site production URL:** `http://localhost:8081` booking CTA needs a real URL before any sharing. What's the planned production domain?
+These are not bugs — they need a product call:
+
+1. **Commission rate**: code uses 25% (`COMMISSION_RATE=0.25`), spec mentions 15%. Confirmed by `mobile/config/constants.ts` comment "stays at 25% pending Gaurav's confirmation". Decide and update.
+2. **Late fee amount**: ₹1,000 hardcoded in 3 places. Should it vary by booking tier? Once decided, move to a config table.
+3. **Top-up max amount**: no cap today. What's the policy? Per request? Per trip? Per day?
+4. **Buddy ban policy**: `buddy_cancel` triggers `is_banned=true` permanently. Should there be an appeal / time-decay?
+5. **WhatsApp contact**: marketing site has no WhatsApp link. Is the team going to publish one?
+6. **Multi-city expansion**: `PRIMARY_CITY='Mumbai'` is hardcoded. When and how do we add a second city?
+7. **Pronoun handling**: editorial zine says "Rohan, in *her* own words" — gendered copy. Add a `pronoun` field to guide profile, or always use neutral.
 
 ---
 
 ## Recommended Fix Order
 
-| Priority | Item | Effort | Impact |
-|----------|------|--------|--------|
-| P0 | Marketing site colors + fonts (A1) | M | Brand consistency |
-| P0 | Marketing site placeholder URLs (A3) | S | Public-facing correctness |
-| P0 | Marketing site images + video (A2) | L | Page looks broken without them |
-| P1 | Confirm booking silent validation (C8) | S | Core UX — users can't book |
-| P1 | Sticky CTA overlap padding (C9, C12) | S | Form usability |
-| P1 | `User.name` → `full_name` type fix (D2) | S | Silent runtime `undefined` |
-| P1 | Commission rate decision (Open Q #1) | S | All price displays wrong if 15% intended |
-| P2 | "In her own words" pronoun (C2, C5) | S | Content accuracy |
-| P2 | Seed stops for itineraries 102+103 (C6) | S | Demo data completeness |
-| P2 | Admin NavLink active state (B1) | S | Admin UX polish |
-| P2 | `crypto.randomUUID()` polyfill (D1) | S | Web compatibility |
-| P2 | `Booking.payment_intent_id` orphan (D3) | S | Type accuracy |
-| P3 | Revenue filter button highlight (B2) | S | Admin UX |
-| P3 | Admin `alert()` → inline confirm (B3) | M | UX polish |
-| P3 | Admin pagination notice (B4) | M | Data completeness transparency |
-| P3 | `__DEV__` log gating (D5) | S | Production cleanliness |
-| P3 | `UNIQUE` on `trip_qr_token` (D7) | S | Correctness guarantee |
-| P3 | Cron `late_fee_paise` config (D6) | S | Maintainability |
-| P3 | Supabase generated types (D9, B6) | M | Type safety across the board |
-| P4 | Marketing site deduplication (A5) | M | DX / maintainability |
-| P4 | Cron migration pattern doc (D4) | S | Future-proofing |
+### Tier 1 — Before any external user touches it (S = small, M = medium, L = large)
 
-**Size legend:** S = < 1 hour · M = half day · L = 1–2 days
+1. **[S]** Add `throw` guard at admin/src/lib/supabase.ts top: refuse `import.meta.env.PROD` build without explicit override. Or move to server-side proxy [L]. *(Admin #1)*
+2. **[S]** Delete `supabase/functions/create-booking-payment` OR add JWT auth + server-side amount. *(Backend #1)*
+3. **[S]** Mobile: remove the route `/(traveler)/book/payment/[bookingId]` and have booking creation land on trip detail. *(Mobile #9)*
+4. **[XS]** Admin Cancellations: change `.like('status', 'cancelled%')` to `.in('status', [..six cancelled_* enum values..])`. *(Admin #4)*
+5. **[XS]** Admin Revenue: change `payment_status='paid'` filter to `payment_status IN ('paid', 'captured')`. *(Admin #11)*
 
----
+### Tier 2 — Before beta users
 
-## Out of Scope (This Pass)
+6. **[S]** Mobile: replace legacy-status filter in `messages.ts:fetchInbox`, `trips/index.tsx`, `trips/[id].tsx`. Centralize through `cta.ts`/`stateMachine.ts`. *(Mobile #19–21)*
+7. **[S]** Mobile: add `crypto.randomUUID` polyfill (or use `nanoid/non-secure`). *(Mobile #1)*
+8. **[S]** Mobile: await the bill upload in `expenseProofs.ts`. *(Mobile #2)*
+9. **[S]** Mobile: hoist `assertRazorpayCheckoutAvailable()` into `openRazorpayCheckout`. *(Mobile #3)*
+10. **[S]** Mobile: `signOut` should call `invalidateOwnPushTokenOnLogout`. *(Mobile #18)*
+11. **[M]** Mobile: fix the 4 schema-drift TS types (`User`, `GuideProfile.categories`, `Booking.payment_intent_id`, `Booking.itinerary_id`). *(Mobile #8 / Backend #10)*
+12. **[M]** Backend: timing-safe service-role bearer check across `issue-refund`, `send-push`, `replay-stubbed-payouts`. *(Backend #2)*
+13. **[S]** Backend: add `UNIQUE(trip_qr_token)` constraint. *(Backend #11)*
+14. **[M]** Backend: wrap deposit/balance capture handlers in transactional RPCs. *(Backend #6)*
 
-- Fixing any findings — this is review-and-document only
-- Razorpay native payment flow — covered in iOS Simulator script below
-- Production deployment hardening
-- CI/CD pipeline (none exists yet)
-- Push notifications end-to-end testing (native-only)
+### Tier 3 — Quality / polish
+
+15. Mobile pronoun bug + EAS projectId placeholder + unused `axios` dep.
+16. Marketing site: load Plus Jakarta Sans / Inter / DM Sans; add WhatsApp link.
+17. Admin: replace `alert()` with toast, surface pagination caps consistently, fix sidebar active-state.
+18. Backend: storage policies for `avatars` / `itinerary-photos` keyed by `(storage.foldername)[1] = auth.uid()`.
+19. State-machine drift detector: CI step that imports the TS `transitions` and the SQL functions and compares.
 
 ---
 
-## Appendix — Manual iOS Simulator Test Script
+## Out Of Scope (Tested or Documented Elsewhere)
 
-*Run this on a physical device or iOS Simulator after `npm --prefix mobile run start:ios`. Estimated time: 30–45 min.*
+- **Native iOS / Android flows** — Razorpay native checkout, react-native-maps, expo-camera, expo-location, expo-haptics, expo-notifications. Manual test script written at [docs/manual-ios-test.md](docs/manual-ios-test.md) for a future iOS Simulator pass.
+- **Production Razorpay live keys** — local test keys only. Switch when launching.
+- **CI/CD pipeline** — none exists. Out of scope for this review.
+- **Load testing** — not done.
 
-**Setup:** Use Razorpay test key `rzp_test_*`. Have two email accounts ready (one traveler, one guide).
+---
 
-### 1. Razorpay Payment — Deposit (Phase 1)
-1. Sign in as traveler → browse → book Aarav Patil → "Dadar to Matunga Food Sprint"
-2. Fill tour start date (tomorrow) + 1 traveler → "Confirm Booking →"
-3. Razorpay sheet appears → use test card `4111 1111 1111 1111` exp `12/26` CVV `123`
-4. **Expected:** Payment succeeds → booking status → `confirmed`, deposit recorded
-5. **Capture if fails:** Full Razorpay error modal + console log
+## Appendix A — Tools Used
 
-### 2. Guide Accepts Booking
-1. Sign in as guide (second account) → Dashboard → pending request appears
-2. Tap "Accept" → **Expected:** booking → `guide_accepted`
-3. Both parties should receive push notification
+- **3 parallel review agents:** `reviewer` (Mobile), `reviewer` (Admin), `security-auditor` (Backend). Each given the Phase-1 inventory + an explicit findings template.
+- **Claude Preview** for live browser testing: marketing, admin, mobile-web sequentially.
+- **Read-only psql via `docker exec`** for schema/RLS/cron/data spot-checks.
+- **`curl`** to confirm Edge Function reachability and replay the failing Admin Cancellations query.
 
-### 3. Agreement Signing (Phase 2)
-1. Guide: Bookings → [booking] → "Draft Agreement" → fill itinerary notes → "Send"
-2. Traveler: receives notification → "Review Agreement" → "Sign"
-3. **Expected:** both agreement records created, booking → `agreement_signed`
+## Appendix B — Findings Inventory
 
-### 4. Balance Payment (Phase 3)
-1. Traveler: Trips → [booking] → "Pay Balance" → Razorpay sheet
-2. Test card as above
-3. **Expected:** booking → `balance_paid`
+- Mobile: 100 numbered findings (10 CRITICAL, 25 HIGH, 27 MEDIUM, 19 LOW, 19 STYLE)
+- Admin: 50 numbered findings (3 CRITICAL, 6 HIGH, 17 MEDIUM, 19 LOW, 5 STYLE)
+- Backend: 60 numbered findings (7 CRITICAL, 15 HIGH, 17 MEDIUM, 7 LOW, 14 STYLE)
+- Live-test findings: 8 distinct issues, all confirming agent findings except the Cancellations 42883 root cause (newly identified live)
 
-### 5. QR Trip Start (Phase 4)
-1. Traveler: Trips → [booking] → "View QR Code" → QR displayed
-2. Guide: "Scan to Start Trip" → camera opens → scan traveler's QR
-3. **Expected:** booking → `in_progress`, live location screen opens on both sides
-
-### 6. Live Location Map
-1. Guide: live screen shows `react-native-maps` with real location pin
-2. Traveler: live screen shows guide's location updating in real time
-3. **Expected:** location updates every 5s; no map jitter at 3 d.p. rounding
-
-### 7. Expense Proofs Upload (Phase 4)
-1. Guide: in-trip screen → "Add Expense" → camera for receipt photo → amount entry
-2. **Expected:** photo uploads to `expense-proofs` bucket; receipt appears in expense list
-
-### 8. Trip Completion & Review
-1. Guide: "Mark as Complete" → trip ends
-2. Traveler: prompted for review → 5-star rating + text → submit
-3. **Expected:** review created; guide avg_rating recalculated
-
-### 9. Payout Reconciliation (Phase 5)
-1. Admin panel → Revenue → verify booking appears in `earned` column
-2. Admin panel → Payouts → confirm payout dispatch row created
-3. **Expected:** guide receives UPI payout within 24h (or is queued)
-
-### 10. Cancellation Tiers
-1. Book a new trip → cancel **> 48h before** start → **Expected:** full refund
-2. Book a new trip → cancel **< 24h before** start → **Expected:** 50% refund per tier
-3. Admin panel → Cancellations → verify trigger type + payout dispatch shows
-
-### 11. SOS Alert
-1. Traveler mid-trip → SOS button → **Expected:** SOS row created in DB; admin panel SOS page shows alert
-2. Admin: Acknowledge → Resolve → **Expected:** status updates, map shows correct location
-
-### 12. Push Notifications
-1. With app backgrounded on second device, trigger: booking confirmed, message received, trip starting soon
-2. **Expected:** system notification appears; tap opens correct deep link in app
+Full agent reports are archived in the review-session transcript. Re-run the agents at any time via the planning prompt at [.claude/plans/hey-okkay-so-shiny-dusk.md](.claude/plans/hey-okkay-so-shiny-dusk.md).

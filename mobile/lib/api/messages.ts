@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 import { fetchTravelerBookings, fetchGuideBookings } from './bookings';
-import { BOOKING_STATUS } from '@/config/constants';
+import { isActiveBookingState } from '@/lib/booking/stateMachine';
 import type { Booking, Message, SendMessageRequest } from '@/types';
 
 export async function sendMessage(req: SendMessageRequest): Promise<Message> {
@@ -85,23 +85,16 @@ export async function fetchInbox(userId: string): Promise<Booking[]> {
     fetchGuideBookings(userId),
   ]);
 
-  // Inbox shows every booking that has a chat thread attached to it.  The
-  // Phase-1 lifecycle introduced ~12 new intermediate statuses (chat_open,
-  // agreement_*, awaiting_deposits, deposits_held, awaiting_balance,
-  // late_fee_due, balance_paid, trip_ready, awaiting_proofs, reconciling,
-  // rated) — *every one* of them can still have unread messages.  We
-  // exclude only the terminal "no chat anymore" states (cancelled before
-  // signing, fully cancelled).  Anything else surfaces in Inbox.
-  const HIDDEN_STATUSES = new Set<string>([
-    BOOKING_STATUS.CANCELLED,
-    BOOKING_STATUS.CANCELLED_PRE_SIGNING,
-  ]);
-
+  // Inbox shows any non-terminal booking. The previous whitelist
+  // (`GUIDE_ACCEPTED|CONFIRMED|IN_PROGRESS|COMPLETED`) hid every Phase 1+
+  // state (chat_open, agreement_*, awaiting_*, balance_paid, etc.), so a
+  // brand-new traveler with a brand-new booking saw an empty inbox.
+  // (Review 2026-05-14 #21.)
   const seen = new Set<string>();
   const merged: Booking[] = [];
   for (const b of [...travelerBookings, ...guideBookings]) {
     if (seen.has(b.id)) continue;
-    if (HIDDEN_STATUSES.has(b.status)) continue;
+    if (!isActiveBookingState(b.status) && b.status !== 'completed') continue;
     seen.add(b.id);
     merged.push(b);
   }
