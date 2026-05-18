@@ -1,5 +1,6 @@
 /* End-to-end themed screens — Midnight×Lime + Paper×Cobalt
-   Palette-driven. 8 key screens of the flow, both themes side-by-side. */
+   Palette-driven. 8 key screens of the flow, rendered one theme at a time
+   via the Night/Light toggle in index.html. */
 
 const FH = "'Plus Jakarta Sans', sans-serif";
 const FB = "'Inter', sans-serif";
@@ -270,7 +271,7 @@ window.T_Results = function T_Results({ p }) {
       </div>
 
       <div style={{ padding: '4px 22px 14px' }}>
-        <Tag color={p.accent}>4 buddies match</Tag>
+        <Tag color={p.accent}>3 buddies match</Tag>
         <h1 style={{ fontFamily: FH, fontSize: 30, fontWeight: 800,
           letterSpacing: '-0.03em', lineHeight: 1.05, marginTop: 6 }}>
           Pick your<br/>
@@ -354,7 +355,7 @@ window.T_Profile = function T_Profile({ p }) {
   ];
   return (
     <div style={{ width: '100%', height: '100%', background: p.bg, color: p.ink,
-      fontFamily: FB, position: 'relative', overflow: 'hidden' }}>
+      fontFamily: FB, position: 'relative', overflow: 'auto' }}>
       <div style={{ position: 'relative', height: 260, paddingTop: 60 }}>
         <Photo hue={24}/>
         <div style={{ position: 'absolute', inset: 0,
@@ -553,7 +554,7 @@ window.T_Pay = function T_Pay({ p }) {
         <div style={{ background: p.surface, borderRadius: 18, padding: 16,
           border: `1px solid ${p.rule}`, marginBottom: 10 }}>
           {[
-            { l: 'Buddy fee · 6 hrs', v: '₹2,000' },
+            { l: 'Buddy fee · 5h 15m', v: '₹2,000' },
             { l: 'Travel & cabs', v: '₹650' },
             { l: 'Mumbai tax', v: '₹165' },
             { l: 'First-trip credit', v: '−₹250', acc: true },
@@ -745,7 +746,7 @@ window.T_Live = function T_Live({ p }) {
               color: 'white', fontSize: 10, fontWeight: 700,
               border: '1px solid rgba(255,255,255,.2)' }}>🛍️ Stop 03</span>
             <span style={{ fontFamily: FN, fontSize: 10.5, color: 'white',
-              fontWeight: 700 }}>17:04 · 38 min left</span>
+              fontWeight: 700 }}>17:04 · 1h 11m left</span>
           </div>
           <div style={{ position: 'absolute', bottom: 14, left: 14, right: 14, color: 'white' }}>
             <h2 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800,
@@ -834,8 +835,8 @@ window.T_Recap = function T_Recap({ p }) {
         <div style={{ marginTop: 22, display: 'grid',
           gridTemplateColumns: '1fr 1fr', gap: 6 }}>
           {[
-            { v: '6h 12m', l: 'Time spent' },
-            { v: '5', l: 'Stops' },
+            { v: '5h 15m', l: 'Time spent' },
+            { v: '6', l: 'Stops' },
             { v: '14.2 km', l: 'Walked' },
             { v: '38', l: 'Photos' },
           ].map((s, i) => (

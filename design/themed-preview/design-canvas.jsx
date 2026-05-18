@@ -139,12 +139,24 @@ function DesignCanvas({ children, minScale, maxScale, style }) {
       .then((r) => (r.ok ? r.json() : null))
       .then((saved) => {
         if (off || !saved || !saved.sections) return;
+        // If the safety-net timer below already fired, the canvas has been
+        // visible to the user for a while and may have been edited. A late-
+        // arriving fetch must NOT clobber those edits — bail out.
+        if (didRead.current) return;
         skipNextWrite.current = true;
         setState((s) => ({ ...s, sections: saved.sections }));
       })
       .catch(() => {})
       .finally(() => { didRead.current = true; if (!off) setReady(true); });
-    const t = setTimeout(() => { if (!off) setReady(true); }, 150);
+    // Safety net: if the disk read is slow, show the canvas anyway after
+    // 150ms with the default state, and mark hydration done so subsequent
+    // edits start writing. The `.then` guard above ensures a slow fetch
+    // can't roll back those edits when it eventually resolves.
+    const t = setTimeout(() => {
+      if (off) return;
+      didRead.current = true;
+      setReady(true);
+    }, 150);
     return () => { off = true; clearTimeout(t); };
   }, []);
 
@@ -675,7 +687,13 @@ function DCArtboardFrame({ sectionId, artboard, label, order, onRename, onReorde
     // getBoundingClientRect().left are screen-space — divide by the viewport's
     // current scale so the dragged card tracks the cursor at any zoom level.
     const scale = me.getBoundingClientRect().width / me.offsetWidth || 1;
-    const peers = Array.from(document.querySelectorAll(`[data-dc-section="${sectionId}"] [data-dc-slot]`));
+    // sectionId comes from public props (or a title fallback) and can contain
+    // characters that break a raw attribute selector — escape via CSS.escape
+    // so quotes / brackets / backslashes don't make querySelectorAll throw
+    // (which would silently break drag-reorder).
+    const peers = Array.from(document.querySelectorAll(
+      `[data-dc-section="${CSS.escape(sectionId)}"] [data-dc-slot]`
+    ));
     const homes = peers.map((el) => ({ el, id: el.dataset.dcSlot, x: el.getBoundingClientRect().left }));
     const slotXs = homes.map((h) => h.x);
     const startIdx = order.indexOf(id);

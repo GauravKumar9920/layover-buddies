@@ -104,7 +104,17 @@
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 </head>
-<body data-mode="night">
+<body>
+<!-- Resolve the saved theme synchronously, BEFORE any body content paints,
+     so users who saved Light don't get a Night-mode flash on reload. The
+     React effect later re-applies the same value; no flash either way. -->
+<script>
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem('mb-themed-preview-mode'); } catch (_) {}
+    document.body.setAttribute('data-mode', saved === 'light' ? 'light' : 'night');
+  })();
+</script>
 
 <div id="root"></div>
 
@@ -135,27 +145,37 @@
     accent2: '#FF8A4C', good: '#18A957', chrome: 'light',
   };
 
+  // `darkChrome` controls the iOS status bar / home indicator colour.
+  // Most Light-mode screens have a light background → light chrome; but
+  // the Confirmed screen inverts in Light mode (dark bg, light fg) so it
+  // needs dark chrome regardless of the active theme.
   const SCREENS = [
     { id: '01-welcome',   label: '01 · Welcome',                     C: () => window.T_Welcome   },
     { id: '02-setup',     label: '02 · Setup',                       C: () => window.T_Setup     },
     { id: '03-results',   label: '03 · Guide results',               C: () => window.T_Results   },
     { id: '04-profile',   label: '04 · Profile · Stories + Posts',   C: () => window.T_Profile   },
     { id: '05-pay',       label: '05 · Pay',                         C: () => window.T_Pay       },
-    { id: '06-confirmed', label: '06 · Confirmed',                   C: () => window.T_Confirmed },
+    { id: '06-confirmed', label: '06 · Confirmed',                   C: () => window.T_Confirmed, alwaysDarkChrome: true },
     { id: '07-live',      label: '07 · Live trip',                   C: () => window.T_Live      },
     { id: '08-recap',     label: '08 · Recap & review',              C: () => window.T_Recap     },
   ];
 
-  const Frame = ({ children }) => (
+  const Frame = ({ dark, children }) => (
     <div className="frame-wrap">
-      <IOSDevice width={402} height={874}>{children}</IOSDevice>
+      <IOSDevice width={402} height={874} dark={dark}>{children}</IOSDevice>
     </div>
   );
 
+  // Theme is a mutually-exclusive choice between two options → radio-group
+  // semantics. `role="tablist"` would imply associated tab panels, which
+  // we don't render. `aria-pressed` (toggle-button state) was paired with
+  // `role="tablist"` (tab semantics), which was inconsistent for AT.
   function ModeToggle({ mode, onChange }) {
     const opt = (key, label, icon) => (
       <button
         type="button"
+        role="radio"
+        aria-checked={mode === key}
         aria-pressed={mode === key}
         onClick={() => onChange(key)}
       >
@@ -163,7 +183,7 @@
       </button>
     );
     return (
-      <div className="toggle" role="tablist" aria-label="Theme mode">
+      <div className="toggle" role="radiogroup" aria-label="Theme mode">
         {opt('night', 'Night', '◐')}
         {opt('light', 'Light', '◑')}
       </div>
@@ -204,9 +224,10 @@
         <main className="grid">
           {SCREENS.map(s => {
             const C = s.C();
+            const dark = mode === 'night' || !!s.alwaysDarkChrome;
             return (
               <section key={s.id} className="artboard">
-                <Frame><C p={palette} /></Frame>
+                <Frame dark={dark}><C p={palette} /></Frame>
                 <div className="label">{s.label}</div>
               </section>
             );
