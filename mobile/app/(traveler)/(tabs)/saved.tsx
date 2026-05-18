@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -29,8 +29,19 @@ import type { Itinerary } from '@/types';
 export default function SavedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const favoriteIds = useFavoritesStore((s) => Array.from(s.ids));
+  // Subscribe to the Set itself, NOT to `Array.from(s.ids)` — that returned a
+  // brand-new array on every Zustand notification, which made every dependent
+  // hook see a new reference and triggered "Maximum update depth exceeded"
+  // (load → useEffect → setLoading → re-render → new array → repeat).
+  const favoriteIdsSet = useFavoritesStore((s) => s.ids);
   const hydrated = useFavoritesStore((s) => s.hydrated);
+  // Derive a stable array via useMemo keyed on the Set's size+contents.  We
+  // intentionally key on a string hash so reordering still triggers reload
+  // but identity-preserving updates don't.
+  const favoriteIdsKey = useMemo(() => {
+    return Array.from(favoriteIdsSet).sort().join(',');
+  }, [favoriteIdsSet]);
+  const favoriteIds = useMemo(() => Array.from(favoriteIdsSet), [favoriteIdsKey]);
 
   const [items, setItems] = useState<Itinerary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +58,7 @@ export default function SavedScreen() {
     setItems(
       fetched.filter((i): i is Itinerary => i !== null),
     );
-  }, [favoriteIds]);
+  }, [favoriteIdsKey]);
 
   useEffect(() => {
     // Wait for the favorites store to hydrate from Supabase before showing
@@ -108,7 +119,10 @@ export default function SavedScreen() {
             title="Nothing saved yet"
             subtitle="Tap the heart on any tour to keep it here for later."
             actionLabel="Browse tours"
-            onAction={() => router.replace('/(traveler)')}
+            // Route to the Explore tab inside the tabs group rather than the
+            // ambiguous (traveler) Stack root, so the bottom tab bar stays
+            // visible and the active-tab indicator updates correctly.
+            onAction={() => router.replace('/(traveler)/(tabs)' as never)}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -190,10 +204,16 @@ function SavedRow({
               e.stopPropagation?.();
               void toggle(itinerary.id, session?.user?.id ?? null);
             }}
+            accessibilityLabel="Unsave this tour"
+            accessibilityRole="button"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={{ paddingHorizontal: 4 }}
           >
-            <Text style={{ fontSize: 18, color: theme.colors.accent }}>♥</Text>
+            {/* Filled-pink heart on a tour the user is *already* saving — the
+                tap removes it.  Wrapping a saved-row affordance with the
+                same filled glyph makes it clear this is the "active" state
+                without ambiguity about whether tap-to-save or tap-to-unsave. */}
+            <Text style={{ fontSize: 20, color: theme.colors.accent }}>♥</Text>
           </TouchableOpacity>
         </View>
       </View>

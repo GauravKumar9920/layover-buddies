@@ -43,6 +43,7 @@ import { SkeletonLine } from '@/components/ui/Loading';
 import { getItineraryPhoto, getGuideHeroPhoto } from '@/config/photoLibrary';
 import { fetchGuideById, fetchGuideItineraries } from '@/lib/api/guides';
 import { createBooking, calcCommission } from '@/lib/api/bookings';
+import { safeBack } from '@/lib/navigation';
 import { hapticImpactMedium, hapticSuccess, hapticError } from '@/lib/haptics';
 import { theme } from '@/config/theme';
 import { COMMISSION_RATE, ESTIMATED_EXPENSES_PERCENT, CURRENCY_SYMBOL } from '@/config/constants';
@@ -471,10 +472,16 @@ function LabeledInput({
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 export default function BookingScreen() {
-  const { guideId, itineraryId: preselectedItinId } = useLocalSearchParams<{
+  const { guideId, itineraryId: preselectedItinId, intent } = useLocalSearchParams<{
     guideId: string;
     itineraryId?: string;
+    /** 'chat' = traveler just wants to message the guide first; we route to
+     *  the conversation after creating the chat_open booking instead of the
+     *  payment screen. Anything else (or undefined) keeps the original
+     *  book → pay flow. */
+    intent?: string;
   }>();
+  const isChatIntent = intent === 'chat';
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
@@ -491,6 +498,8 @@ export default function BookingScreen() {
   const [arrivalDate, setArrivalDate] = useState('');
   const [arrivalTime, setArrivalTime] = useState('');
   const [departureDate, setDepartureDate] = useState('');
+  const [paymentOption, setPaymentOption] = useState<'booking_fee' | 'full'>('booking_fee');
+  const BOOKING_FEE = 500;
   const [departureTime, setDepartureTime] = useState('');
   const [flightNumber, setFlightNumber] = useState('');
   const [numTravelers, setNumTravelers] = useState('1');
@@ -520,10 +529,18 @@ export default function BookingScreen() {
   }, [guideId]);
 
   const selectedItin = itineraries.find((i) => i.id === selectedItinId);
-  const buddyCost = selectedItin?.buddy_cost_inr ?? 0;
-  const estimatedExpenses = Math.round(buddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
-  const commission = calcCommission(buddyCost);
-  const total = buddyCost + estimatedExpenses + commission;
+  const perPersonBuddyCost = selectedItin?.buddy_cost_inr ?? 0;
+  const perPersonExpenses  = Math.round(perPersonBuddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
+  const perPersonCommission = calcCommission(perPersonBuddyCost);
+  const perPersonTotal = perPersonBuddyCost + perPersonExpenses + perPersonCommission;
+
+  // Pricing scales linearly with group size — matches the server-side math in
+  // createBooking and the DB CHECK constraint on bookings.num_travelers.
+  const travelerCount = Math.max(1, Math.min(10, parseInt(numTravelers, 10) || 1));
+  const buddyCost         = perPersonBuddyCost  * travelerCount;
+  const estimatedExpenses = perPersonExpenses   * travelerCount;
+  const commission        = perPersonCommission * travelerCount;
+  const total             = perPersonTotal      * travelerCount;
 
   async function handleConfirm() {
     if (submitting) return;
@@ -562,11 +579,17 @@ export default function BookingScreen() {
         flight_date: arrivalDate || undefined,
         start_date: tourStartDate,
         end_date: tourEndDate || tourStartDate,
+        num_travelers: travelerCount,
       });
 
       hapticSuccess();
       confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 });
-      router.replace(`/(traveler)/book/payment/${booking.id}` as never);
+      // Chat-first intent skips the payment screen and drops the traveler
+      // straight into the conversation. Regular bookings still go to pay.
+      const nextRoute = isChatIntent
+        ? `/(shared)/messages/${booking.id}`
+        : `/(traveler)/book/payment/${booking.id}`;
+      router.replace(nextRoute as never);
     } catch (err: unknown) {
       hapticError();
       confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 });
@@ -588,7 +611,13 @@ export default function BookingScreen() {
         position: 'absolute', top: insets.top + 8, left: 16, zIndex: 50,
         backgroundColor: 'rgba(26,26,46,0.65)', borderRadius: 20,
       }}>
-        <TouchableOpacity onPress={() => router.back()} style={{ padding: 8 }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity
+          // guideId comes from the route params, so it's always defined when
+          // we render this screen. Fall back to the guide profile.
+          onPress={() => safeBack(router, `/(traveler)/guide/${guideId}`)}
+          style={{ padding: 8 }}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
           <Text style={{ color: '#FFFFFF', fontSize: 22 }}>‹</Text>
         </TouchableOpacity>
       </View>
@@ -798,22 +827,126 @@ export default function BookingScreen() {
               <Text style={{ fontSize: 17, fontWeight: '700', color: theme.colors.text, marginBottom: 14 }}>
                 Price Breakdown
               </Text>
-              <PriceRow label="Buddy fee" value={`${CURRENCY_SYMBOL}${buddyCost.toLocaleString('en-IN')}`} />
               <PriceRow
-                label={`Estimated expenses (~${ESTIMATED_EXPENSES_PERCENT}%)`}
+                label={travelerCount > 1
+                  ? `Buddy fee (${CURRENCY_SYMBOL}${perPersonBuddyCost.toLocaleString('en-IN')} × ${travelerCount})`
+                  : 'Buddy fee'}
+                value={`${CURRENCY_SYMBOL}${buddyCost.toLocaleString('en-IN')}`}
+              />
+              <PriceRow
+                label={travelerCount > 1
+                  ? `Estimated expenses (~${ESTIMATED_EXPENSES_PERCENT}% × ${travelerCount})`
+                  : `Estimated expenses (~${ESTIMATED_EXPENSES_PERCENT}%)`}
                 value={`${CURRENCY_SYMBOL}${estimatedExpenses.toLocaleString('en-IN')}`}
                 muted
               />
               <PriceRow
-                label={`Platform commission (${(COMMISSION_RATE * 100).toFixed(0)}%)`}
+                label={travelerCount > 1
+                  ? `Platform commission (${(COMMISSION_RATE * 100).toFixed(0)}% × ${travelerCount})`
+                  : `Platform commission (${(COMMISSION_RATE * 100).toFixed(0)}%)`}
                 value={`${CURRENCY_SYMBOL}${commission.toLocaleString('en-IN')}`}
                 muted
               />
               <View style={{ height: 1, backgroundColor: theme.colors.divider, marginVertical: 10 }} />
-              <PriceRow label="Total" value={`${CURRENCY_SYMBOL}${total.toLocaleString('en-IN')}`} bold />
+              <PriceRow
+                label={travelerCount > 1 ? `Total (${travelerCount} travelers)` : 'Total'}
+                value={`${CURRENCY_SYMBOL}${total.toLocaleString('en-IN')}`}
+                bold
+              />
               <Text style={{ fontSize: 11, color: theme.colors.textMuted, marginTop: 2 }}>
                 Held in escrow until tour completes · expenses may vary
               </Text>
+            </Card>
+          ) : null}
+
+          {/* ── Payment option selector ─────────────────────────────────── */}
+          {selectedItin ? (
+            <Card style={{ marginTop: 0, marginBottom: 4 }}>
+              <Text style={{ fontSize: 17, fontWeight: '700', color: theme.colors.text, marginBottom: 14 }}>
+                How would you like to pay?
+              </Text>
+
+              {/* Option A — ₹500 booking fee */}
+              <TouchableOpacity
+                onPress={() => setPaymentOption('booking_fee')}
+                style={{
+                  flexDirection: 'row', alignItems: 'center', gap: 12,
+                  padding: 14, borderRadius: 12, marginBottom: 10,
+                  backgroundColor: paymentOption === 'booking_fee' ? theme.colors.primaryLight : theme.colors.surface,
+                  borderWidth: 2,
+                  borderColor: paymentOption === 'booking_fee' ? theme.colors.primary : theme.colors.divider,
+                }}
+              >
+                <View style={{
+                  width: 20, height: 20, borderRadius: 10,
+                  borderWidth: 2,
+                  borderColor: paymentOption === 'booking_fee' ? theme.colors.primary : theme.colors.divider,
+                  alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: paymentOption === 'booking_fee' ? theme.colors.primary : 'transparent',
+                }}>
+                  {paymentOption === 'booking_fee' && (
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#fff' }} />
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontWeight: '700', fontSize: 15, color: theme.colors.text }}>
+                    Pay {CURRENCY_SYMBOL}{BOOKING_FEE} now — secure your spot
+                  </Text>
+                  <Text style={{ fontSize: 12, color: theme.colors.textSecondary, marginTop: 3 }}>
+                    Pay remaining {CURRENCY_SYMBOL}{(total - BOOKING_FEE).toLocaleString('en-IN')} within 72 hrs
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: theme.colors.primary }}>
+                  {CURRENCY_SYMBOL}{BOOKING_FEE}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Option B — full payment */}
+              <TouchableOpacity
+                onPress={() => setPaymentOption('full')}
+                style={{
+                  flexDirection: 'row', alignItems: 'center', gap: 12,
+                  padding: 14, borderRadius: 12,
+                  backgroundColor: paymentOption === 'full' ? theme.colors.primaryLight : theme.colors.surface,
+                  borderWidth: 2,
+                  borderColor: paymentOption === 'full' ? theme.colors.primary : theme.colors.divider,
+                }}
+              >
+                <View style={{
+                  width: 20, height: 20, borderRadius: 10,
+                  borderWidth: 2,
+                  borderColor: paymentOption === 'full' ? theme.colors.primary : theme.colors.divider,
+                  alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: paymentOption === 'full' ? theme.colors.primary : 'transparent',
+                }}>
+                  {paymentOption === 'full' && (
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#fff' }} />
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontWeight: '700', fontSize: 15, color: theme.colors.text }}>
+                    Pay {CURRENCY_SYMBOL}{total.toLocaleString('en-IN')} now — done deal
+                  </Text>
+                  <Text style={{ fontSize: 12, color: theme.colors.textSecondary, marginTop: 3 }}>
+                    No reminders, no worries — you're fully confirmed
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: theme.colors.primary }}>
+                  {CURRENCY_SYMBOL}{total.toLocaleString('en-IN')}
+                </Text>
+              </TouchableOpacity>
+
+              {/* 72hr reminder notice */}
+              {paymentOption === 'booking_fee' && (
+                <View style={{
+                  backgroundColor: '#FEF9C3', borderRadius: 10, padding: 10, marginTop: 10,
+                  borderLeftWidth: 3, borderLeftColor: '#F59E0B',
+                }}>
+                  <Text style={{ fontSize: 12, color: '#78350F', lineHeight: 17 }}>
+                    ⏱ Full payment is due within 72 hours of booking confirmation. Late fee of {CURRENCY_SYMBOL}250 applies after that.
+                  </Text>
+                </View>
+              )}
             </Card>
           ) : null}
 
@@ -850,11 +983,43 @@ export default function BookingScreen() {
               <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>Sending request…</Text>
             ) : (
               <Text style={{ color: submitting || loading ? '#9CA3AF' : '#FFFFFF', fontSize: 16, fontWeight: '700', letterSpacing: 0.2 }}>
-                Confirm Booking →
+                {/* The button label has to match what *actually* happens:
+                    creates a chat_open booking (a request to the buddy), NOT
+                    a confirmed booking. The buddy still has to accept and
+                    sign the agreement before any money moves. */}
+                {isChatIntent
+                  ? '💬 Start Conversation →'
+                  : paymentOption === 'booking_fee'
+                    ? `Pay ${CURRENCY_SYMBOL}${BOOKING_FEE} & Send Request →`
+                    : `Pay ${CURRENCY_SYMBOL}${total.toLocaleString('en-IN')} & Confirm →`}
               </Text>
             )}
           </TouchableOpacity>
         </Animated.View>
+
+        {/* Mode-switch link — escape hatch so travelers can flip between
+            chat-first and send-request without backing out. */}
+        {!submitting && !loading && (
+          <TouchableOpacity
+            onPress={() =>
+              router.replace({
+                pathname: '/(traveler)/book/[guideId]',
+                params: {
+                  guideId,
+                  ...(isChatIntent ? {} : { intent: 'chat' }),
+                  ...(selectedItinId ? { itineraryId: selectedItinId } : {}),
+                },
+              })
+            }
+            style={{ alignItems: 'center', paddingVertical: 10, marginTop: 4 }}
+          >
+            <Text style={{ fontSize: 13, color: theme.colors.textSecondary, fontWeight: '500' }}>
+              {isChatIntent
+                ? `Or send a booking request →`
+                : `💬 Or message ${(guide?.name ?? '').split(' ')[0] || 'them'} first`}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </KeyboardAvoidingView>
   );

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -14,7 +14,8 @@ import { Header } from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
-import { fetchBookingById } from '@/lib/api/bookings';
+import { fetchBookingById, cancelBooking } from '@/lib/api/bookings';
+import { safeBack } from '@/lib/navigation';
 import {
   assertRazorpayCheckoutAvailable,
   createRazorpayOrder,
@@ -25,7 +26,7 @@ import {
 import { hapticImpactMedium, hapticSuccess, hapticError } from '@/lib/haptics';
 import { supabase } from '@/lib/supabase';
 import { theme } from '@/config/theme';
-import { PAYMENT_STATUS, ESTIMATED_EXPENSES_PERCENT } from '@/config/constants';
+import { PAYMENT_STATUS, ESTIMATED_EXPENSES_PERCENT, DEPOSIT_PAISE } from '@/config/constants';
 import type { Booking } from '@/types';
 
 function PriceRow({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
@@ -38,6 +39,57 @@ function PriceRow({ label, value, bold }: { label: string; value: string; bold?:
         {value}
       </Text>
     </View>
+  );
+}
+
+// Selectable row used in the "Pay now" choice card — booking deposit vs full.
+function PayOption({
+  selected, onPress, title, subtitle, badge,
+}: {
+  selected: boolean;
+  onPress: () => void;
+  title:    string;
+  subtitle: string;
+  badge?:   string;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.85}
+      style={{
+        flexDirection: 'row', alignItems: 'flex-start', gap: 12,
+        padding: 14,
+        backgroundColor: selected ? theme.colors.primaryLight : '#FFFFFF',
+        borderRadius: theme.borderRadius.md,
+        borderWidth: selected ? 2 : 1,
+        borderColor: selected ? theme.colors.primary : theme.colors.divider,
+      }}
+    >
+      {/* Radio glyph */}
+      <View style={{
+        width: 22, height: 22, borderRadius: 11,
+        borderWidth: 2,
+        borderColor: selected ? theme.colors.primary : theme.colors.divider,
+        backgroundColor: selected ? theme.colors.primary : 'transparent',
+        alignItems: 'center', justifyContent: 'center',
+        marginTop: 2,
+      }}>
+        {selected && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' }} />}
+      </View>
+      <View style={{ flex: 1 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: theme.colors.text }}>{title}</Text>
+          {badge ? (
+            <View style={{ backgroundColor: theme.colors.success + '22', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+              <Text style={{ fontSize: 10, fontWeight: '700', color: theme.colors.success }}>{badge}</Text>
+            </View>
+          ) : null}
+        </View>
+        <Text style={{ fontSize: 12, color: theme.colors.textSecondary, marginTop: 4, lineHeight: 17 }}>
+          {subtitle}
+        </Text>
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -100,6 +152,10 @@ export default function PaymentScreen() {
   const [error, setError] = useState<string | null>(null);
   const [travelerEmail, setTravelerEmail] = useState('');
   const [travelerName, setTravelerName] = useState('');
+  // "deposit" = pay just the ₹500 refundable booking fee now; balance is due
+  // 72h before the trip. "full" = pay everything up front (locks the price
+  // and skips the late-fee window).
+  const [payOption, setPayOption] = useState<'deposit' | 'full'>('deposit');
 
   const btnScale = useSharedValue(1);
   const btnStyle = useAnimatedStyle(() => ({ transform: [{ scale: btnScale.value }] }));
@@ -195,7 +251,7 @@ export default function PaymentScreen() {
   if (!booking) {
     return (
       <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <Header title="Payment" showBack />
+        <Header title="Payment" showBack backFallback="/(traveler)/(tabs)/trips" />
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 }}>
           <Text style={{ fontSize: 40 }}>⚠️</Text>
           <Text style={{ color: theme.colors.textSecondary, fontSize: 15, marginTop: 16, textAlign: 'center' }}>
@@ -207,14 +263,25 @@ export default function PaymentScreen() {
     );
   }
 
-  const buddyCost = booking.itinerary?.buddy_cost_inr ?? 0;
-  const estimatedExpenses = Math.round(buddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
+  // Pricing is locked at booking time on `bookings.buddy_cost / estimated_expenses
+  // / platform_fee / total_amount` — every one already multiplied by group size.
+  // Re-deriving from itinerary.buddy_cost_inr would silently lie about the line
+  // items for any booking with num_travelers > 1.  Prefer the persisted values
+  // and only fall back to the per-person × N math when they're not yet hydrated
+  // (e.g. older rows that pre-date the column).
+  const N = booking.num_travelers || 1;
+  const buddyCost =
+    booking.buddy_cost > 0 ? booking.buddy_cost : (booking.itinerary?.buddy_cost_inr ?? 0) * N;
+  const estimatedExpenses =
+    booking.estimated_expenses > 0
+      ? booking.estimated_expenses
+      : Math.round(buddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
   const platformFee = booking.commission;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <View style={{ paddingTop: insets.top }}>
-        <Header title="Confirm Payment" showBack />
+        <Header title="Confirm Payment" showBack backFallback="/(traveler)/(tabs)/trips" />
       </View>
 
       <ScrollView
@@ -240,6 +307,31 @@ export default function PaymentScreen() {
           <PriceRow label="Platform fee" value={`₹${platformFee.toLocaleString('en-IN')}`} />
           <View style={{ height: 1, backgroundColor: theme.colors.divider, marginVertical: 8 }} />
           <PriceRow label="Total to pay" value={`₹${booking.total_price.toLocaleString('en-IN')}`} bold />
+        </Card>
+
+        {/* Pay-now choice — deposit holds the slot, full clears everything */}
+        <Card style={{ marginBottom: 20 }}>
+          <Text style={{
+            fontSize: 13, fontWeight: '700', color: theme.colors.textSecondary,
+            textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 14,
+          }}>
+            Pay now
+          </Text>
+
+          <PayOption
+            selected={payOption === 'deposit'}
+            onPress={() => setPayOption('deposit')}
+            title={`₹${(DEPOSIT_PAISE / 100).toLocaleString('en-IN')} booking fee`}
+            subtitle="Holds your slot. Balance is due 72 h before the trip — late fees kick in after."
+            badge="Recommended"
+          />
+          <View style={{ height: 10 }} />
+          <PayOption
+            selected={payOption === 'full'}
+            onPress={() => setPayOption('full')}
+            title={`Pay full ₹${booking.total_price.toLocaleString('en-IN')}`}
+            subtitle="Skip the second payment. Refundable per our cancellation tiers."
+          />
         </Card>
 
         {/* Payment info */}
@@ -287,7 +379,15 @@ export default function PaymentScreen() {
       }}>
         <Animated.View style={btnStyle}>
           <Button
-            title={`Pay ₹${booking.total_price.toLocaleString('en-IN')}`}
+            // Amount to charge depends on the selected pay option above. The
+            // backend cancel/cron flow already understands a partial pay-now
+            // → balance-later sequence (Phase 2/3), so this just gates the
+            // initial Razorpay charge.
+            title={
+              payOption === 'deposit'
+                ? `Pay ₹${(DEPOSIT_PAISE / 100).toLocaleString('en-IN')} booking fee`
+                : `Pay full ₹${booking.total_price.toLocaleString('en-IN')}`
+            }
             onPress={handlePay}
             loading={processing}
             disabled={processing}
@@ -297,11 +397,30 @@ export default function PaymentScreen() {
         </Animated.View>
         <Button
           title="Cancel Booking"
-          onPress={() => {
-            Alert.alert('Cancel?', 'Your booking slot will be released.', [
-              { text: 'Keep It', style: 'cancel' },
-              { text: 'Cancel', style: 'destructive', onPress: () => router.replace('/(traveler)/' as never) },
-            ]);
+          onPress={async () => {
+            if (!booking?.id) return;
+            // Web-friendly confirm (Alert.alert multi-button is a no-op on RN-Web)
+            const proceed = await new Promise<boolean>((resolve) => {
+              if (Platform.OS === 'web') {
+                resolve(window.confirm('Cancel this booking? Your slot will be released.'));
+                return;
+              }
+              Alert.alert('Cancel?', 'Your booking slot will be released.', [
+                { text: 'Keep It', style: 'cancel', onPress: () => resolve(false) },
+                { text: 'Cancel', style: 'destructive', onPress: () => resolve(true) },
+              ], { onDismiss: () => resolve(false) });
+            });
+            if (!proceed) return;
+            try {
+              // Actually update the DB — previous version only routed away,
+              // leaving the chat_open booking orphaned in My Trips & Inbox.
+              await cancelBooking(booking.id);
+              safeBack(router, '/(traveler)/(tabs)/trips');
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : 'Please try again.';
+              if (Platform.OS === 'web') window.alert(`Unable to cancel: ${msg}`);
+              else Alert.alert('Unable to cancel', msg);
+            }
           }}
           variant="secondary"
           size="sm"

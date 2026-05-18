@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mumbai Buddies · Theme Contact Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #0F0F12; color: #F4F4F2;
+    padding: 40px 28px 60px;
+  }
+  .head {
+    max-width: 1480px; margin: 0 auto 30px;
+    display: flex; align-items: end; justify-content: space-between;
+    gap: 24px;
+  }
+  .head h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800; font-size: 32px; letter-spacing: -0.025em;
+    margin: 0;
+  }
+  .head p {
+    font-size: 13px; opacity: .55; margin: 8px 0 0; max-width: 64ch;
+    line-height: 1.55;
+  }
+  .head .key {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; opacity: .60;
+  }
+  .sheet {
+    max-width: 1480px; margin: 0 auto;
+    display: grid; gap: 24px;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  @media (max-width: 1180px) { .sheet { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 700px)  { .sheet { grid-template-columns: 1fr; } }
+
+  .card {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .frame-wrap {
+    width: 100%; aspect-ratio: 402 / 874;
+    background: #000; border-radius: 30px; overflow: hidden;
+    box-shadow: 0 24px 60px -16px rgba(0,0,0,.55),
+                0 8px 20px -10px rgba(0,0,0,.40);
+    position: relative;
+  }
+  .frame-wrap > div { transform-origin: top left; width: 402px; height: 874px; }
+  .meta {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .meta .name {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700; font-size: 14px; letter-spacing: -0.01em;
+  }
+  .meta .insp {
+    font-size: 11px; opacity: .50; text-transform: uppercase; letter-spacing: .08em; font-weight: 700;
+  }
+  .saved {
+    font-size: 9px; font-weight: 800; letter-spacing: .08em;
+    text-transform: uppercase;
+    background: #D9FF3D; color: #0E0F12;
+    padding: 3px 6px; border-radius: 4px; margin-left: 6px;
+    vertical-align: middle;
+  }
+  .swatch-row {
+    display: flex; gap: 4px;
+  }
+  .swatch-row span {
+    flex: 1; height: 5px; border-radius: 999px; display: block;
+  }
+  .footer {
+    max-width: 1480px; margin: 36px auto 0;
+    font-size: 12px; opacity: .50; text-align: center;
+  }
+  .footer a { color: inherit; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="themed-screens.jsx"></script>
+
+<script type="text/babel">
+  // Same 8 themes as explore.html
+  const THEMES = [
+    { id: 'paper-cobalt',     name: 'Paper × Cobalt',      saved: true,  insp: 'Stripe / Substack',
+      bg: '#F4F1EB', surface: '#FFFFFF', surface2: '#EBE7DE',
+      ink: '#0B1830', ink60: 'rgba(11,24,48,.62)', ink40: 'rgba(11,24,48,.38)',
+      rule: 'rgba(11,24,48,.10)', accent: '#2D4CFF', accentInk: '#FFFFFF',
+      accent2: '#FF8A4C', good: '#18A957', chrome: 'light' },
+    { id: 'bone-northbound',  name: 'Bone × Northbound',   insp: 'Mercury / Things 3',
+      bg: '#FAFAF7', surface: '#FFFFFF', surface2: '#F1EFEA',
+      ink: '#0F172A', ink60: 'rgba(15,23,42,.62)', ink40: 'rgba(15,23,42,.36)',
+      rule: 'rgba(15,23,42,.08)', accent: '#1E40AF', accentInk: '#FFFFFF',
+      accent2: '#D97757', good: '#15803D', chrome: 'light' },
+    { id: 'snow-rausch',      name: 'Snow × Rausch',       insp: 'Airbnb',
+      bg: '#FFFFFF', surface: '#FFFFFF', surface2: '#F7F7F7',
+      ink: '#222222', ink60: 'rgba(34,34,34,.66)', ink40: 'rgba(34,34,34,.40)',
+      rule: 'rgba(34,34,34,.10)', accent: '#FF385C', accentInk: '#FFFFFF',
+      accent2: '#00A699', good: '#008A05', chrome: 'light' },
+    { id: 'linen-terracotta', name: 'Linen × Terracotta',  insp: 'Hey / Monzo',
+      bg: '#F7F2EC', surface: '#FFFFFF', surface2: '#EFE7DA',
+      ink: '#1A1410', ink60: 'rgba(26,20,16,.62)', ink40: 'rgba(26,20,16,.38)',
+      rule: 'rgba(26,20,16,.10)', accent: '#C8553D', accentInk: '#FFFFFF',
+      accent2: '#2D6A4F', good: '#2D6A4F', chrome: 'light' },
+    { id: 'sage-ink',         name: 'Sage × Ink',          insp: 'Kinfolk / MUBI',
+      bg: '#ECECE3', surface: '#FFFFFF', surface2: '#E0DFD3',
+      ink: '#1A1F1B', ink60: 'rgba(26,31,27,.62)', ink40: 'rgba(26,31,27,.38)',
+      rule: 'rgba(26,31,27,.10)', accent: '#4B6F4A', accentInk: '#FFFFFF',
+      accent2: '#C8553D', good: '#4B6F4A', chrome: 'light' },
+    { id: 'midnight-lime',    name: 'Midnight × Lime',     saved: true,  insp: 'Spotify',
+      bg: '#0E0F12', surface: '#16181D', surface2: '#1F222A',
+      ink: '#F4F4F2', ink60: 'rgba(244,244,242,.62)', ink40: 'rgba(244,244,242,.38)',
+      rule: 'rgba(244,244,242,.10)', accent: '#D9FF3D', accentInk: '#0E0F12',
+      accent2: '#FF6B47', good: '#3DDC97', chrome: 'dark' },
+    { id: 'indigo-iris',      name: 'Indigo × Iris',       insp: 'Linear / Vercel',
+      bg: '#0A0A14', surface: '#14142B', surface2: '#1F1F3D',
+      ink: '#EDEDFE', ink60: 'rgba(237,237,254,.62)', ink40: 'rgba(237,237,254,.38)',
+      rule: 'rgba(237,237,254,.08)', accent: '#7C5CFF', accentInk: '#FFFFFF',
+      accent2: '#FF7676', good: '#4ADE80', chrome: 'dark' },
+    { id: 'carbon-cream',     name: 'Carbon × Cream',      insp: 'Pitch / Substack',
+      bg: '#141414', surface: '#1F1F1F', surface2: '#2A2A2A',
+      ink: '#F5F1E8', ink60: 'rgba(245,241,232,.62)', ink40: 'rgba(245,241,232,.38)',
+      rule: 'rgba(245,241,232,.10)', accent: '#F5F1E8', accentInk: '#141414',
+      accent2: '#FF6B35', good: '#4ADE80', chrome: 'dark' },
+  ];
+
+  // Auto-scale the 402×874 device down to whatever the card width is.
+  function Tile({ t }) {
+    const ref = React.useRef(null);
+    const innerRef = React.useRef(null);
+    const [scale, setScale] = React.useState(1);
+    React.useEffect(() => {
+      const measure = () => {
+        if (!ref.current) return;
+        const w = ref.current.getBoundingClientRect().width;
+        setScale(w / 402);
+      };
+      measure();
+      const ro = new ResizeObserver(measure);
+      ref.current && ro.observe(ref.current);
+      return () => ro.disconnect();
+    }, []);
+
+    const C = window.T_Welcome;
+    return (
+      <article className="card">
+        <div className="frame-wrap" ref={ref}>
+          <div ref={innerRef} style={{ transform: `scale(${scale})` }}>
+            <IOSDevice width={402} height={874}>
+              {C ? <C p={t} /> : null}
+            </IOSDevice>
+          </div>
+        </div>
+        <div className="swatch-row">
+          <span style={{ background: t.bg }} />
+          <span style={{ background: t.surface }} />
+          <span style={{ background: t.accent }} />
+          <span style={{ background: t.accent2 }} />
+          <span style={{ background: t.ink }} />
+        </div>
+        <div className="meta">
+          <div className="name">
+            {t.name}{t.saved && <span className="saved">Saved</span>}
+          </div>
+          <div className="insp">{t.insp}</div>
+        </div>
+      </article>
+    );
+  }
+
+  function App() {
+    return (
+      <>
+        <header className="head">
+          <div>
+            <div className="key">Contact sheet · 8 candidates · Welcome screen</div>
+            <h1>Theme exploration</h1>
+            <p>
+              Eight palette directions on the same hero screen, each one inspired by an
+              app whose visual language is a benchmark for simple, clean, beautiful product UI.
+              Two are already saved as working candidates; the rest are fresh exploration.
+            </p>
+          </div>
+          <a className="key" href="./explore.html" style={{ color: 'inherit' }}>
+            Open full 8-screen explorer →
+          </a>
+        </header>
+
+        <div className="sheet">
+          {THEMES.map(t => <Tile key={t.id} t={t} />)}
+        </div>
+
+        <footer className="footer">
+          Same component tree, swapped tokens. Nothing wired into the real app yet.
+        </footer>
+      </>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

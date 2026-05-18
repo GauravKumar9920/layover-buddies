@@ -63,7 +63,10 @@ export default function SearchScreen() {
         <View
           style={{
             position: 'absolute',
-            inset: 0,
+            // `inset: 0` is web-only — RN-iOS/Android don't support it. Expand
+            // to the four explicit edges so the overlay actually positions on
+            // native too.
+            top: 0, left: 0, right: 0, bottom: 0,
             backgroundColor: 'rgba(15, 23, 42, 0.42)',
             justifyContent: 'flex-end',
             paddingHorizontal: 12,

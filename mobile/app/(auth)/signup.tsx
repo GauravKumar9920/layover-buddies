@@ -12,7 +12,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { Link, useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
@@ -96,6 +96,7 @@ function getRoleFromParam(value: string | string[] | undefined): UserRole | null
 }
 
 export default function SignUpScreen() {
+  const router                  = useRouter();
   const { width: W, height: H } = useWindowDimensions();
   const { role: roleParam }     = useLocalSearchParams<{ role?: string | string[] }>();
   const [role, setRole]         = useState<UserRole>(() => getRoleFromParam(roleParam) ?? 'traveler');
@@ -156,10 +157,27 @@ export default function SignUpScreen() {
     try {
       await signUp(email.trim(), password, name.trim(), role);
       hapticSuccess();
-      Alert.alert('🎉 Almost there!', 'Check your email to confirm your account, then sign in.', [{ text: 'OK' }]);
+      // Show the "check your email" message (single-button Alert.alert works
+      // fine on RN-Web — it's only multi-button that's broken) and then
+      // route to the login screen so the user has a clear next step.
+      // Previously the modal closed and we left them stranded on the now-
+      // populated signup form, looking like nothing had happened.
+      if (Platform.OS === 'web') {
+        window.alert("Almost there! Check your email to confirm your account, then sign in.");
+        router.replace('/(auth)/login');
+      } else {
+        Alert.alert(
+          '🎉 Almost there!',
+          'Check your email to confirm your account, then sign in.',
+          [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }],
+          { onDismiss: () => router.replace('/(auth)/login') },
+        );
+      }
     } catch (err: unknown) {
       hapticError();
-      Alert.alert('Sign up failed', err instanceof Error ? err.message : 'Unknown error');
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      if (Platform.OS === 'web') window.alert(`Sign up failed: ${msg}`);
+      else Alert.alert('Sign up failed', msg);
     } finally {
       setLoading(false);
     }

@@ -29,7 +29,8 @@
       "name": "Expo App (Web)",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start:web", "--prefix", "mobile"],
-      "port": 8081
+      "port": 8081,
+      "autoPort": false
     },
     {
       "name": "Expo App (iOS Simulator)",

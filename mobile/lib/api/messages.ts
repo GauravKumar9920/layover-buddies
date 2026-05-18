@@ -85,18 +85,23 @@ export async function fetchInbox(userId: string): Promise<Booking[]> {
     fetchGuideBookings(userId),
   ]);
 
-  const activeStatuses: string[] = [
-    BOOKING_STATUS.GUIDE_ACCEPTED,
-    BOOKING_STATUS.CONFIRMED,
-    BOOKING_STATUS.IN_PROGRESS,
-    BOOKING_STATUS.COMPLETED,
-  ];
+  // Inbox shows every booking that has a chat thread attached to it.  The
+  // Phase-1 lifecycle introduced ~12 new intermediate statuses (chat_open,
+  // agreement_*, awaiting_deposits, deposits_held, awaiting_balance,
+  // late_fee_due, balance_paid, trip_ready, awaiting_proofs, reconciling,
+  // rated) — *every one* of them can still have unread messages.  We
+  // exclude only the terminal "no chat anymore" states (cancelled before
+  // signing, fully cancelled).  Anything else surfaces in Inbox.
+  const HIDDEN_STATUSES = new Set<string>([
+    BOOKING_STATUS.CANCELLED,
+    BOOKING_STATUS.CANCELLED_PRE_SIGNING,
+  ]);
 
   const seen = new Set<string>();
   const merged: Booking[] = [];
   for (const b of [...travelerBookings, ...guideBookings]) {
     if (seen.has(b.id)) continue;
-    if (!activeStatuses.includes(b.status)) continue;
+    if (HIDDEN_STATUSES.has(b.status)) continue;
     seen.add(b.id);
     merged.push(b);
   }

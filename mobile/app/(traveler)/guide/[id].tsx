@@ -7,6 +7,7 @@ import {
   Alert,
   Dimensions,
   FlatList,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
@@ -23,6 +24,7 @@ import { StarRating } from '@/components/ui/StarRating';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchGuideById, fetchGuideItineraries, fetchGuideReviews } from '@/lib/api/guides';
+import { safeBack } from '@/lib/navigation';
 import { theme } from '@/config/theme';
 import { getGuideHeroPhoto, getItineraryPhoto } from '@/config/photoLibrary';
 import { format } from 'date-fns';
@@ -146,14 +148,46 @@ export default function GuideDetailScreen() {
 
   useEffect(() => {
     if (!id) return;
-    Promise.all([fetchGuideById(id), fetchGuideItineraries(id), fetchGuideReviews(id)])
-      .then(([g, it, rv]) => {
+
+    // Reset state explicitly when `id` changes so a stale "loading=true" from
+    // the previous guide doesn't leak into this render. The "stuck on loading
+    // until refresh" symptom on first push was traced to the Promise.all
+    // hanging silently when one of the Supabase queries took longer than
+    // expected (especially the first call after sign-in). The timeout race
+    // below ensures we always exit the spinner within ~12s, even if one of
+    // the three queries never resolves.
+    let cancelled = false;
+    setLoading(true);
+    setGuide(null);
+    setItineraries([]);
+    setReviews([]);
+
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Slow connection — please retry')), 12_000),
+    );
+
+    Promise.race([
+      Promise.all([fetchGuideById(id), fetchGuideItineraries(id), fetchGuideReviews(id)]),
+      timeout,
+    ])
+      .then((result) => {
+        if (cancelled) return;
+        const [g, it, rv] = result as [GuideProfile | null, Itinerary[], Review[]];
         setGuide(g);
         setItineraries(it);
         setReviews(rv);
       })
-      .catch(() => Alert.alert('Error', 'Failed to load guide'))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        if (cancelled) return;
+        const msg = err instanceof Error ? err.message : 'Failed to load guide';
+        if (Platform.OS === 'web') console.warn('[guide profile]', msg);
+        else Alert.alert('Hmm', msg);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, [id]);
 
   // Photo journal — pull from every itinerary's gallery then pad with cover
@@ -237,7 +271,7 @@ export default function GuideDetailScreen() {
         ]}
       >
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => safeBack(router, '/(traveler)/')}
           style={{ padding: 10 }}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
@@ -767,38 +801,100 @@ export default function GuideDetailScreen() {
             paddingHorizontal: 20,
             paddingTop: 12,
             paddingBottom: insets.bottom + 12,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 12,
           }}
         >
-          {lowestPrice && (
-            <View>
-              <Text style={{ fontSize: 11, color: theme.colors.textMuted }}>From</Text>
-              <Text
-                style={{
-                  fontSize: 20,
-                  fontWeight: '800',
-                  color: theme.colors.text,
-                  letterSpacing: -0.5,
-                }}
-              >
-                ₹{lowestPrice.toLocaleString('en-IN')}
-              </Text>
-            </View>
-          )}
-          <View style={{ flex: 1 }}>
-            <Button
-              title={`Walk with ${guide.name.split(' ')[0]}`}
-              size="lg"
+          {/* Price + primary CTA row */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            {lowestPrice && (
+              <View>
+                <Text style={{ fontSize: 11, color: theme.colors.textMuted }}>From</Text>
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontWeight: '800',
+                    color: theme.colors.text,
+                    letterSpacing: -0.5,
+                  }}
+                >
+                  ₹{lowestPrice.toLocaleString('en-IN')}
+                </Text>
+              </View>
+            )}
+            {/* Quick-message button: lets the traveler start a conversation
+                with the guide *before* committing to a full booking. Routes to
+                the booking form with intent=chat — the form will create a
+                chat_open booking and drop them straight into the message thread
+                instead of the payment screen. */}
+            <TouchableOpacity
+              accessibilityLabel={`Message ${guide.name.split(' ')[0]}`}
               onPress={() =>
                 router.push({
                   pathname: '/(traveler)/book/[guideId]',
-                  params: { guideId: guide.id },
+                  params: { guideId: guide.id, intent: 'chat' },
                 })
               }
-            />
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 26,
+                borderWidth: 1.5,
+                borderColor: theme.colors.primary,
+                backgroundColor: theme.colors.surface,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 22 }}>💬</Text>
+            </TouchableOpacity>
+            <View style={{ flex: 1 }}>
+              <Button
+                title={`Walk with ${guide.name.split(' ')[0]}`}
+                size="lg"
+                onPress={() =>
+                  router.push({
+                    pathname: '/(traveler)/book/[guideId]',
+                    params: { guideId: guide.id },
+                  })
+                }
+              />
+            </View>
           </View>
+
+          {/* Secondary: personalise inquiry */}
+          <TouchableOpacity
+            onPress={() => router.push({
+              pathname: '/(traveler)/book/[guideId]',
+              params: { guideId: guide.id, intent: 'chat' },
+            } as never)}
+            style={{
+              height: 48, borderRadius: 14,
+              borderWidth: 2, borderColor: theme.colors.primary,
+              alignItems: 'center', justifyContent: 'center',
+              marginTop: 10,
+            }}
+          >
+            <Text style={{ color: theme.colors.primary, fontWeight: '700', fontSize: 15 }}>
+              💬 Help me personalise this
+            </Text>
+          </TouchableOpacity>
+
+          {/* Tertiary: view itineraries */}
+          <TouchableOpacity
+            onPress={() => router.push({
+              pathname: '/(traveler)/book/[guideId]',
+              params: { guideId: guide.id },
+            } as never)}
+            style={{
+              height: 48, borderRadius: 14,
+              backgroundColor: theme.colors.surface,
+              alignItems: 'center', justifyContent: 'center',
+              marginTop: 8,
+            }}
+          >
+            <Text style={{ color: theme.colors.textSecondary, fontWeight: '600', fontSize: 14 }}>
+              📋 View itineraries & book →
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>

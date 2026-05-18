@@ -22,10 +22,10 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { notify, confirmAsync } from '@/lib/ui/alert';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Header } from '@/components/ui/Header';
@@ -108,7 +108,7 @@ export default function AgreementDraftScreen() {
           setTripStart(seed.toISOString());
         }
       } catch (err) {
-        Alert.alert('Failed to load draft', err instanceof Error ? err.message : 'Unknown error');
+        notify('Failed to load draft', err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
       }
@@ -149,7 +149,7 @@ export default function AgreementDraftScreen() {
     if (!bookingId || saving) return;
 
     if (itineraryFundPaise > 0 && bufferPaise !== Math.floor(itineraryFundPaise * BUFFER_PERCENT)) {
-      Alert.alert('Buffer mismatch', 'Buffer must equal 20% of the itinerary fund.');
+      notify('Buffer mismatch', 'Buffer must equal 20% of the itinerary fund.');
       return;
     }
 
@@ -180,9 +180,9 @@ export default function AgreementDraftScreen() {
       // Replace line items.
       await upsertCostLineItems(current.id, items);
 
-      Alert.alert('Saved', 'Draft saved.');
+      notify('Saved', 'Draft saved.');
     } catch (err) {
-      Alert.alert('Save failed', err instanceof Error ? err.message : 'Unknown error');
+      notify('Save failed', err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setSaving(false);
     }
@@ -191,61 +191,56 @@ export default function AgreementDraftScreen() {
   // ── Send to traveler ────────────────────────────────────────────────────
   async function handleSend() {
     if (!agreement) {
-      Alert.alert('Save first', 'Save the draft before sending.');
+      notify('Save first', 'Save the draft before sending.');
       return;
     }
     if (sending) return;
 
     if (!preview) {
-      Alert.alert('Incomplete', 'Set a buddy fee and itinerary fund first.');
+      notify('Incomplete', 'Set a buddy fee and itinerary fund first.');
       return;
     }
     if (items.length === 0) {
-      Alert.alert('Add line items', 'Add at least one cost line item before sending.');
+      notify('Add line items', 'Add at least one cost line item before sending.');
       return;
     }
     const tripStartMs = new Date(tripStart).getTime();
     if (tripStartMs < Date.now() + MIN_BOOKING_NOTICE_HOURS * 60 * 60 * 1000) {
-      Alert.alert('Trip too soon', `Trip must start at least ${MIN_BOOKING_NOTICE_HOURS}h from now.`);
+      notify('Trip too soon', `Trip must start at least ${MIN_BOOKING_NOTICE_HOURS}h from now.`);
       return;
     }
 
-    Alert.alert(
+    const confirmed = await confirmAsync(
       'Send to traveler?',
       `They'll see a total of ${formatPaise(preview.travelerTotalPaise)} and need to sign and pay a ₹500 deposit to confirm.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Send',
-          onPress: async () => {
-            setSending(true);
-            try {
-              // Save first to ensure server state matches form.
-              await saveAgreementDraft(agreement.id, {
-                buddy_fee_paise:      buddyFeePaise,
-                itinerary_fund_paise: itineraryFundPaise,
-                buffer_paise:         bufferPaise,
-                trip_starts_at:       tripStart,
-                trip_ends_at:         tripEnd || null,
-              });
-              await upsertCostLineItems(agreement.id, items);
-              await sendAgreement(agreement.id);
-              Alert.alert('Sent!', 'Traveler can now review and sign.');
-              router.back();
-            } catch (err) {
-              const msg = err instanceof SendAgreementError
-                ? err.message
-                : err instanceof Error
-                  ? err.message
-                  : 'Unknown error';
-              Alert.alert('Send failed', msg);
-            } finally {
-              setSending(false);
-            }
-          },
-        },
-      ],
+      { confirmLabel: 'Send' },
     );
+    if (!confirmed) return;
+
+    setSending(true);
+    try {
+      // Save first to ensure server state matches form.
+      await saveAgreementDraft(agreement.id, {
+        buddy_fee_paise:      buddyFeePaise,
+        itinerary_fund_paise: itineraryFundPaise,
+        buffer_paise:         bufferPaise,
+        trip_starts_at:       tripStart,
+        trip_ends_at:         tripEnd || null,
+      });
+      await upsertCostLineItems(agreement.id, items);
+      await sendAgreement(agreement.id);
+      notify('Sent!', 'Traveler can now review and sign.');
+      router.back();
+    } catch (err) {
+      const msg = err instanceof SendAgreementError
+        ? err.message
+        : err instanceof Error
+          ? err.message
+          : 'Unknown error';
+      notify('Send failed', msg);
+    } finally {
+      setSending(false);
+    }
   }
 
   if (loading) return <Loading fullScreen />;

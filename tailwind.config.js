@@ -71,6 +71,8 @@ export default {
         orange: SAFFRON,
       },
       fontFamily: {
+        // Override Tailwind's default `font-sans` → Inter so `body` class picks it up
+        sans:    ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         heading: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         body:    ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono:    ['"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],

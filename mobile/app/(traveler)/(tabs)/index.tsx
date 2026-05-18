@@ -7,19 +7,28 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Alert,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GuideCard } from '@/components/guides/GuideCard';
 import { GuideCardSkeleton } from '@/components/ui/Loading';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchActiveGuides } from '@/lib/api/guides';
+import { fetchMyTravelerProfile, type TravelerProfile } from '@/lib/api/travelerProfile';
+import { rankGuides, interestOverlap, layoverHoursBetween } from '@/lib/booking/timeFit';
 import { signOut } from '@/lib/auth';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { theme } from '@/config/theme';
 import { PRIMARY_CITY } from '@/config/constants';
 import type { GuideProfile } from '@/types';
 
-const SKILL_FILTERS = ['All', 'Food', 'History', 'Bollywood', 'Markets', 'Photography'];
+// Filter terms picked to actually match the `skills[].name` values that
+// `fetchActiveGuides` falls back to when the `categories` column is null
+// (which is the case for every seeded guide). Previously included
+// "Bollywood" and "Markets" — neither matches any guide's skill, so those
+// chips silently returned "No guides found" for everyone.
+const SKILL_FILTERS = ['All', 'Food', 'History', 'Culture', 'Photography', 'Hidden Gems', 'Adventure'];
 
 export default function BrowseScreen() {
   const insets = useSafeAreaInsets();
@@ -31,11 +40,20 @@ export default function BrowseScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  // Traveler's onboarding answers — interests soft-rank the list, layover
+  // window powers the time-fit chip on each itinerary card.
+  const [travelerProfile, setTravelerProfile] = useState<TravelerProfile | null>(null);
 
   const loadGuides = useCallback(async () => {
     try {
-      const data = await fetchActiveGuides(PRIMARY_CITY);
-      setGuides(data);
+      const [data, profile] = await Promise.all([
+        fetchActiveGuides(PRIMARY_CITY),
+        fetchMyTravelerProfile().catch(() => null),
+      ]);
+      setTravelerProfile(profile);
+      // Apply soft ranking before storing so the rest of the screen sees the
+      // already-sorted list — categories filter still works on top.
+      setGuides(rankGuides(data, profile?.interests));
     } catch {
       // EmptyState handles the empty list
     } finally {
@@ -43,6 +61,12 @@ export default function BrowseScreen() {
       setRefreshing(false);
     }
   }, []);
+
+  // Layover window in hours — used by GuideCard time-fit chips.
+  const layoverHours = layoverHoursBetween(
+    travelerProfile?.arrival_at,
+    travelerProfile?.departure_at,
+  );
 
   useEffect(() => {
     setLoading(true);
@@ -93,7 +117,24 @@ export default function BrowseScreen() {
             </Text>
           </View>
           <TouchableOpacity
-            onPress={signOut}
+            // Tap is a sign-out — confirm first because the icon used to be a
+            // bell and several users tapped it expecting notifications.  Glyph
+            // is now ↪ to match the action.
+            onPress={async () => {
+              const confirm = await new Promise<boolean>((resolve) => {
+                if (Platform.OS === 'web') {
+                  resolve(window.confirm('Sign out of Mumbai Buddies?'));
+                  return;
+                }
+                Alert.alert('Sign out?', '', [
+                  { text: 'Stay', style: 'cancel', onPress: () => resolve(false) },
+                  { text: 'Sign out', style: 'destructive', onPress: () => resolve(true) },
+                ], { onDismiss: () => resolve(false) });
+              });
+              if (confirm) signOut();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Sign out"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={{
               width: 40, height: 40, borderRadius: 12,
@@ -101,8 +142,7 @@ export default function BrowseScreen() {
               alignItems: 'center', justifyContent: 'center',
             }}
           >
-            {/* Bell / notification icon */}
-            <Text style={{ fontSize: 18 }}>🔔</Text>
+            <Text style={{ fontSize: 18 }}>↪</Text>
           </TouchableOpacity>
         </View>
 
@@ -170,7 +210,18 @@ export default function BrowseScreen() {
         <FlatList
           data={filteredGuides}
           keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => <GuideCard guide={item} index={index} />}
+          renderItem={({ item, index }) => (
+            <GuideCard
+              guide={item}
+              index={index}
+              travelerInterests={travelerProfile?.interests}
+              layoverHours={layoverHours}
+              // No itinerary data on this card today, so fall back to a
+              // reasonable shortest-tour assumption. Soft signal — caller
+              // can override if they have richer per-guide tour data.
+              shortestTourHours={3}
+            />
+          )}
           contentContainerStyle={{ padding: 14, paddingBottom: insets.bottom + 24 }}
           ListHeaderComponent={
             <Text style={{
