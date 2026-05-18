@@ -66,7 +66,7 @@ on 54321.
 ```
 EXPO_PUBLIC_SUPABASE_URL=http://localhost:54321
 EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon JWT from `supabase status -o json`>
-EXPO_PUBLIC_RAZORPAY_KEY_ID=rzp_test_Sdqi76c0rNe3Op
+EXPO_PUBLIC_RAZORPAY_KEY_ID=<your Razorpay test key id>
 EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=<key>
 ```
 
