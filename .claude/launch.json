@@ -8,6 +8,12 @@
       "port": 9999
     },
     {
+      "name": "Themed Preview (Night/Light)",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8765", "--directory", "design/themed-preview"],
+      "port": 8765
+    },
+    {
       "name": "Marketing Website (Vite)",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
@@ -23,7 +29,8 @@
       "name": "Expo App (Web)",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start:web", "--prefix", "mobile"],
-      "port": 8081
+      "port": 8081,
+      "autoPort": false
     },
     {
       "name": "Expo App (iOS Simulator)",

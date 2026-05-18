@@ -3,6 +3,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../supabase';
 import { getUserRole } from '../auth';
 import { registerPushTokenIfPossible } from '../push/registerPushToken';
+import { subscribeOnboardingComplete } from '../onboardingSignal';
 import type { UserRole } from '@/types';
 
 interface AuthState {
@@ -10,6 +11,15 @@ interface AuthState {
   user: User | null;
   role: UserRole | null;
   loading: boolean;
+  /**
+   * True when the signed-in user is a traveler who hasn't yet completed the
+   * post-signup onboarding flow (nationality, layover, interests). The root
+   * layout uses this to force-route them to /(traveler)/onboarding so they
+   * can never reach Explore without filling out the basics first.
+   *
+   * Always false for guides and signed-out users.
+   */
+  needsOnboarding: boolean;
   /**
    * Set when bootstrap-time session restoration fails with a recoverable error
    * (stale refresh token, backend unreachable, etc). The login screen reads
@@ -25,6 +35,7 @@ export function useAuth(): AuthState {
     user: null,
     role: null,
     loading: true,
+    needsOnboarding: false,
     bootstrapError: null,
   });
 
@@ -44,8 +55,37 @@ export function useAuth(): AuthState {
         user: null,
         role: null,
         loading: false,
+        needsOnboarding: false,
         bootstrapError,
       });
+    };
+
+    // ---- Onboarding probe ----------------------------------------------------
+    // For travelers we check whether `traveler_profiles.onboarded_at` is set.
+    // Returns false on errors or for non-traveler roles — never blocks routing.
+    //
+    // PostgREST returns errors via the `{ data, error }` tuple rather than
+    // throwing, so a permission / network / schema failure would leave
+    // `data === null` and naively return `true` (forcing onboarding). Treat
+    // any explicit `error`, plus the existing throw path, as "don't block".
+    const probeOnboarding = async (userId: string, role: UserRole | null): Promise<boolean> => {
+      if (role !== 'traveler') return false;
+      try {
+        const { data, error } = await supabase
+          .from('traveler_profiles')
+          .select('onboarded_at')
+          .eq('user_id', userId)
+          .maybeSingle();
+        if (error) {
+          // Surface in dev but don't gate routing on transient failures.
+          // eslint-disable-next-line no-console
+          console.warn('[useAuth] probeOnboarding error, allowing through:', error.message);
+          return false;
+        }
+        return !data?.onboarded_at;
+      } catch {
+        return false;
+      }
     };
 
     // Prevent a stuck blank bootstrap screen if the local backend is unreachable.
@@ -77,11 +117,13 @@ export function useAuth(): AuthState {
 
       if (session?.user) {
         const role = await getUserRole(session.user.id);
+        const needsOnboarding = await probeOnboarding(session.user.id, role);
         safeSetState({
           session,
           user: session.user,
           role,
           loading: false,
+          needsOnboarding,
           bootstrapError: null,
         });
         // Best-effort: register an Expo Push token so balance reminders,
@@ -103,11 +145,13 @@ export function useAuth(): AuthState {
       async (_event, session) => {
         if (session?.user) {
           const role = await getUserRole(session.user.id);
+          const needsOnboarding = await probeOnboarding(session.user.id, role);
           safeSetState({
             session,
             user: session.user,
             role,
             loading: false,
+            needsOnboarding,
             bootstrapError: null,
           });
           void registerPushTokenIfPossible(session.user.id);
@@ -117,10 +161,20 @@ export function useAuth(): AuthState {
       },
     );
 
+    // Re-probe onboarding the moment the onboarding screen finishes writing
+    // `onboarded_at`. We flip needsOnboarding=false synchronously so the
+    // root layout's router guard sees the new value on the very next render
+    // — otherwise it bounces the user back to /(traveler)/onboarding before
+    // the async DB probe returns.
+    const unsubscribeOnboardingSignal = subscribeOnboardingComplete(() => {
+      setState((prev) => ({ ...prev, needsOnboarding: false }));
+    });
+
     return () => {
       isMounted = false;
       clearTimeout(bootstrapTimeout);
       subscription.unsubscribe();
+      unsubscribeOnboardingSignal();
     };
   }, []);
 

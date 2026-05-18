@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+  /* Apply design-system fonts globally — no per-element class needed */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  }
+
   :root {
       /* Mumbai Buddies Design System — /design/brand/design-system.md */
       --ink:      #0B1229;   /* Midnight Navy — primary text */

@@ -23,12 +23,94 @@ interface SosRow {
 
 type StatusFilter = 'all' | 'open' | SosStatus;
 
+// ── Map preview modal ────────────────────────────────────────────────────────
+function MapPreviewModal({
+  row,
+  onClose,
+}: {
+  row: SosRow;
+  onClose: () => void;
+}) {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
+  const src = apiKey
+    ? `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${row.latitude},${row.longitude}&zoom=16&maptype=roadmap`
+    : '';
+
+  return (
+    /* Backdrop */
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
+      {/* Panel */}
+      <div
+        className="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-[520px] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between px-5 py-4 border-b border-divider">
+          <div>
+            <p className="font-semibold text-ink text-sm">SOS Location</p>
+            <p className="text-xs text-muted mt-0.5">
+              {row.user?.full_name ?? row.user?.email ?? 'Unknown'} ·{' '}
+              {row.latitude.toFixed(5)}, {row.longitude.toFixed(5)}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-muted hover:text-ink text-xl leading-none ml-4 mt-0.5"
+            aria-label="Close map"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Map */}
+        <div className="relative" style={{ height: 340 }}>
+          {src ? (
+            <iframe
+              src={src}
+              width="100%"
+              height="340"
+              style={{ border: 'none', display: 'block' }}
+              allowFullScreen
+              loading="lazy"
+              title="SOS alert location"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full bg-divider/30 text-muted text-sm">
+              VITE_GOOGLE_MAPS_API_KEY not set — add it to admin/.env.local
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between px-5 py-3 border-t border-divider">
+          <p className="text-xs text-muted">
+            Triggered {formatDateTime(row.triggered_at)}
+          </p>
+          <a
+            href={`https://maps.google.com/?q=${row.latitude},${row.longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary text-xs font-medium hover:underline"
+          >
+            Open in Google Maps ↗
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main page ────────────────────────────────────────────────────────────────
 export default function SosPage() {
   const [rows, setRows] = useState<SosRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<StatusFilter>('open');
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [mapPreviewRow, setMapPreviewRow] = useState<SosRow | null>(null);
 
   const load = async (f: StatusFilter) => {
     setLoading(true);
@@ -68,7 +150,6 @@ export default function SosPage() {
     if (error) {
       setError(error.message);
     } else {
-      // Optimistic local update then reload for canonical state.
       setRows((prev) =>
         prev.map((r) => (r.id === row.id ? { ...r, ...(patch as Partial<SosRow>) } : r)),
       );
@@ -105,16 +186,24 @@ export default function SosPage() {
       key: 'location',
       header: 'Location',
       render: (r) => (
-        <a
-          href={`https://maps.google.com/?q=${r.latitude},${r.longitude}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary hover:underline text-xs"
-        >
-          {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)} ↗
-        </a>
+        <div className="space-y-1">
+          <a
+            href={`https://maps.google.com/?q=${r.latitude},${r.longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline text-xs block"
+          >
+            {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)} ↗
+          </a>
+          <button
+            onClick={() => setMapPreviewRow(r)}
+            className="text-xs text-muted hover:text-primary transition flex items-center gap-1"
+          >
+            <span>🗺️</span> Preview map
+          </button>
+        </div>
       ),
-      width: '170px',
+      width: '180px',
     },
     {
       key: 'booking',
@@ -206,6 +295,11 @@ export default function SosPage() {
             : 'No SOS events in this view.'
         }
       />
+
+      {/* Map preview modal */}
+      {mapPreviewRow && (
+        <MapPreviewModal row={mapPreviewRow} onClose={() => setMapPreviewRow(null)} />
+      )}
     </div>
   );
 }

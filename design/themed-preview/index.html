@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mumbai Buddies · Themed Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,700;0,800;1,800&family=Inter:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100%; }
+  body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color .25s ease, color .25s ease;
+  }
+  body[data-mode="night"] { background: #0E0F12; color: #F4F4F2; }
+  body[data-mode="light"] { background: #F4F1EB; color: #0B1830; }
+
+  .toolbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 18px 28px;
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid transparent;
+  }
+  body[data-mode="night"] .toolbar {
+    background: rgba(14, 15, 18, .72);
+    border-bottom-color: rgba(244, 244, 242, .08);
+  }
+  body[data-mode="light"] .toolbar {
+    background: rgba(244, 241, 235, .82);
+    border-bottom-color: rgba(11, 24, 48, .08);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800; font-size: 15px; letter-spacing: -0.01em;
+  }
+  .brand-dot {
+    width: 22px; height: 22px; border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  body[data-mode="night"] .brand-dot { background: #D9FF3D; }
+  body[data-mode="light"] .brand-dot { background: #2D4CFF; }
+
+  .subtitle {
+    font-size: 11px; font-weight: 600; letter-spacing: .14em;
+    text-transform: uppercase; opacity: .55;
+  }
+
+  .toggle {
+    display: inline-flex; align-items: center; padding: 4px;
+    border-radius: 9999px; gap: 2px;
+  }
+  body[data-mode="night"] .toggle {
+    background: #16181D; border: 1px solid rgba(244, 244, 242, .10);
+  }
+  body[data-mode="light"] .toggle {
+    background: #FFFFFF; border: 1px solid rgba(11, 24, 48, .10);
+  }
+  .toggle button {
+    border: 0; background: transparent; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: -0.005em; padding: 9px 16px; border-radius: 9999px;
+    color: inherit; opacity: .55; transition: all .2s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .toggle button:hover { opacity: .8; }
+  .toggle button[aria-pressed="true"] { opacity: 1; }
+  body[data-mode="night"] .toggle button[aria-pressed="true"] {
+    background: #D9FF3D; color: #0E0F12;
+  }
+  body[data-mode="light"] .toggle button[aria-pressed="true"] {
+    background: #2D4CFF; color: #FFFFFF;
+  }
+
+  .grid {
+    display: grid; gap: 28px;
+    padding: 36px 28px 80px;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    justify-items: center;
+  }
+  .artboard { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .artboard .label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; opacity: .55;
+  }
+  .frame-wrap {
+    width: 402px; height: 874px;
+    background: #000; border-radius: 48px; overflow: hidden;
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,.45),
+                0 8px 24px -8px rgba(0,0,0,.25);
+  }
+
+  .credits {
+    padding: 24px 28px 60px; max-width: 720px; margin: 0 auto;
+    text-align: center; font-size: 12.5px; line-height: 1.6; opacity: .55;
+  }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<!-- Resolve the saved theme synchronously, BEFORE any body content paints,
+     so users who saved Light don't get a Night-mode flash on reload. The
+     React effect later re-applies the same value; no flash either way. -->
+<script>
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem('mb-themed-preview-mode'); } catch (_) {}
+    document.body.setAttribute('data-mode', saved === 'light' ? 'light' : 'night');
+  })();
+</script>
+
+<div id="root"></div>
+
+<!-- Reuse the design's source modules unmodified -->
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="themed-screens.jsx"></script>
+
+<script type="text/babel">
+  // ===========================================================================
+  // Theme tokens (taken verbatim from app-themed.html)
+  // ===========================================================================
+  const NIGHT = {
+    id: 'midnight-lime', name: 'Midnight × Lime',
+    bg: '#0E0F12', surface: '#16181D', surface2: '#1F222A',
+    ink: '#F4F4F2',
+    ink60: 'rgba(244,244,242,.62)', ink40: 'rgba(244,244,242,.38)',
+    rule: 'rgba(244,244,242,.10)',
+    accent: '#D9FF3D', accentInk: '#0E0F12',
+    accent2: '#FF6B47', good: '#3DDC97', chrome: 'dark',
+  };
+  const LIGHT = {
+    id: 'paper-cobalt', name: 'Paper × Cobalt',
+    bg: '#F4F1EB', surface: '#FFFFFF', surface2: '#EBE7DE',
+    ink: '#0B1830',
+    ink60: 'rgba(11,24,48,.62)', ink40: 'rgba(11,24,48,.38)',
+    rule: 'rgba(11,24,48,.10)',
+    accent: '#2D4CFF', accentInk: '#FFFFFF',
+    accent2: '#FF8A4C', good: '#18A957', chrome: 'light',
+  };
+
+  // `darkChrome` controls the iOS status bar / home indicator colour.
+  // Most Light-mode screens have a light background → light chrome; but
+  // the Confirmed screen inverts in Light mode (dark bg, light fg) so it
+  // needs dark chrome regardless of the active theme.
+  const SCREENS = [
+    { id: '01-welcome',   label: '01 · Welcome',                     C: () => window.T_Welcome   },
+    { id: '02-setup',     label: '02 · Setup',                       C: () => window.T_Setup     },
+    { id: '03-results',   label: '03 · Guide results',               C: () => window.T_Results   },
+    { id: '04-profile',   label: '04 · Profile · Stories + Posts',   C: () => window.T_Profile   },
+    { id: '05-pay',       label: '05 · Pay',                         C: () => window.T_Pay       },
+    { id: '06-confirmed', label: '06 · Confirmed',                   C: () => window.T_Confirmed, alwaysDarkChrome: true },
+    { id: '07-live',      label: '07 · Live trip',                   C: () => window.T_Live      },
+    { id: '08-recap',     label: '08 · Recap & review',              C: () => window.T_Recap     },
+  ];
+
+  const Frame = ({ dark, children }) => (
+    <div className="frame-wrap">
+      <IOSDevice width={402} height={874} dark={dark}>{children}</IOSDevice>
+    </div>
+  );
+
+  // Theme is a mutually-exclusive choice between two options → radio-group
+  // semantics. `role="tablist"` would imply associated tab panels, which
+  // we don't render. `aria-pressed` (toggle-button state) was paired with
+  // `role="tablist"` (tab semantics), which was inconsistent for AT.
+  function ModeToggle({ mode, onChange }) {
+    const opt = (key, label, icon) => (
+      <button
+        type="button"
+        role="radio"
+        aria-checked={mode === key}
+        aria-pressed={mode === key}
+        onClick={() => onChange(key)}
+      >
+        <span aria-hidden>{icon}</span>{label}
+      </button>
+    );
+    return (
+      <div className="toggle" role="radiogroup" aria-label="Theme mode">
+        {opt('night', 'Night', '◐')}
+        {opt('light', 'Light', '◑')}
+      </div>
+    );
+  }
+
+  function App() {
+    const [mode, setMode] = React.useState(() => {
+      const saved = localStorage.getItem('mb-themed-preview-mode');
+      return saved === 'light' ? 'light' : 'night';
+    });
+
+    React.useEffect(() => {
+      document.body.setAttribute('data-mode', mode);
+      localStorage.setItem('mb-themed-preview-mode', mode);
+    }, [mode]);
+
+    const palette = mode === 'night' ? NIGHT : LIGHT;
+
+    return (
+      <>
+        <header className="toolbar">
+          <div className="brand">
+            <span className="brand-dot">
+              <svg width="12" height="12" viewBox="0 0 24 24"
+                fill={mode === 'night' ? '#0E0F12' : '#FFFFFF'}>
+                <path d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/>
+              </svg>
+            </span>
+            <span>Mumbai Buddies</span>
+            <span className="subtitle" style={{ marginLeft: 14 }}>
+              {palette.name} · 8 screens
+            </span>
+          </div>
+          <ModeToggle mode={mode} onChange={setMode} />
+        </header>
+
+        <main className="grid">
+          {SCREENS.map(s => {
+            const C = s.C();
+            const dark = mode === 'night' || !!s.alwaysDarkChrome;
+            return (
+              <section key={s.id} className="artboard">
+                <Frame dark={dark}><C p={palette} /></Frame>
+                <div className="label">{s.label}</div>
+              </section>
+            );
+          })}
+        </main>
+
+        <footer className="credits">
+          Same components, different tokens. Toggle Night/Light at the top to switch
+          across the entire 8-screen flow — Welcome → Setup → Results → Profile →
+          Pay → Confirmed → Live → Recap.
+        </footer>
+      </>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

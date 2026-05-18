@@ -51,6 +51,9 @@ interface RawBookingRow {
   arrival_time: string | null;
   tour_start_time: string | null;
   tour_end_time: string | null;
+  num_travelers: number | null;
+  buddy_cost: number | null;
+  estimated_expenses: number | null;
   total_amount: number | null;
   platform_fee: number | null;
   status: string;
@@ -64,8 +67,29 @@ interface RawBookingRow {
 
 function toIsoOrNull(date: string | undefined, time: string): string | null {
   if (!date) return null;
-  const parsed = new Date(`${date}T${time}`);
-  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+  // The booking form collects a calendar date only — no time picker yet.
+  // Callers pass a default-time string like `09:00:00.000Z`. Previously we
+  // appended that as a literal UTC suffix, so a "Mon Jun 1 09:00 UTC" tour
+  // landed at 14:30 IST in the UI — well into lunch. Tours run in Mumbai
+  // local time, so we anchor the default time to IST (UTC+5:30) instead.
+  const istOffsetMinutes = 5 * 60 + 30;
+  const localIso = `${date}T${time.replace(/Z$/, '')}`; // strip any trailing Z
+  const localMs = Date.parse(localIso);
+  if (Number.isNaN(localMs)) return null;
+  // Date.parse on `YYYY-MM-DDTHH:mm:ss.sss` (no zone) is treated as local
+  // time by the JS engine — which in the dev env is whatever the host is.
+  // Force it to IST by subtracting the IST offset relative to UTC so the
+  // stored ISO timestamp consistently represents "9 AM Mumbai" regardless of
+  // where the caller is running.
+  const istAsUtcMs = Date.UTC(
+    Number(date.slice(0, 4)),
+    Number(date.slice(5, 7)) - 1,
+    Number(date.slice(8, 10)),
+    Number(time.slice(0, 2)) || 0,
+    Number(time.slice(3, 5)) || 0,
+    0,
+  ) - istOffsetMinutes * 60_000;
+  return new Date(istAsUtcMs).toISOString();
 }
 
 function normalizePaymentStatus(status: string): PaymentStatus {
@@ -185,6 +209,9 @@ function normalizeBooking(row: RawBookingRow): Booking {
     flight_date: row.arrival_time ? row.arrival_time.slice(0, 10) : null,
     start_date: startDate,
     end_date: endDate,
+    num_travelers: Number(row.num_travelers ?? 1),
+    buddy_cost: Number(row.buddy_cost ?? 0),
+    estimated_expenses: Number(row.estimated_expenses ?? 0),
     total_price: Number(row.total_amount ?? 0),
     commission: Number(row.platform_fee ?? 0),
     status: normalizeBookingStatus(row.status),
@@ -209,6 +236,10 @@ export async function createBooking(req: CreateBookingRequest): Promise<Booking>
   const tourEndTime = toIsoOrNull(req.end_date, '17:00:00.000Z');
   const arrivalTime = toIsoOrNull(req.flight_date, '00:00:00.000Z');
 
+  // Clamp group size to [1, 10] — DB has the same CHECK constraint, this just
+  // gives a friendlier failure mode than a 23514.
+  const numTravelers = Math.max(1, Math.min(10, Math.round(req.num_travelers ?? 1)));
+
   // Fetch itinerary to get price (deleted tours can't be booked)
   const { data: itin, error: itinErr } = await supabase
     .from('itineraries')
@@ -219,9 +250,14 @@ export async function createBooking(req: CreateBookingRequest): Promise<Booking>
 
   if (itinErr || !itin) throw new Error('Itinerary not found');
 
-  const buddyCost = itin.buddy_cost;
-  const estimatedExpenses = Math.round(buddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
-  const commission = calcCommission(buddyCost);
+  // Per-person rates from the itinerary; total scales linearly with group size.
+  const perPersonBuddyCost = itin.buddy_cost;
+  const perPersonExpenses  = Math.round(perPersonBuddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
+  const perPersonCommission = calcCommission(perPersonBuddyCost);
+
+  const buddyCost          = perPersonBuddyCost  * numTravelers;
+  const estimatedExpenses  = perPersonExpenses   * numTravelers;
+  const commission         = perPersonCommission * numTravelers;
 
   const { data, error } = await supabase
     .from('bookings')
@@ -233,7 +269,9 @@ export async function createBooking(req: CreateBookingRequest): Promise<Booking>
       arrival_time: arrivalTime,
       tour_start_time: tourStartTime,
       tour_end_time: tourEndTime,
+      num_travelers: numTravelers,
       buddy_cost: buddyCost,
+      estimated_expenses: estimatedExpenses,
       platform_fee: commission,
       total_amount: buddyCost + estimatedExpenses + commission,
       // New bookings start at chat_open (Phase 1 lifecycle).

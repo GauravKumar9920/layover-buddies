@@ -160,6 +160,15 @@ export interface Booking {
   flight_date: string | null;
   start_date: string;
   end_date: string;
+  /** Group size for this booking — pricing on total_price / commission /
+   *  buddy_cost / estimated_expenses has already been multiplied by this.
+   *  Surfaced so downstream screens (payment, trip detail, receipts) can
+   *  show per-person ✕ count breakdowns without re-deriving from itinerary. */
+  num_travelers: number;
+  /** Guide compensation locked at booking time (already × num_travelers). */
+  buddy_cost: number;
+  /** Estimated expenses locked at booking time (already × num_travelers). */
+  estimated_expenses: number;
   total_price: number;
   commission: number;
   /** Runtime booking state — the full 25-value union from the Phase 1 state
@@ -214,6 +223,8 @@ export interface CreateBookingRequest {
   flight_date?: string;
   start_date: string;
   end_date: string;
+  /** Group size, 1–10. Pricing scales linearly with this count. */
+  num_travelers?: number;
 }
 
 export interface CreateReviewRequest {

@@ -24,6 +24,8 @@ import { supabase } from '@/lib/supabase';
 import { fetchBookingById } from '@/lib/api/bookings';
 import { markMessagesRead } from '@/lib/api/messages';
 import { getBookingCta } from '@/lib/booking/cta';
+import { safeBack } from '@/lib/navigation';
+import { bookingStatusLabel } from '@/components/ui/Badge';
 import { theme } from '@/config/theme';
 import { format, isSameDay } from 'date-fns';
 import type { Message, Booking } from '@/types';
@@ -37,11 +39,13 @@ type RenderItem =
 function ConversationHeader({
   name,
   avatarUrl,
+  subtitle,
   insetsTop,
   onBack,
 }: {
   name: string;
   avatarUrl: string | null;
+  subtitle?: string;
   insetsTop: number;
   onBack: () => void;
 }) {
@@ -88,7 +92,11 @@ function ConversationHeader({
           >
             {name}
           </Text>
-          <Text style={{ fontSize: 12, color: theme.colors.textMuted }}>Active now</Text>
+          {subtitle ? (
+            <Text style={{ fontSize: 12, color: theme.colors.textMuted }} numberOfLines={1}>
+              {subtitle}
+            </Text>
+          ) : null}
         </View>
       </View>
     </View>
@@ -270,8 +278,20 @@ export default function MessagesScreen() {
       <ConversationHeader
         name={otherName}
         avatarUrl={otherAvatar}
+        // Subtitle reflects real booking status (e.g. "Chat Open",
+        // "Awaiting Deposit") instead of the previous hardcoded "Active now"
+        // lie. Falls back gracefully when booking is still loading.
+        subtitle={booking ? bookingStatusLabel(booking.status) : undefined}
         insetsTop={insets.top}
-        onBack={() => router.back()}
+        // When this screen was reached via router.replace (e.g. the chat-intent
+        // flow from a guide profile) the history stack is empty and a plain
+        // router.back() does nothing.  safeBack falls through to the inbox of
+        // whichever role the current user is, so the arrow is always live.
+        onBack={() =>
+          // Traveler tabs were grouped under (tabs)/ in the restructure; guide
+          // still flat. Route to the inbox of whichever role the user is.
+          safeBack(router, isTraveler ? '/(traveler)/(tabs)/messages' : '/(guide)/messages')
+        }
       />
 
       <FlatList
@@ -324,6 +344,17 @@ export default function MessagesScreen() {
 
       {/* Phase 2 — Agreement chip (above input bar) */}
       {booking && <AgreementChip booking={booking} isTraveler={isTraveler} />}
+
+      {/* Quick-action chips — only for travelers in early states. Helps users
+          who aren't sure how to start the conversation. Tapping a chip
+          stages the suggested text in the input so they can tweak before
+          sending — never auto-sends. */}
+      {booking && isTraveler && !inputText && (
+        <QuickChips
+          status={booking.status}
+          onPick={(text) => setInputText(text)}
+        />
+      )}
 
       {/* Input Bar */}
       <View
@@ -499,6 +530,65 @@ function AgreementChip({ booking, isTraveler }: { booking: Booking; isTraveler: 
           📋 {cta.label}
         </Text>
       </TouchableOpacity>
+    </View>
+  );
+}
+
+// ─── Quick-action chips ──────────────────────────────────────────────────────
+// Travelers often need a nudge to start the conversation — and once they're
+// chatting, "add this to my itinerary" is the most common ask. This row of
+// chips lives above the input bar (only when the traveler hasn't typed
+// anything yet) and stages text in the input so they can edit before sending.
+function QuickChips({
+  status,
+  onPick,
+}: {
+  status: string;
+  onPick: (text: string) => void;
+}) {
+  // Choose chips based on lifecycle. Early states emphasize discovery /
+  // personalization; later states pivot toward logistics.
+  const EARLY = ['chat_open', 'agreement_drafting', 'agreement_sent'];
+  const inEarly = EARLY.includes(status);
+
+  const chips = inEarly
+    ? [
+        { emoji: '👋', label: 'Inquire about a tour', text: "Hi! Could you tell me a bit more about your walks?" },
+        { emoji: '🎯', label: 'Help personalize',     text: "I'd love help personalizing this trip for me — got time to chat?" },
+        { emoji: '🍜', label: 'Add food spot',         text: "Could we add a great street-food stop to the itinerary?" },
+        { emoji: '🍹', label: 'Add drinks',            text: "Could we work in a drinks spot somewhere on the route?" },
+        { emoji: '🚕', label: 'Transport help',        text: "What's the best way to get between stops — taxi, train, or walking?" },
+      ]
+    : [
+        { emoji: '🍜', label: 'Add food spot',  text: "Could we add a food stop to the itinerary?" },
+        { emoji: '📍', label: 'Meeting point',  text: "Where exactly should we meet?" },
+        { emoji: '⏰', label: 'Timing check',   text: "Quick check on timing — does the schedule still work?" },
+      ];
+
+  return (
+    <View style={{ paddingHorizontal: 8, paddingBottom: 6 }}>
+      <FlatList
+        horizontal
+        data={chips}
+        keyExtractor={(c) => c.label}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: 8, paddingHorizontal: 4 }}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => onPick(item.text)}
+            style={{
+              flexDirection: 'row', alignItems: 'center', gap: 6,
+              borderRadius: 999,
+              paddingHorizontal: 12, paddingVertical: 7,
+              backgroundColor: '#FFFFFF',
+              borderWidth: 1, borderColor: theme.colors.divider,
+            }}
+          >
+            <Text style={{ fontSize: 14 }}>{item.emoji}</Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.text }}>{item.label}</Text>
+          </TouchableOpacity>
+        )}
+      />
     </View>
   );
 }

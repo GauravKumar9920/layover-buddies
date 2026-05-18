@@ -15,7 +15,7 @@ import { setupNotificationTapRouting } from '@/lib/push/notificationHandler';
 LogBox.ignoreLogs(['Cannot manually set color scheme']);
 
 function RootLayoutNav() {
-  const { session, role, loading } = useAuth();
+  const { session, role, loading, needsOnboarding } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const hydrateFavorites = useFavoritesStore((s) => s.hydrate);
@@ -59,12 +59,17 @@ function RootLayoutNav() {
         router.replace('/(guide)');
       }
     } else {
-      // Traveler → traveler area
-      if (!inTravelerGroup && !segments.includes('(shared)' as never)) {
+      // Traveler → traveler area. Freshly-signed-up travelers haven't filled
+      // in nationality / layover / interests yet; force them through the
+      // onboarding flow before they can reach Explore.
+      const onOnboardingScreen = segments.includes('onboarding' as never);
+      if (needsOnboarding && !onOnboardingScreen) {
+        router.replace('/(traveler)/onboarding' as never);
+      } else if (!inTravelerGroup && !segments.includes('(shared)' as never)) {
         router.replace('/(traveler)');
       }
     }
-  }, [session, role, loading, segments]);
+  }, [session, role, loading, needsOnboarding, segments]);
 
   if (loading) {
     return <Loading fullScreen message="Loading your account..." />;

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mumbai Buddies · Theme Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,700;0,800;1,800&family=Inter:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100%; }
+  body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color .28s ease, color .28s ease;
+  }
+
+  /* ====== Toolbar ====== */
+  .toolbar {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--rule);
+    padding: 18px 28px 0;
+  }
+  .toolbar-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800; font-size: 15px; letter-spacing: -0.01em;
+  }
+  .brand-dot {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: var(--accent);
+  }
+  .subtitle {
+    font-size: 11px; font-weight: 600; letter-spacing: .14em;
+    text-transform: uppercase; opacity: .55;
+    margin-left: 8px;
+  }
+  .toolbar-links {
+    font-size: 12px; font-weight: 600; opacity: .55;
+  }
+  .toolbar-links a { color: inherit; text-decoration: none; }
+  .toolbar-links a:hover { opacity: .9; }
+
+  /* ====== Theme chip row ====== */
+  .theme-row {
+    display: flex; gap: 8px; padding: 16px 0 18px;
+    overflow-x: auto; scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  .theme-row::-webkit-scrollbar { height: 4px; }
+  .theme-row::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 999px; }
+
+  .theme-chip {
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 9999px;
+    padding: 7px 14px 7px 7px;
+    display: inline-flex; align-items: center; gap: 9px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: inherit;
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    position: relative;
+    white-space: nowrap;
+  }
+  .theme-chip:hover { transform: translateY(-1px); }
+  .theme-chip[aria-pressed="true"] {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 1px var(--ink);
+  }
+  .theme-chip .swatches {
+    display: inline-flex; align-items: center;
+    width: 40px; height: 18px; border-radius: 9999px;
+    overflow: hidden; flex-shrink: 0;
+    border: 1px solid var(--rule);
+  }
+  .theme-chip .swatches span { height: 100%; flex: 1; display: block; }
+  .saved-pill {
+    font-size: 9px; font-weight: 800; letter-spacing: .08em;
+    text-transform: uppercase;
+    background: var(--accent); color: var(--accentInk);
+    padding: 2px 6px; border-radius: 4px;
+    margin-left: 4px;
+  }
+
+  /* ====== Vibe board (selected theme details) ====== */
+  .vibe-board {
+    padding: 30px 28px 30px;
+    border-bottom: 1px solid var(--rule);
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 36px;
+    align-items: end;
+  }
+  .vibe-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800; font-size: 36px;
+    letter-spacing: -0.025em;
+    margin: 0 0 8px;
+  }
+  .vibe-meta {
+    display: flex; gap: 14px; align-items: center;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+    opacity: .55; margin-bottom: 12px;
+  }
+  .vibe-meta .dot { width: 4px; height: 4px; border-radius: 99px; background: currentColor; opacity: .5; }
+  .vibe-inspiration {
+    font-size: 15px; line-height: 1.55; opacity: .72;
+    max-width: 56ch;
+    margin: 0;
+  }
+  .vibe-inspiration b { font-weight: 700; opacity: .92; }
+  .vibe-swatches {
+    display: flex; gap: 8px;
+    flex-wrap: wrap;
+  }
+  .vibe-swatch {
+    display: flex; flex-direction: column; gap: 6px;
+    min-width: 84px;
+  }
+  .vibe-swatch .chip {
+    height: 56px; border-radius: 12px;
+    border: 1px solid var(--rule);
+  }
+  .vibe-swatch .label {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+    opacity: .72;
+  }
+  .vibe-swatch .hex {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; opacity: .50;
+    font-feature-settings: 'tnum';
+  }
+  @media (max-width: 880px) {
+    .vibe-board { grid-template-columns: 1fr; }
+  }
+
+  /* ====== Artboard grid ====== */
+  .grid {
+    display: grid; gap: 28px;
+    padding: 36px 28px 80px;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    justify-items: center;
+  }
+  .artboard { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .artboard .label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; opacity: .55;
+  }
+  .frame-wrap {
+    width: 402px; height: 874px;
+    background: #000; border-radius: 48px; overflow: hidden;
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,.45),
+                0 8px 24px -8px rgba(0,0,0,.25);
+  }
+
+  .credits {
+    padding: 24px 28px 60px; max-width: 720px; margin: 0 auto;
+    text-align: center; font-size: 12.5px; line-height: 1.6; opacity: .55;
+  }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div id="root"></div>
+
+<!-- Reuse existing screen components — same source of truth as index.html -->
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="themed-screens.jsx"></script>
+
+<script type="text/babel">
+  // ===========================================================================
+  // Theme catalog
+  // ---------------------------------------------------------------------------
+  // Eight candidate palettes, each inspired by a real app/site that's a
+  // benchmark for clean, modern, beautiful design. All share the same
+  // token shape (bg/surface/surface2/ink/ink60/ink40/rule/accent/accentInk/
+  // accent2/good/chrome) so screens render against any of them without code
+  // changes.
+  // ===========================================================================
+  const THEMES = [
+    // ---- LIGHT ----
+    {
+      id: 'paper-cobalt',
+      name: 'Paper × Cobalt',
+      group: 'light',
+      saved: true,
+      inspiredBy: 'Stripe · Substack · Magazine editorial',
+      vibe: 'Premium, magazine-grade. Warm paper background reads as confident and considered; cobalt as the single sharp accent. Best if you want the marketplace to feel curated and editorial.',
+      bg: '#F4F1EB', surface: '#FFFFFF', surface2: '#EBE7DE',
+      ink: '#0B1830', ink60: 'rgba(11,24,48,.62)', ink40: 'rgba(11,24,48,.38)',
+      rule: 'rgba(11,24,48,.10)',
+      accent: '#2D4CFF', accentInk: '#FFFFFF',
+      accent2: '#FF8A4C', good: '#18A957', chrome: 'light',
+    },
+    {
+      id: 'bone-northbound',
+      name: 'Bone × Northbound',
+      group: 'light',
+      inspiredBy: 'Mercury · Things 3 · Notion',
+      vibe: 'Ultra-minimal fintech-clean. Off-white page, pure white cards, deep navy as the only color voice. Reads as trustworthy and high-craft — the choice if "simple and beautiful" is the absolute priority.',
+      bg: '#FAFAF7', surface: '#FFFFFF', surface2: '#F1EFEA',
+      ink: '#0F172A', ink60: 'rgba(15,23,42,.62)', ink40: 'rgba(15,23,42,.36)',
+      rule: 'rgba(15,23,42,.08)',
+      accent: '#1E40AF', accentInk: '#FFFFFF',
+      accent2: '#D97757', good: '#15803D', chrome: 'light',
+    },
+    {
+      id: 'snow-rausch',
+      name: 'Snow × Rausch',
+      group: 'light',
+      inspiredBy: 'Airbnb',
+      vibe: 'Travel-native classic. Pure white + Airbnb’s signature Rausch coral. Maximally familiar to travelers — feels friendly and trustworthy on day one. Risk: less differentiation, harder to stand out next to Airbnb.',
+      bg: '#FFFFFF', surface: '#FFFFFF', surface2: '#F7F7F7',
+      ink: '#222222', ink60: 'rgba(34,34,34,.66)', ink40: 'rgba(34,34,34,.40)',
+      rule: 'rgba(34,34,34,.10)',
+      accent: '#FF385C', accentInk: '#FFFFFF',
+      accent2: '#00A699', good: '#008A05', chrome: 'light',
+    },
+    {
+      id: 'linen-terracotta',
+      name: 'Linen × Terracotta',
+      group: 'light',
+      inspiredBy: 'Hey · Monzo · Headspace',
+      vibe: 'Mumbai-warm but grown-up. Cream-linen page, terracotta as accent. Reads as local and welcoming without going saffron-loud. Sage-green success and ink that’s warm-black makes the whole palette feel hand-crafted.',
+      bg: '#F7F2EC', surface: '#FFFFFF', surface2: '#EFE7DA',
+      ink: '#1A1410', ink60: 'rgba(26,20,16,.62)', ink40: 'rgba(26,20,16,.38)',
+      rule: 'rgba(26,20,16,.10)',
+      accent: '#C8553D', accentInk: '#FFFFFF',
+      accent2: '#2D6A4F', good: '#2D6A4F', chrome: 'light',
+    },
+    {
+      id: 'sage-ink',
+      name: 'Sage × Ink',
+      group: 'light',
+      inspiredBy: 'Kinfolk · MUBI · Aesop',
+      vibe: 'Calm editorial travel. Muted sage page, deep ink type, forest-green accent. Reads as quiet, considered, and premium — the choice if the brand is "thoughtful slow travel" rather than "high-energy city tour".',
+      bg: '#ECECE3', surface: '#FFFFFF', surface2: '#E0DFD3',
+      ink: '#1A1F1B', ink60: 'rgba(26,31,27,.62)', ink40: 'rgba(26,31,27,.38)',
+      rule: 'rgba(26,31,27,.10)',
+      accent: '#4B6F4A', accentInk: '#FFFFFF',
+      accent2: '#C8553D', good: '#4B6F4A', chrome: 'light',
+    },
+
+    // ---- DARK ----
+    {
+      id: 'midnight-lime',
+      name: 'Midnight × Lime',
+      group: 'dark',
+      saved: true,
+      inspiredBy: 'Spotify · streetwear · vertical-video',
+      vibe: 'Dark and confident. Near-black page, lime accent, warm coral as the secondary voice. Best for short-vertical-video-heavy content and a younger, design-aware audience. Pairs naturally with Paper × Cobalt as the system light counterpart.',
+      bg: '#0E0F12', surface: '#16181D', surface2: '#1F222A',
+      ink: '#F4F4F2', ink60: 'rgba(244,244,242,.62)', ink40: 'rgba(244,244,242,.38)',
+      rule: 'rgba(244,244,242,.10)',
+      accent: '#D9FF3D', accentInk: '#0E0F12',
+      accent2: '#FF6B47', good: '#3DDC97', chrome: 'dark',
+    },
+    {
+      id: 'indigo-iris',
+      name: 'Indigo × Iris',
+      group: 'dark',
+      inspiredBy: 'Linear · Vercel · Arc',
+      vibe: 'Premium software-craft. Inky indigo page, iris purple accent. Reads as careful, technical, premium — the dark mode equivalent of Mercury’s light. Best if you want the app to feel like a tool, not a tour brochure.',
+      bg: '#0A0A14', surface: '#14142B', surface2: '#1F1F3D',
+      ink: '#EDEDFE', ink60: 'rgba(237,237,254,.62)', ink40: 'rgba(237,237,254,.38)',
+      rule: 'rgba(237,237,254,.08)',
+      accent: '#7C5CFF', accentInk: '#FFFFFF',
+      accent2: '#FF7676', good: '#4ADE80', chrome: 'dark',
+    },
+    {
+      id: 'carbon-cream',
+      name: 'Carbon × Cream',
+      group: 'dark',
+      inspiredBy: 'Pitch · Substack dark · Hey dark',
+      vibe: 'Editorial on black. True dark page, cream-paper type and accent. Reads as cinema-poster meets long-form magazine — pairs surprisingly well with photography-heavy content. Highest text contrast of the dark set.',
+      bg: '#141414', surface: '#1F1F1F', surface2: '#2A2A2A',
+      ink: '#F5F1E8', ink60: 'rgba(245,241,232,.62)', ink40: 'rgba(245,241,232,.38)',
+      rule: 'rgba(245,241,232,.10)',
+      accent: '#F5F1E8', accentInk: '#141414',
+      accent2: '#FF6B35', good: '#4ADE80', chrome: 'dark',
+    },
+  ];
+
+  // ---------------------------------------------------------------------------
+  // Same 8 screens used in index.html — single source of truth in themed-screens.jsx
+  // ---------------------------------------------------------------------------
+  const SCREENS = [
+    { id: '01-welcome',   label: '01 · Welcome',                   C: () => window.T_Welcome   },
+    { id: '02-setup',     label: '02 · Setup',                     C: () => window.T_Setup     },
+    { id: '03-results',   label: '03 · Guide results',             C: () => window.T_Results   },
+    { id: '04-profile',   label: '04 · Profile · Stories + Posts', C: () => window.T_Profile   },
+    { id: '05-pay',       label: '05 · Pay',                       C: () => window.T_Pay       },
+    { id: '06-confirmed', label: '06 · Confirmed',                 C: () => window.T_Confirmed },
+    { id: '07-live',      label: '07 · Live trip',                 C: () => window.T_Live      },
+    { id: '08-recap',     label: '08 · Recap & review',            C: () => window.T_Recap     },
+  ];
+
+  const Frame = ({ children }) => (
+    <div className="frame-wrap">
+      <IOSDevice width={402} height={874}>{children}</IOSDevice>
+    </div>
+  );
+
+  function App() {
+    const [themeId, setThemeId] = React.useState(() => {
+      return localStorage.getItem('mb-explore-theme') || 'paper-cobalt';
+    });
+
+    const theme = THEMES.find(t => t.id === themeId) || THEMES[0];
+
+    React.useEffect(() => {
+      localStorage.setItem('mb-explore-theme', themeId);
+      const root = document.documentElement;
+      root.style.setProperty('--bg', theme.bg);
+      root.style.setProperty('--surface', theme.surface);
+      root.style.setProperty('--surface2', theme.surface2);
+      root.style.setProperty('--ink', theme.ink);
+      root.style.setProperty('--rule', theme.rule);
+      root.style.setProperty('--accent', theme.accent);
+      root.style.setProperty('--accentInk', theme.accentInk);
+      document.body.style.background = theme.bg;
+      document.body.style.color = theme.ink;
+    }, [themeId, theme]);
+
+    return (
+      <>
+        <header className="toolbar">
+          <div className="toolbar-row">
+            <div className="brand">
+              <span className="brand-dot" />
+              <span>Mumbai Buddies</span>
+              <span className="subtitle">Theme Explorer · {THEMES.length} candidates</span>
+            </div>
+            <div className="toolbar-links">
+              <a href="./index.html">← Back to 2-theme preview</a>
+            </div>
+          </div>
+
+          <div className="theme-row" role="tablist" aria-label="Theme">
+            {THEMES.map(t => (
+              <button
+                key={t.id}
+                type="button"
+                className="theme-chip"
+                role="tab"
+                aria-pressed={t.id === themeId}
+                onClick={() => setThemeId(t.id)}
+                title={t.inspiredBy}
+              >
+                <span className="swatches">
+                  <span style={{ background: t.bg }} />
+                  <span style={{ background: t.surface }} />
+                  <span style={{ background: t.accent }} />
+                  <span style={{ background: t.ink }} />
+                </span>
+                {t.name}
+                {t.saved && <span className="saved-pill">Saved</span>}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        <section className="vibe-board">
+          <div>
+            <div className="vibe-meta">
+              <span>{theme.group === 'dark' ? 'Dark' : 'Light'}</span>
+              <span className="dot" />
+              <span>Inspired by · {theme.inspiredBy}</span>
+            </div>
+            <h1 className="vibe-title">{theme.name}</h1>
+            <p className="vibe-inspiration">{theme.vibe}</p>
+          </div>
+
+          <div className="vibe-swatches">
+            {[
+              ['bg', 'Page'],
+              ['surface', 'Card'],
+              ['ink', 'Text'],
+              ['accent', 'Primary'],
+              ['accent2', 'Accent 2'],
+              ['good', 'Success'],
+            ].map(([k, label]) => (
+              <div key={k} className="vibe-swatch">
+                <div className="chip" style={{ background: theme[k] }} />
+                <div className="label">{label}</div>
+                <div className="hex">{String(theme[k]).toUpperCase()}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <main className="grid">
+          {SCREENS.map(s => {
+            const C = s.C();
+            if (!C) return null;
+            return (
+              <section key={s.id} className="artboard">
+                <Frame><C p={theme} /></Frame>
+                <div className="label">{s.label}</div>
+              </section>
+            );
+          })}
+        </main>
+
+        <footer className="credits">
+          Click any chip to swap the entire 8-screen flow into that palette.
+          Saved palettes (Midnight × Lime, Paper × Cobalt) are marked — they’re
+          the working candidates. Nothing is implemented in the real app yet.
+        </footer>
+      </>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
@@ -26,6 +27,7 @@ import { Card } from '@/components/ui/Card';
 import { StarRating } from '@/components/ui/StarRating';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchGuideById, fetchItineraryById } from '@/lib/api/guides';
+import { safeBack } from '@/lib/navigation';
 import { theme } from '@/config/theme';
 import { getGuideHeroPhoto, getItineraryPhoto } from '@/config/photoLibrary';
 import { hapticImpactLight, hapticImpactMedium } from '@/lib/haptics';
@@ -212,8 +214,18 @@ export default function ItineraryDetailScreen() {
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
+    // Reset on every id change so a stale loading state never bleeds across.
+    setLoading(true);
+    setItinerary(null);
+    setGuide(null);
 
     async function load() {
+      // 12s hard timeout. The "stuck on loading until refresh" bug stems from
+      // the first Supabase call after sign-in occasionally hanging on the
+      // local stack; this ensures we always exit the spinner.
+      const timeoutId = setTimeout(() => {
+        if (!cancelled) setLoading(false);
+      }, 12_000);
       try {
         const found = await fetchItineraryById(id);
         if (cancelled) return;
@@ -225,9 +237,13 @@ export default function ItineraryDetailScreen() {
         }
       } catch {
         if (!cancelled) {
-          Alert.alert('Error', 'Failed to load this package.');
+          // Swallow on web (visible via console) so we don't spam an Alert
+          // dialog that blocks the JS thread.
+          if (Platform.OS === 'web') console.warn('[itinerary] load failed');
+          else Alert.alert('Error', 'Failed to load this package.');
         }
       } finally {
+        clearTimeout(timeoutId);
         if (!cancelled) setLoading(false);
       }
     }
@@ -334,7 +350,7 @@ export default function ItineraryDetailScreen() {
         ]}
       >
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => safeBack(router, '/(traveler)/')}
           style={{ padding: 10 }}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
@@ -939,9 +955,29 @@ export default function ItineraryDetailScreen() {
             {isFavorited ? '♥' : '♡'}
           </Text>
         </TouchableOpacity>
+        {/* "Book" was misleading — the request actually lands in chat_open
+            (a non-binding inquiry, not a confirmed booking). Split into two
+            clear actions: chat first, or send a structured request. */}
+        <TouchableOpacity
+          onPress={() =>
+            router.push({
+              pathname: '/(traveler)/book/[guideId]',
+              params: { guideId: itinerary.guide_id, intent: 'chat' },
+            })
+          }
+          accessibilityLabel="Message the buddy first"
+          style={{
+            width: 52, height: 52, borderRadius: 26,
+            borderWidth: 1.5, borderColor: theme.colors.primary,
+            backgroundColor: '#FFFFFF',
+            alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <Text style={{ fontSize: 22 }}>💬</Text>
+        </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Button
-            title={`Book · ₹${itinerary.buddy_cost_inr.toLocaleString('en-IN')}`}
+            title={`Send Request · ₹${itinerary.buddy_cost_inr.toLocaleString('en-IN')}`}
             size="lg"
             onPress={() =>
               router.push({

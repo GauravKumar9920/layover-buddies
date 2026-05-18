@@ -16,15 +16,28 @@ import { theme } from '@/config/theme';
 import { CATEGORY_COLORS } from '@/config/constants';
 import { getGuideHeroPhoto } from '@/config/photoLibrary';
 import { hapticImpactLight } from '@/lib/haptics';
+import { interestOverlap, computeTimeFit, timeFitLabel } from '@/lib/booking/timeFit';
 import type { GuideProfile } from '@/types';
 
 interface GuideCardProps {
   guide: GuideProfile;
   index?: number;
   itineraryPrice?: number;
+  /** Traveler interests selected at onboarding — used to render an
+   *  "Matches your N interests" badge when there's overlap. */
+  travelerInterests?: string[] | null;
+  /** Traveler layover (departure − arrival) in hours; powers the green /
+   *  yellow / red time-fit chip. Pass null when not yet known. */
+  layoverHours?: number | null;
+  /** Shortest itinerary duration (hours) this guide offers — feeds the
+   *  time-fit calculation. Defaults to a reasonable 3h when not provided. */
+  shortestTourHours?: number | null;
 }
 
-export function GuideCard({ guide, index = 0, itineraryPrice }: GuideCardProps) {
+export function GuideCard({
+  guide, index = 0, itineraryPrice,
+  travelerInterests, layoverHours, shortestTourHours,
+}: GuideCardProps) {
   const router = useRouter();
   const scale = useSharedValue(1);
 
@@ -51,6 +64,13 @@ export function GuideCard({ guide, index = 0, itineraryPrice }: GuideCardProps) 
   const isNewGuide = guide.total_reviews === 0;
   const displayRating = isNewGuide ? null : guide.avg_rating;
   const heroPhoto = getGuideHeroPhoto(guide);
+
+  // Interest-match + time-fit chips. Both are nullable so a fresh traveler
+  // (no onboarding yet) sees the same plain card as before.
+  const overlap = interestOverlap(guide.categories, travelerInterests ?? null);
+  const timeFit = timeFitLabel(
+    computeTimeFit(layoverHours ?? null, shortestTourHours ?? 3),
+  );
 
   return (
     <Animated.View style={[entranceStyle, { marginBottom: 16 }]}>
@@ -131,6 +151,36 @@ export function GuideCard({ guide, index = 0, itineraryPrice }: GuideCardProps) 
 
             {/* Content */}
             <View style={{ padding: 16 }}>
+              {/* Time-fit + interest-match chips */}
+              {(timeFit || overlap > 0) && (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                  {timeFit && (
+                    <View style={{
+                      flexDirection: 'row', alignItems: 'center', gap: 4,
+                      backgroundColor: timeFit.tone + '15',
+                      borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4,
+                    }}>
+                      <Text style={{ fontSize: 11 }}>{timeFit.emoji}</Text>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: timeFit.tone }}>
+                        {timeFit.text}
+                      </Text>
+                    </View>
+                  )}
+                  {overlap > 0 && (
+                    <View style={{
+                      flexDirection: 'row', alignItems: 'center', gap: 4,
+                      backgroundColor: theme.colors.primaryLight,
+                      borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4,
+                    }}>
+                      <Text style={{ fontSize: 11 }}>✨</Text>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: theme.colors.primary }}>
+                        Matches {overlap} of your interests
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
               {/* Name & Location */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <View style={{ flex: 1 }}>
