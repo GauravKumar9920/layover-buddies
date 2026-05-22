@@ -20,6 +20,7 @@ import { Header } from '@/components/ui/Header';
 import { Card } from '@/components/ui/Card';
 import { formatPaise } from '@/lib/booking/money';
 import { createBalanceOrder, openBalanceCheckout } from '@/lib/api/balance';
+import { confirmPayment } from '@/lib/api/confirmPayment';
 import { supabase } from '@/lib/supabase';
 import { financialCopy } from '@/lib/copy/financial';
 import { theme } from '@/config/theme';
@@ -120,8 +121,28 @@ export default function BalancePaymentScreen() {
       const email = user?.user?.email ?? '';
       const name  = user?.user?.user_metadata?.full_name ?? '';
 
-      await openBalanceCheckout({ order, travelerName: name, travelerEmail: email });
-      // Webhook handles the rest. Realtime sub above will navigate on capture.
+      // Open the native checkout. The native SDK resolves with three signed
+      // values (order_id, payment_id, signature). We POST those to
+      // `confirm-payment` so the balance settles immediately even when the
+      // Razorpay webhook can't be configured (KYC pending, ngrok URL
+      // rotated, etc.). The Realtime subscription still updates the UI;
+      // the webhook (when it arrives) is a deduped no-op via payment_id.
+      const result = await openBalanceCheckout({ order, travelerName: name, travelerEmail: email });
+      try {
+        await confirmPayment({
+          booking_id:          bookingId,
+          kind:                'balance',
+          razorpay_order_id:   result.razorpay_order_id,
+          razorpay_payment_id: result.razorpay_payment_id,
+          razorpay_signature:  result.razorpay_signature,
+        });
+      } catch (confirmErr) {
+        // Confirm failed but the Razorpay sheet returned success — money was
+        // charged. The webhook is the fallback; if it never arrives the user
+        // may see a stale screen, but the payment IS at Razorpay.
+        // eslint-disable-next-line no-console
+        console.warn('[balance] confirm-payment failed, waiting on webhook:', confirmErr);
+      }
     } catch (err) {
       if (err instanceof Error && err.message.includes('cancelled')) {
         // User dismissed checkout — not an error.

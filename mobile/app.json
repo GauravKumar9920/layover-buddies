@@ -70,11 +70,6 @@
       "typedRoutes": true
     },
     "newArchEnabled": true,
-    "scheme": "mumbaibuddies",
-    "extra": {
-      "eas": {
-        "projectId": "PLACEHOLDER_RUN_EAS_INIT_TO_GENERATE"
-      }
-    }
+    "scheme": "mumbaibuddies"
   }
 }

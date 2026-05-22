@@ -24,18 +24,23 @@ import { createOrder, idempotencyKey } from '../_shared/razorpayClient.ts';
 const LATE_FEE_PAISE = 100_000;  // ₹1,000 — mirrors mobile/config/constants.ts
 
 serve(async (req: Request) => {
+  console.log('[create-balance-order] Request received:', req.method, req.url);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST')    return errorResponse('method_not_allowed', 405);
 
   // ── Authn ────────────────────────────────────────────────────────────────
+  console.log('[create-balance-order] Extracting caller identity...');
   const caller = await getUserFromRequest(req);
+  console.log('[create-balance-order] Caller identity:', caller);
   if (!caller) return errorResponse('unauthorized', 401);
 
   // ── Body ─────────────────────────────────────────────────────────────────
   let body: { booking_id: string };
   try {
     body = await req.json();
-  } catch {
+    console.log('[create-balance-order] Request body:', body);
+  } catch (e) {
+    console.error('[create-balance-order] Failed to parse JSON body:', e);
     return errorResponse('invalid_json', 400);
   }
   if (!body.booking_id) return errorResponse('booking_id required', 400);
@@ -83,7 +88,8 @@ serve(async (req: Request) => {
                         (isLateFee ? LATE_FEE_PAISE : 0);
 
   // ── Idempotency: re-use existing initiated row ────────────────────────────
-  const { data: existingPe } = await db
+  console.log('[create-balance-order] Checking existing payment event for booking_id:', body.booking_id, 'isLateFee:', isLateFee);
+  const { data: existingPe, error: peCheckErr } = await db
     .from('payment_events')
     .select('id, razorpay_order_id, status')
     .eq('booking_id', body.booking_id)
@@ -92,7 +98,14 @@ serve(async (req: Request) => {
     .eq('is_late_fee_component', isLateFee)
     .maybeSingle();
 
+  if (peCheckErr) {
+    console.error('[create-balance-order] Existing payment check DB error:', peCheckErr);
+  }
+
+  console.log('[create-balance-order] Existing payment event found:', existingPe);
+
   if (existingPe?.razorpay_order_id) {
+    console.log('[create-balance-order] Re-using existing initiated payment event:', existingPe.razorpay_order_id);
     return jsonResponse({
       order_id:         existingPe.razorpay_order_id,
       amount_paise:     balanceAmount,

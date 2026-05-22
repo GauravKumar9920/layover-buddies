@@ -70,7 +70,13 @@ serve(async (req: Request) => {
     return errorResponse('forbidden', 403);
   }
 
-  if (booking.status !== 'awaiting_deposits') {
+  // `awaiting_deposits` = neither side paid yet. `deposits_held` = exactly
+  // one side has paid (the booking only flips to `awaiting_balance` once
+  // BOTH deposits land), and the unpaid side must still be able to create
+  // their order. The existing-deposit check below catches the "already
+  // held" case for the side that has paid, so allowing `deposits_held` here
+  // is safe and necessary for the second-deposit path.
+  if (booking.status !== 'awaiting_deposits' && booking.status !== 'deposits_held') {
     return errorResponse('booking_not_awaiting_deposits', 409, {
       current_status: booking.status,
     });

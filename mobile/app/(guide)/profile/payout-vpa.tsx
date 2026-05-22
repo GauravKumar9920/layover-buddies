@@ -11,7 +11,7 @@
 
 import { useState } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, Alert, ActivityIndicator,
+  View, Text, TextInput, StyleSheet, ActivityIndicator,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -20,6 +20,7 @@ import { Header } from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
 import { theme } from '@/config/theme';
+import { notify, confirmAsync } from '@/lib/ui/alert';
 
 // Basic VPA validation: must contain @
 function isValidVpa(vpa: string): boolean {
@@ -36,7 +37,7 @@ export default function PayoutVpaScreen() {
   async function handleSave() {
     const trimmed = vpa.trim();
     if (!isValidVpa(trimmed)) {
-      Alert.alert('Invalid UPI ID', 'Enter a valid UPI VPA, e.g. yourname@upi or yourname@okaxis.');
+      notify('Invalid UPI ID', 'Enter a valid UPI VPA, e.g. yourname@upi or yourname@okaxis.');
       return;
     }
 
@@ -52,27 +53,21 @@ export default function PayoutVpaScreen() {
 
       if (error) throw error;
 
-      Alert.alert(
-        'UPI ID saved',
-        'Your UPI ID has been saved. Go back to the QR scan screen and try again.',
-        [
-          {
-            text: 'Scan QR',
-            onPress: () => {
-              if (returnBookingId) {
-                router.replace({
-                  pathname: '/(guide)/bookings/qr-scan/[bookingId]',
-                  params:   { bookingId: returnBookingId },
-                } as never);
-              } else {
-                router.back();
-              }
-            },
-          },
-        ],
-      );
+      // Notify the user, then auto-navigate. We don't gate navigation on a
+      // button tap here (the previous Alert.alert([{onPress}]) pattern was
+      // silent on web — the button callback never fired, so saved VPAs
+      // never made it back to the scanner).
+      notify('UPI ID saved', 'Your UPI ID has been saved.');
+      if (returnBookingId) {
+        router.replace({
+          pathname: '/(guide)/bookings/qr-scan/[bookingId]',
+          params:   { bookingId: returnBookingId },
+        } as never);
+      } else {
+        router.back();
+      }
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Could not save. Try again.');
+      notify('Error', err instanceof Error ? err.message : 'Could not save. Try again.');
     } finally {
       setSaving(false);
     }

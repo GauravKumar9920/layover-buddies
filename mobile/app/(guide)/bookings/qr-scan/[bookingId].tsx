@@ -14,7 +14,7 @@
 // ============================================================================
 
 import { useState } from 'react';
-import { View, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Header } from '@/components/ui/Header';
@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/Button';
 import { scanQrToken } from '@/lib/api/tripLifecycle';
 import { financialCopy } from '@/lib/copy/financial';
 import { theme } from '@/config/theme';
+import { notify, confirmAsync } from '@/lib/ui/alert';
 
 // expo-camera ~16 (Expo SDK 52) — CameraView + useCameraPermissions
 let CameraView: React.ComponentType<{
@@ -71,33 +72,25 @@ export default function GuideQrScanScreen() {
       const result = await scanQrToken({ bookingId, token: data });
 
       if (result.error === 'vpa_missing') {
-        Alert.alert(
+        const goSetup = await confirmAsync(
           copy.vpaMissing.heading,
           copy.vpaMissing.body,
-          [
-            {
-              text: 'Cancel',
-              style: 'cancel',
-              onPress: () => { setScanned(false); setScanning(false); },
-            },
-            {
-              text: copy.vpaMissing.cta,
-              onPress: () => router.replace({
-                pathname: '/(guide)/profile/payout-vpa',
-                params:   { returnBookingId: bookingId },
-              } as never),
-            },
-          ],
+          { confirmLabel: copy.vpaMissing.cta },
         );
+        if (goSetup) {
+          router.replace({
+            pathname: '/(guide)/profile/payout-vpa',
+            params:   { returnBookingId: bookingId },
+          } as never);
+        } else {
+          setScanned(false);
+        }
         return;
       }
 
       if (!result.ok) {
-        Alert.alert(
-          'Scan failed',
-          copy.scanError,
-          [{ text: 'Try again', onPress: () => { setScanned(false); setScanning(false); } }],
-        );
+        notify('Scan failed', copy.scanError);
+        setScanned(false);
         return;
       }
 
@@ -107,11 +100,8 @@ export default function GuideQrScanScreen() {
         params:   { bookingId },
       } as never);
     } catch (err) {
-      Alert.alert(
-        'Error',
-        err instanceof Error ? err.message : 'Scan failed. Try again.',
-        [{ text: 'Try again', onPress: () => { setScanned(false); setScanning(false); } }],
-      );
+      notify('Error', err instanceof Error ? err.message : 'Scan failed. Try again.');
+      setScanned(false);
     } finally {
       setScanning(false);
     }
