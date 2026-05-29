@@ -137,21 +137,170 @@ nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-
 .manifesto .eyebrow::before{background:var(--taxi);}
 .manifesto .lead{color:rgba(244,237,221,.7);margin:22px auto 0;text-align:center;}
 
-/* ---------- CONTRASTS ---------- */
-.contrasts{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
-@media(max-width:860px){.contrasts{grid-template-columns:1fr 1fr;}}
-@media(max-width:560px){.contrasts{grid-template-columns:1fr;}}
-.contrast{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:18px;padding:22px;transition:transform .3s var(--ease), border-color .3s, box-shadow .3s;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;}
-.contrast:hover{transform:translateY(-5px);border-color:var(--ink);box-shadow:0 10px 24px rgba(14,25,41,.08);}
-.contrast .top{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mute);}
-.contrast .vs{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.02em;margin:10px 0;line-height:1.05;}
-.contrast .vs em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);}
-.contrast .place{font-size:12.5px;color:var(--ink-mute);}
-.contrast.feat{background:var(--terracotta);color:var(--paper-3);border-color:var(--terracotta);}
-.contrast.feat .top{color:rgba(252,247,234,.7);}
-.contrast.feat .vs em{color:var(--taxi);}
-.contrast.feat .place{color:rgba(252,247,234,.85);}
-.contrast.feat:hover{box-shadow:0 12px 30px rgba(200,84,42,.22);}
+/* ---------- VISUAL CONTRASTS ---------- */
+.visual-contrasts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+@media(max-width: 900px) {
+  .visual-contrasts {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+.contrast-card {
+  position: relative;
+  height: 480px;
+  border: 1.5px solid var(--ink);
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--ink);
+  box-shadow: 0 10px 30px rgba(14,25,41,0.08);
+  transition: transform .4s var(--ease), box-shadow .4s var(--ease);
+  cursor: pointer;
+}
+.contrast-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .6s var(--ease), filter .6s var(--ease);
+  z-index: 1;
+}
+.contrast-card .duo-terra {
+  filter: url(#duo-terra) contrast(1.04) brightness(0.95);
+}
+.contrast-card .duo-sea {
+  filter: url(#duo-sea) contrast(1.04) brightness(0.95);
+}
+.contrast-card .grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='ng'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .2 0'/></filter><rect width='100%25' height='100%25' filter='url(%23ng)'/></svg>");
+  background-size: 200px 200px;
+}
+.contrast-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(14,25,41,0) 40%, rgba(14,25,41,0.85) 100%);
+  transition: opacity .4s ease;
+}
+.contrast-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(14,25,41,0.18);
+}
+.contrast-card:hover img {
+  filter: none;
+  transform: scale(1.06);
+}
+.specimen-content {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  color: var(--paper-3);
+}
+.specimen-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .16em;
+  color: var(--taxi);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.contrast-card:nth-child(even) .specimen-num {
+  color: var(--marigold);
+}
+.specimen-content h3 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.specimen-content h3 em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--marigold);
+}
+.specimen-content p {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: rgba(244, 237, 221, 0.8);
+  max-width: 280px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity .4s var(--ease), transform .4s var(--ease);
+}
+.contrast-card:hover .specimen-content p {
+  opacity: 1;
+  transform: translateY(0);
+}
+.contrasts-footer {
+  margin-top: 24px;
+  background: var(--terracotta);
+  border: 1.5px solid var(--ink);
+  border-radius: 24px;
+  padding: 28px 36px;
+  color: var(--paper-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  box-shadow: 0 10px 30px rgba(200, 84, 42, 0.12);
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease);
+}
+.contrasts-footer:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(200, 84, 42, 0.22);
+}
+.cf-left h4 {
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+}
+.cf-left h4 em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--taxi);
+}
+.cf-left p {
+  font-size: 14px;
+  color: rgba(252, 247, 234, 0.85);
+  margin-top: 6px;
+}
+.contrasts-footer .btn-primary {
+  background: var(--ink);
+  box-shadow: 0 5px 0 #000;
+  white-space: nowrap;
+}
+.contrasts-footer .btn-primary:hover {
+  box-shadow: 0 6px 0 #000;
+}
+@media(max-width: 760px) {
+  .contrasts-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 32px;
+    gap: 24px;
+  }
+}
 
 /* ---------- BUDDIES ---------- */
 .buddy-wrap{display:grid;grid-template-columns:1fr 1.05fr;gap:54px;align-items:center;}
@@ -689,13 +838,46 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       <h2>Mumbai isn't one city. It's <em>seven contradictions</em> stacked on one peninsula.</h2>
       <p class="lead">That's exactly why it stays in your head long after the flight. Every block is a different city — and a local is the only way to read them all.</p>
     </div>
-    <div class="contrasts">
-      <div class="contrast reveal"><div class="top">01 · Geography</div><div class="vs">Sea <em>and</em> skyline.</div><div class="place">Marine Drive · Sea Link · Worli Sea Face</div></div>
-      <div class="contrast reveal"><div class="top">02 · Tempo</div><div class="vs">Chaos <em>and</em> calm.</div><div class="place">CSMT crowds · Banganga tank silence</div></div>
-      <div class="contrast reveal"><div class="top">03 · Time</div><div class="vs">Old <em>and</em> new Mumbai.</div><div class="place">Khotachiwadi cottages · BKC towers</div></div>
-      <div class="contrast reveal"><div class="top">04 · Plate</div><div class="vs">Street food <em>and</em> cocktail bars.</div><div class="place">Mohammed Ali Road · Bombay Canteen</div></div>
-      <div class="contrast reveal"><div class="top">05 · Stone</div><div class="vs">Gothic stations <em>and</em> fishing docks.</div><div class="place">CSMT · Sassoon Docks · Worli Koliwada</div></div>
-      <div class="contrast feat reveal"><div class="top">Your detour</div><div class="vs">We show you <em>all of it.</em></div><div class="place">Not the postcard. The real city.</div></div>
+    
+    <div class="visual-contrasts">
+      <div class="contrast-card reveal">
+        <img class="duo-sea" src="images/gallery-sealink.jpg" alt="Sea and skyline" loading="lazy">
+        <div class="grain"></div>
+        <div class="specimen-content">
+          <span class="specimen-num">01 · Geography</span>
+          <h3>Sea <em>&amp;</em> skyline.</h3>
+          <p>The refreshing Marine Drive sea breeze meeting the towering Worli Sea Link skyline.</p>
+        </div>
+      </div>
+      
+      <div class="contrast-card reveal">
+        <img class="duo-terra" src="images/gallery-local-train.jpg" alt="Chaos and calm" loading="lazy">
+        <div class="grain"></div>
+        <div class="specimen-content">
+          <span class="specimen-num">02 · Tempo</span>
+          <h3>Chaos <em>&amp;</em> calm.</h3>
+          <p>The rush-hour speed of local trains contrasted with the absolute silence of Banganga Tank.</p>
+        </div>
+      </div>
+      
+      <div class="contrast-card reveal">
+        <img class="duo-terra" src="images/gallery-chai.jpg" alt="Street and cafes" loading="lazy">
+        <div class="grain"></div>
+        <div class="specimen-content">
+          <span class="specimen-num">03 · Plate</span>
+          <h3>Street <em>&amp;</em> cafes.</h3>
+          <p>Savoring Mohammed Ali Road street food beside centenarian Irani cafés and cocktail bars.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="contrasts-footer reveal">
+      <div class="cf-left">
+        <h4>Your detour. We show you <em>all of it.</em></h4>
+        <p>Not the generic postcard tourist trap. The real, breathing city through a buddy's eyes.</p>
+      </div>
+      <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
     </div>
   </div>
 </section>
