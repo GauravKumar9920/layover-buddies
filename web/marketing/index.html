@@ -141,8 +141,8 @@ nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-
 .contrasts{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
 @media(max-width:860px){.contrasts{grid-template-columns:1fr 1fr;}}
 @media(max-width:560px){.contrasts{grid-template-columns:1fr;}}
-.contrast{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:18px;padding:22px;transition:transform .2s var(--ease),border-color .2s;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;}
-.contrast:hover{transform:translateY(-3px);border-color:var(--ink);}
+.contrast{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:18px;padding:22px;transition:transform .3s var(--ease), border-color .3s, box-shadow .3s;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;}
+.contrast:hover{transform:translateY(-5px);border-color:var(--ink);box-shadow:0 10px 24px rgba(14,25,41,.08);}
 .contrast .top{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mute);}
 .contrast .vs{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.02em;margin:10px 0;line-height:1.05;}
 .contrast .vs em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);}
@@ -150,6 +150,8 @@ nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-
 .contrast.feat{background:var(--terracotta);color:var(--paper-3);border-color:var(--terracotta);}
 .contrast.feat .top{color:rgba(252,247,234,.7);}
 .contrast.feat .vs em{color:var(--taxi);}
+.contrast.feat .place{color:rgba(252,247,234,.85);}
+.contrast.feat:hover{box-shadow:0 12px 30px rgba(200,84,42,.22);}
 
 /* ---------- BUDDIES ---------- */
 .buddy-wrap{display:grid;grid-template-columns:1fr 1.05fr;gap:54px;align-items:center;}
@@ -690,7 +692,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     <div class="contrasts">
       <div class="contrast reveal"><div class="top">01 · Geography</div><div class="vs">Sea <em>and</em> skyline.</div><div class="place">Marine Drive · Sea Link · Worli Sea Face</div></div>
       <div class="contrast reveal"><div class="top">02 · Tempo</div><div class="vs">Chaos <em>and</em> calm.</div><div class="place">CSMT crowds · Banganga tank silence</div></div>
-      <div class="contrast reveal"><div class="top">03 · Time</div><div class="vs">Old Bombay <em>and</em> new Mumbai.</div><div class="place">Khotachiwadi cottages · BKC towers</div></div>
+      <div class="contrast reveal"><div class="top">03 · Time</div><div class="vs">Old <em>and</em> new Mumbai.</div><div class="place">Khotachiwadi cottages · BKC towers</div></div>
       <div class="contrast reveal"><div class="top">04 · Plate</div><div class="vs">Street food <em>and</em> cocktail bars.</div><div class="place">Mohammed Ali Road · Bombay Canteen</div></div>
       <div class="contrast reveal"><div class="top">05 · Stone</div><div class="vs">Gothic stations <em>and</em> fishing docks.</div><div class="place">CSMT · Sassoon Docks · Worli Koliwada</div></div>
       <div class="contrast feat reveal"><div class="top">Your detour</div><div class="vs">We show you <em>all of it.</em></div><div class="place">Not the postcard. The real city.</div></div>
