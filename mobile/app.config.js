@@ -9,8 +9,8 @@
 
 /** @type {import('expo/config').ExpoConfig} */
 const config = {
-  name: 'Mumbai Buddies',
-  slug: 'mumbai-buddies',
+  name: 'Detour',
+  slug: 'detour',
   version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
@@ -23,16 +23,16 @@ const config = {
   assetBundlePatterns: ['**/*'],
   ios: {
     supportsTablet: false,
-    bundleIdentifier: 'com.mumbaibuddies.app',
+    bundleIdentifier: 'com.detourtrips.app',
     infoPlist: {
       NSLocationWhenInUseUsageDescription:
-        'Mumbai Buddies uses your location to show your guide\'s live position during the tour.',
+        'Detour uses your location to show your guide\'s live position during the tour.',
       NSLocationAlwaysUsageDescription:
-        'Mumbai Buddies uses your location for real-time tracking during tours.',
+        'Detour uses your location for real-time tracking during tours.',
       NSCameraUsageDescription:
-        'Mumbai Buddies uses your camera for profile photos.',
+        'Detour uses your camera for profile photos.',
       NSPhotoLibraryUsageDescription:
-        'Mumbai Buddies needs access to your photos for profile pictures.',
+        'Detour needs access to your photos for profile pictures.',
     },
     // Google Maps SDK for iOS — required when MapView uses PROVIDER_GOOGLE.
     // If you prefer Apple Maps (PROVIDER_DEFAULT on iOS) you can omit this,
@@ -46,7 +46,7 @@ const config = {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#F97316',
     },
-    package: 'com.mumbaibuddies.app',
+    package: 'com.detourtrips.app',
     permissions: [
       'ACCESS_FINE_LOCATION',
       'ACCESS_COARSE_LOCATION',
@@ -67,7 +67,7 @@ const config = {
   notification: {
     iosDisplayInForeground: true,
     androidMode: 'default',
-    androidCollapsedTitle: 'Mumbai Buddies',
+    androidCollapsedTitle: 'Detour',
     color: '#F97316',
   },
   plugins: [
@@ -76,13 +76,13 @@ const config = {
       'expo-location',
       {
         locationAlwaysAndWhenInUsePermission:
-          'Mumbai Buddies uses your location during tours.',
+          'Detour uses your location during tours.',
       },
     ],
     [
       'expo-camera',
       {
-        cameraPermission: 'Mumbai Buddies uses your camera for profile photos.',
+        cameraPermission: 'Detour uses your camera for profile photos.',
       },
     ],
     [
@@ -96,7 +96,7 @@ const config = {
     typedRoutes: true,
   },
   newArchEnabled: true,
-  scheme: 'mumbaibuddies',
+  scheme: 'detour',
   extra: {
     eas: {
       projectId: 'PLACEHOLDER_RUN_EAS_INIT_TO_GENERATE',

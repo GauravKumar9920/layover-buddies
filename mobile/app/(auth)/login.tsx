@@ -189,7 +189,7 @@ export default function LoginScreen() {
               }}>
                 <Text style={{ fontSize: 30 }}>🗺️</Text>
               </View>
-              <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '800', letterSpacing: -0.5 }}>Mumbai Buddies</Text>
+              <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '800', letterSpacing: -0.5 }}>Detour</Text>
               <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginTop: 5 }}>Your local guide awaits</Text>
             </View>
 
@@ -216,7 +216,7 @@ export default function LoginScreen() {
               )}
 
               <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '700', letterSpacing: -0.3, marginBottom: 4 }}>Welcome back</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.40)', fontSize: 13, marginBottom: 26 }}>Sign in to your Mumbai Buddies account</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.40)', fontSize: 13, marginBottom: 26 }}>Sign in to your Detour account</Text>
               <Text style={{ color: 'rgba(255,255,255,0.30)', fontSize: 12, marginBottom: 18, lineHeight: 18 }}>
                 Guides and travelers use the same login. New account? Choose a role below.
               </Text>

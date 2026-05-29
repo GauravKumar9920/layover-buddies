@@ -133,11 +133,11 @@ export async function openRazorpayCheckout(params: {
   const RazorpayCheckout = resolveRazorpayCheckoutModule();
 
   return RazorpayCheckout.open({
-    description: params.tourName ? `Booking: ${params.tourName}` : 'Mumbai Buddies Tour Booking',
+    description: params.tourName ? `Booking: ${params.tourName}` : 'Detour Tour Booking',
     currency: params.order.currency,
     key: params.order.key_id,
     amount: String(params.order.amount_paise),
-    name: 'Mumbai Buddies',
+    name: 'Detour',
     order_id: params.order.order_id,
     prefill: {
       name: params.travelerName ?? '',

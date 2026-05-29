@@ -219,7 +219,7 @@ export default function SignUpScreen() {
               }}>
                 <Text style={{ fontSize: 30 }}>🗺️</Text>
               </View>
-              <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '800', letterSpacing: -0.5 }}>Mumbai Buddies</Text>
+              <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '800', letterSpacing: -0.5 }}>Detour</Text>
               <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginTop: 5 }}>Your local guide awaits</Text>
             </View>
 
@@ -296,7 +296,7 @@ export default function SignUpScreen() {
               <TouchableOpacity onPress={handleSignUp} disabled={loading} activeOpacity={0.85} style={{ marginTop: 24 }}>
                 <LinearGradient colors={['#F97316', '#EC4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                   style={{ borderRadius: 14, paddingVertical: 16, alignItems: 'center', shadowColor: '#F97316', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.45, shadowRadius: 22, elevation: 14 }}>
-                  {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Join Mumbai Buddies</Text>}
+                  {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Join Detour</Text>}
                 </LinearGradient>
               </TouchableOpacity>
 

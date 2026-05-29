@@ -123,7 +123,7 @@ export default function BrowseScreen() {
             onPress={async () => {
               const confirm = await new Promise<boolean>((resolve) => {
                 if (Platform.OS === 'web') {
-                  resolve(window.confirm('Sign out of Mumbai Buddies?'));
+                  resolve(window.confirm('Sign out of Detour?'));
                   return;
                 }
                 Alert.alert('Sign out?', '', [
