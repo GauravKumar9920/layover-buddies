@@ -2,7 +2,7 @@
 -- MUMBAI BUDDIES DATABASE SCHEMA
 -- PostgreSQL with Supabase RLS (Row Level Security)
 -- ============================================================================
--- This schema defines the complete data model for Mumbai Buddies marketplace.
+-- This schema defines the complete data model for Detour marketplace.
 -- Clear comments and RLS policies make it beginner-friendly for Gaurav.
 -- ============================================================================
 

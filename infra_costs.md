@@ -1,4 +1,4 @@
-# Mumbai Buddies — Infrastructure Cost Plan
+# Detour — Infrastructure Cost Plan
 
 **Compiled:** 2026-05-17
 **FX rate used:** 1 USD = ₹84 (round number; revisit at procurement time)

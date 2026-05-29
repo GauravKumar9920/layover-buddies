@@ -1,4 +1,4 @@
-# Mumbai Buddies — Claude Context
+# Detour — Claude Context
 
 ## What This Project Is
 A two-sided marketplace connecting international airport layover travelers with Mumbai student guides.

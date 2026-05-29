@@ -1,7 +1,7 @@
 # Backend - API & Server Services
 
 ## Purpose
-This folder will contain the backend infrastructure for Mumbai Buddies. It handles user authentication, booking logic, payment processing, notifications, and data management. Can be built with either Supabase (managed) or Node.js (custom), depending on complexity and scalability needs.
+This folder will contain the backend infrastructure for Detour. It handles user authentication, booking logic, payment processing, notifications, and data management. Can be built with either Supabase (managed) or Node.js (custom), depending on complexity and scalability needs.
 
 ## Tech Stack Options
 

@@ -1,4 +1,4 @@
-# Testing Guide — Mumbai Buddies
+# Testing Guide — Detour
 
 This is a **manual smoke-test checklist** you run before shipping anything. It's deliberately written for someone who is not a professional QA — the steps are explicit, not "click around and see if it works."
 

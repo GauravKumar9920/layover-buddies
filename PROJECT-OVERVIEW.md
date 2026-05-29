@@ -1,7 +1,7 @@
-# Mumbai Buddies (LayoverBuddies) - Project Overview
+# Detour - Project Overview
 
 ## Project Name
-**Mumbai Buddies** (LayoverBuddies)
+**Detour**
 
 ## One-Line Description
 A platform connecting international travelers with knowledgeable student guides in Mumbai, enabling authentic local experiences and earning opportunities for students.
@@ -98,7 +98,7 @@ npm run build
 
 | Role | Name | Contact |
 |------|------|---------|
-| Founder/Project Lead | Gaurav | [gaurav@mumbaibuddies.com] |
+| Founder/Project Lead | Gaurav | [gaurav@detourtrips.com] |
 | | | |
 
 *To be updated as team grows*

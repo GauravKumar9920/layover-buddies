@@ -68,7 +68,7 @@ scripts/
 ```bash
 # setup-dev-env.sh
 #!/bin/bash
-echo "Setting up Mumbai Buddies development environment..."
+echo "Setting up Detour development environment..."
 npm install
 npm install -g @supabase/cli
 supabase start

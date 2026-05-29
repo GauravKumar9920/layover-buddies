@@ -1,4 +1,4 @@
-# Mumbai Buddies — Manual iOS Simulator Test Script
+# Detour — Manual iOS Simulator Test Script
 
 This checklist covers the native-only features that cannot be tested in the Expo Web export. Run it on the iOS Simulator (or a physical iPhone with Expo Dev Client) before each release. Roughly 30–45 minutes to walk end-to-end.
 
@@ -91,10 +91,10 @@ These all crash on web with `RAZORPAY_WEB_UNSUPPORTED_MESSAGE`. On iOS they shou
 - [ ] Cancel destructive action → warning haptic
 - **All silent on web** — confirm they fire on iOS
 
-## 7. Deep Linking (`mumbaibuddies://` scheme)
+## 7. Deep Linking (`detour://` scheme)
 
-- [ ] From Safari: paste `mumbaibuddies://booking/<some-id>` → app opens to trip detail
-- [ ] From a notification payload `deep_link: mumbaibuddies://chat/<booking_id>` → opens chat
+- [ ] From Safari: paste `detour://booking/<some-id>` → app opens to trip detail
+- [ ] From a notification payload `deep_link: detour://chat/<booking_id>` → opens chat
 - [ ] Cold start: kill app, tap notification → app routes correctly after auth bootstrap
 
 ## 8. Auth & Session
