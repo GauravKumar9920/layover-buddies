@@ -2,7 +2,8 @@
 
 ## What This Project Is
 A two-sided marketplace connecting international airport layover travelers with Mumbai student guides.
-- **Marketing website**: Vite + Tailwind (root `index.html`, `know-more.html`)
+- **Marketing site** (live brand page): self-contained static HTML at `web/marketing/` → deploys to detourtrips.com
+- **Old template website**: legacy Vite + Tailwind site at `web/old-template/` (`index.html`, `know-more.html`; superseded by the marketing site)
 - **Mobile app**: React Native + Expo 52, file-based routing via Expo Router (`/mobile/`)
 - **Backend**: Supabase (auth + database + storage)
 - **Design system**: `/design/brand/design-system.md` and `/design/brand/design-handoff-spec.md`
@@ -106,11 +107,17 @@ Reference `index.html` for all image paths needed.
 ## Project Structure
 ```
 mumbai-buddies/
-├── index.html                  # Marketing landing page
-├── know-more.html              # Deep-dive info page
-├── src/style.css               # Custom CSS + Tailwind directives
-├── tailwind.config.js          # Tailwind config
-├── vite.config.js              # Vite build config
+├── web/
+│   ├── marketing/              # LIVE marketing site (static HTML) → detourtrips.com
+│   │   ├── index.html          # Detour brand/story page (inline CSS/SVG)
+│   │   ├── images/             # web-optimized Mumbai photos
+│   │   └── vercel.json         # static deploy config
+│   └── old-template/           # legacy Vite + Tailwind site (superseded)
+│       ├── index.html          # old marketing landing page
+│       ├── know-more.html      # old deep-dive info page
+│       ├── src/style.css       # custom CSS + Tailwind directives
+│       ├── tailwind.config.js  # Tailwind config
+│       └── vite.config.js      # Vite build config
 ├── mobile/                     # React Native + Expo app
 │   ├── app/                    # Expo Router screens (23 screens)
 │   │   ├── _layout.tsx         # Root auth routing logic

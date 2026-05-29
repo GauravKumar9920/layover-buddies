@@ -20,9 +20,9 @@
       "port": 8766
     },
     {
-      "name": "Marketing Website (Vite)",
+      "name": "Old Template Website (Vite)",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": ["run", "dev", "--prefix", "web/old-template"],
       "port": 5173
     },
     {
