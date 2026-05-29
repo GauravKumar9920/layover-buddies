@@ -137,45 +137,75 @@ nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-
 .manifesto .eyebrow::before{background:var(--taxi);}
 .manifesto .lead{color:rgba(244,237,221,.7);margin:22px auto 0;text-align:center;}
 
-/* ---------- VISUAL CONTRASTS ---------- */
-.visual-contrasts {
+/* ---------- SPLIT SCREEN SPECIMENS SLIDER ---------- */
+.specimens-viewer {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 32px;
+  margin-top: 48px;
+  align-items: stretch;
+  min-height: 520px;
 }
 @media(max-width: 900px) {
-  .visual-contrasts {
+  .specimens-viewer {
     grid-template-columns: 1fr;
     gap: 24px;
   }
 }
-.contrast-card {
+.viewer-canvas {
   position: relative;
-  height: 480px;
   border: 1.5px solid var(--ink);
-  border-radius: 24px;
+  border-radius: 26px;
   overflow: hidden;
   background: var(--ink);
-  box-shadow: 0 10px 30px rgba(14,25,41,0.08);
-  transition: transform .4s var(--ease), box-shadow .4s var(--ease);
-  cursor: pointer;
+  box-shadow: 0 16px 40px rgba(14,25,41,0.14);
+  transform: translateZ(0);
+  isolation: isolate;
 }
-.contrast-card img {
+.canvas-slide {
   position: absolute;
   inset: 0;
+  opacity: 0;
+  z-index: 1;
+  transition: opacity .6s var(--ease);
+}
+.canvas-slide.active {
+  opacity: 1;
+  z-index: 2;
+}
+.canvas-slide img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform .6s var(--ease), filter .6s var(--ease);
-  z-index: 1;
+  filter: grayscale(100%) contrast(1.1) brightness(0.9);
+  transition: transform .8s var(--ease), filter .8s var(--ease);
 }
-.contrast-card .duo-terra {
-  filter: url(#duo-terra) contrast(1.04) brightness(0.95);
+.canvas-slide.active img {
+  filter: grayscale(100%) contrast(1.1) brightness(0.9);
 }
-.contrast-card .duo-sea {
-  filter: url(#duo-sea) contrast(1.04) brightness(0.95);
+.viewer-canvas:hover .canvas-slide.active img {
+  filter: grayscale(0%) contrast(1) brightness(1);
+  transform: scale(1.04);
 }
-.contrast-card .grain {
+.canvas-slide .duo-overlay {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: multiply;
+  opacity: 0.9;
+  transition: opacity .6s var(--ease);
+  z-index: 2;
+  pointer-events: none;
+}
+.viewer-canvas:hover .canvas-slide.active .duo-overlay {
+  opacity: 0;
+}
+.canvas-slide .sea-duo { background: var(--sea); }
+.canvas-slide .terra-duo { background: var(--terracotta); }
+.canvas-slide .marigold-duo { background: var(--marigold); }
+.canvas-slide .green-duo { background: var(--green); }
+.canvas-slide .pink-duo { background: var(--pink); }
+
+.canvas-slide .grain {
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -185,72 +215,127 @@ nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='ng'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .2 0'/></filter><rect width='100%25' height='100%25' filter='url(%23ng)'/></svg>");
   background-size: 200px 200px;
 }
-.contrast-card::after {
+.canvas-slide::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 2;
   background: linear-gradient(180deg, rgba(14,25,41,0) 40%, rgba(14,25,41,0.85) 100%);
-  transition: opacity .4s ease;
 }
-.contrast-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(14,25,41,0.18);
-}
-.contrast-card:hover img {
-  filter: none;
-  transform: scale(1.06);
-}
-.specimen-content {
+
+.canvas-content {
   position: absolute;
   inset: 0;
   z-index: 3;
-  padding: 32px;
+  padding: 40px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   color: var(--paper-3);
+  pointer-events: none;
 }
-.specimen-num {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: .16em;
-  color: var(--taxi);
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.contrast-card:nth-child(even) .specimen-num {
-  color: var(--marigold);
-}
-.specimen-content h3 {
+.canvas-content h3 {
   font-family: var(--display);
   font-weight: 700;
-  font-size: 26px;
-  letter-spacing: -.02em;
-  line-height: 1.1;
-  margin-bottom: 8px;
+  font-size: clamp(24px, 3.5vw, 36px);
+  letter-spacing: -.03em;
+  line-height: 1.05;
+  margin-bottom: 6px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: transform .5s var(--ease), opacity .5s var(--ease);
 }
-.specimen-content h3 em {
+.canvas-slide.active .canvas-content h3 {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: .1s;
+}
+.canvas-content h3 em {
   font-family: var(--serif);
   font-style: italic;
   font-weight: 400;
-  color: var(--marigold);
+  color: var(--taxi);
 }
-.specimen-content p {
-  font-size: 13.5px;
-  line-height: 1.45;
-  color: rgba(244, 237, 221, 0.8);
-  max-width: 280px;
+.canvas-content p {
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(244, 237, 221, 0.85);
+  max-width: 480px;
   opacity: 0;
-  transform: translateY(10px);
-  transition: opacity .4s var(--ease), transform .4s var(--ease);
+  transform: translateY(12px);
+  transition: transform .5s var(--ease), opacity .5s var(--ease);
 }
-.contrast-card:hover .specimen-content p {
+.canvas-slide.active .canvas-content p {
   opacity: 1;
   transform: translateY(0);
+  transition-delay: .2s;
+}
+
+/* Right Side Ticker */
+.viewer-ticker {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ticker-item {
+  background: var(--paper-3);
+  border: 1.5px solid var(--line-soft);
+  border-radius: 14px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: transform .25s var(--ease), border-color .25s, background .25s, box-shadow .25s;
+}
+.ticker-item:hover {
+  transform: translateX(4px);
+  border-color: var(--ink);
+  background: var(--paper-3);
+}
+.ticker-item.active {
+  border-color: var(--ink);
+  background: var(--paper-3);
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: translateX(6px);
+}
+.ticker-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--terracotta);
+  transition: color .2s;
+}
+.ticker-item.active .ticker-num {
+  color: var(--terracotta);
+}
+.ticker-item:nth-child(even) .ticker-num {
+  color: var(--sea);
+}
+.ticker-label {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 15.5px;
+  color: var(--ink);
+  letter-spacing: -.01em;
+}
+.ticker-arrow {
+  margin-left: auto;
+  width: 14px;
+  height: 14px;
+  color: var(--ink-mute);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity .2s, transform .2s;
+}
+.ticker-item.active .ticker-arrow {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--terracotta);
 }
 .contrasts-footer {
-  margin-top: 24px;
+  margin-top: 36px;
   background: var(--terracotta);
   border: 1.5px solid var(--ink);
   border-radius: 24px;
@@ -843,46 +928,149 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     <div class="section-head">
       <span class="eyebrow">Why Mumbai first</span>
       <h2>Mumbai isn't one city. It's <em>seven contradictions</em> stacked on one peninsula.</h2>
-      <p class="lead">That's exactly why it stays in your head long after the flight. Every block is a different city — and a local is the only way to read them all.</p>
+      <p class="lead">That's exactly why it stays in your head long after the flight. Every block is a different city — hover or tap on the ticker to experience them all.</p>
     </div>
     
-    <div class="visual-contrasts">
-      <div class="contrast-card reveal">
-        <div class="img-wrapper">
-          <img src="images/gallery-sealink.jpg" alt="Sea and skyline" loading="lazy">
-          <div class="duo-overlay sea-duo"></div>
+    <div class="specimens-viewer">
+      <!-- LEFT CANVAS -->
+      <div class="viewer-canvas">
+        
+        <!-- Slide 1 -->
+        <div class="canvas-slide active" data-slide="0">
+          <div class="img-wrapper">
+            <img src="images/gallery-sealink.jpg" alt="Sea and skyline" loading="lazy">
+            <div class="duo-overlay sea-duo"></div>
+          </div>
+          <div class="grain"></div>
+          <div class="canvas-content">
+            <span class="specimen-num" style="color:var(--taxi);">01 · Geography</span>
+            <h3>Sea <em>&amp;</em> skyline.</h3>
+            <p>The refreshing Arabian Sea breeze along the Marine Drive crescent meeting the towering glass skyline of the Worli Sea Link coastline.</p>
+          </div>
         </div>
-        <div class="grain"></div>
-        <div class="specimen-content">
-          <span class="specimen-num">01 · Geography</span>
-          <h3>Sea <em>&amp;</em> skyline.</h3>
-          <p>The refreshing Marine Drive sea breeze meeting the towering Worli Sea Link skyline.</p>
+        
+        <!-- Slide 2 -->
+        <div class="canvas-slide" data-slide="1">
+          <div class="img-wrapper">
+            <img src="images/gallery-local-train.jpg" alt="Chaos and calm" loading="lazy">
+            <div class="duo-overlay terra-duo"></div>
+          </div>
+          <div class="grain"></div>
+          <div class="canvas-content">
+            <span class="specimen-num" style="color:var(--taxi);">02 · Tempo</span>
+            <h3>Chaos <em>&amp;</em> calm.</h3>
+            <p>The adrenaline-fueled, packed local trains of CSMT station standing in stark contrast to the absolute ancient silence of the Banganga Tank.</p>
+          </div>
         </div>
+        
+        <!-- Slide 3 -->
+        <div class="canvas-slide" data-slide="2">
+          <div class="img-wrapper">
+            <img src="images/hero-skyline-main.jpg" alt="Old and new" loading="lazy">
+            <div class="duo-overlay marigold-duo"></div>
+          </div>
+          <div class="grain"></div>
+          <div class="canvas-content">
+            <span class="specimen-num" style="color:var(--marigold);">03 · Time</span>
+            <h3>Old <em>&amp;</em> new Mumbai.</h3>
+            <p>Centuries-old, beautifully preserved wooden Portuguese cottages in Khotachiwadi standing in the shadow of the sprawling financial high-rises of BKC.</p>
+          </div>
+        </div>
+        
+        <!-- Slide 4 -->
+        <div class="canvas-slide" data-slide="3">
+          <div class="img-wrapper">
+            <img src="images/gallery-chai.jpg" alt="Street and lounges" loading="lazy">
+            <div class="duo-overlay terra-duo"></div>
+          </div>
+          <div class="grain"></div>
+          <div class="canvas-content">
+            <span class="specimen-num" style="color:var(--taxi);">04 · Plate</span>
+            <h3>Street <em>&amp;</em> lounges.</h3>
+            <p>Piping hot, spicy midnight street food at Mohammed Ali Road contrasting with the high-concept speakeasy lounges of Colaba and Bandra.</p>
+          </div>
+        </div>
+        
+        <!-- Slide 5 -->
+        <div class="canvas-slide" data-slide="4">
+          <div class="img-wrapper">
+            <img src="images/gallery-csmt.jpg" alt="Gothic and docks" loading="lazy">
+            <div class="duo-overlay sea-duo"></div>
+          </div>
+          <div class="grain"></div>
+          <div class="canvas-content">
+            <span class="specimen-num" style="color:var(--taxi);">05 · Stone</span>
+            <h3>Gothic <em>&amp;</em> docks.</h3>
+            <p>The majestic Victorian stone carvings of Crawford and CSMT standing alongside the raw, salt-crusted maritime history of the Sassoon Docks.</p>
+          </div>
+        </div>
+        
+        <!-- Slide 6 -->
+        <div class="canvas-slide" data-slide="5">
+          <div class="img-wrapper">
+            <img src="images/gallery-bazaar.jpg" alt="Grit and gold" loading="lazy">
+            <div class="duo-overlay marigold-duo"></div>
+          </div>
+          <div class="grain"></div>
+          <div class="canvas-content">
+            <span class="specimen-num" style="color:var(--marigold);">06 · Spirit</span>
+            <h3>Grit <em>&amp;</em> gold.</h3>
+            <p>The relentless, sweat-stained hustle of local Crawford market wholesalers running adjacent to the opulent, quiet mansions of Malabar Hill.</p>
+          </div>
+        </div>
+        
+        <!-- Slide 7 -->
+        <div class="canvas-slide" data-slide="6">
+          <div class="img-wrapper">
+            <img src="images/gallery-temple.jpg" alt="Stars and shrines" loading="lazy">
+            <div class="duo-overlay pink-duo"></div>
+          </div>
+          <div class="grain"></div>
+          <div class="canvas-content">
+            <span class="specimen-num" style="color:var(--marigold);">07 · Culture</span>
+            <h3>Stars <em>&amp;</em> shrines.</h3>
+            <p>The shimmering Bollywood movie marquees of Bandra existing alongside the ancient spiritual path of Haji Ali Mosque extending into the Arabian Sea.</p>
+          </div>
+        </div>
+        
       </div>
       
-      <div class="contrast-card reveal">
-        <div class="img-wrapper">
-          <img src="images/gallery-local-train.jpg" alt="Chaos and calm" loading="lazy">
-          <div class="duo-overlay terra-duo"></div>
+      <!-- RIGHT TICKER -->
+      <div class="viewer-ticker">
+        <div class="ticker-item active" data-trigger="0">
+          <span class="ticker-num">01</span>
+          <span class="ticker-label">Geography</span>
+          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         </div>
-        <div class="grain"></div>
-        <div class="specimen-content">
-          <span class="specimen-num">02 · Tempo</span>
-          <h3>Chaos <em>&amp;</em> calm.</h3>
-          <p>The rush-hour speed of local trains contrasted with the absolute silence of Banganga Tank.</p>
+        <div class="ticker-item" data-trigger="1">
+          <span class="ticker-num">02</span>
+          <span class="ticker-label">Tempo</span>
+          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         </div>
-      </div>
-      
-      <div class="contrast-card reveal">
-        <div class="img-wrapper">
-          <img src="images/gallery-chai.jpg" alt="Street and cafes" loading="lazy">
-          <div class="duo-overlay terra-duo"></div>
+        <div class="ticker-item" data-trigger="2">
+          <span class="ticker-num">03</span>
+          <span class="ticker-label">Time</span>
+          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         </div>
-        <div class="grain"></div>
-        <div class="specimen-content">
-          <span class="specimen-num">03 · Plate</span>
-          <h3>Street <em>&amp;</em> cafes.</h3>
-          <p>Savoring Mohammed Ali Road street food beside centenarian Irani cafés and cocktail bars.</p>
+        <div class="ticker-item" data-trigger="3">
+          <span class="ticker-num">04</span>
+          <span class="ticker-label">Plate</span>
+          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </div>
+        <div class="ticker-item" data-trigger="4">
+          <span class="ticker-num">05</span>
+          <span class="ticker-label">Stone</span>
+          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </div>
+        <div class="ticker-item" data-trigger="5">
+          <span class="ticker-num">06</span>
+          <span class="ticker-label">Spirit</span>
+          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </div>
+        <div class="ticker-item" data-trigger="6">
+          <span class="ticker-num">07</span>
+          <span class="ticker-label">Culture</span>
+          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         </div>
       </div>
     </div>
@@ -890,7 +1078,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     <div class="contrasts-footer reveal">
       <div class="cf-left">
         <h4>Your detour. We show you <em>all of it.</em></h4>
-        <p>Not the generic postcard tourist trap. The real, breathing city through a buddy's eyes.</p>
+        <p>Not the generic postcard tourist trap. The real, breathing city through a local buddy's eyes.</p>
       </div>
       <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
@@ -1361,6 +1549,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   document.querySelector('.trigger-terms')?.addEventListener('click', (e) => {
     e.preventDefault();
     openModal('terms-modal');
+  });
+
+  // Seven Contradictions slider interaction
+  const triggers = document.querySelectorAll('.ticker-item');
+  const slides = document.querySelectorAll('.canvas-slide');
+  
+  triggers.forEach(trigger => {
+    const handleActive = () => {
+      const index = trigger.getAttribute('data-trigger');
+      
+      // Update active ticker trigger
+      triggers.forEach(t => t.classList.remove('active'));
+      trigger.classList.add('active');
+      
+      // Update active visual slide
+      slides.forEach(slide => {
+        if (slide.getAttribute('data-slide') === index) {
+          slide.classList.add('active');
+        } else {
+          slide.classList.remove('active');
+        }
+      });
+    };
+
+    trigger.addEventListener('mouseenter', handleActive);
+    trigger.addEventListener('click', handleActive); // For mobile/tablets
   });
 </script>
 </body>
