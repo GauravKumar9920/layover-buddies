@@ -1,9 +1,9 @@
 {
-  "name": "mumbai-buddies-admin",
+  "name": "detour-admin",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Local-only admin panel for Mumbai Buddies. Solo admin, password-gated, uses Supabase service role key.",
+  "description": "Local-only admin panel for Detour. Solo admin, password-gated, uses Supabase service role key.",
   "scripts": {
     "dev": "vite --port 5174",
     "build": "tsc -b && vite build",
