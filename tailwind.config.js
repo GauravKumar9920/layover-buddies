@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 //
-// Mumbai Buddies Tailwind config
+// Detour Tailwind config
 // Source of truth: /design/brand/design-system.md
 //
 // Note on orange/pink palettes: the marketing HTML uses `orange-*` and
