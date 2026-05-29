@@ -23,6 +23,7 @@ function getMetroHostIp(): string | null {
   return host || null;
 }
 
+
 function buildLocalSupabaseOrigins(url: string): string[] {
   try {
     const parsed = new URL(url);
@@ -31,7 +32,9 @@ function buildLocalSupabaseOrigins(url: string): string[] {
     const origins: string[] = [parsed.origin];
 
     const metroHost = getMetroHostIp();
-    const candidates = ['localhost', '127.0.0.1', metroHost].filter(Boolean) as string[];
+    // Prioritize 127.0.0.1, then metroHost (LAN IP), and localhost last.
+    // 127.0.0.1 is extremely reliable when adb reverse is running because it bypasses Android's DNS.
+    const candidates = ['127.0.0.1', metroHost, 'localhost'].filter(Boolean) as string[];
     for (const host of candidates) {
       const origin = `${protocol}//${host}${portPart}`;
       if (!origins.includes(origin)) {
@@ -43,16 +46,6 @@ function buildLocalSupabaseOrigins(url: string): string[] {
   } catch {
     return [url];
   }
-}
-
-function isNetworkFailure(err: unknown): boolean {
-  if (!(err instanceof Error)) return false;
-  const msg = err.message.toLowerCase();
-  return (
-    msg.includes('network request failed') ||
-    msg.includes('failed to fetch') ||
-    msg.includes('load failed')
-  );
 }
 
 // ─── Web-only helpers ─────────────────────────────────────────────────────────
@@ -138,11 +131,38 @@ const supabaseFetch: typeof fetch = async (input, init) => {
   // On web, use the intercepting fetch that clears stale refresh tokens on 400.
   const baseFetch = _webFetch ?? fetch;
 
+  let requestBody: string | undefined = undefined;
+  let requestHeaders: Record<string, string> | undefined = undefined;
+  let requestMethod: string = 'GET';
+
+  if (requestTemplate && !isWeb) {
+    requestMethod = requestTemplate.method;
+    requestHeaders = {};
+    requestTemplate.headers.forEach((value: string, key: string) => {
+      requestHeaders![key] = value;
+    });
+    if (requestMethod !== 'GET' && requestMethod !== 'HEAD') {
+      try {
+        requestBody = await requestTemplate.text();
+      } catch (err) {
+        if (typeof __DEV__ !== 'undefined' && __DEV__) {
+          console.warn('[supabaseFetch] Failed to read request body as text:', err);
+        }
+      }
+    }
+  }
+
   for (const origin of orderedOrigins) {
     const attemptUrl = `${origin}${requestedPath}`;
     try {
       const response = requestTemplate
-        ? await baseFetch(new Request(attemptUrl, requestTemplate.clone()))
+        ? isWeb
+          ? await baseFetch(new Request(attemptUrl, requestTemplate.clone()))
+          : await baseFetch(attemptUrl, {
+              method: requestMethod,
+              headers: requestHeaders,
+              body: requestBody,
+            })
         : await baseFetch(attemptUrl, init);
 
       if (origin !== activeSupabaseOrigin && typeof __DEV__ !== 'undefined' && __DEV__) {
@@ -152,8 +172,8 @@ const supabaseFetch: typeof fetch = async (input, init) => {
       return response;
     } catch (err) {
       lastError = err;
-      if (!isNetworkFailure(err)) {
-        throw err;
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.warn(`[supabase] Origin ${origin} failed:`, err);
       }
     }
   }

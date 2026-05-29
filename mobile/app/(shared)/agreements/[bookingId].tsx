@@ -17,11 +17,11 @@ import {
   Text,
   ScrollView,
   TextInput,
-  Alert,
   Modal,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { notify } from '@/lib/ui/alert';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Header } from '@/components/ui/Header';
@@ -44,6 +44,7 @@ import {
 import {
   isRazorpayCheckoutUnavailableError,
 } from '@/lib/api/payments';
+import { confirmPayment } from '@/lib/api/confirmPayment';
 
 export default function AgreementViewerScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
@@ -83,7 +84,14 @@ export default function AgreementViewerScreen() {
 
   const canPayDeposit = useMemo(() => {
     if (!viewerSide || !booking || !agreement) return false;
-    if (booking.status !== 'awaiting_deposits') return false;
+    // `awaiting_deposits` = both sides still owe. `deposits_held` = one side
+    // paid, the other still owes — that side must still see the Pay button.
+    // The `myDeposit.status === 'pending'` check below guarantees we only
+    // surface the button to the side that hasn't paid yet, so the booking
+    // status gate just has to admit any pre-balance state.
+    if (booking.status !== 'awaiting_deposits' && booking.status !== 'deposits_held') {
+      return false;
+    }
     return !myDeposit || myDeposit.status === 'pending';
   }, [viewerSide, booking, agreement, myDeposit]);
 
@@ -91,7 +99,7 @@ export default function AgreementViewerScreen() {
   async function handleSubmitSignature() {
     if (!viewerSide || signing) return;
     if (!signName.trim()) {
-      Alert.alert('Name required', 'Type your full name to sign.');
+      notify('Name required', 'Type your full name to sign.');
       return;
     }
 
@@ -101,12 +109,12 @@ export default function AgreementViewerScreen() {
       setSignModalOpen(false);
       setSignName('');
       await reload();
-      Alert.alert('Signed!', 'Your signature has been recorded.');
+      notify('Signed!', 'Your signature has been recorded.');
     } catch (err) {
       const msg = err instanceof SignAgreementError ? err.message
         : err instanceof Error ? err.message
         : 'Sign failed';
-      Alert.alert('Sign failed', msg);
+      notify('Sign failed', msg);
     } finally {
       setSigning(false);
     }
@@ -117,43 +125,64 @@ export default function AgreementViewerScreen() {
     setDepositLoading(true);
     try {
       const order = await createDepositOrder(bookingId, viewerSide);
-      // Open native checkout. We don't act on the resolved value — webhook
-      // is the source of truth for capture confirmation.
+      // Open native checkout. The native SDK resolves with three signed
+      // values (order_id, payment_id, signature). We POST those to
+      // `confirm-payment` so the deposit settles on the spot even if
+      // Razorpay's webhook never arrives (no webhook configured, KYC
+      // pending, ngrok URL changed, etc.). When the webhook DOES arrive
+      // later, the capture handler dedups on payment_id and no-ops.
+      let result: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string };
       try {
-        await openDepositCheckout({
+        result = await openDepositCheckout({
           order,
           travelerName:  user?.user_metadata?.full_name as string | undefined,
           travelerEmail: user?.email,
         });
       } catch (checkoutErr) {
         if (isRazorpayCheckoutUnavailableError(checkoutErr)) {
-          Alert.alert('Razorpay unavailable',
+          notify('Razorpay unavailable',
             'Razorpay checkout is unavailable in this build. Use the iOS or Android app to complete the deposit.');
           return;
         }
         // User cancellation also throws — quietly ignore.
         return;
       }
-      // Poll for webhook confirmation — break as soon as our deposit row
-      // flips to 'held'. We query directly instead of relying on the stale
-      // `myDeposit` closure value; the Realtime subscription handles the
-      // re-render in parallel.
+
       setConfirmingDeposit(true);
-      const start      = Date.now();
-      const TIMEOUT_MS = 30_000;
-      let held = false;
-      while (!held && Date.now() - start < TIMEOUT_MS) {
-        await new Promise((r) => setTimeout(r, 1500));
-        try {
-          const fresh = await fetchDeposits(bookingId!);
-          held = fresh.some((d) => d.side === viewerSide && d.status === 'held');
-        } catch {
-          // transient read error — continue polling
+      try {
+        await confirmPayment({
+          booking_id:          bookingId!,
+          kind:                'deposit',
+          side:                viewerSide,
+          razorpay_order_id:   result.razorpay_order_id,
+          razorpay_payment_id: result.razorpay_payment_id,
+          razorpay_signature:  result.razorpay_signature,
+        });
+        // Webhook path stays in place as belt-and-braces; it's idempotent
+        // against this confirm-payment call so calling both is safe.
+        await reload();
+      } catch (confirmErr) {
+        // Even if confirm-payment fails (rare — network, signature mismatch),
+        // the webhook is still in play. Fall back to the old poll-for-30s.
+        const start      = Date.now();
+        const TIMEOUT_MS = 30_000;
+        let held = false;
+        while (!held && Date.now() - start < TIMEOUT_MS) {
+          await new Promise((r) => setTimeout(r, 1500));
+          try {
+            const fresh = await fetchDeposits(bookingId!);
+            held = fresh.some((d) => d.side === viewerSide && d.status === 'held');
+          } catch { /* transient read */ }
         }
+        if (!held) {
+          notify('Deposit confirmation pending',
+            confirmErr instanceof Error ? confirmErr.message : 'The payment may have gone through. Please refresh in a moment.');
+        }
+      } finally {
+        setConfirmingDeposit(false);
       }
-      setConfirmingDeposit(false);
     } catch (err) {
-      Alert.alert('Deposit failed', err instanceof Error ? err.message : 'Unknown error');
+      notify('Deposit failed', err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setDepositLoading(false);
     }
