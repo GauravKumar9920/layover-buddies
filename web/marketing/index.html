@@ -137,75 +137,71 @@ nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-
 .manifesto .eyebrow::before{background:var(--taxi);}
 .manifesto .lead{color:rgba(244,237,221,.7);margin:22px auto 0;text-align:center;}
 
-/* ---------- SPLIT SCREEN SPECIMENS SLIDER ---------- */
-.specimens-viewer {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 32px;
-  margin-top: 48px;
-  align-items: stretch;
-  min-height: 520px;
+/* ---------- HORIZONTAL SLIDING WINDOW CAROUSEL ---------- */
+.contrasts-slider-container {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  overflow: hidden;
 }
-@media(max-width: 900px) {
-  .specimens-viewer {
-    grid-template-columns: 1fr;
-    gap: 24px;
+.contrasts-slider-track {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 12px 5% 32px;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.contrasts-slider-track::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+@media (min-width: 1180px) {
+  .contrasts-slider-track {
+    padding-left: calc((100vw - 1180px) / 2 + 5%);
+    padding-right: calc((100vw - 1180px) / 2 + 5%);
   }
 }
-.viewer-canvas {
+.contrast-card {
+  flex: 0 0 340px;
+  height: 480px;
   position: relative;
   border: 1.5px solid var(--ink);
   border-radius: 26px;
   overflow: hidden;
+  scroll-snap-align: start;
   background: var(--ink);
-  box-shadow: 0 16px 40px rgba(14,25,41,0.14);
-  transform: translateZ(0);
-  isolation: isolate;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.3s var(--ease), border-color 0.3s, box-shadow 0.3s;
 }
-.canvas-slide {
+.contrast-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 48px rgba(14,25,41,0.18);
+}
+.contrast-card .card-img {
   position: absolute;
   inset: 0;
-  opacity: 0;
-  z-index: 1;
-  transition: opacity .6s var(--ease);
-}
-.canvas-slide.active {
-  opacity: 1;
-  z-index: 2;
-}
-.canvas-slide img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(100%) contrast(1.1) brightness(0.9);
-  transition: transform .8s var(--ease), filter .8s var(--ease);
+  z-index: 0;
+  transition: transform 0.6s var(--ease);
 }
-.canvas-slide.active img {
-  filter: grayscale(100%) contrast(1.1) brightness(0.9);
+.contrast-card:hover .card-img {
+  transform: scale(1.05);
 }
-.viewer-canvas:hover .canvas-slide.active img {
-  filter: grayscale(0%) contrast(1) brightness(1);
-  transform: scale(1.04);
-}
-.canvas-slide .duo-overlay {
+.contrast-card .duo-gradient {
   position: absolute;
   inset: 0;
-  mix-blend-mode: multiply;
-  opacity: 0.9;
-  transition: opacity .6s var(--ease);
-  z-index: 2;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(14,25,41,0) 30%, rgba(14,25,41,0.3) 55%, rgba(14,25,41,0.85) 100%);
   pointer-events: none;
 }
-.viewer-canvas:hover .canvas-slide.active .duo-overlay {
-  opacity: 0;
-}
-.canvas-slide .sea-duo { background: var(--sea); }
-.canvas-slide .terra-duo { background: var(--terracotta); }
-.canvas-slide .marigold-duo { background: var(--marigold); }
-.canvas-slide .green-duo { background: var(--green); }
-.canvas-slide .pink-duo { background: var(--pink); }
-
-.canvas-slide .grain {
+.contrast-card .grain {
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -215,127 +211,155 @@ nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='ng'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .2 0'/></filter><rect width='100%25' height='100%25' filter='url(%23ng)'/></svg>");
   background-size: 200px 200px;
 }
-.canvas-slide::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: linear-gradient(180deg, rgba(14,25,41,0) 40%, rgba(14,25,41,0.85) 100%);
-}
-
-.canvas-content {
+.contrast-card .card-content {
   position: absolute;
   inset: 0;
   z-index: 3;
-  padding: 40px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   color: var(--paper-3);
   pointer-events: none;
 }
-.canvas-content h3 {
+.contrast-card .card-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--marigold);
+  margin-bottom: 8px;
+}
+.contrast-card .card-title {
   font-family: var(--display);
   font-weight: 700;
-  font-size: clamp(24px, 3.5vw, 36px);
-  letter-spacing: -.03em;
-  line-height: 1.05;
-  margin-bottom: 6px;
-  opacity: 0;
-  transform: translateY(12px);
-  transition: transform .5s var(--ease), opacity .5s var(--ease);
+  font-size: clamp(20px, 3vw, 25px);
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  margin-bottom: 8px;
+  color: var(--paper-3);
 }
-.canvas-slide.active .canvas-content h3 {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: .1s;
-}
-.canvas-content h3 em {
+.contrast-card .card-title em {
   font-family: var(--serif);
   font-style: italic;
   font-weight: 400;
   color: var(--taxi);
 }
-.canvas-content p {
-  font-size: 15px;
-  line-height: 1.5;
+.contrast-card .card-desc {
+  font-size: 13.5px;
+  line-height: 1.45;
   color: rgba(244, 237, 221, 0.85);
-  max-width: 480px;
-  opacity: 0;
-  transform: translateY(12px);
-  transition: transform .5s var(--ease), opacity .5s var(--ease);
 }
-.canvas-slide.active .canvas-content p {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: .2s;
+@media(max-width: 480px) {
+  .contrast-card {
+    flex: 0 0 290px;
+    height: 420px;
+  }
+  .contrast-card .card-content {
+    padding: 24px;
+  }
 }
 
-/* Right Side Ticker */
-.viewer-ticker {
+/* Header Controls */
+.section-head {
   display: flex;
-  flex-direction: column;
   justify-content: space-between;
-  gap: 8px;
+  align-items: flex-end;
+  max-width: 100% !important;
+  margin-bottom: 48px;
+  gap: 32px;
 }
-.ticker-item {
+.section-head-text {
+  max-width: 760px;
+}
+.slider-controls {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+.slider-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
   background: var(--paper-3);
-  border: 1.5px solid var(--line-soft);
-  border-radius: 14px;
-  padding: 14px 20px;
+  color: var(--ink);
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: center;
+  transition: all 0.25s var(--ease);
+  box-shadow: 3px 3px 0 var(--ink);
   cursor: pointer;
-  transition: transform .25s var(--ease), border-color .25s, background .25s, box-shadow .25s;
 }
-.ticker-item:hover {
-  transform: translateX(4px);
-  border-color: var(--ink);
-  background: var(--paper-3);
-}
-.ticker-item.active {
-  border-color: var(--ink);
-  background: var(--paper-3);
+.slider-btn:hover {
+  background: var(--terracotta);
+  color: var(--paper-3);
+  transform: translateY(-2px);
   box-shadow: 4px 4px 0 var(--ink);
-  transform: translateX(6px);
 }
-.ticker-num {
+.slider-btn:active {
+  transform: translateY(1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+.slider-btn.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  box-shadow: none;
+  transform: none;
+  border-color: var(--line-soft);
+  color: var(--ink-mute);
+}
+@media (max-width: 760px) {
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .slider-controls {
+    align-self: flex-end;
+  }
+}
+
+/* Bottom Progress Tracker */
+.slider-progress-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 28px;
+}
+.slider-progress-bar-bg {
+  width: 200px;
+  height: 4px;
+  background: var(--line-soft);
+  border-radius: 9999px;
+  position: relative;
+  overflow: hidden;
+}
+.slider-progress-bar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 20%;
+  background: var(--terracotta);
+  border-radius: 9999px;
+  transition: left 0.15s ease;
+}
+.slider-status-text {
   font-family: var(--mono);
   font-size: 12px;
-  font-weight: 700;
-  color: var(--terracotta);
-  transition: color .2s;
-}
-.ticker-item.active .ticker-num {
-  color: var(--terracotta);
-}
-.ticker-item:nth-child(even) .ticker-num {
-  color: var(--sea);
-}
-.ticker-label {
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 15.5px;
-  color: var(--ink);
-  letter-spacing: -.01em;
-}
-.ticker-arrow {
-  margin-left: auto;
-  width: 14px;
-  height: 14px;
+  font-weight: 600;
   color: var(--ink-mute);
-  opacity: 0;
-  transform: translateX(-4px);
-  transition: opacity .2s, transform .2s;
+  min-width: 50px;
+  text-align: right;
 }
-.ticker-item.active .ticker-arrow {
-  opacity: 1;
-  transform: translateX(0);
-  color: var(--terracotta);
-}
+
+/* contrasts footer reveal card */
 .contrasts-footer {
-  margin-top: 36px;
+  margin-top: 48px;
   background: var(--terracotta);
   border: 1.5px solid var(--ink);
   border-radius: 24px;
@@ -386,6 +410,7 @@ nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-
     gap: 24px;
   }
 }
+
 
 /* ---------- BUDDIES ---------- */
 .buddy-wrap{display:grid;grid-template-columns:1fr 1.05fr;gap:54px;align-items:center;}
@@ -926,151 +951,114 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 <section id="mumbai">
   <div class="wrap">
     <div class="section-head">
-      <span class="eyebrow">Why Mumbai first</span>
-      <h2>Mumbai isn't one city. It's <em>seven contradictions</em> stacked on one peninsula.</h2>
-      <p class="lead">That's exactly why it stays in your head long after the flight. Every block is a different city — hover or tap on the ticker to experience them all.</p>
+      <div class="section-head-text">
+        <span class="eyebrow">Why Mumbai first</span>
+        <h2>Mumbai isn't one city. It's <em>seven contradictions</em> stacked on one peninsula.</h2>
+        <p class="lead">That's exactly why it stays in your head long after the flight. Every block is a different city — slide or swipe to explore them all.</p>
+      </div>
+      <div class="slider-controls">
+        <button class="slider-btn disabled" id="slider-prev" aria-label="Scroll left">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <button class="slider-btn" id="slider-next" aria-label="Scroll right">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
+      </div>
     </div>
     
-    <div class="specimens-viewer">
-      <!-- LEFT CANVAS -->
-      <div class="viewer-canvas">
+    <div class="contrasts-slider-container">
+      <div class="contrasts-slider-track">
         
-        <!-- Slide 1 -->
-        <div class="canvas-slide active" data-slide="0">
-          <div class="img-wrapper">
-            <img src="images/gallery-sealink.jpg" alt="Sea and skyline" loading="lazy">
-            <div class="duo-overlay sea-duo"></div>
-          </div>
+        <!-- Card 1 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/gallery-sealink.jpg" alt="Sea and skyline" loading="lazy">
+          <div class="duo-gradient"></div>
           <div class="grain"></div>
-          <div class="canvas-content">
-            <span class="specimen-num" style="color:var(--taxi);">01 · Geography</span>
-            <h3>Sea <em>&amp;</em> skyline.</h3>
-            <p>The refreshing Arabian Sea breeze along the Marine Drive crescent meeting the towering glass skyline of the Worli Sea Link coastline.</p>
+          <div class="card-content">
+            <span class="card-num">01 · Geography</span>
+            <h3 class="card-title">Sea <em>&amp;</em> skyline.</h3>
+            <p class="card-desc">The refreshing Arabian Sea breeze along the Marine Drive crescent meeting the towering glass skyline of the Worli Sea Link coastline.</p>
           </div>
         </div>
         
-        <!-- Slide 2 -->
-        <div class="canvas-slide" data-slide="1">
-          <div class="img-wrapper">
-            <img src="images/gallery-local-train.jpg" alt="Chaos and calm" loading="lazy">
-            <div class="duo-overlay terra-duo"></div>
-          </div>
+        <!-- Card 2 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/gallery-local-train.jpg" alt="Chaos and calm" loading="lazy">
+          <div class="duo-gradient"></div>
           <div class="grain"></div>
-          <div class="canvas-content">
-            <span class="specimen-num" style="color:var(--taxi);">02 · Tempo</span>
-            <h3>Chaos <em>&amp;</em> calm.</h3>
-            <p>The adrenaline-fueled, packed local trains of CSMT station standing in stark contrast to the absolute ancient silence of the Banganga Tank.</p>
+          <div class="card-content">
+            <span class="card-num">02 · Tempo</span>
+            <h3 class="card-title">Chaos <em>&amp;</em> calm.</h3>
+            <p class="card-desc">The adrenaline-fueled, packed local trains of CSMT station standing in stark contrast to the absolute ancient silence of the Banganga Tank.</p>
           </div>
         </div>
         
-        <!-- Slide 3 -->
-        <div class="canvas-slide" data-slide="2">
-          <div class="img-wrapper">
-            <img src="images/hero-skyline-main.jpg" alt="Old and new" loading="lazy">
-            <div class="duo-overlay marigold-duo"></div>
-          </div>
+        <!-- Card 3 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/hero-skyline-main.jpg" alt="Old and new" loading="lazy">
+          <div class="duo-gradient"></div>
           <div class="grain"></div>
-          <div class="canvas-content">
-            <span class="specimen-num" style="color:var(--marigold);">03 · Time</span>
-            <h3>Old <em>&amp;</em> new Mumbai.</h3>
-            <p>Centuries-old, beautifully preserved wooden Portuguese cottages in Khotachiwadi standing in the shadow of the sprawling financial high-rises of BKC.</p>
+          <div class="card-content">
+            <span class="card-num">03 · Time</span>
+            <h3 class="card-title">Old <em>&amp;</em> new.</h3>
+            <p class="card-desc">Centuries-old, beautifully preserved wooden Portuguese cottages in Khotachiwadi standing in the shadow of the sprawling financial high-rises of BKC.</p>
           </div>
         </div>
         
-        <!-- Slide 4 -->
-        <div class="canvas-slide" data-slide="3">
-          <div class="img-wrapper">
-            <img src="images/gallery-chai.jpg" alt="Street and lounges" loading="lazy">
-            <div class="duo-overlay terra-duo"></div>
-          </div>
+        <!-- Card 4 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/gallery-chai.jpg" alt="Street and lounges" loading="lazy">
+          <div class="duo-gradient"></div>
           <div class="grain"></div>
-          <div class="canvas-content">
-            <span class="specimen-num" style="color:var(--taxi);">04 · Plate</span>
-            <h3>Street <em>&amp;</em> lounges.</h3>
-            <p>Piping hot, spicy midnight street food at Mohammed Ali Road contrasting with the high-concept speakeasy lounges of Colaba and Bandra.</p>
+          <div class="card-content">
+            <span class="card-num">04 · Plate</span>
+            <h3 class="card-title">Street <em>&amp;</em> lounges.</h3>
+            <p class="card-desc">Piping hot, spicy midnight street food at Mohammed Ali Road contrasting with the high-concept speakeasy lounges of Colaba and Bandra.</p>
           </div>
         </div>
         
-        <!-- Slide 5 -->
-        <div class="canvas-slide" data-slide="4">
-          <div class="img-wrapper">
-            <img src="images/gallery-csmt.jpg" alt="Gothic and docks" loading="lazy">
-            <div class="duo-overlay sea-duo"></div>
-          </div>
+        <!-- Card 5 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/gallery-csmt.jpg" alt="Gothic and docks" loading="lazy">
+          <div class="duo-gradient"></div>
           <div class="grain"></div>
-          <div class="canvas-content">
-            <span class="specimen-num" style="color:var(--taxi);">05 · Stone</span>
-            <h3>Gothic <em>&amp;</em> docks.</h3>
-            <p>The majestic Victorian stone carvings of Crawford and CSMT standing alongside the raw, salt-crusted maritime history of the Sassoon Docks.</p>
+          <div class="card-content">
+            <span class="card-num">05 · Stone</span>
+            <h3 class="card-title">Gothic <em>&amp;</em> docks.</h3>
+            <p class="card-desc">The majestic Victorian stone carvings of Crawford and CSMT standing alongside the raw, salt-crusted maritime history of the Sassoon Docks.</p>
           </div>
         </div>
         
-        <!-- Slide 6 -->
-        <div class="canvas-slide" data-slide="5">
-          <div class="img-wrapper">
-            <img src="images/gallery-bazaar.jpg" alt="Grit and gold" loading="lazy">
-            <div class="duo-overlay marigold-duo"></div>
-          </div>
+        <!-- Card 6 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/gallery-bazaar.jpg" alt="Grit and gold" loading="lazy">
+          <div class="duo-gradient"></div>
           <div class="grain"></div>
-          <div class="canvas-content">
-            <span class="specimen-num" style="color:var(--marigold);">06 · Spirit</span>
-            <h3>Grit <em>&amp;</em> gold.</h3>
-            <p>The relentless, sweat-stained hustle of local Crawford market wholesalers running adjacent to the opulent, quiet mansions of Malabar Hill.</p>
+          <div class="card-content">
+            <span class="card-num">06 · Spirit</span>
+            <h3 class="card-title">Grit <em>&amp;</em> gold.</h3>
+            <p class="card-desc">The relentless, sweat-stained hustle of local Crawford market wholesalers running adjacent to the opulent, quiet mansions of Malabar Hill.</p>
           </div>
         </div>
         
-        <!-- Slide 7 -->
-        <div class="canvas-slide" data-slide="6">
-          <div class="img-wrapper">
-            <img src="images/gallery-temple.jpg" alt="Stars and shrines" loading="lazy">
-            <div class="duo-overlay pink-duo"></div>
-          </div>
+        <!-- Card 7 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/gallery-temple.jpg" alt="Stars and shrines" loading="lazy">
+          <div class="duo-gradient"></div>
           <div class="grain"></div>
-          <div class="canvas-content">
-            <span class="specimen-num" style="color:var(--marigold);">07 · Culture</span>
-            <h3>Stars <em>&amp;</em> shrines.</h3>
-            <p>The shimmering Bollywood movie marquees of Bandra existing alongside the ancient spiritual path of Haji Ali Mosque extending into the Arabian Sea.</p>
+          <div class="card-content">
+            <span class="card-num">07 · Culture</span>
+            <h3 class="card-title">Stars <em>&amp;</em> shrines.</h3>
+            <p class="card-desc">The shimmering Bollywood movie marquees of Bandra existing alongside the ancient spiritual path of Haji Ali Mosque extending into the Arabian Sea.</p>
           </div>
         </div>
         
       </div>
       
-      <!-- RIGHT TICKER -->
-      <div class="viewer-ticker">
-        <div class="ticker-item active" data-trigger="0">
-          <span class="ticker-num">01</span>
-          <span class="ticker-label">Geography</span>
-          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        </div>
-        <div class="ticker-item" data-trigger="1">
-          <span class="ticker-num">02</span>
-          <span class="ticker-label">Tempo</span>
-          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        </div>
-        <div class="ticker-item" data-trigger="2">
-          <span class="ticker-num">03</span>
-          <span class="ticker-label">Time</span>
-          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        </div>
-        <div class="ticker-item" data-trigger="3">
-          <span class="ticker-num">04</span>
-          <span class="ticker-label">Plate</span>
-          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        </div>
-        <div class="ticker-item" data-trigger="4">
-          <span class="ticker-num">05</span>
-          <span class="ticker-label">Stone</span>
-          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        </div>
-        <div class="ticker-item" data-trigger="5">
-          <span class="ticker-num">06</span>
-          <span class="ticker-label">Spirit</span>
-          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        </div>
-        <div class="ticker-item" data-trigger="6">
-          <span class="ticker-num">07</span>
-          <span class="ticker-label">Culture</span>
-          <svg class="ticker-arrow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      <div class="slider-progress-wrap">
+        <span class="slider-status-text">01 / 07</span>
+        <div class="slider-progress-bar-bg">
+          <div class="slider-progress-bar-fill" id="slider-progress-fill"></div>
         </div>
       </div>
     </div>
@@ -1551,31 +1539,70 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     openModal('terms-modal');
   });
 
-  // Seven Contradictions slider interaction
-  const triggers = document.querySelectorAll('.ticker-item');
-  const slides = document.querySelectorAll('.canvas-slide');
-  
-  triggers.forEach(trigger => {
-    const handleActive = () => {
-      const index = trigger.getAttribute('data-trigger');
+  // Seven Contradictions horizontal slider interaction
+  const track = document.querySelector('.contrasts-slider-track');
+  const fill = document.getElementById('slider-progress-fill');
+  const statusText = document.querySelector('.slider-status-text');
+  const prevBtn = document.getElementById('slider-prev');
+  const nextBtn = document.getElementById('slider-next');
+
+  if (track && fill && statusText) {
+    const updateSliderUI = () => {
+      const scrollLeft = track.scrollLeft;
+      const maxScrollLeft = track.scrollWidth - track.clientWidth;
       
-      // Update active ticker trigger
-      triggers.forEach(t => t.classList.remove('active'));
-      trigger.classList.add('active');
+      // Calculate scroll ratio (0 to 1)
+      const ratio = maxScrollLeft > 0 ? scrollLeft / maxScrollLeft : 0;
       
-      // Update active visual slide
-      slides.forEach(slide => {
-        if (slide.getAttribute('data-slide') === index) {
-          slide.classList.add('active');
-        } else {
-          slide.classList.remove('active');
-        }
-      });
+      // Update progress bar fill position
+      const fillWidth = 20; // 20% width for indicator
+      const leftPercent = ratio * (100 - fillWidth);
+      fill.style.left = `${leftPercent}%`;
+      fill.style.width = `${fillWidth}%`;
+      
+      // Calculate active card index (0 to 6) based on centering
+      const cards = track.querySelectorAll('.contrast-card');
+      if (cards.length > 0) {
+        const cardWidth = cards[0].clientWidth + 24; // width + gap
+        const activeIndex = Math.min(6, Math.max(0, Math.round(scrollLeft / cardWidth)));
+        statusText.textContent = `0${activeIndex + 1} / 07`;
+      }
+      
+      // Disable/enable arrows
+      if (prevBtn && nextBtn) {
+        prevBtn.classList.toggle('disabled', scrollLeft <= 8);
+        nextBtn.classList.toggle('disabled', scrollLeft >= maxScrollLeft - 8);
+      }
     };
 
-    trigger.addEventListener('mouseenter', handleActive);
-    trigger.addEventListener('click', handleActive); // For mobile/tablets
-  });
+    // Listen to scroll event
+    track.addEventListener('scroll', updateSliderUI);
+    
+    // Listen to resize to adjust calculations
+    window.addEventListener('resize', updateSliderUI);
+    
+    // Set initial state
+    updateSliderUI();
+
+    // Wire up buttons
+    if (prevBtn && nextBtn) {
+      prevBtn.addEventListener('click', () => {
+        const cards = track.querySelectorAll('.contrast-card');
+        if (cards.length > 0) {
+          const cardWidth = cards[0].clientWidth + 24;
+          track.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+        }
+      });
+
+      nextBtn.addEventListener('click', () => {
+        const cards = track.querySelectorAll('.contrast-card');
+        if (cards.length > 0) {
+          const cardWidth = cards[0].clientWidth + 24;
+          track.scrollBy({ left: cardWidth, behavior: 'smooth' });
+        }
+      });
+    }
+  }
 </script>
 </body>
 </html>
