@@ -21,7 +21,7 @@
 <style>
 :root{
   --paper:#F4EDDD; --paper-2:#EBE0C5; --paper-3:#FCF7EA;
-  --ink:#0E1929; --ink-2:#1F2A3D; --ink-mute:#5F6B82;
+  --ink:#0E1929; --ink-2:#1F2A3D; --ink-mute:#445169;
   --line:#0E1929; --line-soft:#C5BA9C;
   --marigold:#E89F2C; --marigold-lt:#FBEACB;
   --terracotta:#C8542A; --terra-dk:#9E3A1F; --terra-lt:#F7DECC;
@@ -266,6 +266,273 @@ footer{background:var(--ink);color:rgba(244,237,221,.7);padding:64px 0 32px;}
 .foot-legal{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:48px;padding-top:24px;border-top:1px solid rgba(244,237,221,.12);font-family:var(--mono);font-size:11.5px;}
 .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
 .reveal.in{opacity:1;transform:none;}
+
+/* ---------- ACCESSIBILITY FOCUS INDICATORS ---------- */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex="0"]:focus-visible {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 4px;
+}
+
+/* ---------- DYNAMIC ACTIVE NAV ---------- */
+.nav-links a {
+  position: relative;
+  padding-bottom: 4px;
+}
+.nav-links a.active {
+  color: var(--terracotta) !important;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--terracotta);
+  border-radius: 9999px;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform .25s var(--ease);
+}
+.nav-links a.active::after {
+  transform: scaleX(1);
+}
+
+/* ---------- MODALS & DIALOGS ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(14, 25, 41, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .35s var(--ease);
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.modal-card {
+  background: var(--paper-3);
+  border: 1.5px solid var(--ink);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 520px;
+  padding: 36px;
+  box-shadow: 0 30px 90px rgba(14, 25, 41, 0.24);
+  position: relative;
+  transform: translateY(30px) scale(0.96);
+  transition: transform .35s var(--ease), opacity .35s var(--ease);
+}
+.modal-overlay.open .modal-card {
+  transform: translateY(0) scale(1);
+}
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--ink-mute);
+  transition: color .2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+.modal-close:hover {
+  color: var(--ink);
+  background: var(--paper-2);
+}
+.modal-header {
+  margin-bottom: 24px;
+}
+.modal-header h2 {
+  font-family: var(--display);
+  font-size: clamp(24px, 3.5vw, 32px);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  margin: 8px 0 0;
+  line-height: 1.1;
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 6px;
+}
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="date"],
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line-soft);
+  background: var(--paper);
+  font-family: inherit;
+  font-size: 14.5px;
+  color: var(--ink);
+  transition: border-color .2s, box-shadow .2s;
+}
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="date"]:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--ink);
+  background: var(--paper-3);
+  box-shadow: 0 0 0 3px rgba(200, 84, 42, 0.1);
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 16px;
+}
+@media(max-width:480px){
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+}
+.slider-container input[type="range"] {
+  flex-grow: 1;
+  accent-color: var(--terracotta);
+  cursor: pointer;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--line-soft);
+}
+.slider-container span {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--terracotta);
+  white-space: nowrap;
+  background: var(--terra-lt);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.success-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  display: block;
+}
+
+/* Route Timeline Drawer */
+.drawer-card {
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.route-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  background: var(--terra-lt);
+  color: var(--terracotta);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+.drawer-card.theme-sea .route-badge {
+  background: var(--sea-lt);
+  color: var(--sea-dk);
+}
+.timeline {
+  position: relative;
+  margin: 28px 0 20px 10px;
+  padding-left: 24px;
+  border-left: 1.5px dashed var(--line-soft);
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 28px;
+}
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+.timeline-badge {
+  position: absolute;
+  left: -33px;
+  top: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--paper-3);
+  border: 1.5px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.timeline-badge::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--terracotta);
+}
+.timeline-item.origin .timeline-badge::after {
+  background: var(--sea);
+}
+.timeline-item.destination .timeline-badge::after {
+  background: var(--taxi);
+}
+.timeline-time {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--terracotta);
+}
+.timeline-item.origin .timeline-time {
+  color: var(--sea);
+}
+.timeline-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 16px;
+  margin: 3px 0 2px;
+}
+.timeline-desc {
+  font-size: 13.5px;
+  color: var(--ink-mute);
+  line-height: 1.45;
+}
+
+/* Route Hover State */
+.route {
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -335,8 +602,8 @@ footer{background:var(--ink);color:rgba(244,237,221,.7);padding:64px 0 32px;}
       <h1>Land in Mumbai.<br>Skip the scams.<br>See it through a <span class="serif">local friend.</span></h1>
       <p class="hero-sub">Detour is a new way to travel through a city — not with a tour guide reading a script, but with a verified local student who shows you their Mumbai between flights.</p>
       <div class="hero-ctas">
-        <a class="btn-primary" href="https://instagram.com/detourtrips" target="_blank" rel="noopener">Follow @detourtrips
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+        <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
         <a class="btn-ghost" href="#idea">See the idea</a>
       </div>
       <div class="trust-row">
@@ -443,7 +710,7 @@ footer{background:var(--ink);color:rgba(244,237,221,.7);padding:64px 0 32px;}
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Knows the trains, the traffic, the prayer times, the monsoon roads.</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M6 18 18 6"/></svg> No commission shopping, no friend-with-a-shop detours, no scams.</li>
       </ul>
-      <p class="ph-note">// Real student photos go here once we shoot them — placeholders for now.</p>
+      <p class="ph-note" style="border-left: 2px solid var(--terracotta); padding-left: 12px; margin-top: 20px; font-style: italic;">🎓 Our buddies are active students from top-tier Mumbai colleges. Verified profiles and photos are unlocked for security once a layover detour is confirmed.</p>
     </div>
     <div class="buddy-cards">
       <div class="buddy reveal"><div class="av" style="background:var(--terracotta)">A</div><h4>Aarav, 21<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 7.5H22l-6 4.5L18 19l-6-4.5L6 19l2-7-6-4.5h7.5z"/></svg></h4><div class="sub">St. Xavier's · EN · HI</div><div class="skills"><span class="skill">🍜 Food</span><span class="skill">🏛 History</span></div></div>
@@ -465,7 +732,7 @@ footer{background:var(--ink);color:rgba(244,237,221,.7);padding:64px 0 32px;}
     <div class="routes">
       <div class="route reveal">
         <div class="ph a"><img class="duo-terra" src="images/gallery-sealink.jpg" alt="" loading="lazy"><div class="grain"></div><span class="badge">The postcard</span><span class="where">Marine Drive sunset</span></div>
-        <div class="body"><h3>First-time Mumbai classic</h3><p>Famous, safe, cinematic — the Mumbai everyone shows their friends back home.</p>
+        <div class="body"><h3>First-time Mumbai classic</h3><p>Famous, iconic, cinematic — the classic South Mumbai story everyone shares back home.</p>
           <div class="stops"><span class="s">Gateway</span><span class="ar">›</span><span class="s">Kala Ghoda</span><span class="ar">›</span><span class="s">CSMT</span><span class="ar">›</span><span class="s">Marine Drive</span></div></div>
       </div>
       <div class="route reveal">
@@ -548,8 +815,8 @@ footer{background:var(--ink);color:rgba(244,237,221,.7);padding:64px 0 32px;}
       <span class="eyebrow" style="color:var(--paper-3);justify-content:center;">Join the journey</span>
       <h2>Got a few hours in a city? <em>Take a detour.</em></h2>
       <p>We're opening Mumbai first. Follow along as we build it — buddies, routes, and the stories travellers bring home.</p>
-      <a class="btn-primary" href="https://instagram.com/detourtrips" target="_blank" rel="noopener">Follow @detourtrips
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
       <div class="trustline">Verified buddies · Fixed pricing · Made in Mumbai</div>
     </div>
   </div>
@@ -572,16 +839,329 @@ footer{background:var(--ink);color:rgba(244,237,221,.7);padding:64px 0 32px;}
     </div>
     <div class="foot-legal">
       <div>© 2026 Detour · Made in Mumbai with a lot of cutting chai.</div>
-      <div style="display:flex;gap:16px;"><a href="#" style="display:inline;margin:0;">Privacy</a><a href="#" style="display:inline;margin:0;">Terms</a></div>
+      <div style="display:flex;gap:16px;"><a href="#" class="trigger-privacy" style="display:inline;margin:0;">Privacy</a><a href="#" class="trigger-terms" style="display:inline;margin:0;">Terms</a></div>
     </div>
   </div>
 </footer>
 
+<!-- BOOKING MODAL -->
+<div id="booking-modal" class="modal-overlay" aria-hidden="true" role="dialog">
+  <div class="modal-card">
+    <button class="modal-close" id="close-booking" aria-label="Close booking modal">&times;</button>
+    <div class="modal-header">
+      <span class="eyebrow">Request a Detour</span>
+      <h2>Tell us about your layover.</h2>
+    </div>
+    <form id="booking-form">
+      <div class="form-group">
+        <label for="bk-name">Your Name</label>
+        <input type="text" id="bk-name" required placeholder="e.g. Sarah Jenkins">
+      </div>
+      <div class="form-group">
+        <label for="bk-email">Email Address</label>
+        <input type="email" id="bk-email" required placeholder="e.g. sarah@example.com">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="bk-date">Layover Date</label>
+          <input type="date" id="bk-date" required>
+        </div>
+        <div class="form-group">
+          <label for="bk-hours">Available Hours</label>
+          <div class="slider-container">
+            <input type="range" id="bk-hours" min="4" max="16" value="8" step="1">
+            <span id="bk-hours-label">8 hrs</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="bk-notes">Flight details &amp; preferences (optional)</label>
+        <textarea id="bk-notes" rows="2" placeholder="e.g. Landing at BOM T2 at 3 PM, next flight is at midnight. I love architecture and street food."></textarea>
+      </div>
+      <button type="submit" class="btn-primary" style="width:100%; justify-content:center; border:none;">Submit Booking Inquiry</button>
+    </form>
+    <div id="booking-success" style="display:none; text-align:center; padding:20px 0;">
+      <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M9 12l2 2 4-4"/>
+      </svg>
+      <h3 style="font-family:var(--display); font-weight:800; font-size:24px; color:var(--ink);">You're on the list!</h3>
+      <p style="font-size:14px; color:var(--ink-mute); margin-top:10px; line-height:1.5;">We've received your detour inquiry. A verified Mumbai student will reach out via email within 12 hours to share custom route possibilities.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ROUTE TIMELINE MODAL -->
+<div id="route-modal" class="modal-overlay" aria-hidden="true" role="dialog">
+  <div class="modal-card drawer-card">
+    <button class="modal-close" id="close-route" aria-label="Close route details">&times;</button>
+    <div class="modal-header">
+      <span id="route-modal-badge" class="route-badge">Itinerary Mood</span>
+      <h2 id="route-modal-title">Route Title</h2>
+      <p id="route-modal-desc" style="font-size:14.5px; color:var(--ink-mute); margin-top:8px; line-height:1.5;">Route description goes here.</p>
+    </div>
+    <div class="timeline" id="route-timeline-container">
+      <!-- Dynamic timeline items will be injected here -->
+    </div>
+    <button class="btn-primary btn-trigger-booking" style="width:100%; justify-content:center; margin-top:20px; border:none;">Request this Detour</button>
+  </div>
+</div>
+
+<!-- PRIVACY MODAL -->
+<div id="privacy-modal" class="modal-overlay" aria-hidden="true" role="dialog">
+  <div class="modal-card" style="max-height:80vh; overflow-y:auto;">
+    <button class="modal-close" id="close-privacy" aria-label="Close privacy policy">&times;</button>
+    <div class="modal-header">
+      <span class="eyebrow">Trust &amp; safety</span>
+      <h2>Privacy Policy</h2>
+    </div>
+    <div style="font-size:13.5px; color:var(--ink-mute); line-height:1.6; display:flex; flex-direction:column; gap:12px;">
+      <p>At Detour, we hold your trust and safety above all else. Here is how we handle your information:</p>
+      <p><b>1. Information We Collect:</b> We only collect information that you explicitly share with us: your name, email, layover date, flight times, and preferences. We do not use trackers or share data with third parties.</p>
+      <p><b>2. How We Use It:</b> Your details are used solely to match you with a verified student buddy at the target airport. Once your detour is complete, your flight and terminal details are deleted from our active database.</p>
+      <p><b>3. Security:</b> Student buddies undergo strict background verification. Your contact information is only shared with your assigned buddy 24 hours prior to landing.</p>
+      <p>If you have any questions, reach out to us at <a href="mailto:hello@detourtrips.com" style="color:var(--terracotta); text-decoration:underline;">hello@detourtrips.com</a>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TERMS MODAL -->
+<div id="terms-modal" class="modal-overlay" aria-hidden="true" role="dialog">
+  <div class="modal-card" style="max-height:80vh; overflow-y:auto;">
+    <button class="modal-close" id="close-terms" aria-label="Close terms of service">&times;</button>
+    <div class="modal-header">
+      <span class="eyebrow">How we operate</span>
+      <h2>Terms of Service</h2>
+    </div>
+    <div style="font-size:13.5px; color:var(--ink-mute); line-height:1.6; display:flex; flex-direction:column; gap:12px;">
+      <p>Welcome to Detour! By requesting a detour, you agree to the following terms:</p>
+      <p><b>1. Student Buddies:</b> Detour matches travellers with local university students. While we verify student status and run background checks, buddies are independent local guides and not professional commercial tour agencies.</p>
+      <p><b>2. Fixed Pricing:</b> We guarantee clear, transparent, upfront rates. Your buddy will never take commissions, suggest forced shopping, or request unexpected cash surcharges.</p>
+      <p><b>3. Safety &amp; Buffer Guarantee:</b> Buddies are trained to design routes that keep you inside the airport buffer time. Detour is not liable for delayed flights or missed departures due to external traffic anomalies, but we prioritize getting you back safely and on time.</p>
+    </div>
+  </div>
+</div>
+
 <script>
+  // Nav scroll behavior
   const nav=document.getElementById('nav');
   addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>20));
+  
+  // Reveal animations on scroll
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.12});
   document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%4*60)+'ms';io.observe(el);});
+
+  // Route schedule database
+  const routeData = {
+    0: {
+      badge: "The postcard",
+      title: "First-time Mumbai classic",
+      desc: "Famous, iconic, cinematic — the classic South Mumbai story everyone shares back home.",
+      theme: "theme-terra",
+      timeline: [
+        { time: "14:00", title: "Arrival & Welcome", desc: "Meet your buddy right at BOM Terminal 2 arrivals area. Board an air-conditioned cab together." },
+        { time: "15:15", title: "Gateway of India & Taj Palace", desc: "Walk the historic waterfront, taking in the iconic arch and the historic Taj hotel." },
+        { time: "16:00", title: "Kala Ghoda Art Walk", desc: "Stroll through Mumbai's premier art district. Grab a cold-brew coffee or a quick bite at a local café." },
+        { time: "17:00", title: "CSMT Gothic Architecture", desc: "Marvel at the spectacular gothic facade of the historic terminal station." },
+        { time: "18:00", title: "Marine Drive Sunset", desc: "Sit on the sea wall with a cup of cutting chai as the sun sets over the Arabian Sea." },
+        { time: "19:30", title: "Airport Dropoff", desc: "Return safely to BOM Terminal 2 with a comfortable 90-minute buffer before your flight." }
+      ]
+    },
+    1: {
+      badge: "Hyper-local",
+      title: "Where Mumbaikars actually go",
+      desc: "Local life, vada pav, sea, old-new contrasts — minus the tourist crowd.",
+      theme: "theme-sea",
+      timeline: [
+        { time: "10:00", title: "Terminal T2 Pickup", desc: "Your student buddy meets you at BOM departures/arrivals and checks your buffer time." },
+        { time: "10:45", title: "Dadar Flower Market", desc: "Stroll through the mesmerizing, vibrant lanes of the city's largest wholesale flower market." },
+        { time: "11:45", title: "Shivaji Park Vada Pav", desc: "Grab a piping hot Vada Pav (Mumbai's legendary street burger) and sweet ginger cutting chai." },
+        { time: "12:30", title: "Worli Koliwada Fishing Docks", desc: "Explore the narrow pathways of a historic, colorful coastal village that predates modern Mumbai." },
+        { time: "13:30", title: "Bandra Sea Link & Fort", desc: "Drive across the spectacular Bandra-Worli Sea Link and explore the Portuguese fort ruins." },
+        { time: "15:00", title: "Return to departures", desc: "Board your cab back to T2 departures, arriving with a stress-free boarding buffer." }
+      ]
+    },
+    2: {
+      badge: "Old Bombay",
+      title: "Colonial Bombay, stuck in 1932",
+      desc: "Gothic stations, Art Deco facades, berry pulao at Britannia, chai at Kyani.",
+      theme: "theme-terra",
+      timeline: [
+        { time: "08:30", title: "BOM Airport Meetup", desc: "Buddy pickup and brief overview of the morning layover plan." },
+        { time: "09:30", title: "Irani Breakfast at Kyani", desc: "Savor a historic breakfast of Bun Maska (buttered buns) and sweet tea at a centenarian Irani cafe." },
+        { time: "10:30", title: "Ballard Estate Walk", desc: "Explore the magnificent, quiet avenues of European Edwardian architecture." },
+        { time: "11:30", title: "Britannia Berry Pulao", desc: "Taste the absolute classic Parsi Berry Pulao at one of the city's oldest restaurants." },
+        { time: "12:45", title: "Flora Fountain stroll", desc: "A brief walk past Art Deco cinemas, old libraries, and the majestic stone fountain." },
+        { time: "14:00", title: "Airport return", desc: "Cab ride back to BOM Airport Terminal 2 departures." }
+      ]
+    }
+  };
+
+  // IntersectionObserver for active navigation links highlighting
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const sections = document.querySelectorAll('section[id]');
+  
+  const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+        });
+      }
+    });
+  }, { threshold: 0.25, rootMargin: "-80px 0px -40% 0px" });
+  
+  sections.forEach(section => navObserver.observe(section));
+
+  // Modal utility handlers
+  const openModal = (modalId) => {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      
+      // Accessibility focus trap
+      const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex="0"]');
+      if (focusable.length) focusable[0].focus();
+    }
+  };
+
+  const closeModal = (modalId) => {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+  };
+
+  // Close modals on escape key
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open').forEach(modal => {
+        closeModal(modal.id);
+      });
+    }
+  });
+
+  // Close modals on clicking backdrop overlay
+  document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal(modal.id);
+    });
+  });
+
+  // Waitlist slider live update
+  const bkHours = document.getElementById('bk-hours');
+  const bkHoursLabel = document.getElementById('bk-hours-label');
+  if (bkHours && bkHoursLabel) {
+    bkHours.addEventListener('input', (e) => {
+      bkHoursLabel.textContent = `${e.target.value} hrs`;
+    });
+  }
+
+  // Booking / Waitlist form submission
+  const bookingForm = document.getElementById('booking-form');
+  const bookingSuccess = document.getElementById('booking-success');
+  if (bookingForm) {
+    bookingForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      // Save data locally to localStorage
+      const inquiry = {
+        name: document.getElementById('bk-name').value,
+        email: document.getElementById('bk-email').value,
+        date: document.getElementById('bk-date').value,
+        hours: document.getElementById('bk-hours').value,
+        notes: document.getElementById('bk-notes').value,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('detour_inquiry', JSON.stringify(inquiry));
+      
+      // Transition states
+      bookingForm.style.display = 'none';
+      if (bookingSuccess) bookingSuccess.style.display = 'block';
+    });
+  }
+
+  // Attach triggers for Booking Modal
+  document.querySelectorAll('.btn-trigger-booking').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeModal('route-modal'); // Close route modal first if it is open
+      openModal('booking-modal');
+    });
+  });
+
+  // Wiring up Route dynamic timeline drawers
+  const routeTimelineContainer = document.getElementById('route-timeline-container');
+  const routeModalBadge = document.getElementById('route-modal-badge');
+  const routeModalTitle = document.getElementById('route-modal-title');
+  const routeModalDesc = document.getElementById('route-modal-desc');
+  const routeModalCard = document.querySelector('#route-modal .modal-card');
+
+  document.querySelectorAll('.routes .route').forEach((card, index) => {
+    card.addEventListener('click', () => {
+      const data = routeData[index];
+      if (!data) return;
+
+      // Update badge, title, and desc
+      if (routeModalBadge) {
+        routeModalBadge.textContent = data.badge;
+      }
+      if (routeModalTitle) {
+        routeModalTitle.textContent = data.title;
+      }
+      if (routeModalDesc) {
+        routeModalDesc.textContent = data.desc;
+      }
+      
+      // Set theme classes
+      if (routeModalCard) {
+        routeModalCard.className = `modal-card drawer-card ${data.theme || ''}`;
+      }
+
+      // Generate dynamic timeline items
+      if (routeTimelineContainer) {
+        routeTimelineContainer.innerHTML = '';
+        data.timeline.forEach((item, idx) => {
+          let itemClass = '';
+          if (idx === 0) itemClass = 'origin';
+          else if (idx === data.timeline.length - 1) itemClass = 'destination';
+          
+          const timelineHtml = `
+            <div class="timeline-item ${itemClass}">
+              <div class="timeline-badge"></div>
+              <span class="timeline-time">${item.time}</span>
+              <h4 class="timeline-title">${item.title}</h4>
+              <p class="timeline-desc">${item.desc}</p>
+            </div>
+          `;
+          routeTimelineContainer.insertAdjacentHTML('beforeend', timelineHtml);
+        });
+      }
+
+      openModal('route-modal');
+    });
+  });
+
+  // Attach triggers for close buttons
+  document.getElementById('close-booking')?.addEventListener('click', () => closeModal('booking-modal'));
+  document.getElementById('close-route')?.addEventListener('click', () => closeModal('route-modal'));
+  document.getElementById('close-privacy')?.addEventListener('click', () => closeModal('privacy-modal'));
+  document.getElementById('close-terms')?.addEventListener('click', () => closeModal('terms-modal'));
+
+  // Footer privacy & terms wiring
+  document.querySelector('.trigger-privacy')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal('privacy-modal');
+  });
+  document.querySelector('.trigger-terms')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal('terms-modal');
+  });
 </script>
 </body>
 </html>
