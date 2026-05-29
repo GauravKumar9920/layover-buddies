@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Detour — Logo Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4EDDD; --paper-3:#FCF7EA; --paper-2:#EBE0C5;
+    --ink:#0E1929; --ink-mute:#5F6B82;
+    --terracotta:#C8542A; --terra-dk:#9E3A1F;
+    --marigold:#E89F2C; --sea:#2D7BA9; --taxi:#F4C430;
+    --pink:#D4347A; --green:#3D8B5A; --line-soft:#C5BA9C;
+    --display:'Bricolage Grotesque',sans-serif;
+    --serif:'Instrument Serif',serif;
+    --body:'Plus Jakarta Sans',sans-serif;
+    --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--body);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;padding:48px 5% 96px;}
+  header{max-width:1100px;margin:0 auto 40px;}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--terracotta);}
+  h1{font-family:var(--display);font-size:clamp(34px,5vw,56px);font-weight:800;letter-spacing:-.03em;line-height:1;margin:10px 0 14px;}
+  header p{max-width:620px;color:var(--ink-mute);font-size:16px;line-height:1.5;}
+  .palette{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap;}
+  .sw{width:46px;height:46px;border-radius:10px;border:1px solid rgba(14,25,41,.12);position:relative;}
+  .sw span{position:absolute;bottom:-18px;left:0;font-family:var(--mono);font-size:9px;color:var(--ink-mute);}
+  .grid{max-width:1100px;margin:64px auto 0;display:flex;flex-direction:column;gap:40px;}
+  .concept{background:var(--paper-3);border:1px solid var(--line-soft);border-radius:22px;overflow:hidden;box-shadow:0 14px 40px rgba(14,25,41,.07);}
+  .c-head{padding:24px 28px;display:flex;align-items:baseline;gap:14px;border-bottom:1px dashed var(--line-soft);flex-wrap:wrap;}
+  .c-no{font-family:var(--mono);font-size:13px;color:var(--terracotta);font-weight:500;}
+  .c-name{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-.02em;}
+  .c-desc{color:var(--ink-mute);font-size:14px;flex:1 1 320px;line-height:1.45;}
+  .stage{display:grid;grid-template-columns:1.4fr 1fr;gap:0;}
+  @media(max-width:760px){.stage{grid-template-columns:1fr;}}
+  .panel{padding:46px 36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;min-height:230px;}
+  .panel.light{background:var(--paper-3);}
+  .panel.dark{background:var(--ink);}
+  .panel.dark .meta{color:rgba(244,237,221,.5);}
+  .meta{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-mute);}
+  .marks{display:flex;align-items:center;gap:26px;flex-wrap:wrap;justify-content:center;}
+  .favwrap{display:flex;gap:14px;align-items:center;}
+  .fav{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .fav.s{width:24px;height:24px;border-radius:6px;}
+  /* wordmark text */
+  .wm{font-family:var(--display);font-weight:800;letter-spacing:-.035em;line-height:1;}
+  .city{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute);}
+  .panel.dark .city{color:rgba(244,237,221,.55);}
+  footer{max-width:1100px;margin:64px auto 0;font-family:var(--mono);font-size:12px;color:var(--ink-mute);text-align:center;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">Detour · Brand Identity · Draft v1</div>
+  <h1>Five logo directions</h1>
+  <p>All marks built as production vector (SVG). Each shown as a full lockup on light + dark, plus the compact app/favicon mark. Palette borrowed from the cartographic "Sarthi" art direction. Tell me which mark(s) you want to push further.</p>
+  <div class="palette">
+    <div class="sw" style="background:#0E1929"><span>Ink</span></div>
+    <div class="sw" style="background:#C8542A"><span>Terracotta</span></div>
+    <div class="sw" style="background:#E89F2C"><span>Marigold</span></div>
+    <div class="sw" style="background:#2D7BA9"><span>Sea</span></div>
+    <div class="sw" style="background:#F4C430"><span>Taxi</span></div>
+    <div class="sw" style="background:#D4347A"><span>Bougnvla</span></div>
+    <div class="sw" style="background:#F4EDDD"><span>Paper</span></div>
+  </div>
+</header>
+
+<div class="grid">
+
+  <!-- CONCEPT 1 — DETOUR LINE -->
+  <section class="concept">
+    <div class="c-head">
+      <span class="c-no">01</span>
+      <span class="c-name">The Detour Line</span>
+      <span class="c-desc">A dashed travel-route line that bends off-path and lands in a pin — the name made literal. Ties straight to the airplane-path map identity.</span>
+    </div>
+    <div class="stage">
+      <div class="panel light">
+        <div class="meta">Primary lockup · light</div>
+        <div style="display:flex;align-items:center;gap:18px;">
+          <svg width="92" height="74" viewBox="0 0 92 74" aria-label="Detour line mark">
+            <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+            <circle cx="8" cy="60" r="4.5" fill="#2D7BA9"/>
+            <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
+            <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+          </svg>
+          <div>
+            <div class="wm" style="font-size:38px;color:#0E1929;">Detour</div>
+            <div class="city">Mumbai · BOM</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel dark">
+        <div class="meta">Reverse + favicon</div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <svg width="58" height="60" viewBox="0 0 92 74">
+            <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#F4EDDD" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+            <circle cx="8" cy="60" r="4.5" fill="#F4C430"/>
+            <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#E89F2C"/>
+            <circle cx="58" cy="33" r="5.4" fill="#0E1929"/>
+          </svg>
+          <div class="wm" style="font-size:30px;color:#F4EDDD;">Detour</div>
+        </div>
+        <div class="favwrap">
+          <div class="fav" style="background:#C8542A;">
+            <svg width="26" height="26" viewBox="0 0 92 74"><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#FCF7EA"/><circle cx="58" cy="33" r="5.4" fill="#C8542A"/><path d="M14 62 C 28 62 34 58 44 53" fill="none" stroke="#FCF7EA" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.5 8"/></svg>
+          </div>
+          <div class="fav s" style="background:#0E1929;">
+            <svg width="15" height="15" viewBox="0 0 92 74"><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#F4C430"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONCEPT 2 — DIVERSION ARROW -->
+  <section class="concept">
+    <div class="c-head">
+      <span class="c-no">02</span>
+      <span class="c-name">The Diversion Arrow</span>
+      <span class="c-desc">Inspired by the real road detour sign — a bent arrow in a sign badge. Bold, instantly reads "go this way instead", scales to a tiny app icon.</span>
+    </div>
+    <div class="stage">
+      <div class="panel light">
+        <div class="meta">Primary lockup · light</div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <svg width="68" height="68" viewBox="0 0 68 68">
+            <rect x="4" y="4" width="60" height="60" rx="17" fill="#C8542A"/>
+            <rect x="4" y="4" width="60" height="60" rx="17" fill="none" stroke="#0E1929" stroke-width="2.5" stroke-dasharray="3 4" opacity=".25"/>
+            <path d="M22 48 L22 33 Q22 26 29 26 L42 26" fill="none" stroke="#FCF7EA" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M37 18 L49 26 L37 34 Z" fill="#FCF7EA"/>
+          </svg>
+          <div>
+            <div class="wm" style="font-size:38px;color:#0E1929;">Detour</div>
+            <div class="city">Mumbai · BOM</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel dark">
+        <div class="meta">Reverse + favicon</div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <svg width="50" height="50" viewBox="0 0 68 68">
+            <rect x="4" y="4" width="60" height="60" rx="17" fill="#F4C430"/>
+            <path d="M22 48 L22 33 Q22 26 29 26 L42 26" fill="none" stroke="#0E1929" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M37 18 L49 26 L37 34 Z" fill="#0E1929"/>
+          </svg>
+          <div class="wm" style="font-size:30px;color:#F4EDDD;">Detour</div>
+        </div>
+        <div class="favwrap">
+          <div class="fav" style="background:#C8542A;padding:0;">
+            <svg width="40" height="40" viewBox="0 0 68 68"><path d="M22 48 L22 33 Q22 26 29 26 L42 26" fill="none" stroke="#FCF7EA" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M37 17 L50 26 L37 35 Z" fill="#FCF7EA"/></svg>
+          </div>
+          <div class="fav s" style="background:#F4C430;">
+            <svg width="24" height="24" viewBox="0 0 68 68"><path d="M22 48 L22 33 Q22 26 29 26 L42 26" fill="none" stroke="#0E1929" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M37 17 L50 26 L37 35 Z" fill="#0E1929"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONCEPT 3 — D PIN -->
+  <section class="concept">
+    <div class="c-head">
+      <span class="c-no">03</span>
+      <span class="c-name">The D-Pin Monogram</span>
+      <span class="c-desc">The letter D doubling as a map location pin. Clean, ownable monogram — perfect compact mark for the app icon, pairs with the full wordmark.</span>
+    </div>
+    <div class="stage">
+      <div class="panel light">
+        <div class="meta">Primary lockup · light</div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <svg width="60" height="72" viewBox="0 0 60 72">
+            <path d="M30 70 C 16 52 4 42 4 26 A 26 26 0 0 1 56 26 C 56 42 44 52 30 70 Z" fill="#0E1929"/>
+            <text x="30" y="38" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="800" font-size="34" fill="#F4EDDD">D</text>
+          </svg>
+          <div>
+            <div class="wm" style="font-size:38px;color:#0E1929;">Detour</div>
+            <div class="city">Mumbai · BOM</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel dark">
+        <div class="meta">Reverse + favicon</div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <svg width="46" height="56" viewBox="0 0 60 72">
+            <path d="M30 70 C 16 52 4 42 4 26 A 26 26 0 0 1 56 26 C 56 42 44 52 30 70 Z" fill="#C8542A"/>
+            <text x="30" y="38" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="800" font-size="34" fill="#F4EDDD">D</text>
+          </svg>
+          <div class="wm" style="font-size:30px;color:#F4EDDD;">Detour</div>
+        </div>
+        <div class="favwrap">
+          <div class="fav" style="background:#F4C430;">
+            <svg width="30" height="36" viewBox="0 0 60 72"><path d="M30 70 C 16 52 4 42 4 26 A 26 26 0 0 1 56 26 C 56 42 44 52 30 70 Z" fill="#0E1929"/><text x="30" y="38" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="800" font-size="34" fill="#F4C430">D</text></svg>
+          </div>
+          <div class="fav s" style="background:#0E1929;">
+            <svg width="18" height="22" viewBox="0 0 60 72"><path d="M30 70 C 16 52 4 42 4 26 A 26 26 0 0 1 56 26 C 56 42 44 52 30 70 Z" fill="#C8542A"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONCEPT 4 — COMPASS STAMP -->
+  <section class="concept">
+    <div class="c-head">
+      <span class="c-no">04</span>
+      <span class="c-name">The Passport Stamp</span>
+      <span class="c-desc">A postage / passport-stamp roundel with a compass star — premium "travel document" feel, matches Sarthi's stamp motif. Great as a seal beside the wordmark.</span>
+    </div>
+    <div class="stage">
+      <div class="panel light">
+        <div class="meta">Primary lockup · light</div>
+        <div style="display:flex;align-items:center;gap:18px;">
+          <svg width="78" height="78" viewBox="0 0 100 100">
+            <defs><path id="arcT" d="M50 50 m-36 0 a36 36 0 1 1 72 0" /><path id="arcB" d="M50 50 m-36 0 a36 36 0 1 0 72 0" /></defs>
+            <circle cx="50" cy="50" r="46" fill="none" stroke="#0E1929" stroke-width="2" stroke-dasharray="1.5 4.5"/>
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#0E1929" stroke-width="2"/>
+            <g fill="#C8542A"><path d="M50 22 L56 50 L50 78 L44 50 Z"/></g>
+            <g fill="#2D7BA9"><path d="M22 50 L50 44 L78 50 L50 56 Z"/></g>
+            <circle cx="50" cy="50" r="4" fill="#0E1929"/>
+            <text font-family="DM Mono" font-size="9" letter-spacing="3" fill="#0E1929"><textPath href="#arcT" startOffset="13%">DETOUR · MUMBAI</textPath></text>
+            <text font-family="DM Mono" font-size="8" letter-spacing="3" fill="#5F6B82"><textPath href="#arcB" startOffset="33%">EST · 2026</textPath></text>
+          </svg>
+          <div>
+            <div class="wm" style="font-size:38px;color:#0E1929;">Detour</div>
+            <div class="city">Mumbai · BOM</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel dark">
+        <div class="meta">Reverse + favicon</div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <svg width="56" height="56" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="46" fill="none" stroke="#F4EDDD" stroke-width="2" stroke-dasharray="1.5 4.5"/>
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#F4EDDD" stroke-width="2"/>
+            <g fill="#F4C430"><path d="M50 22 L56 50 L50 78 L44 50 Z"/></g>
+            <g fill="#2D7BA9"><path d="M22 50 L50 44 L78 50 L50 56 Z"/></g>
+            <circle cx="50" cy="50" r="4" fill="#F4EDDD"/>
+          </svg>
+          <div class="wm" style="font-size:30px;color:#F4EDDD;">Detour</div>
+        </div>
+        <div class="favwrap">
+          <div class="fav" style="background:#0E1929;">
+            <svg width="34" height="34" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="none" stroke="#F4C430" stroke-width="3"/><path d="M50 18 L57 50 L50 82 L43 50 Z" fill="#F4C430"/><path d="M18 50 L50 43 L82 50 L50 57 Z" fill="#2D7BA9"/></svg>
+          </div>
+          <div class="fav s" style="background:#C8542A;">
+            <svg width="20" height="20" viewBox="0 0 100 100"><path d="M50 16 L58 50 L50 84 L42 50 Z" fill="#FCF7EA"/><path d="M16 50 L50 42 L84 50 L50 58 Z" fill="#FCF7EA"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONCEPT 5 — WORDMARK + TAIL -->
+  <section class="concept">
+    <div class="c-head">
+      <span class="c-no">05</span>
+      <span class="c-name">Wordmark + Flight Tail</span>
+      <span class="c-desc">Purely typographic — "Detour" with a dashed flight arc lifting off the word, ending in a plane. Subtle, editorial, magazine-brand energy. No separate icon needed.</span>
+    </div>
+    <div class="stage">
+      <div class="panel light">
+        <div class="meta">Primary lockup · light</div>
+        <div style="position:relative;display:inline-block;">
+          <svg width="280" height="96" viewBox="0 0 280 96">
+            <path d="M14 70 C 70 70 150 70 250 30" fill="none" stroke="#C8542A" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.5 7"/>
+            <g transform="translate(248,28) rotate(-24)" fill="#C8542A"><path d="M0 0 L14 5 L0 10 L3 5 Z"/></g>
+            <text x="10" y="58" font-family="Bricolage Grotesque" font-weight="800" font-size="52" letter-spacing="-2" fill="#0E1929">Det<tspan font-family="Instrument Serif" font-style="italic" font-weight="400" fill="#C8542A">ou</tspan>r</text>
+          </svg>
+        </div>
+        <div class="city" style="margin-top:-12px;">Mumbai · BOM</div>
+      </div>
+      <div class="panel dark">
+        <div class="meta">Reverse</div>
+        <svg width="240" height="86" viewBox="0 0 280 96">
+          <path d="M14 70 C 70 70 150 70 250 30" fill="none" stroke="#F4C430" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.5 7"/>
+          <g transform="translate(248,28) rotate(-24)" fill="#F4C430"><path d="M0 0 L14 5 L0 10 L3 5 Z"/></g>
+          <text x="10" y="58" font-family="Bricolage Grotesque" font-weight="800" font-size="52" letter-spacing="-2" fill="#F4EDDD">Det<tspan font-family="Instrument Serif" font-style="italic" font-weight="400" fill="#F4C430">ou</tspan>r</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>Detour · logo concepts · draft v1 — all marks are editable vector. Pick a direction and I'll refine spacing, build the full lockup system + favicon set, and lock the brand sheet.</footer>
+
+</body>
+</html>

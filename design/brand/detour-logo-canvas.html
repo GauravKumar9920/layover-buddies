@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  @font-face{font-family:'Bricolage';src:url('canvas-fonts/BricolageGrotesque-Bold.ttf');font-weight:700;}
+  @font-face{font-family:'BricolageR';src:url('canvas-fonts/BricolageGrotesque-Regular.ttf');font-weight:400;}
+  @font-face{font-family:'ISerif';src:url('canvas-fonts/InstrumentSerif-Italic.ttf');font-style:italic;}
+  @font-face{font-family:'ISerifR';src:url('canvas-fonts/InstrumentSerif-Regular.ttf');}
+  @font-face{font-family:'DMMono';src:url('canvas-fonts/DMMono-Regular.ttf');}
+
+  :root{
+    --paper:#F4EDDD; --paper-3:#FCF7EA; --paper-2:#EBE0C5;
+    --ink:#0E1929; --ink-mute:#6B7488;
+    --terracotta:#C8542A; --terra-dk:#9E3A1F;
+    --marigold:#E89F2C; --sea:#2D7BA9; --taxi:#F4C430; --line-soft:#CDBF9E;
+  }
+  @page{size:1500px 2100px;margin:0;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1500px;height:2100px;}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  body{
+    position:relative;background:var(--paper);overflow:hidden;
+    font-family:'DMMono',monospace;color:var(--ink);
+  }
+  /* paper grain */
+  .grain{position:absolute;inset:0;opacity:.05;pointer-events:none;mix-blend-mode:multiply;}
+  /* survey frame */
+  .frame{position:absolute;inset:54px;border:1.4px dashed var(--line-soft);}
+  .inner{position:absolute;inset:54px;display:flex;flex-direction:column;padding:62px 70px 58px;}
+
+  /* registration crosses */
+  .reg{position:absolute;width:26px;height:26px;}
+  .reg::before,.reg::after{content:"";position:absolute;background:var(--terracotta);}
+  .reg::before{left:50%;top:0;width:1.2px;height:100%;transform:translateX(-50%);}
+  .reg::after{top:50%;left:0;height:1.2px;width:100%;transform:translateY(-50%);}
+  .reg.tl{top:40px;left:40px;} .reg.tr{top:40px;right:40px;}
+  .reg.bl{bottom:40px;left:40px;} .reg.br{bottom:40px;right:40px;}
+
+  .mono{font-family:'DMMono',monospace;text-transform:uppercase;letter-spacing:.18em;}
+  .mono-sm{font-size:11px;letter-spacing:.22em;color:var(--ink-mute);}
+
+  /* header band */
+  .head{display:flex;justify-content:space-between;align-items:flex-start;}
+  .head .l{font-size:12px;letter-spacing:.24em;color:var(--ink);}
+  .head .r{font-size:12px;letter-spacing:.24em;color:var(--ink-mute);text-align:right;line-height:2;}
+  .title{margin-top:30px;}
+  .title h1{font-family:'Bricolage';font-weight:700;font-size:64px;letter-spacing:-.03em;line-height:.96;}
+  .title .sub{font-family:'ISerif';font-style:italic;font-size:30px;color:var(--terracotta);margin-top:2px;}
+
+  /* hero lockup */
+  .hero{margin-top:30px;background:var(--paper-3);border:1.4px solid var(--line-soft);
+        flex:0 0 auto;padding:64px 60px;position:relative;display:flex;align-items:center;justify-content:center;gap:42px;}
+  .hero .corner{position:absolute;font-size:10px;letter-spacing:.2em;color:var(--ink-mute);}
+  .hero .corner.tl{top:18px;left:22px;} .hero .corner.br{bottom:18px;right:22px;}
+
+  /* wordmark (HTML) */
+  .wm{font-family:'Bricolage';font-weight:700;line-height:1;letter-spacing:-.035em;color:var(--ink);position:relative;display:inline-block;}
+  .wm .it{font-family:'ISerif';font-style:italic;letter-spacing:0;color:var(--terracotta);}
+  .tail{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;}
+  .lockstack{display:flex;flex-direction:column;gap:14px;}
+  .citytag{font-family:'DMMono',monospace;text-transform:uppercase;letter-spacing:.30em;font-size:15px;color:var(--ink-mute);}
+
+  /* specimen grid */
+  .grid{margin-top:30px;flex:1;display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:auto auto;gap:22px;}
+  .cell{border:1.4px solid var(--line-soft);background:var(--paper-3);position:relative;
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:26px 18px;}
+  .cell .no{position:absolute;top:12px;left:14px;font-family:'DMMono',monospace;font-size:10px;letter-spacing:.16em;color:var(--terracotta);}
+  .cell .lab{position:absolute;bottom:11px;left:0;width:100%;text-align:center;font-family:'DMMono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mute);}
+  .cell.dark{background:var(--ink);}
+  .cell.terra{background:var(--terracotta);}
+  .cell.dark .lab,.cell.terra .lab{color:rgba(252,247,234,.6);}
+  .cell.dark .no,.cell.terra .no{color:var(--taxi);}
+  .span2{grid-column:span 2;} .span3{grid-column:span 3;}
+
+  .cw{font-family:'Bricolage';font-weight:700;letter-spacing:-.035em;line-height:1;}
+  .cw .it{font-family:'ISerif';font-style:italic;letter-spacing:0;}
+
+  /* favicon strip */
+  .favs{display:flex;align-items:flex-end;gap:30px;}
+  .favbox{display:flex;flex-direction:column;align-items:center;gap:9px;}
+  .ic{display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 8px 20px rgba(14,25,41,.18);}
+  .ic-lbl{font-family:'DMMono',monospace;font-size:9px;letter-spacing:.1em;color:var(--ink-mute);}
+
+  /* footer strip */
+  .foot{margin-top:26px;display:flex;justify-content:space-between;align-items:center;border-top:1.4px dashed var(--line-soft);padding-top:20px;}
+  .swatches{display:flex;gap:9px;}
+  .sw{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .sw i{display:block;width:30px;height:30px;border-radius:5px;border:1px solid rgba(14,25,41,.12);}
+  .sw span{font-family:'DMMono',monospace;font-size:8px;letter-spacing:.06em;color:var(--ink-mute);}
+  .foot .meta{font-family:'DMMono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);text-align:right;line-height:1.9;}
+</style>
+</head>
+<body>
+  <svg class="grain"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+
+  <div class="frame"></div>
+  <span class="reg tl"></span><span class="reg tr"></span><span class="reg bl"></span><span class="reg br"></span>
+
+  <div class="inner">
+
+    <!-- HEADER -->
+    <div class="head">
+      <div class="l">DETOUR&nbsp;&nbsp;·&nbsp;&nbsp;VISUAL&nbsp;IDENTITY<br><span style="color:var(--ink-mute)">FIELD&nbsp;PLATE&nbsp;01 / 01</span></div>
+      <div class="r">19.0760°&nbsp;N&nbsp;·&nbsp;72.8777°&nbsp;E<br>BOM&nbsp;·&nbsp;MUMBAI<br>EST&nbsp;·&nbsp;MMXXVI</div>
+    </div>
+
+    <div class="title">
+      <h1>The Deviation Line</h1>
+      <div class="sub">the logo system, mapped</div>
+    </div>
+
+    <!-- HERO PRIMARY LOCKUP -->
+    <div class="hero">
+      <span class="corner tl mono">SPECIMEN · PRIMARY LOCKUP</span>
+      <span class="corner br mono">01 · HORIZONTAL</span>
+      <!-- mark -->
+      <svg width="150" height="120" viewBox="0 0 92 74" aria-label="mark">
+        <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+        <circle cx="8" cy="60" r="4.5" fill="#2D7BA9"/>
+        <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
+        <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+      </svg>
+      <!-- wordmark + tail -->
+      <div class="lockstack">
+        <div style="display:flex;align-items:flex-start;">
+          <div class="wm" style="font-size:104px;">Det<span class="it">ou</span>r</div>
+          <svg width="156" height="124" viewBox="0 0 156 124" style="margin-left:-4px;margin-top:10px;overflow:visible;" aria-hidden="true">
+            <path d="M6 86 C 56 80 110 56 146 16" fill="none" stroke="#C8542A" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.5 9"/>
+            <g transform="translate(145,14) rotate(-32)" fill="#C8542A"><path d="M0 0 L21 7.5 L0 15 L4.5 7.5 Z"/></g>
+          </svg>
+        </div>
+        <div class="citytag" style="margin-left:6px;">Mumbai · BOM</div>
+      </div>
+    </div>
+
+    <!-- SPECIMEN GRID -->
+    <div class="grid">
+      <!-- row 1: three mark colourways -->
+      <div class="cell span2">
+        <span class="no">02</span>
+        <svg width="120" height="96" viewBox="0 0 92 74">
+          <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+          <circle cx="8" cy="60" r="4.5" fill="#2D7BA9"/>
+          <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
+          <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+        </svg>
+        <span class="lab">MARK · ON PAPER</span>
+      </div>
+      <div class="cell span2 dark">
+        <span class="no">02</span>
+        <svg width="120" height="96" viewBox="0 0 92 74">
+          <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#F4EDDD" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+          <circle cx="8" cy="60" r="4.5" fill="#F4C430"/>
+          <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#E89F2C"/>
+          <circle cx="58" cy="33" r="5.4" fill="#0E1929"/>
+        </svg>
+        <span class="lab">MARK · REVERSE</span>
+      </div>
+      <div class="cell span2">
+        <span class="no">02</span>
+        <svg width="120" height="96" viewBox="0 0 92 74">
+          <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+          <circle cx="8" cy="60" r="4.5" fill="#0E1929"/>
+          <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#0E1929"/>
+          <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+        </svg>
+        <span class="lab">MARK · SINGLE-INK</span>
+      </div>
+
+      <!-- row 2: stacked lockup, terracotta reverse, favicon set -->
+      <div class="cell span2">
+        <span class="no">03</span>
+        <svg width="78" height="63" viewBox="0 0 92 74" style="margin-bottom:4px;">
+          <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+          <circle cx="8" cy="60" r="4.5" fill="#2D7BA9"/>
+          <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
+          <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+        </svg>
+        <div class="cw" style="font-size:46px;color:var(--ink);">Det<span class="it" style="color:var(--terracotta)">ou</span>r</div>
+        <div class="citytag" style="font-size:12px;letter-spacing:.26em;">Mumbai · BOM</div>
+        <span class="lab">STACKED · VERTICAL</span>
+      </div>
+
+      <div class="cell span2 terra">
+        <span class="no">03</span>
+        <svg width="78" height="63" viewBox="0 0 92 74" style="margin-bottom:4px;">
+          <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#FCF7EA" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+          <circle cx="8" cy="60" r="4.5" fill="#F4C430"/>
+          <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#FCF7EA"/>
+          <circle cx="58" cy="33" r="5.4" fill="#C8542A"/>
+        </svg>
+        <div class="cw" style="font-size:46px;color:#FCF7EA;">Det<span class="it" style="color:var(--taxi)">ou</span>r</div>
+        <div class="citytag" style="font-size:12px;letter-spacing:.26em;color:rgba(252,247,234,.78);">Mumbai · BOM</div>
+        <span class="lab">FULL · ON TERRACOTTA</span>
+      </div>
+
+      <div class="cell span2">
+        <span class="no">04</span>
+        <div class="favs">
+          <div class="favbox">
+            <div class="ic" style="width:84px;height:84px;border-radius:19px;background:var(--terracotta);">
+              <svg width="56" height="45" viewBox="0 0 92 74"><path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#FCF7EA" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.5 8"/><circle cx="8" cy="60" r="4.8" fill="#F4C430"/><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#FCF7EA"/><circle cx="58" cy="33" r="5.4" fill="#C8542A"/></svg>
+            </div><span class="ic-lbl">512</span>
+          </div>
+          <div class="favbox">
+            <div class="ic" style="width:54px;height:54px;border-radius:13px;background:var(--terracotta);">
+              <svg width="37" height="30" viewBox="0 0 92 74"><path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#FCF7EA" stroke-width="4.6" stroke-linecap="round" stroke-dasharray="0.5 8"/><circle cx="8" cy="60" r="5" fill="#F4C430"/><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#FCF7EA"/><circle cx="58" cy="33" r="5.6" fill="#C8542A"/></svg>
+            </div><span class="ic-lbl">180</span>
+          </div>
+          <div class="favbox">
+            <div class="ic" style="width:34px;height:34px;border-radius:8px;background:var(--ink);">
+              <svg width="22" height="18" viewBox="0 0 92 74"><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#F4C430"/><circle cx="58" cy="33" r="6" fill="#0E1929"/></svg>
+            </div><span class="ic-lbl">32</span>
+          </div>
+          <div class="favbox">
+            <div class="ic" style="width:22px;height:22px;border-radius:5px;background:var(--terracotta);">
+              <svg width="15" height="12" viewBox="0 0 92 74"><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#FCF7EA"/></svg>
+            </div><span class="ic-lbl">16</span>
+          </div>
+        </div>
+        <span class="lab">APP ICON · FAVICON SET</span>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="foot">
+      <div class="swatches">
+        <div class="sw"><i style="background:#0E1929"></i><span>INK</span></div>
+        <div class="sw"><i style="background:#C8542A"></i><span>TERRA</span></div>
+        <div class="sw"><i style="background:#E89F2C"></i><span>MARIGOLD</span></div>
+        <div class="sw"><i style="background:#2D7BA9"></i><span>SEA</span></div>
+        <div class="sw"><i style="background:#F4C430"></i><span>TAXI</span></div>
+        <div class="sw"><i style="background:#F4EDDD"></i><span>PAPER</span></div>
+      </div>
+      <div class="meta">BRICOLAGE GROTESQUE · INSTRUMENT SERIF · DM MONO<br>THE DEVIATION LINE — © MMXXVI</div>
+    </div>
+
+  </div>
+</body>
+</html>

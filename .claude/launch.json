@@ -14,6 +14,12 @@
       "port": 8765
     },
     {
+      "name": "Brand Logo Concepts",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8766", "--directory", "design/brand"],
+      "port": 8766
+    },
+    {
       "name": "Marketing Website (Vite)",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],

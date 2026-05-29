@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:1080px;height:1080px;overflow:hidden;}
+  #sq{width:1080px;height:1080px;position:relative;display:flex;align-items:center;justify-content:center;}
+  /* paper grain for craft */
+  #sq::after{content:'';position:absolute;inset:0;opacity:.35;mix-blend-mode:multiply;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-size:480px 480px;}
+  svg{position:relative;z-index:1;}
+</style>
+</head>
+<body>
+<div id="sq">
+  <svg width="1080" height="1080" viewBox="-15.75 -12.75 108 108" aria-label="Detour">
+    <!-- dashed travel route: sea origin -> bend -> pin (the detour) -->
+    <path id="route" d="M8 60 C 26 60 34 56 46 50" fill="none" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+    <circle id="dot" cx="8" cy="60" r="4.6"/>
+    <path id="pin" d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z"/>
+    <circle id="hole" cx="58" cy="33" r="5.4"/>
+  </svg>
+</div>
+<script>
+  const palettes = {
+    paper: {bg:'#F4EDDD', route:'#0E1929', dot:'#2D7BA9', pin:'#C8542A', hole:'#FCF7EA'},
+    terra: {bg:'#C8542A', route:'#FCF7EA', dot:'#F4C430', pin:'#0E1929', hole:'#FCF7EA'},
+    ink:   {bg:'#0E1929', route:'#F4EDDD', dot:'#F4C430', pin:'#C8542A', hole:'#FCF7EA'},
+  };
+  const v = (location.search.match(/v=(\w+)/)||[])[1] || 'paper';
+  const p = palettes[v] || palettes.paper;
+  document.getElementById('sq').style.background = p.bg;
+  document.getElementById('route').style.stroke = p.route;
+  document.getElementById('dot').style.fill = p.dot;
+  document.getElementById('pin').style.fill = p.pin;
+  document.getElementById('hole').style.fill = p.hole;
+  document.title = 'detour-avatar-' + v;
+</script>
+</body>
+</html>
