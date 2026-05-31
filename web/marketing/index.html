@@ -837,6 +837,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* ---------- EARLY-ACCESS CHIP ---------- */
 .chip.free{background:var(--terra-lt);border-color:var(--terracotta);color:var(--terra-dk);}
 .chip.free svg{color:var(--terracotta);}
+
+/* ---------- BOOKING MODAL — GOOGLE FORM EMBED ---------- */
+#booking-modal .modal-card{max-width:560px;}
+.modal-iframe-wrap{margin-top:18px;border:1.5px solid var(--line-soft);border-radius:14px;overflow:hidden;}
+.modal-iframe-wrap iframe{width:100%;height:62vh;min-height:440px;max-height:640px;border:none;display:block;background:var(--paper-3);}
 </style>
 </head>
 <body>
@@ -1308,41 +1313,26 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       <h2>Be the first to take a <em>Detour.</em></h2>
       <p style="font-size:14px;color:var(--ink-mute);margin-top:10px;line-height:1.55;">We're matching our very first travellers in Mumbai — completely free while we're in early access. Tell us about your layover and we'll build a route around it.</p>
     </div>
-    <form id="booking-form">
-      <div class="form-group">
-        <label for="bk-name">Your Name</label>
-        <input type="text" id="bk-name" required placeholder="e.g. Sarah Jenkins">
+    <div class="modal-iframe-wrap">
+      <!-- ═══ REPLACE data-src WITH YOUR GOOGLE FORM EMBED URL ═══ -->
+      <!-- Get it: open your Google Form → Send → embed icon (<>) → copy the src URL → paste as data-src below -->
+      <iframe
+        id="booking-form-iframe"
+        src="about:blank"
+        data-src=""
+        title="Request a Detour — early access form"
+        loading="lazy"
+      >Loading…</iframe>
+      <!-- Fallback shown until a Google Form URL is configured -->
+      <div id="booking-placeholder" style="padding:40px 28px;text-align:center;">
+        <div style="font-size:44px;margin-bottom:14px;">✈️</div>
+        <h3 style="font-family:var(--display);font-weight:700;font-size:21px;margin-bottom:10px;color:var(--ink);">Tell us about your layover</h3>
+        <p style="font-size:14px;color:var(--ink-mute);line-height:1.55;max-width:360px;margin:0 auto 20px;">We're matching our very first early-access travellers — completely free. Email us your arrival &amp; departure times and we'll build a route around them.</p>
+        <a href="mailto:admin@detourtrips.com?subject=Request%20a%20Detour%20(early%20access)&amp;body=Hi%20Detour%20team%2C%0A%0AI'd%20love%20to%20do%20a%20Detour%20on%20my%20Mumbai%20layover.%0A%0AArrival%20date%20%26%20time%3A%0ADeparture%20date%20%26%20time%3A%0AFlight%20numbers%3A%0AWhat%20I'm%20into%20(food%2C%20history%2C%20markets...)%3A%0A%0AThanks!" style="display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--paper-3);background:var(--terracotta);box-shadow:0 5px 0 var(--terra-dk);padding:13px 24px;border-radius:9999px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Email admin@detourtrips.com
+        </a>
       </div>
-      <div class="form-group">
-        <label for="bk-email">Email Address</label>
-        <input type="email" id="bk-email" required placeholder="e.g. sarah@example.com">
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="bk-date">Layover Date</label>
-          <input type="date" id="bk-date" required>
-        </div>
-        <div class="form-group">
-          <label for="bk-hours">Available Hours</label>
-          <div class="slider-container">
-            <input type="range" id="bk-hours" min="4" max="16" value="8" step="1">
-            <span id="bk-hours-label">8 hrs</span>
-          </div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="bk-notes">Flight details &amp; preferences (optional)</label>
-        <textarea id="bk-notes" rows="2" placeholder="e.g. Landing at BOM T2 at 3 PM, next flight is at midnight. I love architecture and street food."></textarea>
-      </div>
-      <button type="submit" class="btn-primary" style="width:100%; justify-content:center; border:none;">Claim my free early-access detour</button>
-    </form>
-    <div id="booking-success" style="display:none; text-align:center; padding:20px 0;">
-      <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M9 12l2 2 4-4"/>
-      </svg>
-      <h3 style="font-family:var(--display); font-weight:800; font-size:24px; color:var(--ink);">You're on the list!</h3>
-      <p style="font-size:14px; color:var(--ink-mute); margin-top:10px; line-height:1.5;">You're one of our very first early-access travellers — thank you. A verified Mumbai student will email you within 12 hours with route ideas for your layover. And it's on us.</p>
     </div>
   </div>
 </div>
@@ -1509,44 +1499,28 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     });
   });
 
-  // Waitlist slider live update
-  const bkHours = document.getElementById('bk-hours');
-  const bkHoursLabel = document.getElementById('bk-hours-label');
-  if (bkHours && bkHoursLabel) {
-    bkHours.addEventListener('input', (e) => {
-      bkHoursLabel.textContent = `${e.target.value} hrs`;
-    });
-  }
-
-  // Booking / Waitlist form submission
-  const bookingForm = document.getElementById('booking-form');
-  const bookingSuccess = document.getElementById('booking-success');
-  if (bookingForm) {
-    bookingForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      // Save data locally to localStorage
-      const inquiry = {
-        name: document.getElementById('bk-name').value,
-        email: document.getElementById('bk-email').value,
-        date: document.getElementById('bk-date').value,
-        hours: document.getElementById('bk-hours').value,
-        notes: document.getElementById('bk-notes').value,
-        timestamp: new Date().toISOString()
-      };
-      localStorage.setItem('detour_inquiry', JSON.stringify(inquiry));
-      
-      // Transition states
-      bookingForm.style.display = 'none';
-      if (bookingSuccess) bookingSuccess.style.display = 'block';
-    });
-  }
+  // Booking modal: lazy-load embedded Google Form (falls back to email link)
+  const bookingIframe = document.getElementById('booking-form-iframe');
+  const bookingPlaceholder = document.getElementById('booking-placeholder');
+  const loadBookingForm = () => {
+    if (!bookingIframe) return;
+    const src = bookingIframe.getAttribute('data-src');
+    if (src && src.length > 5) {
+      if (bookingIframe.src === 'about:blank' || !bookingIframe.src.includes('http')) bookingIframe.src = src;
+      bookingIframe.style.display = 'block';
+      if (bookingPlaceholder) bookingPlaceholder.style.display = 'none';
+    } else {
+      bookingIframe.style.display = 'none';
+      if (bookingPlaceholder) bookingPlaceholder.style.display = 'block';
+    }
+  };
 
   // Attach triggers for Booking Modal
   document.querySelectorAll('.btn-trigger-booking').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       closeModal('route-modal'); // Close route modal first if it is open
+      loadBookingForm();
       openModal('booking-modal');
     });
   });
