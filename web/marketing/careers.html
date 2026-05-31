@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Careers — Detour Trips</title>
+<meta name="description" content="Join the Detour team. We're building the future of layover travel from Mumbai — and we're looking for creative, driven people to help us do it." />
+<!-- Detour pin favicon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 30 C 10 22 6 18 6 13 A 10 10 0 1 1 26 13 C 26 18 22 22 16 30 Z' fill='%23C8542A'/%3E%3Ccircle cx='16' cy='13' r='3.6' fill='%23FCF7EA'/%3E%3C/svg%3E">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Careers — Detour Trips">
+<meta property="og:description" content="Join the Detour team. We're building the future of layover travel from Mumbai.">
+<meta property="og:url" content="https://detourtrips.com/careers">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4EDDD; --paper-2:#EBE0C5; --paper-3:#FCF7EA;
+  --ink:#0E1929; --ink-2:#1F2A3D; --ink-mute:#445169;
+  --line:#0E1929; --line-soft:#C5BA9C;
+  --marigold:#E89F2C; --marigold-lt:#FBEACB;
+  --terracotta:#C8542A; --terra-dk:#9E3A1F; --terra-lt:#F7DECC;
+  --sea:#2D7BA9; --sea-dk:#1F5B7E; --sea-lt:#C9DEEB;
+  --taxi:#F4C430; --pink:#D4347A; --olive:#5E7A2C; --green:#3D8B5A;
+  --display:'Bricolage Grotesque',sans-serif;
+  --serif:'Instrument Serif',serif;
+  --body:'Plus Jakarta Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+  --shadow-card:0 1px 0 rgba(14,25,41,.04),0 2px 6px rgba(14,25,41,.05),0 14px 40px rgba(14,25,41,.08);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--body);color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;}
+img{display:block;max-width:100%;}
+.wrap{max-width:1180px;margin:0 auto;padding:0 5%;}
+section{padding:96px 0;position:relative;}
+/* paper grain */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.4;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .15 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size:240px 240px;
+}
+.eyebrow{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--terracotta);display:inline-flex;align-items:center;gap:10px;}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--terracotta);}
+h2{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.4vw,52px);letter-spacing:-.03em;line-height:1.02;margin:16px 0 16px;}
+h2 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);}
+.lead{font-size:18px;line-height:1.55;color:var(--ink-mute);max-width:640px;}
+
+/* ---------- NAV ---------- */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 5%;display:flex;align-items:center;justify-content:space-between;transition:all .3s ease;}
+nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 1px 0 rgba(14,25,41,.08);padding:12px 5%;}
+.logo{display:flex;align-items:center;gap:11px;}
+.logo .wm{font-family:var(--display);font-weight:800;font-size:25px;letter-spacing:-.04em;color:var(--ink);line-height:1;}
+.logo .wm em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);}
+.logo .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute);margin-top:3px;}
+.nav-links{display:flex;align-items:center;gap:30px;}
+.nav-links a{font-size:14px;font-weight:500;color:var(--ink-2);transition:color .2s;position:relative;padding-bottom:4px;}
+.nav-links a:hover{color:var(--terracotta);}
+.nav-links a.active{color:var(--terracotta) !important;}
+.nav-links a::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--terracotta);border-radius:9999px;transform:scaleX(0);transform-origin:center;transition:transform .25s var(--ease);}
+.nav-links a.active::after{transform:scaleX(1);}
+.btn-ig{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:9999px;box-shadow:0 4px 0 var(--terra-dk);transition:transform .18s var(--ease),box-shadow .18s ease;}
+.btn-ig:hover{transform:translateY(-1px);box-shadow:0 5px 0 var(--terra-dk);}
+.btn-ig:active{transform:translateY(2px);box-shadow:0 1px 0 var(--terra-dk);}
+@media(max-width:860px){.nav-links{display:none;}}
+
+/* ---------- HERO ---------- */
+.careers-hero{padding:160px 0 80px;text-align:center;}
+.careers-hero .wrap{max-width:860px;}
+.careers-hero h1{font-family:var(--display);font-weight:700;font-size:clamp(38px,5.8vw,72px);line-height:.96;letter-spacing:-.045em;color:var(--ink);margin:20px 0 24px;}
+.careers-hero h1 .serif{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);position:relative;}
+.careers-hero h1 .serif::after{content:'';position:absolute;left:-1%;right:-1%;bottom:.1em;height:.16em;background:var(--marigold);opacity:.45;border-radius:9999px;}
+.careers-hero .hero-sub{font-size:19px;line-height:1.55;color:var(--ink-2);max-width:620px;margin:0 auto 32px;}
+.hero-badges{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--paper-3);border:1.5px solid var(--line-soft);padding:8px 16px;border-radius:9999px;font-size:13px;font-weight:600;color:var(--ink-2);}
+.hero-badge svg{width:16px;height:16px;color:var(--terracotta);}
+
+/* ---------- CULTURE STRIP ---------- */
+.culture-strip{background:var(--ink);color:var(--paper);padding:56px 0;}
+.culture-strip .wrap{text-align:center;}
+.culture-strip .eyebrow{color:var(--taxi);}
+.culture-strip .eyebrow::before{background:var(--taxi);}
+.culture-strip h2{color:var(--paper);margin:14px 0 20px;}
+.culture-strip h2 em{color:var(--taxi);}
+.culture-strip .lead{color:rgba(244,237,221,.7);margin:0 auto;}
+.culture-values{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:36px;}
+.culture-val{display:flex;align-items:center;gap:10px;background:rgba(244,237,221,.06);border:1.5px solid rgba(244,237,221,.16);border-radius:14px;padding:14px 22px;}
+.culture-val .icon{width:36px;height:36px;border-radius:10px;background:rgba(244,237,221,.1);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.culture-val .val-text{text-align:left;}
+.culture-val .val-text b{font-family:var(--display);font-weight:700;font-size:15px;display:block;}
+.culture-val .val-text span{font-size:12px;color:rgba(244,237,221,.55);font-family:var(--mono);letter-spacing:.05em;}
+
+/* ---------- OPEN POSITIONS ---------- */
+.positions{background:var(--paper-3);}
+.positions .section-head{max-width:760px;margin-bottom:48px;}
+.positions-grid{display:grid;grid-template-columns:1fr;gap:18px;max-width:860px;}
+
+/* Job Card */
+.job-card{background:var(--paper);border:1.5px solid var(--line-soft);border-radius:20px;padding:28px 32px;box-shadow:var(--shadow-card);transition:transform .25s var(--ease),border-color .25s,box-shadow .25s;cursor:pointer;position:relative;overflow:hidden;}
+.job-card:hover{transform:translateY(-4px);border-color:var(--ink);box-shadow:0 20px 48px rgba(14,25,41,.14);}
+.job-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--terracotta);border-radius:9999px 0 0 9999px;opacity:0;transition:opacity .25s;}
+.job-card:hover::before{opacity:1;}
+.job-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px;}
+.job-card-top h3{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.02em;line-height:1.15;}
+.job-card-arrow{width:40px;height:40px;border-radius:50%;background:var(--paper-3);border:1.5px solid var(--line-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .25s var(--ease);}
+.job-card:hover .job-card-arrow{background:var(--terracotta);border-color:var(--terracotta);color:var(--paper-3);transform:rotate(-45deg);}
+.job-card-arrow svg{width:18px;height:18px;}
+.job-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.job-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border-radius:9999px;font-weight:500;}
+.job-tag.location{background:var(--sea-lt);color:var(--sea-dk);}
+.job-tag.type{background:var(--terra-lt);color:var(--terra-dk);}
+.job-tag.level{background:var(--marigold-lt);color:#7A5600;}
+.job-tag svg{width:13px;height:13px;}
+.job-card-summary{font-size:14.5px;color:var(--ink-mute);line-height:1.55;}
+
+/* Empty state */
+.more-coming{background:var(--paper);border:1.5px dashed var(--line-soft);border-radius:20px;padding:36px 32px;text-align:center;color:var(--ink-mute);}
+.more-coming .icon{font-size:28px;margin-bottom:10px;}
+.more-coming h4{font-family:var(--display);font-weight:700;font-size:18px;color:var(--ink-2);margin-bottom:6px;}
+.more-coming p{font-size:14px;line-height:1.5;}
+
+/* ---------- JOB DETAIL VIEW ---------- */
+.job-detail{display:none;padding:96px 0 64px;}
+.job-detail.active{display:block;}
+.job-detail-header{margin-bottom:48px;}
+.back-link{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:24px;transition:color .2s;cursor:pointer;background:none;border:none;}
+.back-link:hover{color:var(--terracotta);}
+.back-link svg{width:16px;height:16px;}
+.job-detail-header h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,4.5vw,48px);letter-spacing:-.035em;line-height:1.02;color:var(--ink);margin-bottom:18px;}
+.detail-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;}
+.detail-status{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--green);}
+.detail-status .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+.job-detail-grid{display:grid;grid-template-columns:1fr 360px;gap:48px;align-items:flex-start;}
+@media(max-width:900px){.job-detail-grid{grid-template-columns:1fr;}}
+
+/* Left column: description */
+.job-body{font-size:15.5px;color:var(--ink-2);line-height:1.65;}
+.job-body h3{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.02em;color:var(--ink);margin:36px 0 14px;}
+.job-body h3:first-child{margin-top:0;}
+.job-body p{margin-bottom:16px;}
+.job-body ul{list-style:none;margin:12px 0 24px;display:flex;flex-direction:column;gap:10px;}
+.job-body ul li{display:flex;gap:10px;font-size:15px;line-height:1.5;color:var(--ink-2);}
+.job-body ul li::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--terracotta);flex-shrink:0;margin-top:8px;}
+
+/* Right column: apply sidebar */
+.apply-sidebar{position:sticky;top:120px;}
+.apply-box{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:20px;padding:28px;box-shadow:var(--shadow-card);}
+.apply-box h4{font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:6px;}
+.apply-box p{font-size:13.5px;color:var(--ink-mute);line-height:1.5;margin-bottom:20px;}
+.btn-apply{display:flex;align-items:center;justify-content:center;gap:9px;font-weight:700;font-size:15px;background:var(--terracotta);color:var(--paper-3);padding:15px 26px;border-radius:9999px;box-shadow:0 5px 0 var(--terra-dk);transition:transform .18s var(--ease),box-shadow .18s ease;border:none;width:100%;cursor:pointer;}
+.btn-apply:hover{transform:translateY(-1px);box-shadow:0 6px 0 var(--terra-dk);}
+.btn-apply:active{transform:translateY(2px);box-shadow:0 1px 0 var(--terra-dk);}
+.apply-box .note{font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);margin-top:14px;text-align:center;opacity:.7;}
+.sidebar-info{margin-top:18px;background:var(--paper);border:1.5px solid var(--line-soft);border-radius:16px;padding:20px;}
+.sidebar-info-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;}
+.sidebar-info-row:last-child{margin-bottom:0;}
+.sidebar-info-row svg{width:18px;height:18px;color:var(--terracotta);flex-shrink:0;margin-top:2px;}
+.sidebar-info-row .lbl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-mute);margin-bottom:2px;}
+.sidebar-info-row .val{font-weight:600;font-size:14px;color:var(--ink);}
+
+/* ---------- APPLY MODAL ---------- */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(14,25,41,.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .35s var(--ease);}
+.modal-overlay.open{opacity:1;pointer-events:auto;}
+.modal-card{background:var(--paper-3);border:1.5px solid var(--ink);border-radius:24px;width:100%;max-width:640px;max-height:90vh;overflow:hidden;padding:0;box-shadow:0 30px 90px rgba(14,25,41,.24);position:relative;transform:translateY(30px) scale(0.96);transition:transform .35s var(--ease),opacity .35s var(--ease);display:flex;flex-direction:column;}
+.modal-overlay.open .modal-card{transform:translateY(0) scale(1);}
+.modal-top{padding:28px 32px 20px;border-bottom:1px solid var(--line-soft);flex-shrink:0;}
+.modal-top h2{font-family:var(--display);font-size:clamp(22px,3vw,28px);font-weight:700;letter-spacing:-.02em;margin:8px 0 0;line-height:1.1;}
+.modal-close{position:absolute;top:20px;right:20px;background:none;border:none;font-size:26px;line-height:1;font-weight:700;color:var(--ink-mute);transition:color .2s;cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;z-index:10;}
+.modal-close:hover{color:var(--ink);background:var(--paper-2);}
+.modal-iframe-wrap{flex:1;overflow:hidden;min-height:520px;}
+.modal-iframe-wrap iframe{width:100%;height:100%;min-height:520px;border:none;}
+
+/* ---------- FOOTER ---------- */
+footer{background:var(--ink);color:rgba(244,237,221,.7);padding:64px 0 32px;}
+.foot{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:32px;}
+@media(max-width:760px){.foot{grid-template-columns:1fr 1fr;}}
+.foot .logo .wm{color:var(--paper);}
+.foot p{font-size:13.5px;line-height:1.55;margin-top:14px;max-width:280px;}
+.foot h5{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--taxi);margin-bottom:14px;}
+.foot a{display:block;font-size:13.5px;margin-bottom:9px;color:rgba(244,237,221,.7);transition:color .2s;}
+.foot a:hover{color:var(--paper);}
+.foot-legal{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:48px;padding-top:24px;border-top:1px solid rgba(244,237,221,.12);font-family:var(--mono);font-size:11.5px;}
+
+/* ---------- REVEAL ANIMATION ---------- */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.reveal.in{opacity:1;transform:none;}
+
+/* ---------- ACCESSIBILITY ---------- */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex="0"]:focus-visible {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 4px;
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a class="logo" href="index.html">
+    <svg width="50" height="40" viewBox="0 0 92 74" aria-hidden="true">
+      <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+      <circle cx="8" cy="60" r="4.5" fill="#2D7BA9"/>
+      <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
+      <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+    </svg>
+    <div>
+      <div class="wm">Det<em>ou</em>r</div>
+      <div class="tag">Mumbai · BOM</div>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="index.html#idea">The idea</a>
+    <a href="index.html#buddies">Buddies</a>
+    <a href="index.html#routes">Detours</a>
+    <a href="careers.html" class="active">Careers</a>
+  </div>
+  <a class="btn-ig" href="https://instagram.com/detourtrips" target="_blank" rel="noopener">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+    Follow the journey
+  </a>
+</nav>
+
+<!-- ═══════════════════ LISTING VIEW ═══════════════════ -->
+<div id="listing-view">
+
+  <!-- HERO -->
+  <section class="careers-hero">
+    <div class="wrap">
+      <span class="eyebrow">Careers at Detour</span>
+      <h1>Build the future of travel, from <span class="serif">Mumbai.</span></h1>
+      <p class="hero-sub">We're a small, driven team turning dead layover hours into unforgettable city stories. If you love design, culture, and moving fast — you belong here.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Early-stage startup
+        </span>
+        <span class="hero-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          Mumbai, India
+        </span>
+        <span class="hero-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Small, creative team
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CULTURE STRIP -->
+  <section class="culture-strip">
+    <div class="wrap">
+      <span class="eyebrow">Why you'll love it here</span>
+      <h2>Small team, great culture, your work <em>actually ships.</em></h2>
+      <p class="lead">You'll be part of a small, genuinely talented team with a great work culture — we move fast, we obsess over craft, and yes, we do weekend hangouts 🎉. It's the kind of early-stage energy where your work is seen, shipped, and actually matters.</p>
+      <div class="culture-values">
+        <div class="culture-val reveal">
+          <div class="icon">🚀</div>
+          <div class="val-text"><b>Move fast</b><span>Ship weekly</span></div>
+        </div>
+        <div class="culture-val reveal">
+          <div class="icon">🎨</div>
+          <div class="val-text"><b>Design-first</b><span>Every pixel counts</span></div>
+        </div>
+        <div class="culture-val reveal">
+          <div class="icon">🎉</div>
+          <div class="val-text"><b>Weekend hangouts</b><span>We actually like each other</span></div>
+        </div>
+        <div class="culture-val reveal">
+          <div class="icon">🌏</div>
+          <div class="val-text"><b>Global vision</b><span>Local roots</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPEN POSITIONS -->
+  <section class="positions" id="openings">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Open positions</span>
+        <h2>Roles we're hiring for <em>right now.</em></h2>
+        <p class="lead">We're small, so every hire matters. If you see something that feels like you — we'd love to hear from you.</p>
+      </div>
+
+      <div class="positions-grid">
+
+        <!-- Job Card: Creative Designer (Intern) -->
+        <div class="job-card reveal" data-job="creative-designer-intern" id="job-card-1">
+          <div class="job-card-top">
+            <h3>Creative Designer (Intern) — AI-native, design our app & website</h3>
+            <div class="job-card-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+          <div class="job-meta">
+            <span class="job-tag location">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Mumbai (Hybrid)
+            </span>
+            <span class="job-tag type">Paid Internship</span>
+            <span class="job-tag level">Flexible hours</span>
+          </div>
+          <p class="job-card-summary">Own how Detour looks — our marketing website and the inside of the app. This is a design-first role: strong taste and fluency with AI tools to go from idea → beautiful, polished visuals fast.</p>
+        </div>
+
+        <!-- More coming soon -->
+        <div class="more-coming reveal">
+          <div class="icon">✨</div>
+          <h4>More roles coming soon</h4>
+          <p>We're growing fast. Follow us on <a href="https://instagram.com/detourtrips" target="_blank" rel="noopener" style="color:var(--terracotta);text-decoration:underline;">Instagram</a> to be the first to know when new positions drop.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</div><!-- /listing-view -->
+
+
+<!-- ═══════════════════ JOB DETAIL VIEW ═══════════════════ -->
+<div id="detail-view" class="job-detail">
+  <div class="wrap">
+    <div class="job-detail-header">
+      <button class="back-link" id="back-to-listing">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        All positions
+      </button>
+      <h1>Creative Designer (Intern) — AI-native, design our app & website</h1>
+      <div class="detail-meta">
+        <span class="job-tag location">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Mumbai (Hybrid)
+        </span>
+        <span class="job-tag type">Paid Internship</span>
+        <span class="job-tag level">Flexible hours</span>
+        <span class="detail-status"><span class="pulse"></span> Accepting applications</span>
+      </div>
+    </div>
+
+    <div class="job-detail-grid">
+      <!-- Left: job body -->
+      <div class="job-body">
+        <h3>About Detour</h3>
+        <p>Detour turns airport layovers into real experiences — we connect international travellers passing through Mumbai with verified local student guides who show them the real city between flights. We're early, fast-moving, and we care a lot about how things look and feel.</p>
+
+        <h3>The role</h3>
+        <p>We're looking for a creative designer to own how Detour looks — our marketing website and the inside of the app. This is a design-first role: you don't need to be a coder. What matters is strong taste and fluency with AI tools to go from idea → beautiful, polished visuals fast.</p>
+
+        <h3>What you'll do</h3>
+        <ul>
+          <li>Design screens, flows, and the marketing site in Figma, extending our "Detour" brand system</li>
+          <li>Use AI tools (Midjourney / Firefly / Figma AI / Framer / v0 and friends) to generate concepts, imagery, and rapid prototypes</li>
+          <li>Shape our visual identity — typography, colour, motion, illustration, social creative</li>
+          <li>Turn rough ideas into striking, on-brand designs quickly</li>
+        </ul>
+
+        <h3>You might be a fit if you</h3>
+        <ul>
+          <li>Have a portfolio that shows real creative range and taste</li>
+          <li>Are fluent with AI design tools and love experimenting with new ones</li>
+          <li>Have a strong eye for typography, layout, colour, and detail</li>
+          <li>Are a student or recent grad who's hungry, fast, and curious</li>
+          <li>(Bonus, not required) Comfort with Figma-to-code/AI build tools, or basic web/Tailwind</li>
+        </ul>
+
+        <h3>Logistics</h3>
+        <p>Paid internship · Mumbai-based (hybrid) · flexible hours around studies</p>
+
+        <h3>How to apply</h3>
+        <p>Send your portfolio (and anything you're proud of — personal projects, AI experiments, all welcome) to <a href="mailto:hello@detourtrips.com" style="color:var(--terracotta);text-decoration:underline;">hello@detourtrips.com</a> or use the Apply button. Show us something you made that you think is beautiful.</p>
+      </div>
+
+      <!-- Right: apply sidebar -->
+      <div class="apply-sidebar">
+        <div class="apply-box">
+          <h4>Show us something beautiful.</h4>
+          <p>Send your portfolio and anything you're proud of — personal projects, AI experiments, all welcome.</p>
+          <button class="btn-apply" id="open-apply-modal">
+            Apply Now
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+          <div class="note">Applications reviewed on a rolling basis</div>
+        </div>
+        <div class="sidebar-info">
+          <div class="sidebar-info-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div><div class="lbl">Location</div><div class="val">Mumbai, Maharashtra</div></div>
+          </div>
+          <div class="sidebar-info-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            <div><div class="lbl">Type</div><div class="val">Paid Internship · Hybrid</div></div>
+          </div>
+          <div class="sidebar-info-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <div><div class="lbl">Schedule</div><div class="val">Flexible around studies</div></div>
+          </div>
+          <div class="sidebar-info-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <div><div class="lbl">Team</div><div class="val">Design & Product</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /detail-view -->
+
+
+<!-- APPLY MODAL (Google Form Embed) -->
+<div id="apply-modal" class="modal-overlay" aria-hidden="true" role="dialog">
+  <div class="modal-card">
+    <button class="modal-close" id="close-apply" aria-label="Close application form">&times;</button>
+    <div class="modal-top">
+      <span class="eyebrow">Apply</span>
+      <h2>Creative Designer (Intern) — AI-native</h2>
+    </div>
+    <div class="modal-iframe-wrap">
+      <!-- ═══ REPLACE THIS src WITH YOUR GOOGLE FORM EMBED URL ═══ -->
+      <!-- To get the embed URL: Open your Google Form → Click "Send" → Click the embed icon (<>) → Copy the src URL -->
+      <iframe
+        id="google-form-iframe"
+        src="about:blank"
+        data-src=""
+        title="Job Application Form"
+        loading="lazy"
+        allow="autoplay"
+      >Loading…</iframe>
+      <!-- Fallback message shown when no form URL is configured -->
+      <div id="form-placeholder" style="padding:48px 32px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:16px;">📝</div>
+        <h3 style="font-family:var(--display);font-weight:700;font-size:22px;margin-bottom:10px;color:var(--ink);">Application form coming soon</h3>
+        <p style="font-size:14.5px;color:var(--ink-mute);line-height:1.55;max-width:380px;margin:0 auto 20px;">Send your portfolio and anything you're proud of — personal projects, AI experiments, all welcome:</p>
+        <a href="mailto:hello@detourtrips.com" style="display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--terracotta);border:1.5px solid var(--terracotta);padding:12px 24px;border-radius:9999px;transition:all .2s;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          hello@detourtrips.com
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <a class="logo" href="index.html">
+          <svg width="46" height="37" viewBox="0 0 92 74"><path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#F4EDDD" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/><circle cx="8" cy="60" r="4.5" fill="#F4C430"/><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/><circle cx="58" cy="33" r="5.4" fill="#F4EDDD"/></svg>
+          <div><div class="wm">Det<em>ou</em>r</div><div class="tag" style="color:rgba(244,237,221,.5)">Mumbai · BOM</div></div>
+        </a>
+        <p>Detour helps international travellers experience cities through verified local students. Mumbai is our first home.</p>
+      </div>
+      <div><h5>Detour</h5><a href="index.html#idea">The idea</a><a href="index.html#mumbai">Why Mumbai</a><a href="index.html#buddies">Buddies</a><a href="index.html#routes">Detours</a><a href="careers.html">Careers</a></div>
+      <div><h5>Trust</h5><a href="index.html#values">How we travel</a><a href="#">Safety</a><a href="#">For students</a></div>
+      <div><h5>Connect</h5><a href="https://instagram.com/detourtrips" target="_blank" rel="noopener">Instagram</a><a href="mailto:hello@detourtrips.com">hello@detourtrips.com</a><a href="https://detourtrips.com">detourtrips.com</a></div>
+    </div>
+    <div class="foot-legal">
+      <div>© 2026 Detour · Made in Mumbai with a lot of cutting chai.</div>
+      <div style="display:flex;gap:16px;"><a href="#" style="display:inline;margin:0;">Privacy</a><a href="#" style="display:inline;margin:0;">Terms</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Nav scroll behavior
+  const nav = document.getElementById('nav');
+  addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 20));
+
+  // Reveal animations on scroll
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }), { threshold: .12 });
+  document.querySelectorAll('.reveal').forEach((el, i) => {
+    el.style.transitionDelay = (i % 4 * 60) + 'ms';
+    io.observe(el);
+  });
+
+  // ── View Switching: Listing ↔ Detail ──
+  const listingView = document.getElementById('listing-view');
+  const detailView = document.getElementById('detail-view');
+  const backBtn = document.getElementById('back-to-listing');
+
+  // Show detail view
+  document.querySelectorAll('.job-card').forEach(card => {
+    card.addEventListener('click', () => {
+      listingView.style.display = 'none';
+      detailView.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  // Back to listing
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      detailView.classList.remove('active');
+      listingView.style.display = '';
+      window.scrollTo({ top: document.getElementById('openings').offsetTop - 100, behavior: 'smooth' });
+    });
+  }
+
+  // ── Apply Modal ──
+  const applyModal = document.getElementById('apply-modal');
+  const openApplyBtn = document.getElementById('open-apply-modal');
+  const closeApplyBtn = document.getElementById('close-apply');
+  const formIframe = document.getElementById('google-form-iframe');
+  const formPlaceholder = document.getElementById('form-placeholder');
+
+  const openModal = () => {
+    if (applyModal) {
+      applyModal.classList.add('open');
+      applyModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+
+      // Lazy-load Google Form iframe if src is configured
+      const formSrc = formIframe?.getAttribute('data-src');
+      if (formSrc && formSrc.length > 5) {
+        formIframe.src = formSrc;
+        formIframe.style.display = 'block';
+        if (formPlaceholder) formPlaceholder.style.display = 'none';
+      } else {
+        formIframe.style.display = 'none';
+        if (formPlaceholder) formPlaceholder.style.display = 'block';
+      }
+    }
+  };
+
+  const closeModalFn = () => {
+    if (applyModal) {
+      applyModal.classList.remove('open');
+      applyModal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+  };
+
+  openApplyBtn?.addEventListener('click', openModal);
+  closeApplyBtn?.addEventListener('click', closeModalFn);
+
+  // Close on backdrop click
+  applyModal?.addEventListener('click', (e) => {
+    if (e.target === applyModal) closeModalFn();
+  });
+
+  // Close on Escape
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModalFn();
+  });
+
+  // ── Handle deep link: if URL hash is #apply, go straight to detail + open modal ──
+  if (window.location.hash === '#apply') {
+    listingView.style.display = 'none';
+    detailView.classList.add('active');
+    setTimeout(openModal, 400);
+  }
+</script>
+</body>
+</html>
