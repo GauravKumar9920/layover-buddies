@@ -1,8 +1,9 @@
 // ============================================================================
-// CTA MAPPING TESTS — Phase 2
+// CTA MAPPING TESTS — Phase 2 / 3 / 4
 // ============================================================================
 // Table-driven test of getBookingCta(status, viewer). One assertion per cell
-// in the plan table × 2 viewers = coverage of all Phase 2 lifecycle states.
+// in the plan table × 2 viewers = coverage of the full booking lifecycle
+// (agreement → deposits → balance → trip → reconciliation → cancellation).
 // ============================================================================
 
 import { getBookingCta } from '../cta';
@@ -39,9 +40,10 @@ describe('getBookingCta — Phase 2 active states', () => {
     // the viewer's own deposit row).
     ['deposits_held', 'traveler', 'Open agreement',   false, '/(shared)/agreements/[bookingId]'],
     ['deposits_held', 'buddy',    'Pay ₹500 deposit', false, '/(shared)/agreements/[bookingId]'],
-    // awaiting_balance
-    ['awaiting_balance', 'traveler', 'Deposits secured', true, null],
-    ['awaiting_balance', 'buddy',    'Deposits secured', true, null],
+    // awaiting_balance — Phase 3: traveler pays the balance (actionable);
+    // buddy waits (info-only).
+    ['awaiting_balance', 'traveler', 'Pay trip balance',          false, '/(traveler)/trips/balance/[bookingId]'],
+    ['awaiting_balance', 'buddy',    'Awaiting traveler balance', true,  null],
   ];
 
   test.each(table)(
@@ -101,19 +103,63 @@ describe('getBookingCta — route/disabled consistency', () => {
   });
 });
 
-// ─── States past awaiting_balance return empty label (Phase 2 block hides) ──
+// ─── Phase 3-4 lifecycle states — balance, trip, reconciliation ─────────────
+// Phase 3-4 gave every state past awaiting_balance a real CTA (balance
+// payment, QR, in-trip, receipts). Each cell mirrors the mapping in cta.ts.
 
-describe('getBookingCta — post-Phase-2 states return empty label', () => {
-  const postPhase2: BookingState[] = [
-    'late_fee_due',
-    'balance_paid',
-    'trip_ready',
-    'in_progress',
-    'awaiting_proofs',
-    'reconciling',
-    'completed',
-    'rated',
-    'disputed',
+describe('getBookingCta — Phase 3-4 lifecycle states', () => {
+  type Row = [BookingState, Viewer, string, boolean, string | null];
+
+  const table: Row[] = [
+    // late_fee_due — traveler owes balance + late fee; buddy waits.
+    ['late_fee_due', 'traveler', 'late fee',                 false, '/(traveler)/trips/balance/[bookingId]'],
+    ['late_fee_due', 'buddy',    'Awaiting traveler balance', true,  null],
+    // balance_paid — both see "Trip confirmed" (info-only anchor).
+    ['balance_paid', 'traveler', 'Trip confirmed', true, null],
+    ['balance_paid', 'buddy',    'Trip confirmed', true, null],
+    // trip_ready — traveler shows QR, buddy scans it.
+    ['trip_ready', 'traveler', 'Show your QR code', false, '/(traveler)/trips/qr/[bookingId]'],
+    ['trip_ready', 'buddy',    'Scan traveler QR',  false, '/(guide)/bookings/qr-scan/[bookingId]'],
+    // in_progress — both route into the live-trip experience.
+    ['in_progress', 'traveler', 'Trip in progress', false, '/(traveler)/trips/live/[id]'],
+    ['in_progress', 'buddy',    'Trip in progress', false, '/(guide)/bookings/in-trip/[bookingId]'],
+    // awaiting_proofs — buddy uploads expense proofs; traveler waits.
+    ['awaiting_proofs', 'traveler', 'wrapping up',          true,  null],
+    ['awaiting_proofs', 'buddy',    'Upload expense proofs', false, '/(guide)/bookings/upload-proofs/[bookingId]'],
+    // reconciling — both info-only while the day settles.
+    ['reconciling', 'traveler', 'Settling up', true, null],
+    ['reconciling', 'buddy',    'Settling up', true, null],
+    // completed — receipts for each side.
+    ['completed', 'traveler', 'See day receipt',    false, '/(traveler)/trips/receipt/[bookingId]'],
+    ['completed', 'buddy',    'See payout receipt', false, '/(guide)/bookings/receipt/[bookingId]'],
+    // rated — terminal, info-only.
+    ['rated', 'traveler', 'Thanks for the rating', true, null],
+    ['rated', 'buddy',    'Trip complete',          true, null],
+    // disputed — info-only for both.
+    ['disputed', 'traveler', 'Under review', true, null],
+    ['disputed', 'buddy',    'Under review', true, null],
+  ];
+
+  test.each(table)(
+    '%s × %s: label contains "%s", disabled=%s',
+    (status, viewer, labelSubstring, expectDisabled, expectRoutePath) => {
+      const cta = getBookingCta(status, viewer);
+      expect(cta.label).toContain(labelSubstring);
+      expect(cta.disabled).toBe(expectDisabled);
+      if (expectRoutePath === null) {
+        expect(cta.route).toBeNull();
+      } else {
+        expect(cta.route?.pathname).toBe(expectRoutePath);
+      }
+    },
+  );
+});
+
+// ─── Cancellation terminal states — both viewers see "View cancellation" ────
+// Every cancelled_* state maps to a cancellation-receipt CTA, routed per viewer.
+
+describe('getBookingCta — cancellation states', () => {
+  const cancelledStates: BookingState[] = [
     'cancelled',
     'cancelled_no_pay',
     'cancelled_traveler_voluntary',
@@ -123,9 +169,16 @@ describe('getBookingCta — post-Phase-2 states return empty label', () => {
     'cancelled_no_deposit',
   ];
 
-  test.each(postPhase2)('%s → both viewers return empty label', (status) => {
-    expect(getBookingCta(status, 'traveler').label).toBe('');
-    expect(getBookingCta(status, 'buddy').label).toBe('');
+  test.each(cancelledStates)('%s → both viewers see a "View cancellation" receipt CTA', (status) => {
+    const traveler = getBookingCta(status, 'traveler');
+    expect(traveler.label).toBe('View cancellation');
+    expect(traveler.disabled).toBe(false);
+    expect(traveler.route?.pathname).toBe('/(traveler)/trips/cancellation-receipt/[bookingId]');
+
+    const buddy = getBookingCta(status, 'buddy');
+    expect(buddy.label).toBe('View cancellation');
+    expect(buddy.disabled).toBe(false);
+    expect(buddy.route?.pathname).toBe('/(guide)/bookings/cancellation-receipt/[bookingId]');
   });
 });
 
