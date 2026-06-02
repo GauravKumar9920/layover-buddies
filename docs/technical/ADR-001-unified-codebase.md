@@ -9,7 +9,7 @@
 
 ## Context
 
-Mumbai Buddies is a two-sided marketplace (travelers + local guides) that requires presence on:
+Detour is a two-sided marketplace (travelers + local guides) that requires presence on:
 - Web (browser-based booking, dashboard, admin panel)
 - iOS (mobile app for iOS users)
 - Android (mobile app for Android users)
@@ -124,7 +124,7 @@ All from the **same source code**, with minimal platform-specific branching.
 
 ---
 
-## Why Option A Wins for Mumbai Buddies
+## Why Option A Wins for Detour
 
 | Factor | Option A (Expo) | Option B (Monorepo) | Option C (Flutter) |
 |--------|-----------------|--------------------|--------------------|

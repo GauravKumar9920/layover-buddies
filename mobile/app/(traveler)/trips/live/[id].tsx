@@ -395,7 +395,7 @@ function SafetyBar({ insets, guideName }: { insets: { bottom: number }, guideNam
     else Alert.alert('Help', msg);
   }
   function contact() {
-    const msg = 'Contact Mumbai Buddies support at hello@mumbai-buddies.example.com or +91 9999 XXXXX.';
+    const msg = 'Contact Detour support at hello@detourtrips.com or +91 9999 XXXXX.';
     if (Platform.OS === 'web') window.alert(msg);
     else Alert.alert('Contact us', msg);
   }

@@ -1,4 +1,4 @@
-# Mumbai Buddies - System Architecture
+# Detour - System Architecture
 
 ## Table of Contents
 1. [Architecture Overview](#architecture-overview)
@@ -14,7 +14,7 @@
 
 ## Architecture Overview
 
-Mumbai Buddies is a two-sided marketplace connecting international travelers with local college student guides. The architecture is designed for **scalability**, **safety**, and **beginner-friendly code**.
+Detour is a two-sided marketplace connecting international travelers with local college student guides. The architecture is designed for **scalability**, **safety**, and **beginner-friendly code**.
 
 ### System Architecture Diagram
 
@@ -1205,7 +1205,7 @@ Growing phase (Phase 2-3):
 ### Domain & DNS
 
 ```
-Domain: mumbaibuddies.com (or layoverbuddies.com)
+Domain: detourtrips.com
 
 DNS Setup:
 ├─ Point A record to Vercel
@@ -1470,4 +1470,4 @@ A: After MVP proves concept. Then you can focus on product/growth, not code.
 
 ---
 
-**Last updated:** April 2024 | Designed for Mumbai Buddies MVP
+**Last updated:** April 2024 | Designed for Detour MVP

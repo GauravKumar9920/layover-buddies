@@ -61,7 +61,7 @@ export function pushTitleFor(kind: string): string {
     case 'top_up_request':
       return 'Buddy needs more buffer';
     default:
-      return 'Mumbai Buddies';
+      return 'Detour';
   }
 }
 

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Serif:ital@1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --paper:#F4EDDD; --paper-3:#FCF7EA; --ink:#0E1929; --ink-mute:#5F6B82;
+    --terra:#C8542A; --sea:#2D7BA9; --taxi:#F4C430; --line-soft:#CDBF9E;
+  }
+  html,body{width:1584px;height:396px;overflow:hidden;}
+  #b{width:1584px;height:396px;position:relative;background:var(--paper);overflow:hidden;}
+  /* survey grid */
+  #b::before{content:'';position:absolute;inset:0;opacity:.5;
+    background-image:linear-gradient(var(--line-soft) 1px,transparent 1px),linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);
+    background-size:48px 48px;mix-blend-mode:multiply;}
+  /* paper grain */
+  #b::after{content:'';position:absolute;inset:0;opacity:.4;mix-blend-mode:multiply;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-size:380px 380px;}
+  .layer{position:absolute;inset:0;z-index:2;}
+  /* registration crosses */
+  .reg{position:absolute;width:22px;height:22px;z-index:3;}
+  .reg::before,.reg::after{content:'';position:absolute;background:var(--terra);}
+  .reg::before{left:50%;top:0;width:1.5px;height:100%;transform:translateX(-50%);}
+  .reg::after{top:50%;left:0;height:1.5px;width:100%;transform:translateY(-50%);}
+  .reg.tl{top:26px;left:26px;} .reg.tr{top:26px;right:26px;} .reg.br{bottom:26px;right:26px;}
+  /* dashed inner frame */
+  .frame{position:absolute;inset:20px;border:1.5px dashed var(--line-soft);border-radius:6px;z-index:1;}
+  /* corner mono labels */
+  .mlabel{position:absolute;z-index:4;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-mute);}
+  .m-tl{top:34px;left:60px;color:var(--terra);}
+  .m-tr{top:34px;right:60px;text-align:right;}
+  /* center lockup */
+  .lock{position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:30px;}
+  .wm{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:108px;letter-spacing:-.04em;color:var(--ink);line-height:.9;}
+  .wm em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--terra);}
+  .tagblock{display:flex;flex-direction:column;gap:8px;padding-bottom:6px;}
+  .tagline{font-family:'DM Mono',monospace;font-size:18px;letter-spacing:.04em;color:var(--ink-mute);}
+  .citytag{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:var(--terra);}
+</style>
+</head>
+<body>
+<div id="b">
+  <div class="frame"></div>
+  <span class="reg tl"></span><span class="reg tr"></span><span class="reg br"></span>
+
+  <!-- the route sweeps across the whole banner: sea origin -> bend -> pin (under the wordmark) -> flight tail lifts off right -->
+  <svg class="layer" viewBox="0 0 1584 396" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M70 250 C 240 250 360 150 520 150 C 700 150 760 250 980 250" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.5 11"/>
+    <circle cx="70" cy="250" r="9" fill="var(--sea)"/>
+    <!-- pin where the route lands, left of wordmark -->
+    <path d="M520 178 C 510 162 502 152 502 138 A 20 20 0 1 1 542 138 C 542 152 534 162 524 178 Z" transform="translate(0,0)" fill="var(--terra)"/>
+    <circle cx="522" cy="136" r="7.2" fill="var(--paper-3)"/>
+    <!-- flight tail lifting off to the right -->
+    <path d="M1090 250 C 1240 244 1380 210 1500 150" fill="none" stroke="var(--terra)" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.5 11"/>
+    <g transform="translate(1500,148) rotate(-30)" fill="var(--terra)"><path d="M0 0 L26 9 L0 18 L6 9 Z"/></g>
+  </svg>
+
+  <div class="mlabel m-tl">Detour · field plate</div>
+  <div class="mlabel m-tr">19.0760°N · 72.8777°E<br>BOM · MUMBAI</div>
+
+  <div class="lock">
+    <div class="wm">Det<em>ou</em>r</div>
+    <div class="tagblock">
+      <div class="tagline">See a city through a local friend.</div>
+      <div class="citytag">Layover detours · Mumbai</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

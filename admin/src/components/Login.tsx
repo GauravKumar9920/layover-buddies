@@ -27,7 +27,7 @@ export default function Login({ onAuthed }: Props) {
         <div className="flex items-center gap-3 mb-1">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary" />
           <div>
-            <div className="font-heading text-lg font-bold leading-none">Mumbai Buddies</div>
+            <div className="font-heading text-lg font-bold leading-none">Detour</div>
             <div className="text-xs text-muted">Admin — local only</div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-# Mumbai Buddies — Admin Panel GUI Smoke-Test Handoff
+# Detour — Admin Panel GUI Smoke-Test Handoff
 
 **Purpose:** Step-by-step runbook for Claude Code to execute a live, browser-driven smoke test of the new local admin panel at `/admin/`. The panel was scaffolded in the Cowork session on 2026-04-25 and has been built + type-checked cleanly, but has not yet been exercised in a browser against a live Supabase project.
 
@@ -108,7 +108,7 @@ Open **http://127.0.0.1:5174** in Chrome (or drive it with Claude-in-Chrome / co
 **Acceptance checklist:**
 - [ ] Page loads without a blank screen or console error (check DevTools console).
 - [ ] Gradient logo square renders in top-left (saffron → pink diagonal).
-- [ ] "Mumbai Buddies · Admin — local only" heading present.
+- [ ] "Detour · Admin — local only" heading present.
 - [ ] Password input is focused on mount.
 - [ ] "Unlock" button is saffron (`#F97316`) with hover → darker saffron.
 - [ ] If Supabase env vars are missing, a yellow warning banner appears above the form.

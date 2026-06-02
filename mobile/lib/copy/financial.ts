@@ -56,7 +56,7 @@ export const financialCopy = {
   dayExpensesExplainer: {
     heading: 'Why "for both of you"?',
     body: (firstName: string) =>
-      `Mumbai Buddies isn't a tour. ${firstName} is your local for the day — you'll share lunch, autos, entry tickets, the works. The day's expenses cover all of that for the two of you, the way you'd cover a friend showing you their city. Whatever isn't spent comes back to you.`,
+      `Detour isn't a tour. ${firstName} is your local for the day — you'll share lunch, autos, entry tickets, the works. The day's expenses cover all of that for the two of you, the way you'd cover a friend showing you their city. Whatever isn't spent comes back to you.`,
   },
 
   bufferExplainer: {
@@ -67,7 +67,7 @@ export const financialCopy = {
 
   depositExplainer: {
     heading: 'About the deposit',
-    body: '₹500 from each of you, held by Mumbai Buddies until the trip wraps. Both refunded after a successful day. The deposit exists so neither side flakes.',
+    body: '₹500 from each of you, held by Detour until the trip wraps. Both refunded after a successful day. The deposit exists so neither side flakes.',
   },
 
   // ── Sign modal ───────────────────────────────────────────────────────────
@@ -293,7 +293,7 @@ export const financialCopy = {
       waived:    'Waived',
       not_paid:  'Not charged',
     },
-    pgFeeNote: 'Payment gateway fee (2%) borne by Mumbai Buddies.',
+    pgFeeNote: 'Payment gateway fee (2%) borne by Detour.',
     processingNote: 'Cash refunds take 5–7 business days.',
   },
 

@@ -7,9 +7,12 @@ name: CI
 # What this catches:
 #   - TypeScript errors (wrong field names, missing imports, type mismatches)
 #   - ESLint violations (unused vars, dead code, common React mistakes)
+#   - Failing unit tests (mobile Jest suite + Deno edge-function tests):
+#     booking state machine, CTA mapping, late fees, reconciliation, webhook
+#     signatures, push copy
 #   - Migrations that fail to apply cleanly (syntax errors, missing columns,
 #     conflicts with previous migrations, broken RLS policies)
-#   - Broken admin or marketing-site production builds
+#   - Broken admin production build; missing/invalid marketing static site
 #
 # What this does NOT catch:
 #   - Runtime errors, layout bugs, or anything you can only see by running the app.
@@ -52,6 +55,37 @@ jobs:
       - name: Lint
         run: npm --prefix mobile run lint
 
+  mobile-test:
+    name: mobile · test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+      - name: Install
+        run: npm --prefix mobile ci
+      # Jest suite: booking state machine, CTA mapping, late fees, cancellation/
+      # reconciliation/agreement snapshots, push-token registration.
+      - name: Test
+        run: npm --prefix mobile test -- --ci
+
+  edge-test:
+    name: edge · test
+    runs-on: ubuntu-latest
+    # Deno unit tests for Supabase edge functions: Razorpay webhook signature
+    # verification, deposit-capture flow, push send + copy. No DB needed —
+    # these are pure-logic tests over the function helpers.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Test edge functions
+        run: deno test --allow-env --no-check supabase/functions/__tests__/
+
   admin-build:
     name: admin · build
     runs-on: ubuntu-latest
@@ -70,20 +104,27 @@ jobs:
       - name: Build
         run: npm --prefix admin run build
 
-  marketing-build:
-    name: marketing · build
+  marketing-check:
+    name: marketing · check
     runs-on: ubuntu-latest
+    # The live marketing site (web/marketing/) is static HTML deployed by
+    # Vercel — there is no build step. The old root Vite site was archived to
+    # web/old-template/ and is no longer shipped, so we no longer build it.
+    # This job validates the shipped static site has its required entry pages
+    # and that they're well-formed enough to be real HTML (catches an empty
+    # file or a bad move/rename).
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - name: Install
-        run: npm ci
-      - name: Build static site
-        run: npm run build
+      - name: Validate static marketing site
+        run: |
+          set -euo pipefail
+          for f in web/marketing/index.html web/marketing/careers.html web/marketing/vercel.json; do
+            test -s "web/marketing/$(basename "$f")" || { echo "::error::Missing or empty $f"; exit 1; }
+          done
+          for f in web/marketing/index.html web/marketing/careers.html; do
+            grep -qiE '<!doctype html|<html' "$f" || { echo "::error::$f does not look like HTML"; exit 1; }
+          done
+          echo "✓ web/marketing static site present and well-formed"
 
   db-migrations:
     name: db · migrations apply cleanly

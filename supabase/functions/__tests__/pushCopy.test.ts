@@ -31,7 +31,7 @@ Deno.test('pushTitleFor returns a non-empty string for every known kind', () => 
 });
 
 Deno.test('pushTitleFor falls back gracefully for unknown kinds', () => {
-  assertEquals(pushTitleFor('completely_unknown_kind'), 'Mumbai Buddies');
+  assertEquals(pushTitleFor('completely_unknown_kind'), 'Detour');
 });
 
 // ── Body ───────────────────────────────────────────────────────────────────

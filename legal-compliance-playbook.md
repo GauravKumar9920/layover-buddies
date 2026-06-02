@@ -1,4 +1,4 @@
-# Mumbai Buddies — Legal & Compliance Playbook
+# Detour — Legal & Compliance Playbook
 
 **Prepared:** April 2026
 **Posture:** Ultra-lean bootstrapping
@@ -91,7 +91,7 @@ The ~₹15–20K/year extra compliance vs LLP is trivial compared to the cost of
 
 2. **Angel tax exemption under Section 56(2)(viib)** — Finance Act 2024 **abolished Section 56(2)(viib) entirely** from April 1, 2025, so this benefit is now moot for everyone. DPIIT status still useful for other shields.
 
-3. **IPR fast-track** — 80% rebate on patent filing fees, 50% on trademark fees, free empanelled facilitators. Relevant when you trademark "Mumbai Buddies."
+3. **IPR fast-track** — 80% rebate on patent filing fees, 50% on trademark fees, free empanelled facilitators. Relevant when you trademark "Detour."
 
 4. **Self-certification** under 9 labour laws and 3 environmental laws for 5 years.
 
@@ -297,7 +297,7 @@ Monthly cycle: deposit TDS by 7th of next month, file Form 26Q quarterly, issue 
 - **Indian Contract Act Section 11**: full contractual capacity at 18+.
 - **UGC**: no regulation bars student earnings. Its 2020 "earn while you learn" guidelines under NEP 2020 actively encourage it.
 - **State/central law**: no bar on gig/contractor earnings by students.
-- **College/university rules**: many have "full-time student" clauses — but these are contracts between student and university, not enforceable against you. Worst case: student faces academic sanction. Zero liability to Mumbai Buddies.
+- **College/university rules**: many have "full-time student" clauses — but these are contracts between student and university, not enforceable against you. Worst case: student faces academic sanction. Zero liability to Detour.
 
 **Protective clause in Guide Agreement:**
 > *"Guide represents and warrants that they have all necessary permissions from their educational institution to undertake engagements via the Platform."*
@@ -353,7 +353,7 @@ As of April 2026, the following states have enacted gig worker welfare laws impo
 - **Bihar** (enacted)
 - **Telangana** (draft)
 
-**Maharashtra has NOT enacted one** as of April 2026. A draft bill circulated in 2024 but hasn't passed. Mumbai Buddies is not currently liable for any state cess.
+**Maharashtra has NOT enacted one** as of April 2026. A draft bill circulated in 2024 but hasn't passed. Detour is not currently liable for any state cess.
 
 The **Code on Social Security 2020** (central) defines "gig worker" and "platform worker" and would require ~1–2% aggregator contribution to a social security fund. **Not yet fully notified**. When it is, model this as a pass-through cost to travelers.
 
@@ -505,7 +505,7 @@ Up to **₹250 crore per instance** for failure to safeguard data. ₹200 Cr for
 
 ### GDPR Overlap — Watch Your Marketing
 
-If you **market to EU residents** (EU-language site, EUR pricing, targeted EU ads), **GDPR applies extraterritorially regardless of DPDP**. Mumbai Buddies targeting international layover travelers plausibly triggers this. Mitigate by:
+If you **market to EU residents** (EU-language site, EUR pricing, targeted EU ads), **GDPR applies extraterritorially regardless of DPDP**. Detour targeting international layover travelers plausibly triggers this. Mitigate by:
 - Avoiding EU-language-specific landing pages at launch
 - Cookie banner with proper consent mechanics
 - Privacy policy mentioning GDPR rights for EU users
@@ -566,7 +566,7 @@ Use [Digit](https://www.godigit.com/business-insurance) or [ACKO](https://www.ac
 - **Learning:** Three major OTAs all use the same supplier-carries-license shield.
 
 ### ToursByLocals (Canada)
-- **Closest analog to Mumbai Buddies.** Marketplace for individual independent guides globally.
+- **Closest analog to Detour.** Marketplace for individual independent guides globally.
 - Vets guides' backgrounds; transfers licensing compliance to guide.
 - Uses "local guide / companion" language.
 - Not MoT-approved.
@@ -581,7 +581,7 @@ Use [Digit](https://www.godigit.com/business-insurance) or [ACKO](https://www.ac
 - **MoT approval:** Yes
 - Employs/contracts guides directly; has in-house training; some hold RLG
 - Full GST registration; 80% profits reportedly to community NGO (Reality Gives)
-- **Learning:** They accept full operator liability because they ARE the operator. Mumbai Buddies should explicitly NOT be this.
+- **Learning:** They accept full operator liability because they ARE the operator. Detour should explicitly NOT be this.
 
 ### Urban Company (non-tourism marketplace precedent)
 - **Structure:** Two-sided marketplace for home services

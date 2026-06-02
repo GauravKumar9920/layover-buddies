@@ -36,7 +36,7 @@ export default function Shell({ onSignOut }: Props) {
         <div className="p-5 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary" />
           <div>
-            <div className="font-heading text-base font-bold leading-none">Mumbai Buddies</div>
+            <div className="font-heading text-base font-bold leading-none">Detour</div>
             <div className="text-[11px] text-muted mt-1 uppercase tracking-wider">Admin</div>
           </div>
         </div>

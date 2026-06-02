@@ -1,4 +1,6 @@
-# Mumbai Buddies - Design Handoff Specification
+# Detour — Design Handoff Specification (legacy / saffron)
+
+> ⚠️ **Superseded — visual reskin pending.** Specs below reflect the older saffron palette. The current brand is **Detour** (cartographic "Deviation Line" identity) — see `detour-design-philosophy.md` and `detour-logo.html`. Retained until the phased reskin lands.
 
 **Version:** 1.0  
 **Last Updated:** April 2026  

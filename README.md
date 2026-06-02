@@ -1,4 +1,4 @@
-# Layover Buddies
+# Detour
 
 A two-sided marketplace connecting international airport layover travelers with Mumbai student guides — turning transit time into a real local experience.
 
@@ -76,4 +76,4 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=
 
 ## License
 
-Copyright (c) 2026 Layover Buddies. All Rights Reserved. See [LICENSE](LICENSE).
+Copyright (c) 2026 Detour. All Rights Reserved. See [LICENSE](LICENSE).

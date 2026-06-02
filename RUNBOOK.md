@@ -1,4 +1,4 @@
-# Mumbai Buddies — Developer Runbook
+# Detour — Developer Runbook
 
 > Last updated: 2026-04-26  
 > Everything in this file reflects the actual working state of the repo.

@@ -1,4 +1,4 @@
-# Mumbai Buddies — Next Tasks for Claude Code
+# Detour — Next Tasks for Claude Code
 
 This document contains the next set of tasks to execute in priority order. Each task is self-contained with context, acceptance criteria, and technical details. Work through them sequentially — each depends on the previous task working correctly.
 

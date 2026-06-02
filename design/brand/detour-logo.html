@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Detour — Logo System (01 + 05)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4EDDD; --paper-3:#FCF7EA; --paper-2:#EBE0C5;
+    --ink:#0E1929; --ink-mute:#5F6B82;
+    --terracotta:#C8542A; --terra-dk:#9E3A1F;
+    --marigold:#E89F2C; --sea:#2D7BA9; --taxi:#F4C430;
+    --pink:#D4347A; --green:#3D8B5A; --line-soft:#C5BA9C;
+    --display:'Bricolage Grotesque',sans-serif;
+    --serif:'Instrument Serif',serif;
+    --body:'Plus Jakarta Sans',sans-serif;
+    --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--body);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;padding:48px 5% 110px;}
+  .wrap{max-width:1100px;margin:0 auto;}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--terracotta);}
+  h1{font-family:var(--display);font-size:clamp(34px,5vw,56px);font-weight:800;letter-spacing:-.03em;line-height:1;margin:10px 0 14px;}
+  .lead{max-width:660px;color:var(--ink-mute);font-size:16px;line-height:1.55;}
+  .sec-no{font-family:var(--mono);font-size:13px;color:var(--terracotta);font-weight:500;}
+  h2{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:-.02em;margin:6px 0 4px;}
+  .sec-desc{color:var(--ink-mute);font-size:14px;line-height:1.5;max-width:620px;margin-bottom:22px;}
+  section{margin-top:72px;}
+  .sec-head{border-top:1px dashed var(--line-soft);padding-top:26px;}
+
+  /* generic stage cards */
+  .card{background:var(--paper-3);border:1px solid var(--line-soft);border-radius:22px;overflow:hidden;box-shadow:0 14px 40px rgba(14,25,41,.07);}
+  .pad{padding:52px 44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;}
+  .meta{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-mute);}
+  .dark .meta{color:rgba(244,237,221,.5);}
+  .terra .meta{color:rgba(252,247,234,.62);}
+  .dark{background:var(--ink);}
+  .terra{background:var(--terracotta);}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;}
+  @media(max-width:760px){.row2,.row3{grid-template-columns:1fr;}}
+
+  .wm{font-family:var(--display);font-weight:800;letter-spacing:-.035em;line-height:1;}
+  .wm .it{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:0;}
+  .city{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute);}
+  .dark .city{color:rgba(244,237,221,.55);}
+  .terra .city{color:rgba(252,247,234,.72);}
+
+  .lockup{display:flex;align-items:center;gap:20px;}
+  .lockup .stack-txt{display:flex;flex-direction:column;gap:7px;}
+
+  .note{font-family:var(--mono);font-size:11px;color:var(--ink-mute);line-height:1.5;max-width:560px;margin-top:14px;}
+  .tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--terracotta);border:1px solid var(--line-soft);border-radius:999px;padding:4px 10px;margin-bottom:14px;}
+
+  /* favicon row */
+  .favs{display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap;justify-content:center;}
+  .favbox{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .ic{display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 18px rgba(14,25,41,.16);}
+  .ic-lbl{font-family:var(--mono);font-size:9px;color:var(--ink-mute);}
+
+  /* clearspace */
+  .cs-stage{position:relative;padding:46px;display:flex;justify-content:center;}
+  .cs-box{position:relative;padding:34px;border:1px dashed var(--terracotta);border-radius:10px;}
+
+  /* don'ts */
+  .dont .pad{position:relative;min-height:150px;}
+  .x-badge{position:absolute;top:12px;right:12px;width:22px;height:22px;border-radius:50%;background:var(--terra-dk);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+  .dont-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink-mute);text-align:center;margin-top:10px;}
+
+  /* tokens */
+  .tokens{display:flex;gap:10px;flex-wrap:wrap;}
+  .tk{width:88px;}
+  .tk .chip{height:56px;border-radius:12px;border:1px solid rgba(14,25,41,.12);}
+  .tk b{display:block;font-family:var(--body);font-size:12px;font-weight:600;margin-top:8px;}
+  .tk span{font-family:var(--mono);font-size:10px;color:var(--ink-mute);}
+
+  footer{margin-top:80px;border-top:1px dashed var(--line-soft);padding-top:24px;font-family:var(--mono);font-size:12px;color:var(--ink-mute);text-align:center;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">Detour · Logo System · Draft v2</div>
+    <h1>The Detour Line + Flight-Tail wordmark</h1>
+    <p class="lead">Your two picks, developed and merged into one identity. <b>Concept&nbsp;01</b> (the route-into-pin mark) becomes the icon &amp; app/favicon. <b>Concept&nbsp;05</b> (the flight-tail wordmark with the italic-serif <span class="wm" style="font-size:15px"><span class="it">ou</span></span>) becomes the typographic signature. The dashed terracotta route line is the shared DNA that ties them together. Still drafts — once you approve the direction, this whole sheet goes to Claude Design for production polish (kerning, true vector export, real favicon files).</p>
+  </header>
+
+  <!-- 01 — PRIMARY LOCKUP (MERGED) -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">01</span>
+      <h2>Primary lockup</h2>
+      <p class="sec-desc">The everyday logo: the detour-line pin mark + the flight-tail wordmark, locked together. The route line leaves the pin, and the plane lifts off the wordmark — one continuous travel gesture across the whole lockup.</p>
+    </div>
+    <div class="card">
+      <div class="pad" style="padding:70px 44px;">
+        <div class="meta">Primary · horizontal · on paper</div>
+        <div class="lockup">
+          <!-- 01 mark: start dot -> dashed bend -> pin -->
+          <svg width="104" height="84" viewBox="0 0 92 74" aria-label="Detour mark">
+            <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+            <circle cx="8" cy="60" r="4.5" fill="#2D7BA9"/>
+            <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
+            <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+          </svg>
+          <div class="stack-txt">
+            <!-- 05 wordmark + flight tail -->
+            <svg width="266" height="92" viewBox="0 0 280 96" aria-label="Detour">
+              <path d="M14 70 C 70 70 150 70 250 30" fill="none" stroke="#C8542A" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.5 7"/>
+              <g transform="translate(248,28) rotate(-24)" fill="#C8542A"><path d="M0 0 L14 5 L0 10 L3 5 Z"/></g>
+              <text x="10" y="58" font-family="Bricolage Grotesque" font-weight="800" font-size="52" letter-spacing="-2" fill="#0E1929">Det<tspan font-family="Instrument Serif" font-style="italic" font-weight="400" fill="#C8542A">ou</tspan>r</text>
+            </svg>
+            <div class="city" style="margin-left:12px;">Mumbai · BOM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 — THE MARK (01) -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">02</span>
+      <h2>The mark — “Detour Line”</h2>
+      <p class="sec-desc">Concept 01, refined. A sea-blue origin dot, a dashed line that bends off the expected path, and lands in a terracotta pin. The literal detour. This is the icon that carries the brand everywhere the wordmark won’t fit.</p>
+    </div>
+    <div class="row3">
+      <div class="card"><div class="pad">
+        <div class="meta">Mark · on paper</div>
+        <svg width="120" height="96" viewBox="0 0 92 74">
+          <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+          <circle cx="8" cy="60" r="4.5" fill="#2D7BA9"/>
+          <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
+          <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+        </svg>
+      </div></div>
+      <div class="card dark"><div class="pad">
+        <div class="meta">Mark · reverse (dark)</div>
+        <svg width="120" height="96" viewBox="0 0 92 74">
+          <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#F4EDDD" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+          <circle cx="8" cy="60" r="4.5" fill="#F4C430"/>
+          <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#E89F2C"/>
+          <circle cx="58" cy="33" r="5.4" fill="#0E1929"/>
+        </svg>
+      </div></div>
+      <div class="card"><div class="pad">
+        <div class="meta">Mark · single-ink (mono)</div>
+        <svg width="120" height="96" viewBox="0 0 92 74">
+          <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+          <circle cx="8" cy="60" r="4.5" fill="#0E1929"/>
+          <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#0E1929"/>
+          <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+        </svg>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 03 — WORDMARK + TAIL (05) -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">03</span>
+      <h2>The wordmark — “Flight Tail”</h2>
+      <p class="sec-desc">Concept 05, refined. Purely typographic — Bricolage Grotesque with the <span class="wm" style="font-size:15px"><span class="it">ou</span></span> set in Instrument Serif italic, and a dashed flight arc that lifts off into a plane. Editorial, magazine energy. Use it standalone in headers and footers where the mark would feel redundant.</p>
+    </div>
+    <div class="row2">
+      <div class="card"><div class="pad">
+        <div class="meta">Wordmark · on paper</div>
+        <svg width="280" height="96" viewBox="0 0 280 96" aria-label="Detour">
+          <path d="M14 70 C 70 70 150 70 250 30" fill="none" stroke="#C8542A" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.5 7"/>
+          <g transform="translate(248,28) rotate(-24)" fill="#C8542A"><path d="M0 0 L14 5 L0 10 L3 5 Z"/></g>
+          <text x="10" y="58" font-family="Bricolage Grotesque" font-weight="800" font-size="52" letter-spacing="-2" fill="#0E1929">Det<tspan font-family="Instrument Serif" font-style="italic" font-weight="400" fill="#C8542A">ou</tspan>r</text>
+        </svg>
+      </div></div>
+      <div class="card dark"><div class="pad">
+        <div class="meta">Wordmark · reverse</div>
+        <svg width="280" height="96" viewBox="0 0 280 96">
+          <path d="M14 70 C 70 70 150 70 250 30" fill="none" stroke="#F4C430" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.5 7"/>
+          <g transform="translate(248,28) rotate(-24)" fill="#F4C430"><path d="M0 0 L14 5 L0 10 L3 5 Z"/></g>
+          <text x="10" y="58" font-family="Bricolage Grotesque" font-weight="800" font-size="52" letter-spacing="-2" fill="#F4EDDD">Det<tspan font-family="Instrument Serif" font-style="italic" font-weight="400" fill="#F4C430">ou</tspan>r</text>
+        </svg>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 04 — STACKED LOCKUP + ON TERRACOTTA -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">04</span>
+      <h2>Lockup variations</h2>
+      <p class="sec-desc">Stacked (vertical) for square spaces and profile avatars; full-color reverse on the terracotta brand block for hero panels and the Instagram grid.</p>
+    </div>
+    <div class="row2">
+      <div class="card"><div class="pad" style="gap:14px;">
+        <div class="meta">Stacked · on paper</div>
+        <svg width="92" height="74" viewBox="0 0 92 74">
+          <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+          <circle cx="8" cy="60" r="4.5" fill="#2D7BA9"/>
+          <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
+          <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+        </svg>
+        <div class="wm" style="font-size:40px;color:#0E1929;">Det<span class="it" style="color:#C8542A">ou</span>r</div>
+        <div class="city">Mumbai · BOM</div>
+      </div></div>
+      <div class="card terra"><div class="pad" style="gap:16px;">
+        <div class="meta">Full lockup · on terracotta</div>
+        <svg width="92" height="74" viewBox="0 0 92 74">
+          <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#FCF7EA" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+          <circle cx="8" cy="60" r="4.5" fill="#F4C430"/>
+          <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#FCF7EA"/>
+          <circle cx="58" cy="33" r="5.4" fill="#C8542A"/>
+        </svg>
+        <div class="wm" style="font-size:40px;color:#FCF7EA;">Det<span class="it" style="color:#F4C430">ou</span>r</div>
+        <div class="city">Mumbai · BOM</div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 05 — APP ICON + FAVICON SET -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">05</span>
+      <h2>App icon &amp; favicon set</h2>
+      <p class="sec-desc">The mark in a rounded-square container, scaled down. At the smallest size the dashed line drops away and only the pin remains, so it stays legible as a 16px favicon.</p>
+    </div>
+    <div class="card"><div class="pad">
+      <div class="meta">Terracotta tile · cream mark — sizes simulated</div>
+      <div class="favs">
+        <div class="favbox">
+          <div class="ic" style="width:96px;height:96px;border-radius:22px;background:var(--terracotta);">
+            <svg width="64" height="52" viewBox="0 0 92 74"><path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#FCF7EA" stroke-width="4" stroke-linecap="round" stroke-dasharray="0.5 8"/><circle cx="8" cy="60" r="4.8" fill="#F4C430"/><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#FCF7EA"/><circle cx="58" cy="33" r="5.4" fill="#C8542A"/></svg>
+          </div><div class="ic-lbl">512 · app</div>
+        </div>
+        <div class="favbox">
+          <div class="ic" style="width:64px;height:64px;border-radius:15px;background:var(--terracotta);">
+            <svg width="44" height="36" viewBox="0 0 92 74"><path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#FCF7EA" stroke-width="4.4" stroke-linecap="round" stroke-dasharray="0.5 8"/><circle cx="8" cy="60" r="5" fill="#F4C430"/><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#FCF7EA"/><circle cx="58" cy="33" r="5.6" fill="#C8542A"/></svg>
+          </div><div class="ic-lbl">180 · iOS</div>
+        </div>
+        <div class="favbox">
+          <div class="ic" style="width:40px;height:40px;border-radius:9px;background:var(--ink);">
+            <svg width="26" height="22" viewBox="0 0 92 74"><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#F4C430"/><circle cx="58" cy="33" r="6" fill="#0E1929"/></svg>
+          </div><div class="ic-lbl">32 · tab</div>
+        </div>
+        <div class="favbox">
+          <div class="ic" style="width:24px;height:24px;border-radius:6px;background:var(--terracotta);">
+            <svg width="16" height="13" viewBox="0 0 92 74"><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#FCF7EA"/></svg>
+          </div><div class="ic-lbl">16 · pin only</div>
+        </div>
+      </div>
+      <p class="note">Note · below ~24px the route line is dropped — only the pin survives, which keeps the favicon readable. Production files (PNG 512/192/180, ICO 32/16, maskable, monochrome SVG) get cut at handoff.</p>
+    </div></div>
+  </section>
+
+  <!-- 06 — CLEAR SPACE + MIN SIZE -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">06</span>
+      <h2>Clear space &amp; minimum size</h2>
+      <p class="sec-desc">Keep breathing room around the lockup equal to the height of the pin mark (the dashed box). Don’t shrink the horizontal lockup below 120px wide on screen — use the mark alone instead.</p>
+    </div>
+    <div class="card"><div class="cs-stage">
+      <div class="cs-box">
+        <div class="lockup">
+          <svg width="80" height="64" viewBox="0 0 92 74">
+            <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+            <circle cx="8" cy="60" r="4.5" fill="#2D7BA9"/>
+            <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
+            <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+          </svg>
+          <div class="wm" style="font-size:34px;color:#0E1929;">Det<span class="it" style="color:#C8542A">ou</span>r</div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 07 — DON'TS -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">07</span>
+      <h2>Misuse — don’t do these</h2>
+      <p class="sec-desc">Quick guardrails so the mark stays consistent wherever it shows up.</p>
+    </div>
+    <div class="row3 dont">
+      <div class="card"><div class="pad">
+        <div class="x-badge">×</div>
+        <div class="wm" style="font-size:30px;color:#2D7BA9;transform:skewX(-12deg);">Det<span class="it" style="color:#D4347A">ou</span>r</div>
+      </div><div class="dont-lbl">Don’t recolour or slant the wordmark</div></div>
+      <div class="card"><div class="pad">
+        <div class="x-badge">×</div>
+        <svg width="120" height="60" viewBox="0 0 92 74" style="transform:scaleX(1.6)">
+          <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
+          <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+        </svg>
+      </div><div class="dont-lbl">Don’t stretch or distort the mark</div></div>
+      <div class="card"><div class="pad" style="background:#3D8B5A;">
+        <div class="x-badge">×</div>
+        <div class="wm" style="font-size:30px;color:#C8542A;">Det<span class="it" style="color:#0E1929">ou</span>r</div>
+      </div><div class="dont-lbl">Don’t place on clashing colours</div></div>
+    </div>
+  </section>
+
+  <!-- 08 — TOKENS -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">08</span>
+      <h2>Colour &amp; type tokens</h2>
+      <p class="sec-desc">Everything in this sheet draws from the Sarthi cartographic palette.</p>
+    </div>
+    <div class="card"><div class="pad" style="align-items:flex-start;gap:26px;">
+      <div class="tokens">
+        <div class="tk"><div class="chip" style="background:#0E1929"></div><b>Ink</b><span>#0E1929</span></div>
+        <div class="tk"><div class="chip" style="background:#C8542A"></div><b>Terracotta</b><span>#C8542A</span></div>
+        <div class="tk"><div class="chip" style="background:#E89F2C"></div><b>Marigold</b><span>#E89F2C</span></div>
+        <div class="tk"><div class="chip" style="background:#2D7BA9"></div><b>Sea</b><span>#2D7BA9</span></div>
+        <div class="tk"><div class="chip" style="background:#F4C430"></div><b>Taxi</b><span>#F4C430</span></div>
+        <div class="tk"><div class="chip" style="background:#F4EDDD"></div><b>Paper</b><span>#F4EDDD</span></div>
+        <div class="tk"><div class="chip" style="background:#FCF7EA"></div><b>Paper-3</b><span>#FCF7EA</span></div>
+      </div>
+      <div class="note" style="font-family:var(--body);font-size:13px;color:var(--ink);max-width:none;">
+        <b>Wordmark:</b> Bricolage Grotesque, weight 800, letter-spacing −0.035em &nbsp;·&nbsp; <b>“ou” accent:</b> Instrument Serif italic 400 &nbsp;·&nbsp; <b>City tag:</b> DM Mono, uppercase, 0.18em tracking.
+      </div>
+    </div></div>
+  </section>
+
+  <footer>
+    Detour · logo system · draft v2 — built from your two picks (01 Detour Line + 05 Flight-Tail wordmark).<br>
+    All marks are editable vector. Approve the direction and this goes to Claude Design for production: true kerning, exported SVG/PNG/ICO, and a tightened lockup grid.
+  </footer>
+
+</div>
+</body>
+</html>

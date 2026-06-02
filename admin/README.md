@@ -1,6 +1,6 @@
-# Mumbai Buddies — Admin
+# Detour — Admin
 
-Local-only admin console for the Mumbai Buddies marketplace. Runs as a separate Vite + React + Tailwind app on `127.0.0.1:5174`. Uses the Supabase service-role key and bypasses RLS, so it's gated by a password and is **not** meant to be deployed publicly in its current form.
+Local-only admin console for the Detour marketplace. Runs as a separate Vite + React + Tailwind app on `127.0.0.1:5174`. Uses the Supabase service-role key and bypasses RLS, so it's gated by a password and is **not** meant to be deployed publicly in its current form.
 
 ## Day-1 screens
 

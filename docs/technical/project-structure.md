@@ -1,8 +1,8 @@
-# Mumbai Buddies - Expo Universal App Project Structure
+# Detour - Expo Universal App Project Structure
 
 ## Overview
 
-This document describes the folder structure and organization for the Mumbai Buddies mobile + web app built with Expo and expo-router. This structure balances simplicity (for MVP) with scalability (for future growth).
+This document describes the folder structure and organization for the Detour mobile + web app built with Expo and expo-router. This structure balances simplicity (for MVP) with scalability (for future growth).
 
 **Key principles:**
 - File-based routing via `expo-router` (like Next.js)
@@ -572,7 +572,7 @@ vercel
 1. Push to `main` branch
 2. Vercel detects `expo export:web`
 3. Builds static HTML/JS
-4. Deploys to https://mumbai-buddies.vercel.app
+4. Deploys to https://detourtrips.com
 5. Takes ~2 minutes
 
 ---

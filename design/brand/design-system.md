@@ -1,4 +1,6 @@
-# Mumbai Buddies Design System
+# Detour Design System (legacy "City of Dreams" / saffron)
+
+> ⚠️ **Superseded — visual reskin pending.** This documents the older saffron-led "City of Dreams" palette used by the current app/marketing code. The brand has since moved to **Detour** with the cartographic "Deviation Line" identity. For the current direction see `detour-design-philosophy.md`, `detour-logo.html`, and `detour-logo-system.png`. This file is retained until the phased visual reskin lands.
 
 **Version:** 1.0  
 **Last Updated:** April 2026  
