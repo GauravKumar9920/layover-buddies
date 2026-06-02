@@ -1,0 +1,1680 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Detour — See the city through a local friend.</title>
+<meta name="description" content="Detour helps international travellers experience cities through verified local students. Land in Mumbai, skip the scams, and see the real city between flights." />
+<!-- Detour pin favicon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 30 C 10 22 6 18 6 13 A 10 10 0 1 1 26 13 C 26 18 22 22 16 30 Z' fill='%23C8542A'/%3E%3Ccircle cx='16' cy='13' r='3.6' fill='%23FCF7EA'/%3E%3C/svg%3E">
+<!-- Open Graph / social preview -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Detour — See the city through a local friend.">
+<meta property="og:description" content="Land in Mumbai between flights and explore the real city with a verified local student. Detour.">
+<meta property="og:url" content="https://detourtrips.com">
+<meta property="og:image" content="https://detourtrips.com/images/hero-skyline-main.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://detourtrips.com/images/hero-skyline-main.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4EDDD; --paper-2:#EBE0C5; --paper-3:#FCF7EA;
+  --ink:#0E1929; --ink-2:#1F2A3D; --ink-mute:#445169;
+  --line:#0E1929; --line-soft:#C5BA9C;
+  --marigold:#E89F2C; --marigold-lt:#FBEACB;
+  --terracotta:#C8542A; --terra-dk:#9E3A1F; --terra-lt:#F7DECC;
+  --sea:#2D7BA9; --sea-dk:#1F5B7E; --sea-lt:#C9DEEB;
+  --taxi:#F4C430; --pink:#D4347A; --olive:#5E7A2C; --green:#3D8B5A;
+  --display:'Bricolage Grotesque',sans-serif;
+  --serif:'Instrument Serif',serif;
+  --body:'Plus Jakarta Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+  --shadow-card:0 1px 0 rgba(14,25,41,.04),0 2px 6px rgba(14,25,41,.05),0 14px 40px rgba(14,25,41,.08);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--body);color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;}
+img{display:block;max-width:100%;}
+.wrap{max-width:1180px;margin:0 auto;padding:0 5%;}
+section{padding:96px 0;position:relative;}
+/* paper grain */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.4;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .15 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size:240px 240px;
+}
+.eyebrow{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--terracotta);display:inline-flex;align-items:center;gap:10px;}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--terracotta);}
+h2{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.4vw,52px);letter-spacing:-.03em;line-height:1.02;margin:16px 0 16px;}
+h2 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);}
+.lead{font-size:18px;line-height:1.55;color:var(--ink-mute);max-width:640px;}
+.section-head{max-width:760px;margin-bottom:48px;}
+
+/* ---------- NAV ---------- */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 5%;display:flex;align-items:center;justify-content:space-between;transition:all .3s ease;}
+nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 1px 0 rgba(14,25,41,.08);padding:12px 5%;}
+.logo{display:flex;align-items:center;gap:11px;}
+.logo .wm{font-family:var(--display);font-weight:800;font-size:25px;letter-spacing:-.04em;color:var(--ink);line-height:1;}
+.logo .wm em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);}
+.logo .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute);margin-top:3px;}
+.nav-links{display:flex;align-items:center;gap:30px;}
+.nav-links a{font-size:14px;font-weight:500;color:var(--ink-2);transition:color .2s;}
+.nav-links a:hover{color:var(--terracotta);}
+.btn-ig{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:9999px;box-shadow:0 4px 0 var(--terra-dk);transition:transform .18s var(--ease),box-shadow .18s ease;}
+.btn-ig:hover{transform:translateY(-1px);box-shadow:0 5px 0 var(--terra-dk);}
+.btn-ig:active{transform:translateY(2px);box-shadow:0 1px 0 var(--terra-dk);}
+@media(max-width:860px){.nav-links{display:none;}}
+
+/* ---------- HERO ---------- */
+.hero{padding:150px 0 90px;}
+.hero-grid{display:grid;grid-template-columns:1fr 1.02fr;gap:56px;align-items:center;}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:40px;}}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;background:var(--paper-3);border:1.5px solid var(--ink);padding:7px 14px;border-radius:9999px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;box-shadow:3px 3px 0 var(--ink);transform:rotate(-1deg);margin-bottom:28px;}
+.hero-eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(44px,6.4vw,84px);line-height:.95;letter-spacing:-.045em;color:var(--ink);margin-bottom:26px;}
+.hero h1 .serif{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);position:relative;}
+.hero h1 .serif::after{content:'';position:absolute;left:-1%;right:-1%;bottom:.1em;height:.16em;background:var(--marigold);opacity:.45;border-radius:9999px;}
+.hero-sub{font-size:19px;line-height:1.55;color:var(--ink-2);max-width:520px;margin-bottom:30px;}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:30px;}
+.btn-primary{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:15px;background:var(--terracotta);color:var(--paper-3);padding:15px 26px;border-radius:9999px;box-shadow:0 5px 0 var(--terra-dk);transition:transform .18s var(--ease),box-shadow .18s ease;border:none;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 0 var(--terra-dk);}
+.btn-primary:active{transform:translateY(2px);box-shadow:0 1px 0 var(--terra-dk);}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;color:var(--ink);padding:15px 22px;border-radius:9999px;border:1.5px solid var(--line-soft);transition:border-color .2s,background .2s;}
+.btn-ghost:hover{border-color:var(--ink);background:var(--paper-3);}
+.trust-row{display:flex;gap:9px;flex-wrap:wrap;}
+.chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--paper-3);border:1px solid var(--line-soft);padding:7px 13px;border-radius:9999px;}
+.chip svg{width:14px;height:14px;color:var(--terracotta);}
+
+/* hero map stage */
+.hero-stage{position:relative;background:var(--sea-lt);border:1.5px solid var(--ink);border-radius:26px;overflow:hidden;min-height:480px;box-shadow:0 24px 60px rgba(14,25,41,.16);}
+.hero-stage .paper-edge{position:absolute;inset:0;background:
+  repeating-linear-gradient(0deg,transparent 0 38px,rgba(31,91,126,.06) 38px 39px),
+  repeating-linear-gradient(90deg,transparent 0 38px,rgba(31,91,126,.06) 38px 39px);}
+.map-label{position:absolute;font-family:var(--serif);font-style:italic;color:var(--sea-dk);}
+.map-city{top:30px;left:34px;font-size:34px;opacity:.55;}
+.map-city small{display:block;font-family:var(--mono);font-style:normal;font-size:9px;letter-spacing:.3em;opacity:.8;margin-top:2px;}
+.map-sea{top:48%;left:24px;font-size:18px;transform:rotate(-90deg);transform-origin:left;opacity:.5;}
+.route-card{position:absolute;background:var(--paper-3);border:1.5px solid var(--ink);border-radius:14px;padding:12px 14px;box-shadow:5px 5px 0 rgba(14,25,41,.14);max-width:215px;}
+.route-card .step{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--terracotta);margin-bottom:5px;}
+.route-card .big{font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:-.02em;}
+.route-card .small{font-size:11.5px;color:var(--ink-mute);margin-top:3px;}
+.rc-1{top:34px;right:26px;}
+.rc-2{bottom:120px;left:30px;}
+.rc-3{bottom:30px;right:34px;background:var(--ink);color:var(--paper-3);}
+.rc-3 .step{color:var(--taxi);}
+.rc-3 .small{color:rgba(244,237,221,.6);}
+.buddy-chip{position:absolute;top:46%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:9px;background:var(--paper-3);border:1.5px solid var(--ink);border-radius:9999px;padding:6px 14px 6px 6px;box-shadow:4px 4px 0 rgba(14,25,41,.16);}
+.buddy-chip .av{width:30px;height:30px;border-radius:50%;background:var(--terracotta);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:14px;}
+.buddy-chip b{font-size:12.5px;}
+.buddy-chip span{font-size:10px;color:var(--ink-mute);display:block;}
+
+/* the route comes alive — the stitch travels from the sea origin toward the pin */
+.route-live{animation:routeflow 3.4s linear infinite;}
+@keyframes routeflow{to{stroke-dashoffset:-100;}}
+.route-ping{transform-box:fill-box;transform-origin:center;animation:routeping 3.4s ease-out infinite;}
+@keyframes routeping{0%{transform:scale(1);opacity:.55;}70%,100%{transform:scale(3.4);opacity:0;}}
+.dot-mid{transform-box:fill-box;transform-origin:center;animation:midpulse 3.4s ease-in-out infinite;}
+@keyframes midpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.28);}}
+.pin-drop{transform-box:fill-box;transform-origin:50% 100%;animation:pinbob 3.4s ease-in-out infinite;}
+@keyframes pinbob{0%,72%,100%{transform:translateY(0);}80%{transform:translateY(-5px);}88%{transform:translateY(0);}}
+@media (prefers-reduced-motion:reduce){
+  .route-live,.route-ping,.dot-mid,.pin-drop{animation:none;}
+  .route-ping{opacity:0;}
+}
+
+/* ---------- MANIFESTO ---------- */
+.manifesto{background:var(--ink);color:var(--paper);}
+.manifesto .wrap{text-align:center;}
+.manifesto h2{color:var(--paper);max-width:900px;margin:16px auto 0;}
+.manifesto h2 em{color:var(--taxi);}
+.manifesto .eyebrow{color:var(--taxi);}
+.manifesto .eyebrow::before{background:var(--taxi);}
+.manifesto .lead{color:rgba(244,237,221,.7);margin:22px auto 0;text-align:center;}
+
+/* ---------- HORIZONTAL SLIDING WINDOW CAROUSEL ---------- */
+.contrasts-slider-container {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  overflow: hidden;
+}
+.contrasts-slider-track {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 12px 5% 32px;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.contrasts-slider-track::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+@media (min-width: 1180px) {
+  .contrasts-slider-track {
+    padding-left: calc((100vw - 1180px) / 2 + 5%);
+    padding-right: calc((100vw - 1180px) / 2 + 5%);
+  }
+}
+.contrast-card {
+  flex: 0 0 340px;
+  height: 480px;
+  position: relative;
+  border: 1.5px solid var(--ink);
+  border-radius: 26px;
+  overflow: hidden;
+  scroll-snap-align: start;
+  background: var(--ink);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.3s var(--ease), border-color 0.3s, box-shadow 0.3s;
+}
+.contrast-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 48px rgba(14,25,41,0.18);
+}
+.contrast-card .card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  transition: transform 0.6s var(--ease);
+}
+.contrast-card:hover .card-img {
+  transform: scale(1.05);
+}
+.contrast-card .duo-gradient {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(14,25,41,0) 30%, rgba(14,25,41,0.3) 55%, rgba(14,25,41,0.85) 100%);
+  pointer-events: none;
+}
+.contrast-card .grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='ng'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .2 0'/></filter><rect width='100%25' height='100%25' filter='url(%23ng)'/></svg>");
+  background-size: 200px 200px;
+}
+.contrast-card .card-content {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  color: var(--paper-3);
+  pointer-events: none;
+}
+.contrast-card .card-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--marigold);
+  margin-bottom: 8px;
+}
+.contrast-card .card-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(20px, 3vw, 25px);
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  margin-bottom: 8px;
+  color: var(--paper-3);
+}
+.contrast-card .card-title em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--taxi);
+}
+.contrast-card .card-desc {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: rgba(244, 237, 221, 0.85);
+}
+@media(max-width: 480px) {
+  .contrast-card {
+    flex: 0 0 290px;
+    height: 420px;
+  }
+  .contrast-card .card-content {
+    padding: 24px;
+  }
+}
+
+/* Header Controls */
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  max-width: 100% !important;
+  margin-bottom: 48px;
+  gap: 32px;
+}
+.section-head-text {
+  max-width: 760px;
+}
+.slider-controls {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+.slider-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: var(--paper-3);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s var(--ease);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+}
+.slider-btn:hover {
+  background: var(--terracotta);
+  color: var(--paper-3);
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.slider-btn:active {
+  transform: translateY(1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+.slider-btn.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  box-shadow: none;
+  transform: none;
+  border-color: var(--line-soft);
+  color: var(--ink-mute);
+}
+@media (max-width: 760px) {
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .slider-controls {
+    align-self: flex-end;
+  }
+}
+
+/* Bottom Progress Tracker */
+.slider-progress-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 28px;
+}
+.slider-progress-bar-bg {
+  width: 200px;
+  height: 4px;
+  background: var(--line-soft);
+  border-radius: 9999px;
+  position: relative;
+  overflow: hidden;
+}
+.slider-progress-bar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 20%;
+  background: var(--terracotta);
+  border-radius: 9999px;
+  transition: left 0.15s ease;
+}
+.slider-status-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-mute);
+  min-width: 50px;
+  text-align: right;
+}
+
+/* contrasts footer reveal card */
+.contrasts-footer {
+  margin-top: 48px;
+  background: var(--terracotta);
+  border: 1.5px solid var(--ink);
+  border-radius: 24px;
+  padding: 28px 36px;
+  color: var(--paper-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  box-shadow: 0 10px 30px rgba(200, 84, 42, 0.12);
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease);
+}
+.contrasts-footer:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(200, 84, 42, 0.22);
+}
+.cf-left h4 {
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+}
+.cf-left h4 em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--taxi);
+}
+.cf-left p {
+  font-size: 14px;
+  color: rgba(252, 247, 234, 0.85);
+  margin-top: 6px;
+}
+.contrasts-footer .btn-primary {
+  background: var(--ink);
+  box-shadow: 0 5px 0 #000;
+  white-space: nowrap;
+}
+.contrasts-footer .btn-primary:hover {
+  box-shadow: 0 6px 0 #000;
+}
+@media(max-width: 760px) {
+  .contrasts-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 32px;
+    gap: 24px;
+  }
+}
+
+
+/* ---------- BUDDIES ---------- */
+.buddy-wrap{display:grid;grid-template-columns:1fr 1.05fr;gap:54px;align-items:center;}
+@media(max-width:900px){.buddy-wrap{grid-template-columns:1fr;}}
+.buddy-text ul{list-style:none;margin:22px 0 0;display:flex;flex-direction:column;gap:14px;}
+.buddy-text li{display:flex;gap:12px;font-size:15px;line-height:1.45;color:var(--ink-2);}
+.buddy-text li svg{width:20px;height:20px;flex-shrink:0;color:var(--terracotta);margin-top:1px;}
+.buddy-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.buddy{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:18px;padding:20px;box-shadow:var(--shadow-card);}
+.buddy .av{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:22px;color:#fff;margin-bottom:12px;}
+.buddy h4{font-family:var(--display);font-weight:700;font-size:17px;display:flex;align-items:center;gap:6px;}
+.buddy h4 svg{width:15px;height:15px;color:var(--green);}
+.buddy .sub{font-size:11.5px;color:var(--ink-mute);margin:4px 0 12px;line-height:1.4;}
+.skills{display:flex;gap:6px;flex-wrap:wrap;}
+.skill{font-size:11px;font-weight:600;padding:4px 9px;border-radius:9999px;background:var(--paper-2);color:var(--ink-2);}
+.ph-note{font-family:var(--mono);font-size:10px;color:var(--ink-mute);margin-top:14px;opacity:.7;}
+
+/* ---------- ROUTES (inspiration) ---------- */
+.routes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+@media(max-width:900px){.routes{grid-template-columns:1fr;}}
+.route{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:20px;overflow:hidden;transition:transform .2s var(--ease),border-color .2s;}
+.route:hover{transform:translateY(-4px);border-color:var(--ink);}
+.route .ph{height:150px;position:relative;display:flex;align-items:flex-end;padding:16px;color:#fff;}
+.route .ph .badge{position:absolute;top:14px;left:14px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;background:rgba(14,25,41,.55);padding:4px 9px;border-radius:9999px;backdrop-filter:blur(4px);}
+.route .ph .where{font-family:var(--serif);font-style:italic;font-size:20px;}
+.ph.a{background:linear-gradient(135deg,#E89F2C,#C8542A);}
+.ph.b{background:linear-gradient(135deg,#2D7BA9,#1F2A3D);}
+.ph.c{background:linear-gradient(135deg,#D4347A,#9E3A1F);}
+.route .body{padding:18px 18px 22px;}
+.route h3{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.02em;margin-bottom:8px;}
+.route p{font-size:13.5px;color:var(--ink-mute);line-height:1.5;margin-bottom:14px;}
+.route .stops{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11.5px;color:var(--ink-2);}
+.route .stops .s{background:var(--paper-2);padding:3px 8px;border-radius:7px;font-weight:600;}
+.route .stops .ar{color:var(--terracotta);}
+
+/* ---------- IMAGE SYSTEM (full-colour photos) ---------- */
+/* route photos -> full colour, gentle zoom on hover */
+.route .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;transition:transform .6s var(--ease);}
+.route:hover .ph img{transform:scale(1.06);}
+.route .ph::after{content:'';position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,rgba(14,25,41,.05) 30%,rgba(14,25,41,.62) 100%);}
+.route .ph .badge,.route .ph .where{position:relative;z-index:3;}
+.route .ph .grain{position:absolute;inset:0;z-index:2;opacity:.45;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='ng'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .2 0'/></filter><rect width='100%25' height='100%25' filter='url(%23ng)'/></svg>");background-size:200px 200px;}
+
+/* buddy avatars -> real (full-colour) faces, never duotone */
+.buddy .av{overflow:hidden;background:var(--paper-2);}
+.buddy .av img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+
+/* duotone atmosphere band — a section break */
+.break-band{padding:0;}
+.break-band .band{position:relative;border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);overflow:hidden;min-height:420px;display:flex;align-items:flex-end;transform:translateZ(0);}
+.break-band .band img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease);}
+.break-band:hover .band img{transform:scale(1.04);}
+.break-band .band::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,25,41,0) 35%,rgba(14,25,41,.72) 100%);}
+.break-band .grain{position:absolute;inset:0;z-index:2;opacity:.5;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'><filter id='nb'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .2 0'/></filter><rect width='100%25' height='100%25' filter='url(%23nb)'/></svg>");background-size:220px 220px;}
+.break-band .route-ghost{position:absolute;inset:0;width:100%;height:100%;z-index:2;}
+.break-band .band-copy{position:relative;z-index:3;padding:46px 6%;max-width:1180px;margin:0 auto;width:100%;color:var(--paper-3);}
+.break-band .band-copy .step{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--taxi);}
+.break-band .band-copy h3{font-family:var(--display);font-weight:800;font-size:clamp(30px,4vw,46px);letter-spacing:-.035em;line-height:1.03;margin-top:10px;max-width:760px;}
+.break-band .band-copy h3 em{font-family:var(--serif);font-style:italic;font-weight:400;color:#F1B27E;}
+.break-band .coord{position:absolute;top:18px;right:6%;z-index:3;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:rgba(252,247,234,.75);}
+
+/* ---------- ETHICS ---------- */
+.ethics{background:var(--paper-3);}
+.ethics-list{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:760px){.ethics-list{grid-template-columns:1fr;}}
+.ethics-item{display:flex;gap:14px;background:var(--paper);border:1.5px solid var(--line-soft);border-radius:16px;padding:18px;}
+.ethics-item .lbl{font-family:var(--mono);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--terracotta);background:var(--terra-lt);padding:5px 10px;border-radius:8px;height:fit-content;white-space:nowrap;}
+.ethics-item h4{font-family:var(--display);font-weight:700;font-size:15.5px;margin-bottom:5px;}
+.ethics-item p{font-size:13px;color:var(--ink-mute);line-height:1.5;}
+
+/* ---------- REVIEWS ---------- */
+.reviews{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+@media(max-width:860px){.reviews{grid-template-columns:1fr;}}
+.review{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:18px;padding:24px;box-shadow:var(--shadow-card);}
+.stars{display:flex;gap:3px;margin-bottom:14px;color:var(--taxi);}
+.stars svg{width:16px;height:16px;}
+.review .q{font-size:15px;line-height:1.55;color:var(--ink-2);margin-bottom:18px;}
+.review .by{display:flex;align-items:center;gap:11px;}
+.review .av{width:38px;height:38px;border-radius:50%;background:var(--sea);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;}
+.review .name{font-weight:700;font-size:14px;}
+.review .ctx{font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);}
+
+/* ---------- CITIES ---------- */
+.cities{background:var(--ink);color:var(--paper);}
+.cities .eyebrow{color:var(--taxi);}.cities .eyebrow::before{background:var(--taxi);}
+.cities h2{color:var(--paper);}.cities h2 em{color:var(--taxi);}
+.cities .lead{color:rgba(244,237,221,.7);}
+.city-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:40px;}
+.city-pill{display:flex;align-items:center;gap:10px;background:rgba(244,237,221,.06);border:1.5px solid rgba(244,237,221,.16);border-radius:14px;padding:16px 22px;}
+.city-pill .dot{width:9px;height:9px;border-radius:50%;background:var(--green);}
+.city-pill.soon{opacity:.6;}
+.city-pill.soon .dot{background:var(--marigold);}
+.city-pill b{font-family:var(--display);font-weight:700;font-size:18px;}
+.city-pill span{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(244,237,221,.55);}
+
+/* ---------- FINAL CTA ---------- */
+.final{text-align:center;background:var(--terracotta);color:var(--paper-3);border-radius:30px;padding:72px 32px;position:relative;overflow:hidden;margin:0 auto;}
+.final h2{color:var(--paper-3);}
+.final h2 em{color:var(--taxi);}
+.final p{font-size:18px;color:rgba(252,247,234,.85);max-width:540px;margin:14px auto 30px;line-height:1.5;}
+.final .btn-primary{background:var(--ink);box-shadow:0 5px 0 #000;}
+.final .btn-primary:hover{box-shadow:0 6px 0 #000;}
+.final .trustline{font-family:var(--mono);font-size:12px;letter-spacing:.06em;margin-top:22px;color:rgba(252,247,234,.7);}
+
+/* ---------- FOOTER ---------- */
+footer{background:var(--ink);color:rgba(244,237,221,.7);padding:64px 0 32px;}
+.foot{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:32px;}
+@media(max-width:760px){.foot{grid-template-columns:1fr 1fr;}}
+.foot .logo .wm{color:var(--paper);}
+.foot p{font-size:13.5px;line-height:1.55;margin-top:14px;max-width:280px;}
+.foot h5{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--taxi);margin-bottom:14px;}
+.foot a{display:block;font-size:13.5px;margin-bottom:9px;color:rgba(244,237,221,.7);transition:color .2s;}
+.foot a:hover{color:var(--paper);}
+.foot-legal{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:48px;padding-top:24px;border-top:1px solid rgba(244,237,221,.12);font-family:var(--mono);font-size:11.5px;}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.reveal.in{opacity:1;transform:none;}
+
+/* ---------- ACCESSIBILITY FOCUS INDICATORS ---------- */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex="0"]:focus-visible {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 4px;
+}
+
+/* ---------- DYNAMIC ACTIVE NAV ---------- */
+.nav-links a {
+  position: relative;
+  padding-bottom: 4px;
+}
+.nav-links a.active {
+  color: var(--terracotta) !important;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--terracotta);
+  border-radius: 9999px;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform .25s var(--ease);
+}
+.nav-links a.active::after {
+  transform: scaleX(1);
+}
+
+/* ---------- MODALS & DIALOGS ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(14, 25, 41, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .35s var(--ease);
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.modal-card {
+  background: var(--paper-3);
+  border: 1.5px solid var(--ink);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 520px;
+  padding: 36px;
+  box-shadow: 0 30px 90px rgba(14, 25, 41, 0.24);
+  position: relative;
+  transform: translateY(30px) scale(0.96);
+  transition: transform .35s var(--ease), opacity .35s var(--ease);
+}
+.modal-overlay.open .modal-card {
+  transform: translateY(0) scale(1);
+}
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--ink-mute);
+  transition: color .2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+.modal-close:hover {
+  color: var(--ink);
+  background: var(--paper-2);
+}
+.modal-header {
+  margin-bottom: 24px;
+}
+.modal-header h2 {
+  font-family: var(--display);
+  font-size: clamp(24px, 3.5vw, 32px);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  margin: 8px 0 0;
+  line-height: 1.1;
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 6px;
+}
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="date"],
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line-soft);
+  background: var(--paper);
+  font-family: inherit;
+  font-size: 14.5px;
+  color: var(--ink);
+  transition: border-color .2s, box-shadow .2s;
+}
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="date"]:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--ink);
+  background: var(--paper-3);
+  box-shadow: 0 0 0 3px rgba(200, 84, 42, 0.1);
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 16px;
+}
+@media(max-width:480px){
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+}
+.slider-container input[type="range"] {
+  flex-grow: 1;
+  accent-color: var(--terracotta);
+  cursor: pointer;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--line-soft);
+}
+.slider-container span {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--terracotta);
+  white-space: nowrap;
+  background: var(--terra-lt);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.success-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  display: block;
+}
+
+/* Route Timeline Drawer */
+.drawer-card {
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.route-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  background: var(--terra-lt);
+  color: var(--terracotta);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+.drawer-card.theme-sea .route-badge {
+  background: var(--sea-lt);
+  color: var(--sea-dk);
+}
+.timeline {
+  position: relative;
+  margin: 28px 0 20px 10px;
+  padding-left: 24px;
+  border-left: 1.5px dashed var(--line-soft);
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 28px;
+}
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+.timeline-badge {
+  position: absolute;
+  left: -33px;
+  top: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--paper-3);
+  border: 1.5px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.timeline-badge::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--terracotta);
+}
+.timeline-item.origin .timeline-badge::after {
+  background: var(--sea);
+}
+.timeline-item.destination .timeline-badge::after {
+  background: var(--taxi);
+}
+.timeline-time {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--terracotta);
+}
+.timeline-item.origin .timeline-time {
+  color: var(--sea);
+}
+.timeline-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 16px;
+  margin: 3px 0 2px;
+}
+.timeline-desc {
+  font-size: 13.5px;
+  color: var(--ink-mute);
+  line-height: 1.45;
+}
+
+/* Route Hover State */
+.route {
+  cursor: pointer;
+}
+
+/* ---------- WHY DETOUR (value cards) ---------- */
+.why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+@media(max-width:900px){.why-grid{grid-template-columns:1fr;}}
+.why-card{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:20px;padding:32px 28px;box-shadow:var(--shadow-card);transition:transform .2s var(--ease),border-color .2s,box-shadow .2s;}
+.why-card:hover{transform:translateY(-4px);border-color:var(--ink);box-shadow:0 18px 44px rgba(14,25,41,.12);}
+.why-ic{width:56px;height:56px;border-radius:15px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;border:1.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink);}
+.why-ic svg{width:27px;height:27px;}
+.why-card h3{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.02em;margin-bottom:9px;}
+.why-card p{font-size:14px;line-height:1.55;color:var(--ink-mute);}
+
+/* ---------- HOW IT WORKS ---------- */
+.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+@media(max-width:900px){.how-grid{grid-template-columns:1fr;}}
+.how-step{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:20px;padding:32px 28px;box-shadow:var(--shadow-card);transition:transform .2s var(--ease),border-color .2s;}
+.how-step:hover{transform:translateY(-4px);border-color:var(--ink);}
+.how-num{font-family:var(--display);font-weight:800;font-size:25px;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--ink);color:var(--paper-3);margin-bottom:18px;box-shadow:0 4px 0 var(--terra-dk);}
+.how-step .mono-tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--terracotta);display:block;margin-bottom:8px;}
+.how-step h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em;margin-bottom:8px;}
+.how-step p{font-size:14px;line-height:1.55;color:var(--ink-mute);}
+
+/* ---------- GALLERY ---------- */
+.gallery-grid{columns:3 280px;column-gap:16px;}
+.gallery-grid .g-item{break-inside:avoid;margin-bottom:16px;position:relative;border:1.5px solid var(--ink);border-radius:18px;overflow:hidden;box-shadow:var(--shadow-card);}
+.gallery-grid img{width:100%;display:block;transition:transform .6s var(--ease);}
+.gallery-grid .g-item:hover img{transform:scale(1.05);}
+.gallery-grid .grain{position:absolute;inset:0;z-index:2;opacity:.4;mix-blend-mode:overlay;pointer-events:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='ng'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .2 0'/></filter><rect width='100%25' height='100%25' filter='url(%23ng)'/></svg>");background-size:200px 200px;}
+@media(max-width:600px){.gallery-grid{columns:2 150px;}}
+
+/* ---------- FAQ ACCORDION ---------- */
+.faq-list{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
+.faq-item{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:16px;overflow:hidden;transition:border-color .2s,box-shadow .2s;}
+.faq-item.open{border-color:var(--ink);box-shadow:var(--shadow-card);}
+.faq-q{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px;background:none;border:none;text-align:left;font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.01em;color:var(--ink);}
+.faq-ico{flex-shrink:0;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;transition:transform .3s var(--ease),background .2s,color .2s,border-color .2s;}
+.faq-ico svg{width:13px;height:13px;}
+.faq-item.open .faq-ico{transform:rotate(45deg);background:var(--terracotta);color:var(--paper-3);border-color:var(--terracotta);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s var(--ease);}
+.faq-a-inner{padding:0 22px 20px;font-size:14.5px;line-height:1.6;color:var(--ink-mute);}
+
+/* ---------- EARLY-ACCESS CHIP ---------- */
+.chip.free{background:var(--terra-lt);border-color:var(--terracotta);color:var(--terra-dk);}
+.chip.free svg{color:var(--terracotta);}
+
+/* ---------- BOOKING MODAL — GOOGLE FORM EMBED ---------- */
+#booking-modal .modal-card{max-width:560px;}
+.modal-iframe-wrap{margin-top:18px;border:1.5px solid var(--line-soft);border-radius:14px;overflow:hidden;}
+.modal-iframe-wrap iframe{width:100%;height:62vh;min-height:440px;max-height:640px;border:none;display:block;background:var(--paper-3);}
+</style>
+</head>
+<body>
+
+<!-- duotone filters: shadows->ink, mids->terracotta/sea, highlights->cream. tritone + midtone lift keeps brand tint on dark photos -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="duo-terra" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="0.34 0.5 0.16 0 0  0.34 0.5 0.16 0 0  0.34 0.5 0.16 0 0  0 0 0 1 0"/>
+    <feComponentTransfer>
+      <feFuncR type="gamma" amplitude="1" exponent="0.68" offset="0"/>
+      <feFuncG type="gamma" amplitude="1" exponent="0.68" offset="0"/>
+      <feFuncB type="gamma" amplitude="1" exponent="0.68" offset="0"/>
+    </feComponentTransfer>
+    <feComponentTransfer>
+      <feFuncR type="table" tableValues="0.055 0.784 0.988"/>
+      <feFuncG type="table" tableValues="0.098 0.329 0.945"/>
+      <feFuncB type="table" tableValues="0.160 0.165 0.870"/>
+    </feComponentTransfer>
+  </filter>
+  <filter id="duo-sea" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="0.34 0.5 0.16 0 0  0.34 0.5 0.16 0 0  0.34 0.5 0.16 0 0  0 0 0 1 0"/>
+    <feComponentTransfer>
+      <feFuncR type="gamma" amplitude="1" exponent="0.68" offset="0"/>
+      <feFuncG type="gamma" amplitude="1" exponent="0.68" offset="0"/>
+      <feFuncB type="gamma" amplitude="1" exponent="0.68" offset="0"/>
+    </feComponentTransfer>
+    <feComponentTransfer>
+      <feFuncR type="table" tableValues="0.055 0.176 0.860"/>
+      <feFuncG type="table" tableValues="0.098 0.482 0.910"/>
+      <feFuncB type="table" tableValues="0.160 0.663 0.945"/>
+    </feComponentTransfer>
+  </filter>
+</svg>
+
+<!-- NAV -->
+<nav id="nav">
+  <a class="logo" href="#top">
+    <svg width="50" height="40" viewBox="0 0 92 74" aria-hidden="true">
+      <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+      <circle cx="8" cy="60" r="4.5" fill="#2D7BA9"/>
+      <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
+      <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+    </svg>
+    <div>
+      <div class="wm">Det<em>ou</em>r</div>
+      <div class="tag">Mumbai · BOM</div>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="#idea">The idea</a>
+    <a href="#mumbai">Mumbai</a>
+    <a href="#how">How it works</a>
+    <a href="#routes">Detours</a>
+    <a href="#faq">FAQ</a>
+    <a href="careers.html">Careers</a>
+  </div>
+  <a class="btn-ig" href="https://www.instagram.com/detour_trips/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+    Follow the journey
+  </a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="hero-eyebrow"><span class="pulse"></span> Launching soon · Mumbai first · free in early access</span>
+      <h1>Turn your Mumbai layover into a <span class="serif">story.</span></h1>
+      <p class="hero-sub">A layover used to be dead time between flights. Detour opens the gates: a custom route matching your hours, a verified student buddy, and a city that suddenly feels like home.</p>
+      <div class="hero-ctas">
+        <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+        <a class="btn-ghost" href="#idea">See the idea</a>
+      </div>
+      <div class="trust-row">
+        <span class="chip free"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 8.2l7.1-.6z"/></svg> Free in early access</span>
+      </div>
+    </div>
+
+    <!-- MAP STAGE -->
+    <div class="hero-stage">
+      <div class="paper-edge"></div>
+      <div class="map-label map-city">Mumbai<small>City of Dreams</small></div>
+      <div class="map-label map-sea">Arabian Sea</div>
+
+      <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 520 480" preserveAspectRatio="none" aria-hidden="true">
+        <path class="route-live" d="M60 60 C 150 70 200 150 230 230 S 320 360 380 420" fill="none" stroke="#1F2A3D" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round"/>
+        <circle class="route-ping" cx="60" cy="60" r="7" fill="none" stroke="#2D7BA9" stroke-width="2"/>
+        <circle cx="60" cy="60" r="7" fill="#2D7BA9" stroke="#0E1929" stroke-width="2"/>
+        <circle class="dot-mid" cx="230" cy="230" r="6" fill="#F4C430" stroke="#0E1929" stroke-width="2"/>
+        <g class="pin-drop">
+          <path d="M380 408 C 372 398 366 392 366 384 a14 14 0 1 1 28 0 c0 8 -6 14 -14 24 z" fill="#C8542A" stroke="#0E1929" stroke-width="2"/>
+          <circle cx="380" cy="384" r="5" fill="#FCF7EA"/>
+        </g>
+      </svg>
+
+      <div class="route-card rc-1">
+        <div class="step">Step 01 · Arrival</div>
+        <div class="big">Land at BOM</div>
+        <div class="small">Terminal 2 · your buddy is notified</div>
+      </div>
+      <div class="buddy-chip">
+        <span class="av">A</span>
+        <div><b>Arjun is on the way</b><span>4.92 ★ · replies in 6 min</span></div>
+      </div>
+      <div class="route-card rc-2">
+        <div class="step">Live · via Sea Link</div>
+        <div class="big">42 min to the city</div>
+        <div class="small">light traffic · AC cab</div>
+      </div>
+      <div class="route-card rc-3">
+        <div class="step">Your detour ends</div>
+        <div class="big">Marine Drive · sunset</div>
+        <div class="small">back at T2 with a 90-min buffer</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MANIFESTO -->
+<section class="manifesto" id="idea">
+  <div class="wrap">
+    <span class="eyebrow">The idea</span>
+    <h2>A layover is dead time. A <em>detour</em> is a story you didn't expect to bring home.</h2>
+    <p class="lead">Millions of travellers pass through Mumbai every year and never leave the terminal — too unsure, too nervous, too short on time. Detour exists to open that door: a verified local friend, a route that fits your hours, and a city that suddenly feels like it's on your side.</p>
+  </div>
+</section>
+
+<!-- DUOTONE ATMOSPHERE BAND (section break) -->
+<section class="break-band">
+  <div class="band">
+    <img src="images/hero-skyline-main.jpg" alt="Mumbai skyline, between flights" loading="lazy" />
+    <div class="grain"></div>
+    <span class="coord">19.0760°N · 72.8777°E · BOM</span>
+    <svg class="route-ghost" viewBox="0 0 1600 480" preserveAspectRatio="none" aria-hidden="true">
+      <path class="route-live" d="M120 150 C 460 190 640 330 920 350 S 1320 420 1480 340" fill="none" stroke="#F4EDDD" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round" opacity="0.85"/>
+      <circle cx="120" cy="150" r="6" fill="#F4C430" stroke="#0E1929" stroke-width="1.5"/>
+    </svg>
+    <div class="band-copy">
+      <div class="step">The city, between flights</div>
+      <h3>Six hours is enough to <em>fall a little in love.</em></h3>
+    </div>
+  </div>
+</section>
+
+<!-- WHY DETOUR -->
+<section id="why">
+  <div class="wrap">
+    <div class="section-head"><div class="section-head-text">
+      <span class="eyebrow">Why Detour</span>
+      <h2>Why explore with a <em>local student?</em></h2>
+      <p class="lead">Skip the tourist traps and the airport-taxi anxiety. See the city through someone who actually lives it — on a schedule built around your flight.</p>
+    </div></div>
+    <div class="why-grid">
+      <div class="why-card reveal">
+        <div class="why-ic" style="background:var(--terra-lt);color:var(--terracotta);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1 2.5 3 6 3s6-2 6-3v-5"/></svg></div>
+        <h3>Smart &amp; cultured</h3>
+        <p>Your buddy is a vetted student from one of Mumbai's top colleges — fluent in English and in the city's shortcuts, food, and stories.</p>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-ic" style="background:var(--sea-lt);color:var(--sea-dk);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3>Flight-safe by design</h3>
+        <p>Every route is built around your departure time, with live traffic buffers — so you're always back at BOM with time to spare.</p>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-ic" style="background:var(--marigold-lt);color:var(--terra-dk);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M3 9V7a2 2 0 0 1 2-2h11"/><path d="M16 13h.01"/></svg></div>
+        <h3>Transparent pricing</h3>
+        <p>A flat fee for your buddy's time — and it's free while we're in early access. Cabs, food, and tickets are paid directly at the real local price.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MUMBAI / CONTRASTS -->
+<section id="mumbai">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-head-text">
+        <span class="eyebrow">Why Mumbai first</span>
+        <h2>Mumbai isn't one city. It's <em>seven contradictions</em> stacked on one peninsula.</h2>
+        <p class="lead">That's exactly why it stays in your head long after the flight. Every block is a different city — slide or swipe to explore them all.</p>
+      </div>
+      <div class="slider-controls">
+        <button class="slider-btn disabled" id="slider-prev" aria-label="Scroll left">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <button class="slider-btn" id="slider-next" aria-label="Scroll right">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
+      </div>
+    </div>
+    
+    <div class="contrasts-slider-container">
+      <div class="contrasts-slider-track">
+        
+        <!-- Card 1 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/gallery-sealink.jpg" alt="Sea and skyline" loading="lazy">
+          <div class="duo-gradient"></div>
+          <div class="grain"></div>
+          <div class="card-content">
+            <span class="card-num">01 · Geography</span>
+            <h3 class="card-title">Sea <em>&amp;</em> skyline.</h3>
+            <p class="card-desc">The refreshing Arabian Sea breeze along the Marine Drive crescent meeting the towering glass skyline of the Worli Sea Link coastline.</p>
+          </div>
+        </div>
+        
+        <!-- Card 2 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/gallery-local-train.jpg" alt="Chaos and calm" loading="lazy">
+          <div class="duo-gradient"></div>
+          <div class="grain"></div>
+          <div class="card-content">
+            <span class="card-num">02 · Tempo</span>
+            <h3 class="card-title">Chaos <em>&amp;</em> calm.</h3>
+            <p class="card-desc">The adrenaline-fueled, packed local trains of CSMT station standing in stark contrast to the absolute ancient silence of the Banganga Tank.</p>
+          </div>
+        </div>
+        
+        <!-- Card 3 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/hero-skyline-side.jpg" alt="Old and new" loading="lazy">
+          <div class="duo-gradient"></div>
+          <div class="grain"></div>
+          <div class="card-content">
+            <span class="card-num">03 · Time</span>
+            <h3 class="card-title">Old <em>&amp;</em> new.</h3>
+            <p class="card-desc">Centuries-old, beautifully preserved wooden Portuguese cottages in Khotachiwadi standing in the shadow of the sprawling financial high-rises of BKC.</p>
+          </div>
+        </div>
+        
+        <!-- Card 4 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/gallery-chai.jpg" alt="Street and lounges" loading="lazy">
+          <div class="duo-gradient"></div>
+          <div class="grain"></div>
+          <div class="card-content">
+            <span class="card-num">04 · Plate</span>
+            <h3 class="card-title">Street <em>&amp;</em> lounges.</h3>
+            <p class="card-desc">Piping hot, spicy midnight street food at Mohammed Ali Road contrasting with the high-concept speakeasy lounges of Colaba and Bandra.</p>
+          </div>
+        </div>
+        
+        <!-- Card 5 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/gallery-csmt.jpg" alt="Gothic and docks" loading="lazy">
+          <div class="duo-gradient"></div>
+          <div class="grain"></div>
+          <div class="card-content">
+            <span class="card-num">05 · Stone</span>
+            <h3 class="card-title">Gothic <em>&amp;</em> docks.</h3>
+            <p class="card-desc">The majestic Victorian stone carvings of Crawford and CSMT standing alongside the raw, salt-crusted maritime history of the Sassoon Docks.</p>
+          </div>
+        </div>
+        
+        <!-- Card 6 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/gallery-bazaar.jpg" alt="Grit and gold" loading="lazy">
+          <div class="duo-gradient"></div>
+          <div class="grain"></div>
+          <div class="card-content">
+            <span class="card-num">06 · Spirit</span>
+            <h3 class="card-title">Grit <em>&amp;</em> gold.</h3>
+            <p class="card-desc">The relentless, sweat-stained hustle of local Crawford market wholesalers running adjacent to the opulent, quiet mansions of Malabar Hill.</p>
+          </div>
+        </div>
+        
+        <!-- Card 7 -->
+        <div class="contrast-card">
+          <img class="card-img" src="images/gallery-temple.jpg" alt="Stars and shrines" loading="lazy">
+          <div class="duo-gradient"></div>
+          <div class="grain"></div>
+          <div class="card-content">
+            <span class="card-num">07 · Culture</span>
+            <h3 class="card-title">Stars <em>&amp;</em> shrines.</h3>
+            <p class="card-desc">The shimmering Bollywood movie marquees of Bandra existing alongside the ancient spiritual path of Haji Ali Mosque extending into the Arabian Sea.</p>
+          </div>
+        </div>
+        
+      </div>
+      
+      <div class="slider-progress-wrap">
+        <span class="slider-status-text">01 / 07</span>
+        <div class="slider-progress-bar-bg">
+          <div class="slider-progress-bar-fill" id="slider-progress-fill"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="contrasts-footer reveal">
+      <div class="cf-left">
+        <h4>Your detour. We show you <em>all of it.</em></h4>
+        <p>Not the generic postcard tourist trap. The real, breathing city through a local buddy's eyes.</p>
+      </div>
+      <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="wrap">
+    <div class="section-head"><div class="section-head-text">
+      <span class="eyebrow">How it works</span>
+      <h2>Three steps from <em>terminal to the city.</em></h2>
+      <p class="lead">No haggling, no guesswork. Tell us about your layover and we handle the rest.</p>
+    </div></div>
+    <div class="how-grid">
+      <div class="how-step reveal">
+        <div class="how-num">1</div>
+        <span class="mono-tag">Step 01</span>
+        <h3>Share your layover</h3>
+        <p>Send your arrival and departure times. We work out the real free window you have after immigration and bag-drop.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-num">2</div>
+        <span class="mono-tag">Step 02</span>
+        <h3>Get matched</h3>
+        <p>We pair you with a verified student buddy and a route shaped to your hours — and the things you're actually into.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-num">3</div>
+        <span class="mono-tag">Step 03</span>
+        <h3>Explore the city</h3>
+        <p>Meet at arrivals, stash heavy bags in the airport cloakroom, and head out. You're back at BOM with a comfortable buffer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROUTES (inspiration, not products) -->
+<section id="routes" style="background:var(--paper-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">What a detour looks like</span>
+      <h2>Three moods, hand-built by Mumbai students.</h2>
+      <p class="lead">Not packages — possibilities. A glimpse of the kind of day a local would actually plan for you, depending on who you are.</p>
+    </div>
+    <div class="routes">
+      <div class="route reveal">
+        <div class="ph a"><img src="images/gallery-gateway.jpg" alt="" loading="lazy"><div class="grain"></div><span class="badge">The postcard</span><span class="where">Marine Drive sunset</span></div>
+        <div class="body"><h3>First-time Mumbai classic</h3><p>Famous, iconic, cinematic — the classic South Mumbai story everyone shares back home.</p>
+          <div class="stops"><span class="s">Gateway</span><span class="ar">›</span><span class="s">Kala Ghoda</span><span class="ar">›</span><span class="s">CSMT</span><span class="ar">›</span><span class="s">Marine Drive</span></div></div>
+      </div>
+      <div class="route reveal">
+        <div class="ph b"><img src="images/gallery-dharavi.jpg" alt="" loading="lazy"><div class="grain"></div><span class="badge">Hyper-local</span><span class="where">Sunday like a local</span></div>
+        <div class="body"><h3>Where Mumbaikars actually go</h3><p>Local life, vada pav, sea, old-new contrasts — minus the tourist crowd.</p>
+          <div class="stops"><span class="s">Dadar Market</span><span class="ar">›</span><span class="s">Shivaji Park</span><span class="ar">›</span><span class="s">Worli Koliwada</span><span class="ar">›</span><span class="s">Bandra Fort</span></div></div>
+      </div>
+      <div class="route reveal">
+        <div class="ph c"><img src="images/gallery-cst.jpg" alt="" loading="lazy"><div class="grain"></div><span class="badge">Old Bombay</span><span class="where">Irani cafés &amp; stone</span></div>
+        <div class="body"><h3>Colonial Bombay, stuck in 1932</h3><p>Gothic stations, Art Deco facades, berry pulao at Britannia, chai at Kyani.</p>
+          <div class="stops"><span class="s">CSMT</span><span class="ar">›</span><span class="s">Fort</span><span class="ar">›</span><span class="s">Ballard Estate</span><span class="ar">›</span><span class="s">Britannia</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="wrap">
+    <div class="section-head"><div class="section-head-text">
+      <span class="eyebrow">The city, unfiltered</span>
+      <h2>Mumbai, as seen by the people who <em>live it.</em></h2>
+      <p class="lead">Not stock photos. The streets, plates, and corners your buddy will actually take you through — hover to bring them to life.</p>
+    </div></div>
+    <div class="gallery-grid">
+      <div class="g-item reveal"><img src="images/gallery-vadapav.jpg" alt="Vada pav, Mumbai's street classic" loading="lazy"><div class="grain"></div></div>
+      <div class="g-item reveal"><img src="images/hero-gateway-night.jpg" alt="Gateway of India after dark" loading="lazy"><div class="grain"></div></div>
+      <div class="g-item reveal"><img src="images/package-real-mumbai.jpg" alt="The real, everyday Mumbai" loading="lazy"><div class="grain"></div></div>
+      <div class="g-item reveal"><img src="images/step-streets.jpg" alt="Mumbai streets up close" loading="lazy"><div class="grain"></div></div>
+      <div class="g-item reveal"><img src="images/gallery-university.jpg" alt="Students on a Mumbai college campus" loading="lazy"><div class="grain"></div></div>
+      <div class="g-item reveal"><img src="images/package-deep-dive.jpg" alt="A deeper wander through the city" loading="lazy"><div class="grain"></div></div>
+      <div class="g-item reveal"><img src="images/step-airport.jpg" alt="Mumbai airport, where the detour begins" loading="lazy"><div class="grain"></div></div>
+      <div class="g-item reveal"><img src="images/package-quick-escape.jpg" alt="A quick layover escape" loading="lazy"><div class="grain"></div></div>
+      <div class="g-item reveal"><img src="images/step-university.jpg" alt="University grounds in the heart of the city" loading="lazy"><div class="grain"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUES / ETHICS -->
+<section class="ethics" id="values">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">How we travel</span>
+      <h2>We care <em>how</em> we move through a city. Not just where we go.</h2>
+      <p class="lead">Mumbai is generous, but a few corners need care. We don't sell poverty as spectacle, and we don't cut corners on safety. Here's the line we hold.</p>
+    </div>
+    <div class="ethics-list">
+      <div class="ethics-item reveal"><span class="lbl">Dignity</span><div><h4>Community-led, never "slum sightseeing"</h4><p>Where we visit working neighbourhoods, it's with community-run guides, focused on craft and enterprise — never camera-pointing tours.</p></div></div>
+      <div class="ethics-item reveal"><span class="lbl">Safety</span><div><h4>Known venues, planned transport</h4><p>Every evening detour ends with a vetted cab. We never put a solo traveller on a late-night local train.</p></div></div>
+      <div class="ethics-item reveal"><span class="lbl">Honesty</span><div><h4>Fixed price, no surprises</h4><p>The number you see is the number you pay. No surge, no commission detours, no end-of-day surprise bill.</p></div></div>
+      <div class="ethics-item reveal"><span class="lbl">Respect</span><div><h4>The city's terms, not ours</h4><p>Prayer times, market days, dress at sacred sites, photography etiquette — your buddy knows, so you never have to guess.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head-text" style="text-align:center;margin:0 auto 48px;max-width:680px;">
+      <span class="eyebrow" style="justify-content:center;">Got questions?</span>
+      <h2>The things travellers <em>always ask.</em></h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">What if my incoming flight is delayed?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">We track your flight in real time, so your buddy simply waits or reshapes the plan. You only ever spend the hours you actually have on the ground.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">What do I do with my heavy luggage?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">Mumbai airport has a secure left-luggage cloakroom. Your buddy meets you at arrivals and walks you there first, so you explore the city hands-free.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">How much does a Detour cost?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">While we're in early access, Detour is completely free — there's no service fee at all. You only cover your own cab, food, and tickets, paid directly at honest local prices with zero markup.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">Is it safe to leave the airport on a layover?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">Yes — with a verified local student, planned transport, and a route that always keeps an airport buffer. Doing it with a trusted buddy is exactly what makes a layover stop safe.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section style="padding:64px 0 96px;">
+  <div class="wrap">
+    <div class="final">
+      <span class="eyebrow" style="color:var(--paper-3);justify-content:center;">Free · early access</span>
+      <h2>Got a few hours in Mumbai? <em>Take a detour — on us.</em></h2>
+      <p>We're matching our very first travellers right now. Join early access and explore Mumbai with a verified local student, completely free.</p>
+      <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+      <div class="trustline">Verified students · Free in early access · Made in Mumbai</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <a class="logo" href="#top">
+          <svg width="46" height="37" viewBox="0 0 92 74"><path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#F4EDDD" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/><circle cx="8" cy="60" r="4.5" fill="#F4C430"/><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/><circle cx="58" cy="33" r="5.4" fill="#F4EDDD"/></svg>
+          <div><div class="wm">Det<em>ou</em>r</div><div class="tag" style="color:rgba(244,237,221,.5)">Mumbai · BOM</div></div>
+        </a>
+        <p>Detour helps international travellers experience cities through verified local students. Mumbai is our first home.</p>
+      </div>
+      <div><h5>Detour</h5><a href="#idea">The idea</a><a href="#why">Why Detour</a><a href="#how">How it works</a><a href="#routes">Detours</a><a href="careers.html">Careers</a></div>
+      <div><h5>Trust</h5><a href="#values">How we travel</a><a href="#gallery">Gallery</a><a href="#faq">FAQ</a></div>
+      <div><h5>Connect</h5><a href="https://www.instagram.com/detour_trips/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">Instagram</a><a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a><a href="https://detourtrips.com">detourtrips.com</a></div>
+    </div>
+    <div class="foot-legal">
+      <div>© 2026 Detour · Made in Mumbai with a lot of cutting chai.</div>
+      <div style="display:flex;gap:16px;"><a href="#" class="trigger-privacy" style="display:inline;margin:0;">Privacy</a><a href="#" class="trigger-terms" style="display:inline;margin:0;">Terms</a></div>
+    </div>
+  </div>
+</footer>
+
+<!-- BOOKING MODAL -->
+<div id="booking-modal" class="modal-overlay" aria-hidden="true" role="dialog">
+  <div class="modal-card">
+    <button class="modal-close" id="close-booking" aria-label="Close booking modal">&times;</button>
+    <div class="modal-header">
+      <span class="eyebrow">Free · early access</span>
+      <h2>Be the first to take a <em>Detour.</em></h2>
+      <p style="font-size:14px;color:var(--ink-mute);margin-top:10px;line-height:1.55;">We're matching our very first travellers in Mumbai — completely free while we're in early access. Tell us about your layover and we'll build a route around it.</p>
+    </div>
+    <div class="modal-iframe-wrap">
+      <!-- ═══ REPLACE data-src WITH YOUR GOOGLE FORM EMBED URL ═══ -->
+      <!-- Get it: open your Google Form → Send → embed icon (<>) → copy the src URL → paste as data-src below -->
+      <iframe
+        id="booking-form-iframe"
+        src="about:blank"
+        data-src=""
+        title="Request a Detour — early access form"
+        loading="lazy"
+      >Loading…</iframe>
+      <!-- Fallback shown until a Google Form URL is configured -->
+      <div id="booking-placeholder" style="padding:40px 28px;text-align:center;">
+        <div style="font-size:44px;margin-bottom:14px;">✈️</div>
+        <h3 style="font-family:var(--display);font-weight:700;font-size:21px;margin-bottom:10px;color:var(--ink);">Tell us about your layover</h3>
+        <p style="font-size:14px;color:var(--ink-mute);line-height:1.55;max-width:360px;margin:0 auto 20px;">We're matching our very first early-access travellers — completely free. Email us your arrival &amp; departure times and we'll build a route around them.</p>
+        <a href="mailto:admin@detourtrips.com?subject=Request%20a%20Detour%20(early%20access)&amp;body=Hi%20Detour%20team%2C%0A%0AI'd%20love%20to%20do%20a%20Detour%20on%20my%20Mumbai%20layover.%0A%0AArrival%20date%20%26%20time%3A%0ADeparture%20date%20%26%20time%3A%0AFlight%20numbers%3A%0AWhat%20I'm%20into%20(food%2C%20history%2C%20markets...)%3A%0A%0AThanks!" style="display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--paper-3);background:var(--terracotta);box-shadow:0 5px 0 var(--terra-dk);padding:13px 24px;border-radius:9999px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Email admin@detourtrips.com
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ROUTE TIMELINE MODAL -->
+<div id="route-modal" class="modal-overlay" aria-hidden="true" role="dialog">
+  <div class="modal-card drawer-card">
+    <button class="modal-close" id="close-route" aria-label="Close route details">&times;</button>
+    <div class="modal-header">
+      <span id="route-modal-badge" class="route-badge">Itinerary Mood</span>
+      <h2 id="route-modal-title">Route Title</h2>
+      <p id="route-modal-desc" style="font-size:14.5px; color:var(--ink-mute); margin-top:8px; line-height:1.5;">Route description goes here.</p>
+    </div>
+    <div class="timeline" id="route-timeline-container">
+      <!-- Dynamic timeline items will be injected here -->
+    </div>
+    <button class="btn-primary btn-trigger-booking" style="width:100%; justify-content:center; margin-top:20px; border:none;">Request this Detour</button>
+  </div>
+</div>
+
+<!-- PRIVACY MODAL -->
+<div id="privacy-modal" class="modal-overlay" aria-hidden="true" role="dialog">
+  <div class="modal-card" style="max-height:80vh; overflow-y:auto;">
+    <button class="modal-close" id="close-privacy" aria-label="Close privacy policy">&times;</button>
+    <div class="modal-header">
+      <span class="eyebrow">Trust &amp; safety</span>
+      <h2>Privacy Policy</h2>
+    </div>
+    <div style="font-size:13.5px; color:var(--ink-mute); line-height:1.6; display:flex; flex-direction:column; gap:12px;">
+      <p>At Detour, we hold your trust and safety above all else. Here is how we handle your information:</p>
+      <p><b>1. Information We Collect:</b> We only collect information that you explicitly share with us: your name, email, layover date, flight times, and preferences. We do not use trackers or share data with third parties.</p>
+      <p><b>2. How We Use It:</b> Your details are used solely to match you with a verified student buddy at the target airport. Once your detour is complete, your flight and terminal details are deleted from our active database.</p>
+      <p><b>3. Security:</b> Student buddies undergo strict background verification. Your contact information is only shared with your assigned buddy 24 hours prior to landing.</p>
+      <p>If you have any questions, reach out to us at <a href="mailto:admin@detourtrips.com" style="color:var(--terracotta); text-decoration:underline;">admin@detourtrips.com</a>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TERMS MODAL -->
+<div id="terms-modal" class="modal-overlay" aria-hidden="true" role="dialog">
+  <div class="modal-card" style="max-height:80vh; overflow-y:auto;">
+    <button class="modal-close" id="close-terms" aria-label="Close terms of service">&times;</button>
+    <div class="modal-header">
+      <span class="eyebrow">How we operate</span>
+      <h2>Terms of Service</h2>
+    </div>
+    <div style="font-size:13.5px; color:var(--ink-mute); line-height:1.6; display:flex; flex-direction:column; gap:12px;">
+      <p>Welcome to Detour! By requesting a detour, you agree to the following terms:</p>
+      <p><b>1. Student Buddies:</b> Detour matches travellers with local university students. While we verify student status and run background checks, buddies are independent local guides and not professional commercial tour agencies.</p>
+      <p><b>2. Fixed Pricing:</b> We guarantee clear, transparent, upfront rates. Your buddy will never take commissions, suggest forced shopping, or request unexpected cash surcharges.</p>
+      <p><b>3. Safety &amp; Buffer Guarantee:</b> Buddies are trained to design routes that keep you inside the airport buffer time. Detour is not liable for delayed flights or missed departures due to external traffic anomalies, but we prioritize getting you back safely and on time.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Nav scroll behavior
+  const nav=document.getElementById('nav');
+  addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>20));
+  
+  // Reveal animations on scroll
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.12});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%4*60)+'ms';io.observe(el);});
+
+  // Route schedule database
+  const routeData = {
+    0: {
+      badge: "The postcard",
+      title: "First-time Mumbai classic",
+      desc: "Famous, iconic, cinematic — the classic South Mumbai story everyone shares back home.",
+      theme: "theme-terra",
+      timeline: [
+        { time: "14:00", title: "Arrival & Welcome", desc: "Meet your buddy right at BOM Terminal 2 arrivals area. Board an air-conditioned cab together." },
+        { time: "15:15", title: "Gateway of India & Taj Palace", desc: "Walk the historic waterfront, taking in the iconic arch and the historic Taj hotel." },
+        { time: "16:00", title: "Kala Ghoda Art Walk", desc: "Stroll through Mumbai's premier art district. Grab a cold-brew coffee or a quick bite at a local café." },
+        { time: "17:00", title: "CSMT Gothic Architecture", desc: "Marvel at the spectacular gothic facade of the historic terminal station." },
+        { time: "18:00", title: "Marine Drive Sunset", desc: "Sit on the sea wall with a cup of cutting chai as the sun sets over the Arabian Sea." },
+        { time: "19:30", title: "Airport Dropoff", desc: "Return safely to BOM Terminal 2 with a comfortable 90-minute buffer before your flight." }
+      ]
+    },
+    1: {
+      badge: "Hyper-local",
+      title: "Where Mumbaikars actually go",
+      desc: "Local life, vada pav, sea, old-new contrasts — minus the tourist crowd.",
+      theme: "theme-sea",
+      timeline: [
+        { time: "10:00", title: "Terminal T2 Pickup", desc: "Your student buddy meets you at BOM departures/arrivals and checks your buffer time." },
+        { time: "10:45", title: "Dadar Flower Market", desc: "Stroll through the mesmerizing, vibrant lanes of the city's largest wholesale flower market." },
+        { time: "11:45", title: "Shivaji Park Vada Pav", desc: "Grab a piping hot Vada Pav (Mumbai's legendary street burger) and sweet ginger cutting chai." },
+        { time: "12:30", title: "Worli Koliwada Fishing Docks", desc: "Explore the narrow pathways of a historic, colorful coastal village that predates modern Mumbai." },
+        { time: "13:30", title: "Bandra Sea Link & Fort", desc: "Drive across the spectacular Bandra-Worli Sea Link and explore the Portuguese fort ruins." },
+        { time: "15:00", title: "Return to departures", desc: "Board your cab back to T2 departures, arriving with a stress-free boarding buffer." }
+      ]
+    },
+    2: {
+      badge: "Old Bombay",
+      title: "Colonial Bombay, stuck in 1932",
+      desc: "Gothic stations, Art Deco facades, berry pulao at Britannia, chai at Kyani.",
+      theme: "theme-terra",
+      timeline: [
+        { time: "08:30", title: "BOM Airport Meetup", desc: "Buddy pickup and brief overview of the morning layover plan." },
+        { time: "09:30", title: "Irani Breakfast at Kyani", desc: "Savor a historic breakfast of Bun Maska (buttered buns) and sweet tea at a centenarian Irani cafe." },
+        { time: "10:30", title: "Ballard Estate Walk", desc: "Explore the magnificent, quiet avenues of European Edwardian architecture." },
+        { time: "11:30", title: "Britannia Berry Pulao", desc: "Taste the absolute classic Parsi Berry Pulao at one of the city's oldest restaurants." },
+        { time: "12:45", title: "Flora Fountain stroll", desc: "A brief walk past Art Deco cinemas, old libraries, and the majestic stone fountain." },
+        { time: "14:00", title: "Airport return", desc: "Cab ride back to BOM Airport Terminal 2 departures." }
+      ]
+    }
+  };
+
+  // IntersectionObserver for active navigation links highlighting
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const sections = document.querySelectorAll('section[id]');
+  
+  const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+        });
+      }
+    });
+  }, { threshold: 0.25, rootMargin: "-80px 0px -40% 0px" });
+  
+  sections.forEach(section => navObserver.observe(section));
+
+  // Modal utility handlers
+  const openModal = (modalId) => {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      
+      // Accessibility focus trap
+      const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex="0"]');
+      if (focusable.length) focusable[0].focus();
+    }
+  };
+
+  const closeModal = (modalId) => {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+  };
+
+  // Close modals on escape key
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open').forEach(modal => {
+        closeModal(modal.id);
+      });
+    }
+  });
+
+  // Close modals on clicking backdrop overlay
+  document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal(modal.id);
+    });
+  });
+
+  // Booking modal: lazy-load embedded Google Form (falls back to email link)
+  const bookingIframe = document.getElementById('booking-form-iframe');
+  const bookingPlaceholder = document.getElementById('booking-placeholder');
+  const loadBookingForm = () => {
+    if (!bookingIframe) return;
+    const src = bookingIframe.getAttribute('data-src');
+    if (src && src.length > 5) {
+      if (bookingIframe.src === 'about:blank' || !bookingIframe.src.includes('http')) bookingIframe.src = src;
+      bookingIframe.style.display = 'block';
+      if (bookingPlaceholder) bookingPlaceholder.style.display = 'none';
+    } else {
+      bookingIframe.style.display = 'none';
+      if (bookingPlaceholder) bookingPlaceholder.style.display = 'block';
+    }
+  };
+
+  // Attach triggers for Booking Modal
+  document.querySelectorAll('.btn-trigger-booking').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeModal('route-modal'); // Close route modal first if it is open
+      loadBookingForm();
+      openModal('booking-modal');
+    });
+  });
+
+  // Wiring up Route dynamic timeline drawers
+  const routeTimelineContainer = document.getElementById('route-timeline-container');
+  const routeModalBadge = document.getElementById('route-modal-badge');
+  const routeModalTitle = document.getElementById('route-modal-title');
+  const routeModalDesc = document.getElementById('route-modal-desc');
+  const routeModalCard = document.querySelector('#route-modal .modal-card');
+
+  document.querySelectorAll('.routes .route').forEach((card, index) => {
+    card.addEventListener('click', () => {
+      const data = routeData[index];
+      if (!data) return;
+
+      // Update badge, title, and desc
+      if (routeModalBadge) {
+        routeModalBadge.textContent = data.badge;
+      }
+      if (routeModalTitle) {
+        routeModalTitle.textContent = data.title;
+      }
+      if (routeModalDesc) {
+        routeModalDesc.textContent = data.desc;
+      }
+      
+      // Set theme classes
+      if (routeModalCard) {
+        routeModalCard.className = `modal-card drawer-card ${data.theme || ''}`;
+      }
+
+      // Generate dynamic timeline items
+      if (routeTimelineContainer) {
+        routeTimelineContainer.innerHTML = '';
+        data.timeline.forEach((item, idx) => {
+          let itemClass = '';
+          if (idx === 0) itemClass = 'origin';
+          else if (idx === data.timeline.length - 1) itemClass = 'destination';
+          
+          const timelineHtml = `
+            <div class="timeline-item ${itemClass}">
+              <div class="timeline-badge"></div>
+              <span class="timeline-time">${item.time}</span>
+              <h4 class="timeline-title">${item.title}</h4>
+              <p class="timeline-desc">${item.desc}</p>
+            </div>
+          `;
+          routeTimelineContainer.insertAdjacentHTML('beforeend', timelineHtml);
+        });
+      }
+
+      openModal('route-modal');
+    });
+  });
+
+  // Attach triggers for close buttons
+  document.getElementById('close-booking')?.addEventListener('click', () => closeModal('booking-modal'));
+  document.getElementById('close-route')?.addEventListener('click', () => closeModal('route-modal'));
+  document.getElementById('close-privacy')?.addEventListener('click', () => closeModal('privacy-modal'));
+  document.getElementById('close-terms')?.addEventListener('click', () => closeModal('terms-modal'));
+
+  // Footer privacy & terms wiring
+  document.querySelector('.trigger-privacy')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal('privacy-modal');
+  });
+  document.querySelector('.trigger-terms')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal('terms-modal');
+  });
+
+  // Seven Contradictions horizontal slider interaction
+  const track = document.querySelector('.contrasts-slider-track');
+  const fill = document.getElementById('slider-progress-fill');
+  const statusText = document.querySelector('.slider-status-text');
+  const prevBtn = document.getElementById('slider-prev');
+  const nextBtn = document.getElementById('slider-next');
+
+  if (track && fill && statusText) {
+    const updateSliderUI = () => {
+      const scrollLeft = track.scrollLeft;
+      const maxScrollLeft = track.scrollWidth - track.clientWidth;
+      
+      // Calculate scroll ratio (0 to 1)
+      const ratio = maxScrollLeft > 0 ? scrollLeft / maxScrollLeft : 0;
+      
+      // Update progress bar fill position
+      const fillWidth = 20; // 20% width for indicator
+      const leftPercent = ratio * (100 - fillWidth);
+      fill.style.left = `${leftPercent}%`;
+      fill.style.width = `${fillWidth}%`;
+      
+      // Calculate active card index (0 to 6) based on centering
+      const cards = track.querySelectorAll('.contrast-card');
+      if (cards.length > 0) {
+        const cardWidth = cards[0].clientWidth + 24; // width + gap
+        const activeIndex = Math.min(6, Math.max(0, Math.round(scrollLeft / cardWidth)));
+        statusText.textContent = `0${activeIndex + 1} / 07`;
+      }
+      
+      // Disable/enable arrows
+      if (prevBtn && nextBtn) {
+        prevBtn.classList.toggle('disabled', scrollLeft <= 8);
+        nextBtn.classList.toggle('disabled', scrollLeft >= maxScrollLeft - 8);
+      }
+    };
+
+    // Listen to scroll event
+    track.addEventListener('scroll', updateSliderUI);
+    
+    // Listen to resize to adjust calculations
+    window.addEventListener('resize', updateSliderUI);
+    
+    // Set initial state
+    updateSliderUI();
+
+    // Wire up buttons
+    if (prevBtn && nextBtn) {
+      prevBtn.addEventListener('click', () => {
+        const cards = track.querySelectorAll('.contrast-card');
+        if (cards.length > 0) {
+          const cardWidth = cards[0].clientWidth + 24;
+          track.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+        }
+      });
+
+      nextBtn.addEventListener('click', () => {
+        const cards = track.querySelectorAll('.contrast-card');
+        if (cards.length > 0) {
+          const cardWidth = cards[0].clientWidth + 24;
+          track.scrollBy({ left: cardWidth, behavior: 'smooth' });
+        }
+      });
+    }
+  }
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item .faq-q').forEach(q => {
+    q.addEventListener('click', () => {
+      const item = q.closest('.faq-item');
+      const ans = item.querySelector('.faq-a');
+      const isOpen = item.classList.contains('open');
+      if (isOpen) {
+        item.classList.remove('open');
+        q.setAttribute('aria-expanded', 'false');
+        ans.style.maxHeight = null;
+      } else {
+        item.classList.add('open');
+        q.setAttribute('aria-expanded', 'true');
+        ans.style.maxHeight = ans.scrollHeight + 'px';
+      }
+    });
+  });
+</script>
+</body>
+</html>

@@ -57,8 +57,15 @@ const VIEWER_AGREEMENT: Record<BookingState, Partial<Record<Viewer, BookingCta>>
     buddy:    { label: 'Pay ₹500 deposit', route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'primary' },
   },
   deposits_held: {
-    traveler: { label: 'Deposits secured. Balance flow opens soon.', route: null, disabled: true, variant: 'success' },
-    buddy:    { label: 'Deposits secured. Awaiting traveler balance.', route: null, disabled: true, variant: 'success' },
+    // `deposits_held` means at least one deposit is in — NOT both. The booking
+    // only transitions to `awaiting_balance` once both sides are held. So this
+    // state is reached as soon as the first deposit lands, and the other side
+    // still owes their ₹500. Route both viewers to the agreement screen; the
+    // screen's own `canPayDeposit` check (gated on the viewer's own deposit
+    // row) renders the Pay button for the side that hasn't paid and just
+    // shows the status rows for the side that has.
+    traveler: { label: 'Open agreement',          route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'primary' },
+    buddy:    { label: 'Pay ₹500 deposit',        route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'primary' },
   },
   awaiting_balance: {
     // Phase 3: balance payment is now a real screen.

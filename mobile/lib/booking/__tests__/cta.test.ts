@@ -34,9 +34,11 @@ describe('getBookingCta — Phase 2 active states', () => {
     // awaiting_deposits
     ['awaiting_deposits', 'traveler', 'Pay ₹500 deposit', false, '/(shared)/agreements/[bookingId]'],
     ['awaiting_deposits', 'buddy',    'Pay ₹500 deposit', false, '/(shared)/agreements/[bookingId]'],
-    // deposits_held
-    ['deposits_held', 'traveler', 'Deposits secured', true, null],
-    ['deposits_held', 'buddy',    'Deposits secured', true, null],
+    // deposits_held — at least one side paid, the other still owes. Both
+    // viewers route to the agreement screen (which gates the Pay button on
+    // the viewer's own deposit row).
+    ['deposits_held', 'traveler', 'Open agreement',   false, '/(shared)/agreements/[bookingId]'],
+    ['deposits_held', 'buddy',    'Pay ₹500 deposit', false, '/(shared)/agreements/[bookingId]'],
     // awaiting_balance
     ['awaiting_balance', 'traveler', 'Deposits secured', true, null],
     ['awaiting_balance', 'buddy',    'Deposits secured', true, null],
@@ -68,6 +70,8 @@ describe('getBookingCta — route/disabled consistency', () => {
       'agreement_signed_traveler',
       'agreement_signed_buddy',
       'awaiting_deposits',
+      // deposits_held is now actionable too: at least one side still owes.
+      'deposits_held',
     ];
     for (const status of actionableStatuses) {
       for (const viewer of ['traveler', 'buddy'] as Viewer[]) {
@@ -85,9 +89,8 @@ describe('getBookingCta — route/disabled consistency', () => {
       ['agreement_drafting',        'traveler'],
       ['agreement_signed_traveler', 'traveler'],
       ['agreement_signed_buddy',    'buddy'],
-      ['deposits_held',             'traveler'],
-      ['deposits_held',             'buddy'],
-      ['awaiting_balance',          'traveler'],
+      // deposits_held removed — at least one side still owes a deposit, so
+      // it's actionable now (both viewers route to the agreement screen).
       ['awaiting_balance',          'buddy'],
     ];
     for (const [status, viewer] of infoStatuses) {
@@ -158,8 +161,8 @@ describe('getBookingCta — variant', () => {
     expect(getBookingCta('agreement_signed_traveler', 'traveler').variant).toBe('info');
   });
 
-  it('"Deposits secured" states are success variant', () => {
-    expect(getBookingCta('deposits_held', 'traveler').variant).toBe('success');
-    expect(getBookingCta('awaiting_balance', 'buddy').variant).toBe('success');
+  it('deposits_held buddy CTA is actionable (Pay button)', () => {
+    expect(getBookingCta('deposits_held', 'buddy').disabled).toBe(false);
+    expect(getBookingCta('deposits_held', 'buddy').route?.pathname).toBe('/(shared)/agreements/[bookingId]');
   });
 });

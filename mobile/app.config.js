@@ -7,6 +7,35 @@
 //   npx expo run:ios   — reads .env.local automatically via Expo CLI
 //   eas build          — set env vars in eas.json or the EAS dashboard
 
+const { withAndroidManifest } = require('@expo/config-plugins');
+
+// Custom config plugin — guarantees the Google Maps API key meta-data tag
+// is present in the generated AndroidManifest.xml. The built-in
+// `android.config.googleMaps.apiKey` path is supposed to do this but it
+// silently skipped on our SDK 52 prebuild, leaving MapView to crash at
+// runtime with "API key not found". Doing it here explicitly removes that
+// failure mode regardless of what the upstream plugin does.
+function withGoogleMapsMetaData(expoConfig, { apiKey }) {
+  if (!apiKey) return expoConfig;
+  return withAndroidManifest(expoConfig, (config) => {
+    const application = config.modResults.manifest.application?.[0];
+    if (!application) return config;
+    application['meta-data'] ||= [];
+    const existing = application['meta-data'].findIndex(
+      (m) => m.$?.['android:name'] === 'com.google.android.geo.API_KEY',
+    );
+    const tag = {
+      $: {
+        'android:name': 'com.google.android.geo.API_KEY',
+        'android:value': apiKey,
+      },
+    };
+    if (existing >= 0) application['meta-data'][existing] = tag;
+    else application['meta-data'].push(tag);
+    return config;
+  });
+}
+
 /** @type {import('expo/config').ExpoConfig} */
 const config = {
   name: 'Detour',
@@ -104,4 +133,9 @@ const config = {
   },
 };
 
-export default { expo: config };
+// Apply the inline plugin so the API key meta-data lands in the manifest.
+const finalConfig = withGoogleMapsMetaData(config, {
+  apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+});
+
+export default { expo: finalConfig };

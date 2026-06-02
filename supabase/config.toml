@@ -368,6 +368,13 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+# Razorpay's webhook calls this endpoint with a payment.captured / payment.failed
+# event but no Supabase JWT — Kong would otherwise return 401 before our HMAC
+# verification runs. The function itself validates X-Razorpay-Signature against
+# RAZORPAY_WEBHOOK_SECRET, so disabling Kong's JWT check is safe.
+[functions.razorpay-webhook]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
