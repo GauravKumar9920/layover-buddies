@@ -143,7 +143,7 @@ export default function GuideDetailScreen() {
   }));
 
   const backBgStyle = useAnimatedStyle(() => ({
-    backgroundColor: `rgba(11,18,41,${interpolate(scrollY.value, [0, 100], [0, 0.85], Extrapolate.CLAMP)})`,
+    backgroundColor: `rgba(14,25,41,${interpolate(scrollY.value, [0, 100], [0, 0.85], Extrapolate.CLAMP)})`,
   }));
 
   useEffect(() => {
@@ -300,7 +300,7 @@ export default function GuideDetailScreen() {
                 colors={theme.gradients.hero}
                 style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
               >
-                <Text style={{ fontSize: 80 }}>📷</Text>
+                <Text style={{ fontFamily: theme.fonts.serif, fontSize: 56, color: '#FCF7EA' }}>Mumbai</Text>
               </LinearGradient>
             )}
           </Animated.View>
@@ -327,21 +327,21 @@ export default function GuideDetailScreen() {
           >
             <Text
               style={{
-                color: 'rgba(255,255,255,0.82)',
+                fontFamily: theme.fonts.monoMed,
+                color: 'rgba(252,247,234,0.85)',
                 fontSize: 10,
-                letterSpacing: 3,
-                fontWeight: '700',
+                letterSpacing: 2.5,
               }}
             >
-              LAYOVER BUDDIES · {guide.hometown?.toUpperCase() ?? 'MUMBAI'}
+              DETOUR · {guide.hometown?.toUpperCase() ?? 'MUMBAI'}
             </Text>
             <Text
               style={{
-                color: 'rgba(255,255,255,0.65)',
+                fontFamily: theme.fonts.mono,
+                color: 'rgba(252,247,234,0.6)',
                 fontSize: 10,
                 letterSpacing: 2,
-                fontWeight: '500',
-                marginTop: 2,
+                marginTop: 3,
               }}
             >
               ISSUE N° {issueN}
@@ -387,9 +387,9 @@ export default function GuideDetailScreen() {
               ) : (
                 <Text
                   style={{
-                    color: '#FFFFFF',
-                    fontSize: 30,
-                    fontWeight: '800',
+                    fontFamily: theme.fonts.display,
+                    color: '#FCF7EA',
+                    fontSize: 28,
                     letterSpacing: -0.5,
                   }}
                 >
@@ -400,10 +400,10 @@ export default function GuideDetailScreen() {
 
             <Text
               style={{
-                color: 'rgba(255,255,255,0.75)',
+                fontFamily: theme.fonts.monoMed,
+                color: 'rgba(252,247,234,0.78)',
                 fontSize: 11,
-                letterSpacing: 2.5,
-                fontWeight: '700',
+                letterSpacing: 2,
                 textTransform: 'uppercase',
                 marginBottom: 10,
               }}
@@ -412,9 +412,9 @@ export default function GuideDetailScreen() {
             </Text>
             <Text
               style={{
+                fontFamily: theme.fonts.displayX,
                 fontSize: 44,
-                fontWeight: '800',
-                color: '#FFFFFF',
+                color: '#FCF7EA',
                 letterSpacing: -1.2,
                 lineHeight: 48,
               }}
@@ -424,11 +424,10 @@ export default function GuideDetailScreen() {
             {guide.university && (
               <Text
                 style={{
-                  color: 'rgba(255,255,255,0.85)',
-                  fontSize: 14,
+                  fontFamily: theme.fonts.serif,
+                  color: 'rgba(252,247,234,0.88)',
+                  fontSize: 17,
                   marginTop: 8,
-                  fontStyle: 'italic',
-                  fontWeight: '400',
                 }}
               >
                 {guide.university}
@@ -450,37 +449,28 @@ export default function GuideDetailScreen() {
         >
           {/* Pull quote (serif italic, large) */}
           <View style={{ paddingHorizontal: 24 }}>
-            <Text
-              style={{
-                fontSize: 14,
-                color: theme.colors.primary,
-                fontWeight: '700',
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-                marginBottom: 14,
-              }}
-            >
+            <Text style={{ ...theme.typography.eyebrow, color: theme.colors.primary, marginBottom: 14 }}>
               The interview
             </Text>
             <Text
               style={{
-                fontSize: 30,
-                lineHeight: 40,
+                fontFamily: theme.fonts.serif,
+                fontSize: 32,
+                lineHeight: 38,
                 color: theme.colors.text,
-                fontStyle: 'italic',
-                fontWeight: '500',
-                letterSpacing: -0.4,
+                letterSpacing: -0.2,
               }}
             >
-              "{pullQuote}"
+              “{pullQuote}”
             </Text>
             <Text
               style={{
-                fontSize: 12,
+                fontFamily: theme.fonts.mono,
+                fontSize: 11,
                 color: theme.colors.textMuted,
-                marginTop: 12,
-                letterSpacing: 0.5,
-                fontWeight: '600',
+                marginTop: 14,
+                letterSpacing: 0.6,
+                textTransform: 'uppercase',
               }}
             >
               — {guide.name.split(' ')[0]}, in her own words
@@ -547,9 +537,9 @@ export default function GuideDetailScreen() {
                 >
                   <Text
                     style={{
+                      fontFamily: theme.fonts.bodyMed,
                       fontSize: 11,
                       color: theme.colors.textSecondary,
-                      fontWeight: '600',
                     }}
                   >
                     {lang}
@@ -564,17 +554,14 @@ export default function GuideDetailScreen() {
             <View style={{ marginTop: 30, paddingHorizontal: 24 }}>
               <Text
                 style={{
-                  fontSize: 11,
-                  color: theme.colors.primary,
-                  letterSpacing: 1.2,
-                  fontWeight: '800',
-                  textTransform: 'uppercase',
+                  fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
                 }}
               >
                 On the record
               </Text>
               <Text
                 style={{
+                  fontFamily: theme.fonts.body,
                   fontSize: 16,
                   lineHeight: 26,
                   color: theme.colors.text,
@@ -590,11 +577,7 @@ export default function GuideDetailScreen() {
           <View style={{ marginTop: 36, paddingHorizontal: 24 }}>
             <Text
               style={{
-                fontSize: 11,
-                color: theme.colors.primary,
-                letterSpacing: 1.2,
-                fontWeight: '800',
-                textTransform: 'uppercase',
+                fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
               }}
             >
               Three things about me
@@ -611,22 +594,14 @@ export default function GuideDetailScreen() {
             <View style={{ paddingHorizontal: 24 }}>
               <Text
                 style={{
-                  fontSize: 11,
-                  color: theme.colors.primary,
-                  letterSpacing: 1.2,
-                  fontWeight: '800',
-                  textTransform: 'uppercase',
+                  fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
                 }}
               >
                 Walks I lead
               </Text>
               <Text
                 style={{
-                  fontSize: 22,
-                  fontWeight: '800',
-                  color: theme.colors.text,
-                  marginTop: 4,
-                  letterSpacing: -0.4,
+                  fontFamily: theme.fonts.display, fontSize: 22, color: theme.colors.text, marginTop: 4, letterSpacing: -0.4,
                 }}
               >
                 Tap any to read the full story
@@ -672,22 +647,14 @@ export default function GuideDetailScreen() {
             <View style={{ marginTop: 32, paddingHorizontal: PHOTO_JOURNAL_OUTER }}>
               <Text
                 style={{
-                  fontSize: 11,
-                  color: theme.colors.primary,
-                  letterSpacing: 1.2,
-                  fontWeight: '800',
-                  textTransform: 'uppercase',
+                  fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
                 }}
               >
                 Photo journal
               </Text>
               <Text
                 style={{
-                  fontSize: 22,
-                  fontWeight: '800',
-                  color: theme.colors.text,
-                  marginTop: 4,
-                  letterSpacing: -0.4,
+                  fontFamily: theme.fonts.display, fontSize: 22, color: theme.colors.text, marginTop: 4, letterSpacing: -0.4,
                   marginBottom: 14,
                 }}
               >
@@ -728,11 +695,7 @@ export default function GuideDetailScreen() {
           <View style={{ marginTop: 40, paddingHorizontal: 24, marginBottom: 40 }}>
             <Text
               style={{
-                fontSize: 11,
-                color: theme.colors.primary,
-                letterSpacing: 1.2,
-                fontWeight: '800',
-                textTransform: 'uppercase',
+                fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
               }}
             >
               What travelers said
@@ -758,21 +721,24 @@ export default function GuideDetailScreen() {
                     {review.comment ? (
                       <Text
                         style={{
-                          fontSize: 16,
+                          fontFamily: theme.fonts.serif,
+                          fontSize: 19,
                           color: theme.colors.text,
-                          lineHeight: 24,
+                          lineHeight: 25,
                           marginTop: 8,
-                          fontStyle: 'italic',
                         }}
                       >
-                        "{review.comment}"
+                        “{review.comment}”
                       </Text>
                     ) : null}
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontFamily: theme.fonts.mono,
+                        fontSize: 10.5,
                         color: theme.colors.textMuted,
-                        marginTop: 6,
+                        letterSpacing: 0.4,
+                        textTransform: 'uppercase',
+                        marginTop: 8,
                       }}
                     >
                       — {(review.reviewer as { name?: string })?.name ?? 'A traveler'}
@@ -795,57 +761,37 @@ export default function GuideDetailScreen() {
             bottom: 0,
             left: 0,
             right: 0,
-            backgroundColor: 'rgba(255,250,245,0.96)',
+            backgroundColor: 'rgba(244,237,221,0.97)',
             borderTopWidth: 1,
-            borderTopColor: theme.colors.divider,
+            borderTopColor: 'rgba(14,25,41,0.12)',
             paddingHorizontal: 20,
             paddingTop: 12,
             paddingBottom: insets.bottom + 12,
           }}
         >
-          {/* Price + primary CTA row */}
+          {/* One clean action row: price · Message (chat) · Walk with X (book) */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             {lowestPrice && (
               <View>
-                <Text style={{ fontSize: 11, color: theme.colors.textMuted }}>From</Text>
-                <Text
-                  style={{
-                    fontSize: 20,
-                    fontWeight: '800',
-                    color: theme.colors.text,
-                    letterSpacing: -0.5,
-                  }}
-                >
+                <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textMuted }}>From</Text>
+                <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 20, color: theme.colors.text, letterSpacing: -0.5, marginTop: 1 }}>
                   ₹{lowestPrice.toLocaleString('en-IN')}
                 </Text>
               </View>
             )}
-            {/* Quick-message button: lets the traveler start a conversation
-                with the guide *before* committing to a full booking. Routes to
-                the booking form with intent=chat — the form will create a
-                chat_open booking and drop them straight into the message thread
-                instead of the payment screen. */}
-            <TouchableOpacity
-              accessibilityLabel={`Message ${guide.name.split(' ')[0]}`}
+            {/* Message routes to the booking form with intent=chat — creates a
+                chat_open booking and drops the traveler into the thread. */}
+            <Button
+              title="Message"
+              variant="secondary"
+              size="lg"
               onPress={() =>
                 router.push({
                   pathname: '/(traveler)/book/[guideId]',
                   params: { guideId: guide.id, intent: 'chat' },
                 })
               }
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 26,
-                borderWidth: 1.5,
-                borderColor: theme.colors.primary,
-                backgroundColor: theme.colors.surface,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={{ fontSize: 22 }}>💬</Text>
-            </TouchableOpacity>
+            />
             <View style={{ flex: 1 }}>
               <Button
                 title={`Walk with ${guide.name.split(' ')[0]}`}
@@ -859,42 +805,6 @@ export default function GuideDetailScreen() {
               />
             </View>
           </View>
-
-          {/* Secondary: personalise inquiry */}
-          <TouchableOpacity
-            onPress={() => router.push({
-              pathname: '/(traveler)/book/[guideId]',
-              params: { guideId: guide.id, intent: 'chat' },
-            } as never)}
-            style={{
-              height: 48, borderRadius: 14,
-              borderWidth: 2, borderColor: theme.colors.primary,
-              alignItems: 'center', justifyContent: 'center',
-              marginTop: 10,
-            }}
-          >
-            <Text style={{ color: theme.colors.primary, fontWeight: '700', fontSize: 15 }}>
-              💬 Help me personalise this
-            </Text>
-          </TouchableOpacity>
-
-          {/* Tertiary: view itineraries */}
-          <TouchableOpacity
-            onPress={() => router.push({
-              pathname: '/(traveler)/book/[guideId]',
-              params: { guideId: guide.id },
-            } as never)}
-            style={{
-              height: 48, borderRadius: 14,
-              backgroundColor: theme.colors.surface,
-              alignItems: 'center', justifyContent: 'center',
-              marginTop: 8,
-            }}
-          >
-            <Text style={{ color: theme.colors.textSecondary, fontWeight: '600', fontSize: 14 }}>
-              📋 View itineraries & book →
-            </Text>
-          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -917,19 +827,19 @@ function MetaStat({
   return (
     <View style={{ alignItems: 'center', flex: 1 }}>
       <Text
-        style={{ fontSize: 22, fontWeight: '800', color: theme.colors.text, letterSpacing: -0.5 }}
+        style={{ fontFamily: theme.fonts.monoMed, fontSize: 22, color: theme.colors.text, letterSpacing: -0.5 }}
       >
         {value}
       </Text>
       {accessory}
       <Text
         style={{
-          fontSize: 10,
+          fontFamily: theme.fonts.mono,
+          fontSize: 9.5,
           color: theme.colors.textMuted,
-          letterSpacing: 1,
-          fontWeight: '700',
+          letterSpacing: 0.8,
           textTransform: 'uppercase',
-          marginTop: 4,
+          marginTop: 5,
         }}
       >
         {label}
@@ -969,16 +879,18 @@ function GuidePromptCard({ prompt, index }: { prompt: GuidePrompt; index: number
           }}
         >
           <Text
-            style={{ fontSize: 11, color: theme.colors.primary, fontWeight: '800' }}
+            style={{ fontFamily: theme.fonts.monoMed, fontSize: 11, color: theme.colors.primary }}
           >
             {index}
           </Text>
         </View>
         <Text
           style={{
-            fontSize: 12,
+            fontFamily: theme.fonts.mono,
+            fontSize: 11,
             color: theme.colors.textMuted,
-            fontWeight: '600',
+            letterSpacing: 0.4,
+            textTransform: 'uppercase',
             flex: 1,
           }}
         >
@@ -987,11 +899,11 @@ function GuidePromptCard({ prompt, index }: { prompt: GuidePrompt; index: number
       </View>
       <Text
         style={{
-          fontSize: 18,
-          lineHeight: 26,
+          fontFamily: theme.fonts.serif,
+          fontSize: 20,
+          lineHeight: 27,
           color: theme.colors.text,
-          fontWeight: '500',
-          letterSpacing: -0.2,
+          letterSpacing: -0.1,
         }}
       >
         {prompt.answer}
@@ -1019,7 +931,7 @@ function WalkCard({ itinerary, onPress }: { itinerary: Itinerary; onPress: () =>
         ...theme.shadows.sm,
       }}
     >
-      <View style={{ height: 140, backgroundColor: theme.colors.primaryLight }}>
+      <View style={{ height: 140, backgroundColor: theme.colors.surfaceMuted }}>
         {photo ? (
           <Image
             source={{ uri: photo }}
@@ -1028,22 +940,22 @@ function WalkCard({ itinerary, onPress }: { itinerary: Itinerary; onPress: () =>
           />
         ) : (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 28 }}>🗺️</Text>
+            <Text style={{ fontFamily: theme.fonts.serif, fontSize: 24, color: theme.colors.textMuted }}>Mumbai</Text>
           </View>
         )}
       </View>
       <View style={{ padding: 14 }}>
         <Text
-          style={{ fontSize: 15, fontWeight: '700', color: theme.colors.text }}
+          style={{ fontFamily: theme.fonts.displaySemi, fontSize: 15, color: theme.colors.text }}
           numberOfLines={1}
         >
           {itinerary.name ?? itinerary.title ?? 'City Tour'}
         </Text>
         <Text
-          style={{ fontSize: 12, color: theme.colors.textSecondary, marginTop: 4 }}
+          style={{ fontFamily: theme.fonts.mono, fontSize: 10.5, color: theme.colors.textMuted, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 5 }}
           numberOfLines={1}
         >
-          ⏱ {itinerary.estimated_duration_hours}h · 👣 {(itinerary.stops ?? []).length} stops
+          {itinerary.estimated_duration_hours}h · {(itinerary.stops ?? []).length} stops
         </Text>
         <View
           style={{
@@ -1053,10 +965,10 @@ function WalkCard({ itinerary, onPress }: { itinerary: Itinerary; onPress: () =>
             marginTop: 10,
           }}
         >
-          <Text style={{ fontSize: 16, fontWeight: '800', color: theme.colors.primary }}>
+          <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 16, color: theme.colors.primary }}>
             ₹{itinerary.buddy_cost_inr.toLocaleString('en-IN')}
           </Text>
-          <Text style={{ fontSize: 12, color: theme.colors.primary, fontWeight: '700' }}>
+          <Text style={{ fontFamily: theme.fonts.bodyBold, fontSize: 12, color: theme.colors.primary }}>
             Read →
           </Text>
         </View>

@@ -212,7 +212,7 @@ export default function EditItineraryScreen() {
               ) : null}
               <View style={{
                 position: 'absolute',
-                inset: 0,
+                top: 0, left: 0, right: 0, bottom: 0,
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: coverImageUrl ? 'transparent' : 'rgba(249,115,22,0.08)',
@@ -227,7 +227,7 @@ export default function EditItineraryScreen() {
                     paddingVertical: 7,
                   }}>
                     <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '600' }}>
-                      {coverImageUrl ? '📷 Change Photo' : '📷 Add Cover Photo'}
+                      {coverImageUrl ? 'Change Photo' : 'Add Cover Photo'}
                     </Text>
                   </View>
                 )}

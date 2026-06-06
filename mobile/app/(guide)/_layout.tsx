@@ -1,15 +1,20 @@
 import { Tabs } from 'expo-router';
 import { View, Text } from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
 import { theme } from '@/config/theme';
 
-function TabIcon({ emoji, label, focused }: { emoji: string; label: string; focused: boolean }) {
+type FeatherName = React.ComponentProps<typeof Feather>['name'];
+
+function TabIcon({ icon, label, focused }: { icon: FeatherName; label: string; focused: boolean }) {
   return (
-    <View style={{ alignItems: 'center', gap: 2 }}>
-      <Text style={{ fontSize: 22 }}>{emoji}</Text>
+    <View style={{ alignItems: 'center', gap: 4, width: 64 }}>
+      <Feather name={icon} size={21} color={focused ? theme.colors.primary : theme.colors.textMuted} />
       <Text
         style={{
-          fontSize: 10,
-          fontWeight: focused ? '700' : '400',
+          fontFamily: focused ? theme.fonts.monoMed : theme.fonts.mono,
+          fontSize: 9,
+          letterSpacing: 0.4,
+          textTransform: 'uppercase',
           color: focused ? theme.colors.primary : theme.colors.textMuted,
         }}
       >
@@ -25,8 +30,9 @@ export default function GuideLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: theme.colors.divider,
+          backgroundColor: theme.colors.surface,
+          borderTopColor: 'rgba(14,25,41,0.12)',
+          borderTopWidth: 1,
           height: 72,
           paddingBottom: 12,
           paddingTop: 8,
@@ -37,31 +43,31 @@ export default function GuideLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📊" label="Dashboard" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="grid" label="Dashboard" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="requests"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📬" label="Requests" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="inbox" label="Requests" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="itineraries/index"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🗺️" label="Tours" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="map" label="Tours" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="messages/index"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="💬" label="Inbox" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="message-circle" label="Inbox" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" label="Profile" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="user" label="Profile" focused={focused} />,
         }}
       />
       <Tabs.Screen name="itineraries/create" options={{ href: null }} />

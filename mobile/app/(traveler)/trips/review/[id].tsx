@@ -33,42 +33,41 @@ const MAX_COMMENT = 500;
 
 const RATING_LABELS: Record<number, string> = {
   0: 'Tap to rate',
-  1: '😞 Poor',
-  2: '😐 Fair',
-  3: '🙂 Good',
-  4: '😊 Very Good',
-  5: '🤩 Exceptional!',
+  1: 'Poor',
+  2: 'Fair',
+  3: 'Good',
+  4: 'Very good',
+  5: 'Exceptional',
 };
 
 // ─── Success screen ───────────────────────────────────────────────────────────
 function SuccessView({ guideName, tripId }: { guideName: string; tripId: string }) {
   const router = useRouter();
   const starScale = useSharedValue(0);
-  const textOpacity = useSharedValue(0);
 
   useEffect(() => {
     starScale.value = withSequence(
       withSpring(1.3, { damping: 8, stiffness: 200 }),
       withSpring(1, { damping: 12, stiffness: 120 }),
     );
-    textOpacity.value = withDelay(300, withTiming(1, { duration: 400 }));
   }, []);
 
   const starStyle = useAnimatedStyle(() => ({ transform: [{ scale: starScale.value }] }));
-  const textStyle = useAnimatedStyle(() => ({ opacity: textOpacity.value }));
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.background, padding: 40 }}>
-      <Animated.Text style={[{ fontSize: 80 }, starStyle]}>🌟</Animated.Text>
-      <Animated.View style={[{ alignItems: 'center' }, textStyle]}>
-        <Text style={{ fontSize: 26, fontWeight: '800', color: theme.colors.text, marginTop: 20, textAlign: 'center' }}>
-          Review Submitted!
+      <Animated.View style={[{ width: 96, height: 96, borderRadius: 48, backgroundColor: theme.colors.primary, alignItems: 'center', justifyContent: 'center' }, starStyle]}>
+        <Text style={{ fontSize: 52, color: '#FCF7EA', marginTop: -4 }}>★</Text>
+      </Animated.View>
+      <View style={{ alignItems: 'center' }}>
+        <Text style={{ fontFamily: theme.fonts.display, fontSize: 26, color: theme.colors.text, letterSpacing: -0.4, marginTop: 22, textAlign: 'center' }}>
+          Review submitted
         </Text>
-        <Text style={{ fontSize: 15, color: theme.colors.textSecondary, marginTop: 10, textAlign: 'center', lineHeight: 22 }}>
+        <Text style={{ fontFamily: theme.fonts.body, fontSize: 15, color: theme.colors.textSecondary, marginTop: 10, textAlign: 'center', lineHeight: 22 }}>
           Your review for {guideName} is live. Future travelers will thank you.
         </Text>
         <Button
-          title="Back to Trip"
+          title="Back to trip"
           onPress={() => router.replace(`/(traveler)/trips/${tripId}` as never)}
           style={{ marginTop: 32, minWidth: 200 }}
           size="lg"
@@ -79,7 +78,7 @@ function SuccessView({ guideName, tripId }: { guideName: string; tripId: string 
         >
           <Text style={{ color: theme.colors.textMuted, fontSize: 13 }}>View all trips</Text>
         </TouchableOpacity>
-      </Animated.View>
+      </View>
     </View>
   );
 }
@@ -91,25 +90,27 @@ function AlreadyReviewedView({ existing, guideName, tripId }: { existing: Review
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <Header title="Your Review" showBack />
       <ScrollView contentContainerStyle={{ padding: 24 }}>
-        <Card style={{ alignItems: 'center', padding: 24 }}>
-          <Text style={{ fontSize: 40, marginBottom: 12 }}>✅</Text>
-          <Text style={{ fontSize: 18, fontWeight: '700', color: theme.colors.text, textAlign: 'center' }}>
+        <Card style={{ alignItems: 'center', padding: 24 }} framed elevation="none">
+          <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: theme.colors.success, alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+            <Text style={{ fontSize: 24, color: '#FCF7EA' }}>✓</Text>
+          </View>
+          <Text style={{ fontFamily: theme.fonts.display, fontSize: 19, color: theme.colors.text, letterSpacing: -0.3, textAlign: 'center' }}>
             You've already reviewed {guideName}
           </Text>
-          <Text style={{ color: theme.colors.textSecondary, fontSize: 14, marginTop: 8, textAlign: 'center' }}>
+          <Text style={{ fontFamily: theme.fonts.body, color: theme.colors.textSecondary, fontSize: 14, marginTop: 8, textAlign: 'center' }}>
             Only one review per booking is allowed.
           </Text>
         </Card>
 
         {/* Show the existing review */}
         <Card style={{ marginTop: 20 }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: theme.colors.text, marginBottom: 10 }}>
+          <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textSecondary, marginBottom: 10 }}>
             Your review
           </Text>
           <StarRating rating={existing.rating} size={22} />
           {existing.comment ? (
-            <Text style={{ fontSize: 14, color: theme.colors.textSecondary, marginTop: 10, lineHeight: 20 }}>
-              "{existing.comment}"
+            <Text style={{ fontFamily: theme.fonts.serif, fontSize: 18, color: theme.colors.text, marginTop: 12, lineHeight: 24 }}>
+              “{existing.comment}”
             </Text>
           ) : null}
         </Card>
@@ -221,8 +222,7 @@ export default function ReviewScreen() {
       <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <Header title="Leave a Review" showBack />
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-          <Text style={{ fontSize: 40 }}>⚠️</Text>
-          <Text style={{ color: theme.colors.textSecondary, fontSize: 15, marginTop: 16, textAlign: 'center' }}>
+          <Text style={{ fontFamily: theme.fonts.body, color: theme.colors.textSecondary, fontSize: 15, marginTop: 16, textAlign: 'center' }}>
             {loadError ?? 'Booking not found.'}
           </Text>
           <Button title="Go Back" onPress={() => router.back()} style={{ marginTop: 24 }} variant="secondary" />
@@ -237,8 +237,7 @@ export default function ReviewScreen() {
       <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <Header title="Leave a Review" showBack />
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-          <Text style={{ fontSize: 40 }}>🔒</Text>
-          <Text style={{ fontSize: 18, fontWeight: '700', color: theme.colors.text, marginTop: 16, textAlign: 'center' }}>
+          <Text style={{ fontFamily: theme.fonts.display, fontSize: 20, color: theme.colors.text, letterSpacing: -0.3, marginTop: 16, textAlign: 'center' }}>
             Tour not yet completed
           </Text>
           <Text style={{ color: theme.colors.textSecondary, fontSize: 14, marginTop: 8, textAlign: 'center', lineHeight: 20 }}>
@@ -305,10 +304,12 @@ export default function ReviewScreen() {
             />
           </Animated.View>
           <Text style={{
-            marginTop: 12,
-            fontSize: 16,
-            fontWeight: rating > 0 ? '700' : '400',
-            color: rating > 0 ? theme.colors.text : theme.colors.textMuted,
+            marginTop: 14,
+            fontFamily: theme.fonts.monoMed,
+            fontSize: 13,
+            letterSpacing: 1,
+            textTransform: 'uppercase',
+            color: rating > 0 ? theme.colors.primary : theme.colors.textMuted,
           }}>
             {RATING_LABELS[rating]}
           </Text>
@@ -317,10 +318,11 @@ export default function ReviewScreen() {
         {/* ── Comment ───────────────────────────────────────────────────── */}
         <View style={{ marginBottom: 24 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+            <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textSecondary }}>
               Tell us more (optional)
             </Text>
             <Text style={{
+              fontFamily: theme.fonts.mono,
               fontSize: 12,
               color: charsLeft < 50 ? theme.colors.warning : theme.colors.textMuted,
             }}>
@@ -337,9 +339,10 @@ export default function ReviewScreen() {
             style={{
               backgroundColor: theme.colors.surface,
               borderWidth: 1.5,
-              borderColor: theme.colors.divider,
+              borderColor: 'rgba(14,25,41,0.18)',
               borderRadius: theme.borderRadius.md,
               padding: 14,
+              fontFamily: theme.fonts.body,
               fontSize: 15,
               color: theme.colors.text,
               lineHeight: 22,

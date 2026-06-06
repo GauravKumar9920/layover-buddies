@@ -386,7 +386,7 @@ export default function AgreementDraftScreen() {
 
           {/* ── Live preview ───────────────────────────────────────────── */}
           {preview && (
-            <Card style={{ marginBottom: 16, padding: 16, backgroundColor: '#FFFAF5' }}>
+            <Card style={{ marginBottom: 16, padding: 16, backgroundColor: theme.colors.surfaceMuted }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.textSecondary, marginBottom: 8, letterSpacing: 0.4 }}>
                 TRAVELER WILL SEE
               </Text>

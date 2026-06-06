@@ -168,14 +168,14 @@ export default function OnboardingScreen() {
         colors={theme.gradients.hero}
         style={{ paddingTop: insets.top + 20, paddingHorizontal: 20, paddingBottom: 24 }}
       >
-        <Text style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '800', letterSpacing: -0.4 }}>
+        <Text style={{ fontFamily: theme.fonts.mono, color: 'rgba(252,247,234,0.7)', fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>
+          Step {step} of 4
+        </Text>
+        <Text style={{ fontFamily: theme.fonts.display, color: '#FCF7EA', fontSize: 26, letterSpacing: -0.4, lineHeight: 32 }}>
           {step === 1 && 'Where are you visiting from?'}
           {step === 2 && 'When are you in Mumbai?'}
           {step === 3 && 'What interests you?'}
           {step === 4 && 'One last thing'}
-        </Text>
-        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 6 }}>
-          Step {step} of 4
         </Text>
         <View style={{ flexDirection: 'row', gap: 6, marginTop: 14 }}>
           {[1, 2, 3, 4].map((s) => (
@@ -211,8 +211,8 @@ export default function OnboardingScreen() {
                   }}
                 >
                   <Text style={{ fontSize: 26 }}>{n.flag}</Text>
-                  <Text style={{ flex: 1, fontSize: 16, fontWeight: '600', color: theme.colors.text }}>{n.name}</Text>
-                  {selected && <Text style={{ color: theme.colors.primary, fontWeight: '700', fontSize: 14 }}>✓</Text>}
+                  <Text style={{ flex: 1, fontFamily: theme.fonts.bodySemi, fontSize: 16, color: theme.colors.text }}>{n.name}</Text>
+                  {selected && <Text style={{ color: theme.colors.primary, fontFamily: theme.fonts.bodyBold, fontSize: 15 }}>✓</Text>}
                 </TouchableOpacity>
               );
             })}
@@ -221,8 +221,8 @@ export default function OnboardingScreen() {
 
         {step === 2 && (
           <View style={{ gap: 14 }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: theme.colors.text, marginBottom: -4 }}>
-              ✈️ Arrival in Mumbai
+            <Text style={{ ...theme.typography.eyebrow, color: theme.colors.primary, marginBottom: -2 }}>
+              Arrival in Mumbai
             </Text>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <View style={{ flex: 1 }}>
@@ -237,8 +237,8 @@ export default function OnboardingScreen() {
               value={flightIn} onChangeText={setFlightIn}
             />
             <View style={{ height: 1, backgroundColor: theme.colors.divider, marginVertical: 6 }} />
-            <Text style={{ fontSize: 14, fontWeight: '700', color: theme.colors.text, marginBottom: -4 }}>
-              🛫 Departure from Mumbai
+            <Text style={{ ...theme.typography.eyebrow, color: theme.colors.primary, marginBottom: -2 }}>
+              Departure from Mumbai
             </Text>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <View style={{ flex: 1 }}>
@@ -256,17 +256,20 @@ export default function OnboardingScreen() {
             {/* ── Layover eligibility banner ─────────────────────────────── */}
             {layoverHours !== null && (
               <View style={{
-                backgroundColor: isLayoverEligible ? '#D1FAE5' : '#FEE2E2',
-                borderRadius: 12, padding: 14, marginTop: 8,
-                borderLeftWidth: 4,
-                borderLeftColor: isLayoverEligible ? '#22C55E' : '#EF4444',
+                backgroundColor: isLayoverEligible ? 'rgba(61,139,90,0.12)' : theme.colors.primaryLight,
+                borderRadius: theme.borderRadius.md, padding: 14, marginTop: 8,
+                borderLeftWidth: 3,
+                borderLeftColor: isLayoverEligible ? theme.colors.success : theme.colors.error,
               }}>
-                <Text style={{ fontWeight: '800', fontSize: 16, color: isLayoverEligible ? '#166534' : '#991B1B' }}>
-                  {isLayoverEligible
-                    ? `✅ You qualify! ${layoverHours.toFixed(1)}h layover`
-                    : `❌ ${layoverHours.toFixed(1)}h layover — need at least 7h`}
-                </Text>
-                <Text style={{ fontSize: 13, color: isLayoverEligible ? '#15803D' : '#B91C1C', marginTop: 4, lineHeight: 18 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: isLayoverEligible ? theme.colors.success : theme.colors.error }} />
+                  <Text style={{ fontFamily: theme.fonts.displaySemi, fontSize: 16, color: isLayoverEligible ? '#2F6E45' : '#8E2C20' }}>
+                    {isLayoverEligible
+                      ? `You qualify — ${layoverHours.toFixed(1)}h layover`
+                      : `${layoverHours.toFixed(1)}h layover — need at least 7h`}
+                  </Text>
+                </View>
+                <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: isLayoverEligible ? '#2F6E45' : '#8E2C20', marginTop: 6, lineHeight: 18 }}>
                   {isLayoverEligible
                     ? 'You have enough time to explore Mumbai with a Buddy. Let\'s go!'
                     : 'Our Buddies need at least 7 hours to show you a meaningful slice of Mumbai. Adjust your arrival or departure times.'}
@@ -278,7 +281,7 @@ export default function OnboardingScreen() {
 
         {step === 3 && (
           <View>
-            <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginBottom: 14 }}>
+            <Text style={{ fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.textSecondary, marginBottom: 16, lineHeight: 20 }}>
               Pick at least one — we'll surface buddies whose vibe matches.
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
@@ -301,11 +304,11 @@ export default function OnboardingScreen() {
                       borderRadius: 20, paddingVertical: 10, paddingHorizontal: 14,
                     }}
                   >
-                    <Text style={{ fontSize: 18 }}>{i.emoji}</Text>
+                    <Text style={{ fontSize: 16 }}>{i.emoji}</Text>
                     <Text style={{
+                      fontFamily: selected ? theme.fonts.bodyBold : theme.fonts.bodyMed,
                       fontSize: 14,
-                      fontWeight: selected ? '700' : '500',
-                      color: selected ? theme.colors.primary : theme.colors.text,
+                      color: selected ? theme.colors.primaryDark : theme.colors.text,
                     }}>{i.label}</Text>
                   </TouchableOpacity>
                 );
@@ -316,18 +319,21 @@ export default function OnboardingScreen() {
 
         {step === 4 && (
           <View style={{ gap: 14 }}>
-            <Text style={{ fontSize: 60, textAlign: 'center', marginTop: 12 }}>🎓</Text>
-            <Text style={{ fontSize: 20, fontWeight: '800', color: theme.colors.text, textAlign: 'center' }}>
+            <View style={{ alignSelf: 'center', width: 72, height: 72, borderRadius: 36, backgroundColor: theme.colors.primary, borderWidth: 1.5, borderColor: theme.colors.primaryDark, alignItems: 'center', justifyContent: 'center', marginTop: 12 }}>
+              <Text style={{ fontFamily: theme.fonts.serif, fontSize: 40, color: '#FCF7EA' }}>3</Text>
+            </View>
+            <Text style={{ fontFamily: theme.fonts.display, fontSize: 22, color: theme.colors.text, textAlign: 'center', letterSpacing: -0.3, lineHeight: 28 }}>
               You can chat with up to 3 Buddies at a time.
             </Text>
-            <Text style={{ fontSize: 14, color: theme.colors.textSecondary, lineHeight: 21, textAlign: 'center', paddingHorizontal: 6 }}>
+            <Text style={{ fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.textSecondary, lineHeight: 21, textAlign: 'center', paddingHorizontal: 6 }}>
               Our Buddies are students. We respect their time — keeping the
               shortlist small means each Buddy can fully personalize your day,
               not split attention across a dozen inboxes.
             </Text>
-            <View style={{ backgroundColor: theme.colors.primaryLight, borderRadius: 12, padding: 14, marginTop: 8 }}>
-              <Text style={{ fontSize: 13, color: theme.colors.primary, fontWeight: '600', lineHeight: 19 }}>
-                ✨ Tip: explore each Buddy's profile and itineraries first — message the ones whose vibe matches yours.
+            <View style={{ backgroundColor: theme.colors.primaryLight, borderWidth: 1, borderColor: 'rgba(200,84,42,0.25)', borderRadius: theme.borderRadius.md, padding: 14, marginTop: 8 }}>
+              <Text style={{ ...theme.typography.eyebrow, color: theme.colors.primaryDark, marginBottom: 5 }}>Tip</Text>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.text, lineHeight: 19 }}>
+                Explore each Buddy's profile and itineraries first — message the ones whose vibe matches yours.
               </Text>
             </View>
           </View>
@@ -338,7 +344,7 @@ export default function OnboardingScreen() {
       <View style={{
         position: 'absolute', bottom: 0, left: 0, right: 0,
         backgroundColor: theme.colors.surface,
-        borderTopColor: theme.colors.divider, borderTopWidth: 1,
+        borderTopColor: 'rgba(14,25,41,0.12)', borderTopWidth: 1,
         padding: 16, paddingBottom: insets.bottom + 16,
         flexDirection: 'row', gap: 10,
       }}>
@@ -348,23 +354,25 @@ export default function OnboardingScreen() {
             disabled={submitting}
             style={{ paddingHorizontal: 18, justifyContent: 'center' }}
           >
-            <Text style={{ color: theme.colors.textSecondary, fontWeight: '600' }}>Back</Text>
+            <Text style={{ fontFamily: theme.fonts.bodySemi, color: theme.colors.textSecondary, fontSize: 15 }}>Back</Text>
           </TouchableOpacity>
         ) : null}
         <TouchableOpacity
           onPress={next}
           disabled={!canAdvance || submitting}
+          activeOpacity={0.9}
           style={{
-            flex: 1, height: 52, borderRadius: 14,
-            backgroundColor: !canAdvance || submitting ? '#E5E7EB' : theme.colors.accent,
+            flex: 1, height: 54, borderRadius: theme.borderRadius.md,
+            backgroundColor: !canAdvance || submitting ? '#E3D9C2' : theme.colors.primary,
+            borderWidth: 1.5, borderColor: !canAdvance || submitting ? '#D3C6A8' : theme.colors.primaryDark,
             alignItems: 'center', justifyContent: 'center',
           }}
         >
           {submitting
-            ? <ActivityIndicator color="#FFFFFF" />
+            ? <ActivityIndicator color="#FCF7EA" />
             : (
-              <Text style={{ color: !canAdvance ? '#9CA3AF' : '#FFFFFF', fontWeight: '700', fontSize: 16 }}>
-                {step < 4 ? 'Continue →' : "Okay, let's go →"}
+              <Text style={{ fontFamily: theme.fonts.bodyBold, color: !canAdvance ? '#9A9384' : '#FCF7EA', fontSize: 16, letterSpacing: 0.2 }}>
+                {step < 4 ? 'Continue' : "Okay, let's go"}
               </Text>
             )
           }
@@ -384,8 +392,7 @@ function Field({
   return (
     <View>
       <Text style={{
-        fontSize: 11, fontWeight: '700', color: theme.colors.textSecondary,
-        letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6,
+        fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 6,
       }}>
         {label}
       </Text>
@@ -416,8 +423,7 @@ function Field({
 // the user can dismiss after picking.
 
 const fieldLabelStyle = {
-  fontSize: 11, fontWeight: '700' as const, color: theme.colors.textSecondary,
-  letterSpacing: 0.8, textTransform: 'uppercase' as const, marginBottom: 6,
+  fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 1.2, textTransform: 'uppercase' as const, marginBottom: 6,
 };
 
 const fieldButtonStyle = {

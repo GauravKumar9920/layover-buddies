@@ -11,6 +11,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Image } from 'expo-image';
+import Feather from '@expo/vector-icons/Feather';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -61,9 +62,9 @@ function ConversationHeader({
     <View
       style={{
         paddingTop: insetsTop,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: theme.colors.surface,
         borderBottomWidth: 1,
-        borderBottomColor: theme.colors.divider,
+        borderBottomColor: 'rgba(14,25,41,0.12)',
       }}
     >
       <View
@@ -87,13 +88,13 @@ function ConversationHeader({
 
         <View style={{ flex: 1 }}>
           <Text
-            style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text }}
+            style={{ fontFamily: theme.fonts.displaySemi, fontSize: 16, color: theme.colors.text }}
             numberOfLines={1}
           >
             {name}
           </Text>
           {subtitle ? (
-            <Text style={{ fontSize: 12, color: theme.colors.textMuted }} numberOfLines={1}>
+            <Text style={{ fontFamily: theme.fonts.mono, fontSize: 10.5, color: theme.colors.textMuted, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 2 }} numberOfLines={1}>
               {subtitle}
             </Text>
           ) : null}
@@ -140,9 +141,9 @@ function Avatar({
     >
       <Text
         style={{
-          color: '#FFFFFF',
-          fontSize: size * 0.4,
-          fontWeight: '700',
+          fontFamily: theme.fonts.display,
+          color: '#FCF7EA',
+          fontSize: size * 0.42,
         }}
       >
         {initials || '?'}
@@ -319,13 +320,17 @@ export default function MessagesScreen() {
         }}
         ListEmptyComponent={
           <View style={{ alignItems: 'center', padding: 40 }}>
-            <Text style={{ fontSize: 36 }}>💬</Text>
+            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: theme.colors.surfaceMuted, borderWidth: 1, borderColor: 'rgba(14,25,41,0.12)', alignItems: 'center', justifyContent: 'center' }}>
+              <Feather name="message-circle" size={26} color={theme.colors.textMuted} />
+            </View>
             <Text
               style={{
+                fontFamily: theme.fonts.body,
                 color: theme.colors.textSecondary,
-                marginTop: 12,
+                marginTop: 14,
                 textAlign: 'center',
                 fontSize: 14,
+                lineHeight: 20,
               }}
             >
               No messages yet.{'\n'}Say hello to {otherName}!
@@ -364,9 +369,9 @@ export default function MessagesScreen() {
           paddingHorizontal: 12,
           paddingVertical: 10,
           paddingBottom: insets.bottom + 10,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: theme.colors.surface,
           borderTopWidth: 1,
-          borderTopColor: theme.colors.divider,
+          borderTopColor: 'rgba(14,25,41,0.12)',
           gap: 10,
         }}
       >
@@ -382,12 +387,13 @@ export default function MessagesScreen() {
             borderRadius: 22,
             paddingHorizontal: 16,
             paddingVertical: 10,
+            fontFamily: theme.fonts.body,
             fontSize: 15,
             color: theme.colors.text,
             maxHeight: 120,
             minHeight: 40,
             borderWidth: 1,
-            borderColor: theme.colors.divider,
+            borderColor: 'rgba(14,25,41,0.16)',
           }}
           placeholderTextColor={theme.colors.textMuted}
         />
@@ -405,9 +411,9 @@ export default function MessagesScreen() {
             }}
           >
             {sending ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <ActivityIndicator size="small" color="#FCF7EA" />
             ) : (
-              <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '700' }}>↑</Text>
+              <Feather name="arrow-up" size={20} color={inputText.trim() ? '#FCF7EA' : theme.colors.textMuted} />
             )}
           </TouchableOpacity>
         </Animated.View>
@@ -459,21 +465,22 @@ function MessageBubble({
       <View style={{ maxWidth: '72%', alignItems: isMine ? 'flex-end' : 'flex-start' }}>
         <View
           style={{
-            backgroundColor: isMine ? theme.colors.primary : '#FFFFFF',
-            borderRadius: 22,
-            // Tighter corner only on the side closest to its sender (Instagram pattern)
-            borderBottomRightRadius: isMine ? 6 : 22,
-            borderBottomLeftRadius: isMine ? 22 : 6,
+            backgroundColor: isMine ? theme.colors.primary : theme.colors.surface,
+            borderRadius: 20,
+            // Tighter corner only on the side closest to its sender
+            borderBottomRightRadius: isMine ? 6 : 20,
+            borderBottomLeftRadius: isMine ? 20 : 6,
             paddingHorizontal: 14,
             paddingVertical: 10,
-            borderWidth: isMine ? 0 : 1,
-            borderColor: theme.colors.divider,
+            borderWidth: isMine ? 1.5 : 1,
+            borderColor: isMine ? theme.colors.primaryDark : 'rgba(14,25,41,0.12)',
           }}
         >
           <Text
             style={{
+              fontFamily: theme.fonts.body,
               fontSize: 15,
-              color: isMine ? '#FFFFFF' : theme.colors.text,
+              color: isMine ? '#FCF7EA' : theme.colors.text,
               lineHeight: 21,
             }}
           >
@@ -483,8 +490,10 @@ function MessageBubble({
         {showTime && (
           <Text
             style={{
-              fontSize: 11,
+              fontFamily: theme.fonts.mono,
+              fontSize: 10,
               color: theme.colors.textMuted,
+              letterSpacing: 0.3,
               marginTop: 4,
               marginHorizontal: 6,
             }}
@@ -526,8 +535,8 @@ function AgreementChip({ booking, isTraveler }: { booking: Booking; isTraveler: 
           borderColor: theme.colors.primary,
         }}
       >
-        <Text style={{ color: theme.colors.primary, fontWeight: '600', fontSize: 13 }}>
-          📋 {cta.label}
+        <Text style={{ fontFamily: theme.fonts.bodyBold, color: theme.colors.primary, fontSize: 13 }}>
+          {cta.label}
         </Text>
       </TouchableOpacity>
     </View>
@@ -553,16 +562,16 @@ function QuickChips({
 
   const chips = inEarly
     ? [
-        { emoji: '👋', label: 'Inquire about a tour', text: "Hi! Could you tell me a bit more about your walks?" },
-        { emoji: '🎯', label: 'Help personalize',     text: "I'd love help personalizing this trip for me — got time to chat?" },
-        { emoji: '🍜', label: 'Add food spot',         text: "Could we add a great street-food stop to the itinerary?" },
-        { emoji: '🍹', label: 'Add drinks',            text: "Could we work in a drinks spot somewhere on the route?" },
-        { emoji: '🚕', label: 'Transport help',        text: "What's the best way to get between stops — taxi, train, or walking?" },
+        { label: 'Inquire about a tour', text: "Hi! Could you tell me a bit more about your walks?" },
+        { label: 'Help personalize',     text: "I'd love help personalizing this trip for me — got time to chat?" },
+        { label: 'Add food spot',         text: "Could we add a great street-food stop to the itinerary?" },
+        { label: 'Add drinks',            text: "Could we work in a drinks spot somewhere on the route?" },
+        { label: 'Transport help',        text: "What's the best way to get between stops — taxi, train, or walking?" },
       ]
     : [
-        { emoji: '🍜', label: 'Add food spot',  text: "Could we add a food stop to the itinerary?" },
-        { emoji: '📍', label: 'Meeting point',  text: "Where exactly should we meet?" },
-        { emoji: '⏰', label: 'Timing check',   text: "Quick check on timing — does the schedule still work?" },
+        { label: 'Add food spot',  text: "Could we add a food stop to the itinerary?" },
+        { label: 'Meeting point',  text: "Where exactly should we meet?" },
+        { label: 'Timing check',   text: "Quick check on timing — does the schedule still work?" },
       ];
 
   return (
@@ -577,15 +586,13 @@ function QuickChips({
           <TouchableOpacity
             onPress={() => onPick(item.text)}
             style={{
-              flexDirection: 'row', alignItems: 'center', gap: 6,
               borderRadius: 999,
-              paddingHorizontal: 12, paddingVertical: 7,
-              backgroundColor: '#FFFFFF',
-              borderWidth: 1, borderColor: theme.colors.divider,
+              paddingHorizontal: 13, paddingVertical: 8,
+              backgroundColor: theme.colors.surface,
+              borderWidth: 1, borderColor: 'rgba(14,25,41,0.14)',
             }}
           >
-            <Text style={{ fontSize: 14 }}>{item.emoji}</Text>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.text }}>{item.label}</Text>
+            <Text style={{ fontFamily: theme.fonts.bodySemi, fontSize: 12.5, color: theme.colors.text }}>{item.label}</Text>
           </TouchableOpacity>
         )}
       />

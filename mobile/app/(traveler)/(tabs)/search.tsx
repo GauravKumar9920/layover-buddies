@@ -48,34 +48,31 @@ export default function SearchScreen() {
         style={{
           marginHorizontal: 16,
           marginBottom: 12,
-          borderRadius: 16,
+          borderRadius: theme.borderRadius.lg,
           overflow: 'hidden',
-          borderWidth: 1,
-          borderColor: 'rgba(249, 115, 22, 0.18)',
+          borderWidth: 1.5,
+          borderColor: theme.colors.inkLine,
         }}
       >
         <Image
           source={{ uri: heroPhoto }}
-          style={{ width: '100%', height: 120 }}
+          style={{ width: '100%', height: 130 }}
           contentFit="cover"
           transition={250}
         />
         <View
           style={{
             position: 'absolute',
-            // `inset: 0` is web-only — RN-iOS/Android don't support it. Expand
-            // to the four explicit edges so the overlay actually positions on
-            // native too.
             top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.42)',
+            backgroundColor: 'rgba(14,25,41,0.46)',
             justifyContent: 'flex-end',
-            paddingHorizontal: 12,
-            paddingVertical: 10,
+            paddingHorizontal: 14,
+            paddingVertical: 12,
           }}
         >
-          <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>Find a local by vibe, not just name</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 2 }}>
-            Try searching: street food, art walks, architecture
+          <Text style={{ fontFamily: theme.fonts.display, color: '#FCF7EA', fontSize: 18, letterSpacing: -0.3 }}>Find a local by vibe, not just name</Text>
+          <Text style={{ fontFamily: theme.fonts.mono, color: 'rgba(252,247,234,0.85)', fontSize: 10.5, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 5 }}>
+            Try: street food · art walks · architecture
           </Text>
         </View>
       </View>

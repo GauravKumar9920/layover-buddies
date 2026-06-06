@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
+import Feather from '@expo/vector-icons/Feather';
 import { pickImage } from '@/lib/imagePicker';
 import { uploadImage } from '@/lib/imageUpload';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -163,7 +164,7 @@ export default function GuideProfileScreen() {
         pull_quote: pullQuote.trim() || null,
         prompts: filledPrompts,
       });
-      Alert.alert('✅ Saved', 'Your profile has been updated.');
+      Alert.alert('Saved', 'Your profile has been updated.');
     } catch (err: unknown) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to save');
     } finally {
@@ -245,7 +246,9 @@ export default function GuideProfileScreen() {
                   borderColor: theme.colors.primary,
                 }}
               >
-                <Text style={{ fontSize: 36 }}>👤</Text>
+                <Text style={{ fontFamily: theme.fonts.display, fontSize: 34, color: theme.colors.primary }}>
+                  {(name || 'G').split(' ').map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()}
+                </Text>
               </View>
             )}
             <View
@@ -254,11 +257,13 @@ export default function GuideProfileScreen() {
                 bottom: 0,
                 right: 0,
                 backgroundColor: theme.colors.primary,
-                borderRadius: 12,
-                padding: 4,
+                borderWidth: 1.5,
+                borderColor: theme.colors.surface,
+                borderRadius: 14,
+                padding: 6,
               }}
             >
-              <Text style={{ fontSize: 12 }}>📷</Text>
+              <Feather name="camera" size={13} color="#FCF7EA" />
             </View>
           </TouchableOpacity>
 
@@ -275,7 +280,7 @@ export default function GuideProfileScreen() {
 
         {/* Card 1 — basics */}
         <Card style={{ gap: 16 }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text, marginBottom: 4 }}>
+          <Text style={{ fontFamily: theme.fonts.display, fontSize: 18, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 4 }}>
             Edit Profile
           </Text>
           <Input label="Full Name" value={name} onChangeText={setName} autoCapitalize="words" />
@@ -301,7 +306,7 @@ export default function GuideProfileScreen() {
             placeholder="English, Hindi, Marathi"
           />
           <View>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.textSecondary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+            <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1.2 }}>
               Bio
             </Text>
             <Input
@@ -317,7 +322,7 @@ export default function GuideProfileScreen() {
         {/* Card 2 — Your Story (editorial-zine fields) */}
         <Card style={{ gap: 16, marginTop: 16 }}>
           <View>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text }}>
+            <Text style={{ fontFamily: theme.fonts.display, fontSize: 18, color: theme.colors.text, letterSpacing: -0.3 }}>
               Your Story
             </Text>
             <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginTop: 4, lineHeight: 18 }}>
@@ -326,7 +331,7 @@ export default function GuideProfileScreen() {
           </View>
 
           <View>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.textSecondary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+            <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1.2 }}>
               Headline quote
             </Text>
             <Input
@@ -341,7 +346,7 @@ export default function GuideProfileScreen() {
 
           {prompts.map((prompt, idx) => (
             <View key={idx}>
-              <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.textSecondary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.3 }}>
+              <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1.2 }}>
                 {prompt.question}
               </Text>
               <Input
@@ -362,10 +367,10 @@ export default function GuideProfileScreen() {
         {profile && (
           <Card style={{ marginTop: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <View>
-              <Text style={{ fontSize: 15, fontWeight: '600', color: theme.colors.text }}>
-                Accepting Bookings
+              <Text style={{ fontFamily: theme.fonts.displaySemi, fontSize: 15, color: theme.colors.text }}>
+                Accepting bookings
               </Text>
-              <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginTop: 2 }}>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary, marginTop: 2 }}>
                 {profile.is_active ? 'You appear in search results' : 'Hidden from search'}
               </Text>
             </View>
@@ -379,7 +384,7 @@ export default function GuideProfileScreen() {
                 width: 52,
                 height: 28,
                 borderRadius: 14,
-                backgroundColor: profile.is_active ? theme.colors.primary : '#E5E7EB',
+                backgroundColor: profile.is_active ? theme.colors.primary : theme.colors.surfaceMuted,
                 padding: 2,
                 justifyContent: 'center',
               }}
@@ -389,7 +394,7 @@ export default function GuideProfileScreen() {
                   width: 24,
                   height: 24,
                   borderRadius: 12,
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: theme.colors.surface,
                   alignSelf: profile.is_active ? 'flex-end' : 'flex-start',
                   ...theme.shadows.sm,
                 }}

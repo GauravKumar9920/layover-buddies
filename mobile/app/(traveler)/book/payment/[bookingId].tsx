@@ -97,45 +97,43 @@ function PayOption({
 function PaymentSuccessView({ booking }: { booking: Booking }) {
   const router = useRouter();
   const scale = useSharedValue(0);
-  const opacity = useSharedValue(0);
 
   useEffect(() => {
     scale.value = withSequence(
       withSpring(1.3, { damping: 8, stiffness: 200 }),
       withSpring(1, { damping: 12, stiffness: 120 }),
     );
-    opacity.value = withDelay(300, withTiming(1, { duration: 400 }));
   }, []);
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.background, padding: 40 }}>
-      <Animated.Text style={[{ fontSize: 80 }, useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))]}>
-        🎉
-      </Animated.Text>
-      <Animated.View style={[{ alignItems: 'center' }, useAnimatedStyle(() => ({ opacity: opacity.value }))]}>
-        <Text style={{ fontSize: 26, fontWeight: '800', color: theme.colors.text, marginTop: 20, textAlign: 'center' }}>
-          Booking Confirmed!
+      <Animated.View style={[{ width: 96, height: 96, borderRadius: 48, backgroundColor: theme.colors.success, alignItems: 'center', justifyContent: 'center' }, useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))]}>
+        <Text style={{ fontSize: 48, color: '#FCF7EA', marginTop: -4 }}>✓</Text>
+      </Animated.View>
+      <View style={{ alignItems: 'center' }}>
+        <Text style={{ fontFamily: theme.fonts.display, fontSize: 26, color: theme.colors.text, letterSpacing: -0.4, marginTop: 22, textAlign: 'center' }}>
+          Booking confirmed
         </Text>
-        <Text style={{ fontSize: 15, color: theme.colors.textSecondary, marginTop: 10, textAlign: 'center', lineHeight: 22 }}>
+        <Text style={{ fontFamily: theme.fonts.body, fontSize: 15, color: theme.colors.textSecondary, marginTop: 10, textAlign: 'center', lineHeight: 22 }}>
           {booking.guide?.name
             ? `Your tour with ${booking.guide.name} is confirmed.`
             : 'Your booking is confirmed.'}{'\n'}
           Check your trip for details.
         </Text>
         <Button
-          title="View My Trip"
+          title="View my trip"
           onPress={() => router.replace(`/(traveler)/trips/${booking.id}` as never)}
           style={{ marginTop: 32, minWidth: 200 }}
           size="lg"
         />
         <Button
-          title="Browse More"
+          title="Browse more"
           onPress={() => router.replace('/(traveler)/' as never)}
           variant="secondary"
           style={{ marginTop: 12, minWidth: 200 }}
           size="sm"
         />
-      </Animated.View>
+      </View>
     </View>
   );
 }
@@ -264,8 +262,7 @@ export default function PaymentScreen() {
       <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <Header title="Payment" showBack backFallback="/(traveler)/(tabs)/trips" />
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-          <Text style={{ fontSize: 40 }}>⚠️</Text>
-          <Text style={{ color: theme.colors.textSecondary, fontSize: 15, marginTop: 16, textAlign: 'center' }}>
+          <Text style={{ fontFamily: theme.fonts.body, color: theme.colors.textSecondary, fontSize: 15, marginTop: 16, textAlign: 'center' }}>
             {error ?? 'Booking not found.'}
           </Text>
           <Button title="Go Back" onPress={() => router.back()} style={{ marginTop: 24 }} variant="secondary" />
@@ -301,15 +298,15 @@ export default function PaymentScreen() {
       >
         {/* Tour Summary */}
         <Card style={{ marginBottom: 20 }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 }}>
+          <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 12 }}>
             Booking Summary
           </Text>
-          <Text style={{ fontSize: 20, fontWeight: '800', color: theme.colors.text, marginBottom: 4 }}>
+          <Text style={{ fontFamily: theme.fonts.display, fontSize: 21, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 4 }}>
             {booking.itinerary?.name ?? 'City Tour'}
           </Text>
           {booking.guide?.name && (
-            <Text style={{ fontSize: 14, color: theme.colors.textSecondary, marginBottom: 12 }}>
-              👤 Guide: {booking.guide.name}
+            <Text style={{ fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.textSecondary, marginBottom: 12 }}>
+              Guide · {booking.guide.name}
             </Text>
           )}
           <View style={{ height: 1, backgroundColor: theme.colors.divider, marginBottom: 12 }} />
@@ -323,8 +320,7 @@ export default function PaymentScreen() {
         {/* Pay-now choice — deposit holds the slot, full clears everything */}
         <Card style={{ marginBottom: 20 }}>
           <Text style={{
-            fontSize: 13, fontWeight: '700', color: theme.colors.textSecondary,
-            textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 14,
+            fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 14,
           }}>
             Pay now
           </Text>
@@ -347,8 +343,8 @@ export default function PaymentScreen() {
 
         {/* Payment info */}
         <Card style={{ marginBottom: 20, backgroundColor: theme.colors.primaryLight }}>
-          <Text style={{ fontSize: 13, color: theme.colors.primary, fontWeight: '600', lineHeight: 20 }}>
-            🔒 Payment is held in escrow and released to the guide only after your tour is completed.
+          <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.primary, lineHeight: 20 }}>
+            Payment is held in escrow and released to the guide only after your tour is completed.
           </Text>
         </Card>
 
@@ -357,10 +353,10 @@ export default function PaymentScreen() {
           <Text style={{ fontSize: 12, fontWeight: '700', color: theme.colors.textMuted, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
             Test Mode — Sample Cards
           </Text>
-          <Text style={{ fontSize: 12, color: theme.colors.textSecondary, lineHeight: 18 }}>
-            ✅ Success: 4111 1111 1111 1111{'\n'}
-            ❌ Failure: 5104 0600 0000 0008{'\n'}
-            🔐 3D Secure: 5104 0155 5555 5558{'\n'}
+          <Text style={{ fontFamily: theme.fonts.mono, fontSize: 12, color: theme.colors.textSecondary, lineHeight: 19 }}>
+            Success: 4111 1111 1111 1111{'\n'}
+            Failure: 5104 0600 0000 0008{'\n'}
+            3D Secure: 5104 0155 5555 5558{'\n'}
             CVV: any 3 digits · Expiry: any future date
           </Text>
         </Card>

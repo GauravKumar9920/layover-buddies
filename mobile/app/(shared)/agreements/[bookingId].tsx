@@ -260,7 +260,7 @@ export default function AgreementViewerScreen() {
         )}
 
         {/* ── Pricing breakdown ──────────────────────────────────────── */}
-        <Card style={{ padding: 16, marginBottom: 16, backgroundColor: '#FFFAF5' }}>
+        <Card style={{ padding: 16, marginBottom: 16, backgroundColor: theme.colors.surfaceMuted }}>
           <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.textSecondary, letterSpacing: 0.4, marginBottom: 12 }}>
             {cp.sectionHeading.toUpperCase()}
           </Text>

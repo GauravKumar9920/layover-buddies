@@ -10,31 +10,45 @@ interface BadgeProps {
   style?: ViewStyle;
 }
 
-const BADGE_COLORS: Record<BadgeVariant, { bg: string; text: string }> = {
-  success: { bg: '#DCFCE7', text: theme.colors.success },
-  warning: { bg: '#FEF3C7', text: theme.colors.warning },
-  error: { bg: '#FFE8E8', text: theme.colors.error },
-  info: { bg: theme.colors.primaryLight, text: theme.colors.primary },
-  neutral: { bg: '#F3F4F6', text: theme.colors.textSecondary },
-  purple: { bg: '#EDE9FE', text: theme.colors.purple },
+// Warm Editorial "stamp" tags — tinted paper fills with a hairline border and
+// a mono uppercase label, echoing the marketing site's tags.
+const BADGE_COLORS: Record<BadgeVariant, { bg: string; text: string; border: string }> = {
+  success: { bg: '#DCEAD8', text: '#2F6E45', border: 'rgba(61,139,90,0.30)' },
+  warning: { bg: theme.colors.gold + '26', text: '#946312', border: 'rgba(232,159,44,0.35)' },
+  error:   { bg: theme.colors.primaryLight, text: '#8E2C20', border: 'rgba(192,57,43,0.30)' },
+  info:    { bg: theme.colors.accentLight, text: theme.colors.accentDark, border: 'rgba(45,123,169,0.30)' },
+  neutral: { bg: theme.colors.surfaceMuted, text: theme.colors.textSecondary, border: 'rgba(14,25,41,0.12)' },
+  purple:  { bg: '#E6E2FA', text: '#4B3FB0', border: 'rgba(108,92,231,0.30)' },
 };
 
 export function Badge({ label, variant = 'neutral', style }: BadgeProps) {
-  const { bg, text } = BADGE_COLORS[variant];
+  const { bg, text, border } = BADGE_COLORS[variant];
   return (
     <View
       style={[
         {
           backgroundColor: bg,
-          borderRadius: theme.borderRadius.full,
-          paddingHorizontal: 10,
-          paddingVertical: 4,
+          borderRadius: theme.borderRadius.sm,
+          borderWidth: 1,
+          borderColor: border,
+          paddingHorizontal: 8,
+          paddingVertical: 3,
           alignSelf: 'flex-start',
         },
         style,
       ]}
     >
-      <Text style={{ color: text, fontSize: 12, fontWeight: '600' }}>{label}</Text>
+      <Text
+        style={{
+          color: text,
+          fontFamily: theme.fonts.monoMed,
+          fontSize: 10,
+          letterSpacing: 0.6,
+          textTransform: 'uppercase',
+        }}
+      >
+        {label}
+      </Text>
     </View>
   );
 }

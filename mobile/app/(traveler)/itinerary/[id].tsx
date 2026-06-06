@@ -208,7 +208,7 @@ export default function ItineraryDetailScreen() {
 
   // Back button bg fade
   const backBgStyle = useAnimatedStyle(() => ({
-    backgroundColor: `rgba(11,18,41,${interpolate(scrollY.value, [0, 100], [0, 0.85], Extrapolate.CLAMP)})`,
+    backgroundColor: `rgba(14,25,41,${interpolate(scrollY.value, [0, 100], [0, 0.85], Extrapolate.CLAMP)})`,
   }));
 
   useEffect(() => {
@@ -430,7 +430,7 @@ export default function ItineraryDetailScreen() {
                 end={{ x: 1, y: 1 }}
                 style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
               >
-                <Text style={{ fontSize: 80 }}>🗺️</Text>
+                <Text style={{ fontFamily: theme.fonts.serif, fontSize: 56, color: '#FCF7EA' }}>Mumbai</Text>
               </LinearGradient>
             )}
           </Animated.View>
@@ -468,10 +468,10 @@ export default function ItineraryDetailScreen() {
               >
                 <Text
                   style={{
-                    color: '#FFFFFF',
-                    fontSize: 11,
-                    fontWeight: '700',
-                    letterSpacing: 0.5,
+                    fontFamily: theme.fonts.monoMed,
+                    color: '#FCF7EA',
+                    fontSize: 10,
+                    letterSpacing: 1,
                     textTransform: 'uppercase',
                   }}
                 >
@@ -481,9 +481,9 @@ export default function ItineraryDetailScreen() {
             )}
             <Text
               style={{
+                fontFamily: theme.fonts.displayX,
                 fontSize: 34,
-                fontWeight: '800',
-                color: '#FFFFFF',
+                color: '#FCF7EA',
                 letterSpacing: -0.8,
                 lineHeight: 40,
               }}
@@ -492,13 +492,15 @@ export default function ItineraryDetailScreen() {
             </Text>
             <Text
               style={{
-                color: 'rgba(255,255,255,0.92)',
-                fontSize: 14,
-                marginTop: 8,
-                fontWeight: '500',
+                fontFamily: theme.fonts.mono,
+                color: 'rgba(252,247,234,0.9)',
+                fontSize: 11,
+                marginTop: 10,
+                letterSpacing: 0.4,
+                textTransform: 'uppercase',
               }}
             >
-              📍 {itinerary.city}   ·   ⏱ {itinerary.estimated_duration_hours}h   ·   👣 {(itinerary.stops ?? []).length} stops
+              {itinerary.city}  ·  {itinerary.estimated_duration_hours}h  ·  {(itinerary.stops ?? []).length} stops
             </Text>
           </Animated.View>
         </View>
@@ -523,22 +525,22 @@ export default function ItineraryDetailScreen() {
             }}
           >
             <View style={{ flex: 1, paddingRight: 14 }}>
-              <Text style={{ fontSize: 15, color: theme.colors.textSecondary, lineHeight: 22 }}>
+              <Text style={{ fontFamily: theme.fonts.serif, fontSize: 21, color: theme.colors.text, lineHeight: 27 }}>
                 {content.tagline}
               </Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
               <Text
                 style={{
+                  fontFamily: theme.fonts.monoMed,
                   fontSize: 24,
-                  fontWeight: '800',
                   color: theme.colors.primary,
                   letterSpacing: -0.5,
                 }}
               >
                 ₹{itinerary.buddy_cost_inr.toLocaleString('en-IN')}
               </Text>
-              <Text style={{ fontSize: 11, color: theme.colors.textMuted }}>buddy fee</Text>
+              <Text style={{ fontFamily: theme.fonts.mono, fontSize: 9.5, color: theme.colors.textMuted, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 2 }}>buddy fee</Text>
             </View>
           </View>
 
@@ -571,47 +573,41 @@ export default function ItineraryDetailScreen() {
                     width: 52,
                     height: 52,
                     borderRadius: 26,
-                    backgroundColor: theme.colors.primaryLight,
+                    backgroundColor: theme.colors.primary,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Text style={{ fontSize: 22 }}>🎓</Text>
+                  <Text style={{ fontFamily: theme.fonts.display, fontSize: 20, color: '#FCF7EA' }}>
+                    {guide.name.split(' ').map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()}
+                  </Text>
                 </View>
               )}
               <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text
-                  style={{
-                    fontSize: 11,
-                    color: theme.colors.textMuted,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.5,
-                    fontWeight: '700',
-                  }}
-                >
+                <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textMuted }}>
                   Your buddy
                 </Text>
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontWeight: '700',
+                    fontFamily: theme.fonts.displaySemi,
+                    fontSize: 17,
                     color: theme.colors.text,
-                    marginTop: 2,
+                    marginTop: 3,
                   }}
                 >
                   {guide.name}
                 </Text>
                 <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 }}
                 >
                   <StarRating rating={guide.avg_rating} size={12} />
-                  <Text style={{ fontSize: 12, color: theme.colors.textSecondary }}>
+                  <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 0.3 }}>
                     {guide.avg_rating > 0 ? guide.avg_rating.toFixed(1) : 'New'} ·{' '}
                     {guide.total_reviews} reviews
                   </Text>
                 </View>
               </View>
-              <Text style={{ color: theme.colors.primary, fontSize: 20, fontWeight: '700' }}>›</Text>
+              <Text style={{ color: theme.colors.primary, fontSize: 20 }}>›</Text>
             </TouchableOpacity>
           )}
 
@@ -638,22 +634,14 @@ export default function ItineraryDetailScreen() {
             <View style={{ marginTop: 24, paddingHorizontal: 20 }}>
               <Text
                 style={{
-                  fontSize: 11,
-                  color: theme.colors.primary,
-                  letterSpacing: 1.2,
-                  fontWeight: '800',
-                  textTransform: 'uppercase',
+                  fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
                 }}
               >
                 Watch
               </Text>
               <Text
                 style={{
-                  fontSize: 22,
-                  fontWeight: '800',
-                  color: theme.colors.text,
-                  marginTop: 4,
-                  letterSpacing: -0.4,
+                  fontFamily: theme.fonts.display, fontSize: 22, color: theme.colors.text, marginTop: 4, letterSpacing: -0.4,
                 }}
               >
                 A minute inside the tour
@@ -730,22 +718,14 @@ export default function ItineraryDetailScreen() {
           <View style={{ marginTop: 36, paddingHorizontal: 20 }}>
             <Text
               style={{
-                fontSize: 11,
-                color: theme.colors.primary,
-                letterSpacing: 1.2,
-                fontWeight: '800',
-                textTransform: 'uppercase',
+                fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
               }}
             >
               The plan
             </Text>
             <Text
               style={{
-                fontSize: 22,
-                fontWeight: '800',
-                color: theme.colors.text,
-                marginTop: 4,
-                letterSpacing: -0.4,
+                fontFamily: theme.fonts.display, fontSize: 22, color: theme.colors.text, marginTop: 4, letterSpacing: -0.4,
               }}
             >
               Stop by stop
@@ -774,7 +754,7 @@ export default function ItineraryDetailScreen() {
                           justifyContent: 'center',
                         }}
                       >
-                        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>
+                        <Text style={{ fontFamily: theme.fonts.monoMed, color: '#FCF7EA', fontSize: 13 }}>
                           {idx + 1}
                         </Text>
                       </View>
@@ -793,7 +773,7 @@ export default function ItineraryDetailScreen() {
                     {/* Content */}
                     <View style={{ flex: 1, paddingBottom: 20 }}>
                       <Text
-                        style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text }}
+                        style={{ fontFamily: theme.fonts.displaySemi, fontSize: 16, color: theme.colors.text }}
                       >
                         {stop.location}
                       </Text>
@@ -860,10 +840,7 @@ export default function ItineraryDetailScreen() {
               <Card>
                 <Text
                   style={{
-                    fontSize: 14,
-                    fontWeight: '700',
-                    color: theme.colors.text,
-                    marginBottom: 8,
+                    fontFamily: theme.fonts.displaySemi, fontSize: 14, color: theme.colors.text, marginBottom: 8,
                   }}
                 >
                   Bring along
@@ -888,19 +865,14 @@ export default function ItineraryDetailScreen() {
               padding: 16,
               borderRadius: 14,
               backgroundColor: theme.colors.primaryLight,
+              borderWidth: 1,
+              borderColor: 'rgba(200,84,42,0.25)',
             }}
           >
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: '700',
-                color: theme.colors.primary,
-                marginBottom: 6,
-              }}
-            >
-              ⏱ Airport layover friendly
+            <Text style={{ ...theme.typography.eyebrow, color: theme.colors.primary, marginBottom: 6 }}>
+              Airport layover friendly
             </Text>
-            <Text style={{ fontSize: 13, color: theme.colors.text, lineHeight: 20 }}>
+            <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.text, lineHeight: 20 }}>
               Tell us your arrival and departure times on the next screen — we'll show you exactly how much of this tour fits in your layover window.
             </Text>
           </View>
@@ -914,9 +886,9 @@ export default function ItineraryDetailScreen() {
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: 'rgba(255,250,245,0.96)',
+          backgroundColor: 'rgba(244,237,221,0.97)',
           borderTopWidth: 1,
-          borderTopColor: theme.colors.divider,
+          borderTopColor: 'rgba(14,25,41,0.12)',
           paddingHorizontal: 20,
           paddingTop: 12,
           paddingBottom: insets.bottom + 12,
@@ -934,10 +906,10 @@ export default function ItineraryDetailScreen() {
             borderWidth: 1.5,
             borderColor: isFavorited
               ? theme.colors.accent
-              : theme.colors.divider,
+              : 'rgba(14,25,41,0.18)',
             backgroundColor: isFavorited
               ? theme.colors.accent + '1A'
-              : '#FFFFFF',
+              : theme.colors.surface,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -956,28 +928,22 @@ export default function ItineraryDetailScreen() {
           </Text>
         </TouchableOpacity>
         {/* "Book" was misleading — the request actually lands in chat_open
-            (a non-binding inquiry, not a confirmed booking). Split into two
-            clear actions: chat first, or send a structured request. */}
-        <TouchableOpacity
+            (a non-binding inquiry). Two clear actions: Message first, or send
+            a structured request. */}
+        <Button
+          title="Message"
+          variant="secondary"
+          size="lg"
           onPress={() =>
             router.push({
               pathname: '/(traveler)/book/[guideId]',
               params: { guideId: itinerary.guide_id, intent: 'chat' },
             })
           }
-          accessibilityLabel="Message the buddy first"
-          style={{
-            width: 52, height: 52, borderRadius: 26,
-            borderWidth: 1.5, borderColor: theme.colors.primary,
-            backgroundColor: '#FFFFFF',
-            alignItems: 'center', justifyContent: 'center',
-          }}
-        >
-          <Text style={{ fontSize: 22 }}>💬</Text>
-        </TouchableOpacity>
+        />
         <View style={{ flex: 1 }}>
           <Button
-            title={`Send Request · ₹${itinerary.buddy_cost_inr.toLocaleString('en-IN')}`}
+            title={`Request · ₹${itinerary.buddy_cost_inr.toLocaleString('en-IN')}`}
             size="lg"
             onPress={() =>
               router.push({
@@ -1016,22 +982,24 @@ function PromptCard({ prompt }: { prompt: TourPrompt }) {
     >
       <Text
         style={{
-          fontSize: 12,
+          fontFamily: theme.fonts.mono,
+          fontSize: 11,
           color: theme.colors.textMuted,
-          fontWeight: '600',
-          lineHeight: 18,
+          letterSpacing: 0.4,
+          textTransform: 'uppercase',
+          lineHeight: 17,
         }}
       >
         {prompt.question}
       </Text>
       <Text
         style={{
-          fontSize: 22,
-          lineHeight: 30,
+          fontFamily: theme.fonts.serif,
+          fontSize: 24,
+          lineHeight: 31,
           color: theme.colors.text,
-          marginTop: 8,
-          letterSpacing: -0.2,
-          fontWeight: '500',
+          marginTop: 10,
+          letterSpacing: -0.1,
         }}
       >
         {prompt.answer}
@@ -1084,10 +1052,7 @@ function InfoColumn({
       <Card>
         <Text
           style={{
-            fontSize: 14,
-            fontWeight: '700',
-            color: theme.colors.text,
-            marginBottom: 8,
+            fontFamily: theme.fonts.displaySemi, fontSize: 14, color: theme.colors.text, marginBottom: 8,
           }}
         >
           {title}

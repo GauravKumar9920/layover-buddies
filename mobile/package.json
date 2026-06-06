@@ -20,6 +20,10 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@expo-google-fonts/bricolage-grotesque": "^0.4.1",
+    "@expo-google-fonts/dm-mono": "^0.4.2",
+    "@expo-google-fonts/instrument-serif": "^0.4.1",
+    "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/datetimepicker": "8.2.0",
     "@supabase/supabase-js": "^2.47.0",
@@ -29,6 +33,7 @@
     "expo-camera": "~16.0.0",
     "expo-constants": "~17.0.8",
     "expo-device": "~7.0.3",
+    "expo-font": "~13.0.4",
     "expo-haptics": "~14.0.0",
     "expo-image": "~2.0.0",
     "expo-image-picker": "~16.0.0",

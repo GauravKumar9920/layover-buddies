@@ -361,7 +361,7 @@ export default function UploadProofsScreen() {
                 style={styles.uploadBtn}
                 onPress={() => handlePickImage('payment')}
               >
-                <Text style={styles.uploadBtnText}>📸 Add payment screenshot</Text>
+                <Text style={styles.uploadBtnText}>Add payment screenshot</Text>
               </TouchableOpacity>
             )}
 
@@ -382,7 +382,7 @@ export default function UploadProofsScreen() {
                 style={styles.uploadBtn}
                 onPress={() => handlePickImage('bill')}
               >
-                <Text style={styles.uploadBtnText}>🧾 Add bill / receipt</Text>
+                <Text style={styles.uploadBtnText}>Add bill / receipt</Text>
               </TouchableOpacity>
             )}
 

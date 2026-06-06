@@ -65,10 +65,10 @@ export default function TripsScreen() {
         colors={theme.gradients.hero}
         style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 20 }}
       >
-        <Text style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '800', letterSpacing: -0.5 }}>
-          My Trips 🎒
+        <Text style={{ fontFamily: theme.fonts.display, color: '#FCF7EA', fontSize: 28, letterSpacing: -0.5 }}>
+          My trips
         </Text>
-        <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, marginTop: 4 }}>
+        <Text style={{ fontFamily: theme.fonts.mono, color: 'rgba(252,247,234,0.7)', fontSize: 11, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 6 }}>
           {bookings.length} total · {upcoming.length} upcoming
         </Text>
       </LinearGradient>
@@ -90,7 +90,7 @@ export default function TripsScreen() {
         ListHeaderComponent={
           upcoming.length > 0 && past.length > 0 ? (
             <View style={{ paddingBottom: 8 }}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.textMuted, letterSpacing: 0.5, textTransform: 'uppercase' }}>
+              <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textMuted }}>
                 Upcoming
               </Text>
             </View>
@@ -101,7 +101,7 @@ export default function TripsScreen() {
             title="No trips yet"
             subtitle="Book a guide to start exploring!"
             actionLabel="Browse Guides"
-            onAction={() => router.replace('/(traveler)')}
+            onAction={() => router.replace('/(traveler)/(tabs)' as never)}
           />
         }
         showsVerticalScrollIndicator={false}

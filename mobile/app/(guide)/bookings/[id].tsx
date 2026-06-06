@@ -93,21 +93,23 @@ export default function GuideBookingDetailScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Text style={{ fontSize: 24 }}>🧳</Text>
+                  <Text style={{ fontFamily: theme.fonts.display, fontSize: 22, color: theme.colors.primary }}>
+                    {(traveler?.name ?? 'T').split(' ').map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()}
+                  </Text>
                 </View>
               )}
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 17, fontWeight: '700', color: theme.colors.text }}>
+                <Text style={{ fontFamily: theme.fonts.displaySemi, fontSize: 17, color: theme.colors.text }}>
                   {traveler?.name ?? 'Traveler'}
                 </Text>
                 {traveler?.nationality && (
-                  <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginTop: 2 }}>
-                    🌍 {traveler.nationality}
+                  <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 0.3, textTransform: 'uppercase', marginTop: 4 }}>
+                    {traveler.nationality}
                   </Text>
                 )}
                 {traveler?.phone && (
-                  <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginTop: 2 }}>
-                    📞 {traveler.phone}
+                  <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 0.3, marginTop: 3 }}>
+                    {traveler.phone}
                   </Text>
                 )}
               </View>
@@ -125,15 +127,15 @@ export default function GuideBookingDetailScreen() {
 
         {/* Flight & schedule */}
         <Card style={{ marginBottom: 16, gap: 6 }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+          <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1.2 }}>
             Schedule
           </Text>
-          <Text style={{ fontSize: 15, color: theme.colors.text }}>
-            📅 {format(new Date(booking.start_date), 'EEE, MMM d, yyyy · h:mm a')}
+          <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 14, color: theme.colors.text }}>
+            {format(new Date(booking.start_date), 'EEE, MMM d, yyyy · h:mm a')}
           </Text>
           {booking.flight_number && (
-            <Text style={{ fontSize: 15, color: theme.colors.text }}>
-              ✈️ Flight {booking.flight_number}
+            <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 14, color: theme.colors.text }}>
+              Flight {booking.flight_number}
             </Text>
           )}
         </Card>
@@ -141,10 +143,10 @@ export default function GuideBookingDetailScreen() {
         {/* Tour */}
         {itinerary && (
           <Card style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>
+            <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8 }}>
               Tour
             </Text>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text }}>
+            <Text style={{ fontFamily: theme.fonts.displaySemi, fontSize: 17, color: theme.colors.text }}>
               {itinerary.name}
             </Text>
             {itinerary.description ? (
@@ -159,11 +161,11 @@ export default function GuideBookingDetailScreen() {
                   .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
                   .map((stop, i) => (
                     <View key={stop.id} style={{ flexDirection: 'row', gap: 10 }}>
-                      <Text style={{ fontSize: 13, color: theme.colors.primary, fontWeight: '700', minWidth: 18 }}>
+                      <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 13, color: theme.colors.primary, minWidth: 18 }}>
                         {i + 1}.
                       </Text>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 14, color: theme.colors.text, fontWeight: '600' }}>
+                        <Text style={{ fontFamily: theme.fonts.bodySemi, fontSize: 14, color: theme.colors.text }}>
                           {stop.location}
                         </Text>
                         {stop.description ? (
@@ -181,24 +183,24 @@ export default function GuideBookingDetailScreen() {
 
         {/* Payout */}
         <Card style={{ marginBottom: 16, gap: 4 }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 4 }}>
+          <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 4 }}>
             Payout
           </Text>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={{ fontSize: 14, color: theme.colors.textSecondary }}>Booking total</Text>
-            <Text style={{ fontSize: 14, color: theme.colors.text }}>
+            <Text style={{ fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.textSecondary }}>Booking total</Text>
+            <Text style={{ fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.text }}>
               ₹{booking.total_price.toLocaleString('en-IN')}
             </Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={{ fontSize: 14, color: theme.colors.textSecondary }}>Platform fee</Text>
-            <Text style={{ fontSize: 14, color: theme.colors.textSecondary }}>
+            <Text style={{ fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.textSecondary }}>Platform fee</Text>
+            <Text style={{ fontFamily: theme.fonts.mono, fontSize: 14, color: theme.colors.textSecondary }}>
               −₹{booking.commission.toLocaleString('en-IN')}
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: theme.colors.primary }}>Your payout</Text>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: theme.colors.primary }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 6 }}>
+            <Text style={{ fontFamily: theme.fonts.bodyBold, fontSize: 15, color: theme.colors.primary }}>Your payout</Text>
+            <Text style={{ ...theme.typography.price, fontSize: 22, color: theme.colors.primary }}>
               ₹{payout.toLocaleString('en-IN')}
             </Text>
           </View>
@@ -207,7 +209,7 @@ export default function GuideBookingDetailScreen() {
 
       <View style={{ position: 'absolute', bottom: insets.bottom + 16, left: 16, right: 16 }}>
         <Button
-          title="💬 Message Traveler"
+          title="Message traveler"
           onPress={() => router.push(`/(shared)/messages/${booking.id}` as never)}
           size="lg"
         />

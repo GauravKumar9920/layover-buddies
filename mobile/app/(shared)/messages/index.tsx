@@ -67,10 +67,10 @@ export default function InboxScreen() {
         colors={theme.gradients.hero}
         style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 20 }}
       >
-        <Text style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '800', letterSpacing: -0.5 }}>
-          Inbox 💬
+        <Text style={{ fontFamily: theme.fonts.display, color: '#FCF7EA', fontSize: 28, letterSpacing: -0.5 }}>
+          Inbox
         </Text>
-        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 4 }}>
+        <Text style={{ fontFamily: theme.fonts.mono, color: 'rgba(252,247,234,0.7)', fontSize: 11, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 6 }}>
           {bookings.length === 0
             ? 'Conversations will appear here'
             : `${bookings.length} conversation${bookings.length === 1 ? '' : 's'}${

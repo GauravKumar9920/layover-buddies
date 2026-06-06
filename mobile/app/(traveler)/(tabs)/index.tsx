@@ -91,27 +91,24 @@ export default function BrowseScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      {/* ── Sticky white header — matches UI kit ── */}
+      {/* ── Sticky paper header with an ink hairline ── */}
       <View style={{
         backgroundColor: theme.colors.surface,
         paddingTop: insets.top + 8,
-        paddingBottom: 12,
+        paddingBottom: 14,
         paddingHorizontal: 20,
-        shadowColor: theme.colors.text,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
-        shadowRadius: 12,
-        elevation: 4,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(14,25,41,0.12)',
       }}>
         {/* Top row: greeting + sign out */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <View>
-            <Text style={{ fontSize: 11, color: theme.colors.textMuted, fontWeight: '500', letterSpacing: 0.3 }}>
-              Good day, {firstName} ✈️
+            <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textMuted }}>
+              Good day, {firstName}
             </Text>
             <Text style={{
-              fontSize: 22, fontWeight: '800', color: theme.colors.text,
-              letterSpacing: -0.4, marginTop: 1,
+              fontFamily: theme.fonts.display, fontSize: 26, color: theme.colors.text,
+              letterSpacing: -0.4, marginTop: 3,
             }}>
               Find your Buddy
             </Text>
@@ -139,10 +136,11 @@ export default function BrowseScreen() {
             style={{
               width: 40, height: 40, borderRadius: 12,
               backgroundColor: theme.colors.primaryLight,
+              borderWidth: 1, borderColor: 'rgba(200,84,42,0.3)',
               alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <Text style={{ fontSize: 18 }}>↪</Text>
+            <Text style={{ fontSize: 17, color: theme.colors.primaryDark }}>↪</Text>
           </TouchableOpacity>
         </View>
 
@@ -150,16 +148,16 @@ export default function BrowseScreen() {
         <View style={{
           flexDirection: 'row', alignItems: 'center', gap: 10,
           backgroundColor: theme.colors.background,
-          borderWidth: 1.5, borderColor: theme.colors.divider,
-          borderRadius: 14, paddingHorizontal: 14, paddingVertical: 11,
+          borderWidth: 1.5, borderColor: 'rgba(14,25,41,0.16)',
+          borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12,
         }}>
-          <Text style={{ fontSize: 16, color: theme.colors.textMuted }}>🔍</Text>
+          <Text style={{ fontSize: 16, color: theme.colors.textMuted }}>⌕</Text>
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search guides, experiences…"
             placeholderTextColor={theme.colors.textMuted}
-            style={{ flex: 1, fontSize: 14, color: theme.colors.text, padding: 0 }}
+            style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.text, padding: 0 }}
           />
         </View>
 
@@ -177,21 +175,16 @@ export default function BrowseScreen() {
                 key={filter}
                 onPress={() => setActiveFilter(filter)}
                 style={{
-                  paddingHorizontal: 16, paddingVertical: 7,
+                  paddingHorizontal: 15, paddingVertical: 7,
                   borderRadius: theme.borderRadius.full,
                   backgroundColor: active ? theme.colors.primary : theme.colors.surface,
-                  borderWidth: active ? 0 : 1.5,
-                  borderColor: theme.colors.divider,
-                  shadowColor: active ? theme.colors.primary : 'transparent',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: active ? 0.30 : 0,
-                  shadowRadius: 8,
-                  elevation: active ? 3 : 0,
+                  borderWidth: 1.5,
+                  borderColor: active ? theme.colors.primaryDark : 'rgba(14,25,41,0.14)',
                 }}
               >
                 <Text style={{
-                  fontSize: 12, fontWeight: '700',
-                  color: active ? '#FFFFFF' : theme.colors.textSecondary,
+                  fontFamily: theme.fonts.bodySemi, fontSize: 12,
+                  color: active ? '#FCF7EA' : theme.colors.textSecondary,
                 }}>
                   {filter}
                 </Text>
@@ -225,8 +218,7 @@ export default function BrowseScreen() {
           contentContainerStyle={{ padding: 14, paddingBottom: insets.bottom + 24 }}
           ListHeaderComponent={
             <Text style={{
-              fontSize: 11, fontWeight: '600', color: theme.colors.textMuted,
-              textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12,
+              ...theme.typography.eyebrow, color: theme.colors.textMuted, marginBottom: 12,
             }}>
               {filteredGuides.length} guide{filteredGuides.length !== 1 ? 's' : ''} available
             </Text>

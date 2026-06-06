@@ -23,25 +23,24 @@ import { BOOKING_STATUS } from '@/config/constants';
 import type { Booking } from '@/types';
 
 function StatCard({ value, label, delay }: { value: string; label: string; delay: number }) {
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(20);
+  // Slide-up entrance via translateY only — never gate visibility on opacity,
+  // so a stalled animation can't leave the stats invisible.
+  const translateY = useSharedValue(14);
   const animStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
     transform: [{ translateY: translateY.value }],
   }));
 
   useLayoutEffect(() => {
-    opacity.value = withTiming(1, { duration: 400, easing: Easing.out(Easing.ease) });
     translateY.value = withSpring(0, { damping: 20, stiffness: 90, mass: 1 });
   }, []);
 
   return (
     <Animated.View style={[{ flex: 1 }, animStyle]}>
-      <Card style={{ alignItems: 'center', padding: 16 }}>
-        <Text style={{ fontSize: 28, fontWeight: '800', color: theme.colors.primary }}>
+      <Card style={{ alignItems: 'center', padding: 16 }} framed elevation="none">
+        <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 26, color: theme.colors.primary, letterSpacing: -0.5 }}>
           {value}
         </Text>
-        <Text style={{ fontSize: 12, color: theme.colors.textSecondary, marginTop: 4, textAlign: 'center' }}>
+        <Text style={{ fontFamily: theme.fonts.mono, fontSize: 9.5, color: theme.colors.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 6, textAlign: 'center' }}>
           {label}
         </Text>
       </Card>
@@ -109,25 +108,25 @@ export default function GuideDashboardScreen() {
         colors={theme.gradients.hero}
         style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 24 }}
       >
-        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>Welcome back,</Text>
-        <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '800', letterSpacing: -0.5 }}>
-          {guideName} 👋
+        <Text style={{ fontFamily: theme.fonts.mono, color: 'rgba(252,247,234,0.7)', fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase' }}>Welcome back,</Text>
+        <Text style={{ fontFamily: theme.fonts.displayX, color: '#FCF7EA', fontSize: 32, letterSpacing: -0.6, marginTop: 4 }}>
+          {guideName}
         </Text>
         {pending.length > 0 && (
           <View
             style={{
-              marginTop: 12,
-              backgroundColor: theme.colors.accent,
-              borderRadius: 10,
+              marginTop: 14,
+              alignSelf: 'flex-start',
+              backgroundColor: theme.colors.primary,
+              borderWidth: 1.5,
+              borderColor: theme.colors.primaryDark,
+              borderRadius: theme.borderRadius.sm,
               paddingHorizontal: 12,
               paddingVertical: 8,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 8,
             }}
           >
-            <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>
-              📬 {pending.length} new booking request{pending.length !== 1 ? 's' : ''}
+            <Text style={{ fontFamily: theme.fonts.bodyBold, color: '#FCF7EA', fontSize: 13 }}>
+              {pending.length} new booking request{pending.length !== 1 ? 's' : ''}
             </Text>
           </View>
         )}
@@ -142,11 +141,11 @@ export default function GuideDashboardScreen() {
       >
         <View
           style={{
-            borderRadius: 16,
+            borderRadius: theme.borderRadius.lg,
             overflow: 'hidden',
             marginBottom: 16,
-            borderWidth: 1,
-            borderColor: 'rgba(249, 115, 22, 0.2)',
+            borderWidth: 1.5,
+            borderColor: theme.colors.inkLine,
           }}
         >
           <Image
@@ -158,16 +157,16 @@ export default function GuideDashboardScreen() {
           <View
             style={{
               position: 'absolute',
-              inset: 0,
-              backgroundColor: 'rgba(15, 23, 42, 0.44)',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: 'rgba(14,25,41,0.46)',
               justifyContent: 'flex-end',
               paddingHorizontal: 14,
               paddingVertical: 12,
             }}
           >
-            <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>Today&apos;s city mood</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 2 }}>
-              Keep routes tight, stories rich, and returns on time.
+            <Text style={{ fontFamily: theme.fonts.display, color: '#FCF7EA', fontSize: 17, letterSpacing: -0.2 }}>Today&apos;s city mood</Text>
+            <Text style={{ fontFamily: theme.fonts.mono, color: 'rgba(252,247,234,0.85)', fontSize: 10.5, letterSpacing: 0.3, textTransform: 'uppercase', marginTop: 5 }}>
+              Keep routes tight, stories rich, returns on time.
             </Text>
           </View>
         </View>
@@ -182,7 +181,7 @@ export default function GuideDashboardScreen() {
         {/* Upcoming Tours */}
         {upcoming.length > 0 && (
           <View style={{ marginBottom: 24 }}>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: theme.colors.text, marginBottom: 12 }}>
+            <Text style={{ fontFamily: theme.fonts.display, fontSize: 20, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 12 }}>
               Upcoming Tours
             </Text>
             {upcoming.slice(0, 3).map((b) => (
@@ -201,7 +200,7 @@ export default function GuideDashboardScreen() {
         {/* Pending Requests */}
         {pending.length > 0 && (
           <View>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: theme.colors.text, marginBottom: 12 }}>
+            <Text style={{ fontFamily: theme.fonts.display, fontSize: 20, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 12 }}>
               New Requests
             </Text>
             {pending.slice(0, 3).map((b) => (
@@ -216,7 +215,7 @@ export default function GuideDashboardScreen() {
             {pending.length > 3 && (
               <Text
                 onPress={() => router.push('/(guide)/requests')}
-                style={{ color: theme.colors.primary, textAlign: 'center', marginTop: 8, fontWeight: '600' }}
+                style={{ fontFamily: theme.fonts.bodyBold, color: theme.colors.primary, textAlign: 'center', marginTop: 10 }}
               >
                 View all {pending.length} requests →
               </Text>
@@ -225,13 +224,15 @@ export default function GuideDashboardScreen() {
         )}
 
         {bookings.length === 0 && (
-          <Card style={{ alignItems: 'center', padding: 32, marginTop: 8 }}>
-            <Text style={{ fontSize: 40 }}>🌟</Text>
-            <Text style={{ fontSize: 17, fontWeight: '700', color: theme.colors.text, marginTop: 12, textAlign: 'center' }}>
+          <Card style={{ alignItems: 'center', padding: 32, marginTop: 8 }} framed elevation="none">
+            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: theme.colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+              <Text style={{ fontFamily: theme.fonts.serif, fontSize: 26, color: '#FCF7EA' }}>★</Text>
+            </View>
+            <Text style={{ fontFamily: theme.fonts.display, fontSize: 19, color: theme.colors.text, letterSpacing: -0.3, marginTop: 2, textAlign: 'center' }}>
               Ready for your first booking?
             </Text>
-            <Text style={{ color: theme.colors.textSecondary, fontSize: 14, marginTop: 6, textAlign: 'center', lineHeight: 20 }}>
-              Create your tours in the Tours tab and start accepting travelers!
+            <Text style={{ fontFamily: theme.fonts.body, color: theme.colors.textSecondary, fontSize: 14, marginTop: 8, textAlign: 'center', lineHeight: 20 }}>
+              Create your tours in the Tours tab and start accepting travelers.
             </Text>
           </Card>
         )}
