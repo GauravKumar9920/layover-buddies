@@ -41,6 +41,8 @@ export interface GuideProfile {
   bio: string | null;
   avatar_url: string | null;
   portfolio_image_url?: string | null;
+  /** Guide-uploaded walk photos — feeds the hero gallery + masonry journal. */
+  gallery_urls?: string[];
   university?: string | null;
   avg_rating: number;
   total_reviews: number;
@@ -218,11 +220,18 @@ export interface Message {
 
 export interface CreateBookingRequest {
   guide_id: string;
-  itinerary_id: string;
+  /** Null/omitted for a casual inquiry (no specific package chosen yet). */
+  itinerary_id?: string | null;
+  /** Arrival flight number. */
   flight_number?: string;
+  /** Arrival date (YYYY-MM-DD) + time (HH:MM, IST) → bookings.arrival_time. */
   flight_date?: string;
-  start_date: string;
-  end_date: string;
+  flight_time?: string;
+  /** Departure date (YYYY-MM-DD) + time (HH:MM, IST) → bookings.departure_time. */
+  departure_date?: string;
+  departure_time?: string;
+  start_date?: string;
+  end_date?: string;
   /** Group size, 1–10. Pricing scales linearly with this count. */
   num_travelers?: number;
 }

@@ -39,11 +39,12 @@ import {
 } from 'date-fns';
 import { StarRating } from '@/components/ui/StarRating';
 import { Card } from '@/components/ui/Card';
-import { BoardingPassReveal } from '@/components/bookings/BoardingPassReveal';
 import { SkeletonLine } from '@/components/ui/Loading';
 import { getItineraryPhoto, getGuideHeroPhoto } from '@/config/photoLibrary';
 import { fetchGuideById, fetchGuideItineraries } from '@/lib/api/guides';
+import { fetchMyTravelerProfile } from '@/lib/api/travelerProfile';
 import { createBooking, calcCommission } from '@/lib/api/bookings';
+import { sendMessage } from '@/lib/api/messages';
 import { hapticImpactMedium, hapticSuccess, hapticError } from '@/lib/haptics';
 import { theme } from '@/config/theme';
 import { COMMISSION_RATE, ESTIMATED_EXPENSES_PERCENT, CURRENCY_SYMBOL } from '@/config/constants';
@@ -52,6 +53,17 @@ import type { GuideProfile, Itinerary } from '@/types';
 const CARD_WIDTH = 288;
 const CARD_IMAGE_HEIGHT = Math.round(CARD_WIDTH * (9 / 16));
 const DAYS_OF_WEEK = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+// Onboarding stores arrival/departure as true-UTC instants of an IST wall
+// clock. To prefill the form with the same wall-clock the traveler typed, add
+// the +5:30 offset back and read the UTC fields.
+function istParts(iso: string | null | undefined): { date: string; time: string } | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const ist = new Date(d.getTime() + (5 * 60 + 30) * 60_000);
+  return { date: ist.toISOString().slice(0, 10), time: ist.toISOString().slice(11, 16) };
+}
 
 // ─── Calendar picker ─────────────────────────────────────────────────────────
 function CalendarPicker({
@@ -464,10 +476,13 @@ function LabeledInput({
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 export default function BookingScreen() {
-  const { guideId, itineraryId: preselectedItinId } = useLocalSearchParams<{
+  const { guideId, itineraryId: preselectedItinId, intent } = useLocalSearchParams<{
     guideId: string;
     itineraryId?: string;
+    intent?: string;
   }>();
+  // `intent=chat` → casual inquiry: no tour pre-selected, nothing required.
+  const isCasual = intent === 'chat';
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
@@ -477,10 +492,7 @@ export default function BookingScreen() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Holds the confirmed booking + ticket details so the boarding-pass reveal
-  // can play before we navigate to the trip screen.
-  const [reveal, setReveal] = useState<{ bookingId: string; itineraryName: string; dateLabel: string; timeLabel?: string; flightNumber?: string; totalLabel: string } | null>(null);
+  const [inquiryNote, setInquiryNote] = useState('');
 
   const [selectedItinId, setSelectedItinId] = useState<string>(preselectedItinId ?? '');
   const [tourStartDate, setTourStartDate] = useState('');
@@ -504,11 +516,34 @@ export default function BookingScreen() {
 
   useEffect(() => {
     if (!guideId) return;
-    Promise.all([fetchGuideById(guideId), fetchGuideItineraries(guideId)])
-      .then(([g, it]) => {
+    Promise.all([
+      fetchGuideById(guideId),
+      fetchGuideItineraries(guideId),
+      fetchMyTravelerProfile().catch(() => null),
+    ])
+      .then(([g, it, profile]) => {
         setGuide(g);
         setItineraries(it);
-        if (!selectedItinId && it.length > 0) setSelectedItinId(it[0].id);
+        // Casual inquiries don't auto-pick a tour; package inquiries default to
+        // the first (or the pre-selected) tour.
+        if (!isCasual && !selectedItinId && it.length > 0) setSelectedItinId(it[0].id);
+
+        // Autofill flight + trip window from what the traveler entered at
+        // onboarding. Functional updates so we only fill fields the traveler
+        // hasn't already started editing while this async fetch was in flight.
+        if (profile) {
+          if (profile.flight_in) setFlightNumber((v) => v || profile.flight_in!);
+          const arr = istParts(profile.arrival_at);
+          if (arr) {
+            setArrivalDate((v) => v || arr.date);
+            setArrivalTime((v) => v || arr.time);
+          }
+          const dep = istParts(profile.departure_at);
+          if (dep) {
+            setDepartureDate((v) => v || dep.date);
+            setDepartureTime((v) => v || dep.time);
+          }
+        }
       })
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : 'Failed to load guide details.');
@@ -529,24 +564,22 @@ export default function BookingScreen() {
   const commission = perPersonCommission * groupSize;
   const total = buddyCost + estimatedExpenses + commission;
 
-  async function handleConfirm() {
+  async function handleSend() {
     if (submitting) return;
     setError(null);
 
-    if (!selectedItinId || !selectedItin) {
-      hapticError(); setError('Please select a tour to continue.'); return;
-    }
-    if (!tourStartDate) {
-      hapticError(); setError('Tour start date is required.'); return;
-    }
-    const startParsed = parseISO(tourStartDate);
-    if (!isValid(startParsed) || isBefore(startParsed, parseISO(today))) {
-      hapticError(); setError('Tour start date cannot be in the past.'); return;
-    }
-    if (tourEndDate) {
-      const endParsed = parseISO(tourEndDate);
-      if (!isValid(endParsed) || isBefore(endParsed, startParsed)) {
-        hapticError(); setError('Tour end date must be on or after the start date.'); return;
+    // Inquiry-first: nothing is locked here, so requirements are light. We only
+    // validate fields the traveler actually filled in.
+    if (tourStartDate) {
+      const startParsed = parseISO(tourStartDate);
+      if (!isValid(startParsed) || isBefore(startParsed, parseISO(today))) {
+        hapticError(); setError('Preferred date cannot be in the past.'); return;
+      }
+      if (tourEndDate) {
+        const endParsed = parseISO(tourEndDate);
+        if (!isValid(endParsed) || isBefore(endParsed, startParsed)) {
+          hapticError(); setError('End date must be on or after the start date.'); return;
+        }
       }
     }
     const travelers = parseInt(numTravelers, 10);
@@ -559,33 +592,37 @@ export default function BookingScreen() {
     setSubmitting(true);
 
     try {
+      // A tour is optional in every mode: if the traveler selected one (even
+      // from a casual inquiry) we attach it so the booking is priced; if none
+      // is selected it's a casual inquiry with no package (itinerary_id null,
+      // price settled later in chat).
+      const itineraryId = selectedItinId || undefined;
+
       const booking = await createBooking({
         guide_id: guideId,
-        itinerary_id: selectedItinId,
+        itinerary_id: itineraryId,
         flight_number: flightNumber.trim() || undefined,
         flight_date: arrivalDate || undefined,
-        start_date: tourStartDate,
-        end_date: tourEndDate || tourStartDate,
+        flight_time: /^\d{2}:\d{2}$/.test(arrivalTime) ? arrivalTime : undefined,
+        departure_date: departureDate || undefined,
+        departure_time: /^\d{2}:\d{2}$/.test(departureTime) ? departureTime : undefined,
+        start_date: tourStartDate || undefined,
+        end_date: tourEndDate || tourStartDate || undefined,
         num_travelers: travelers,
       });
 
+      // Seed the conversation with the traveler's note (best-effort).
+      const firstNote = inquiryNote.trim()
+        || (selectedItin
+          ? `Hi ${guide?.name?.split(' ')[0] ?? 'there'}! I'm interested in "${selectedItin.name ?? selectedItin.title}". Is this something we could do?`
+          : `Hi ${guide?.name?.split(' ')[0] ?? 'there'}! I'd love to ask you a few things about visiting Mumbai.`);
+      await sendMessage({ booking_id: booking.id, content: firstNote }).catch(() => {});
+
       hapticSuccess();
       confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 });
-      // Phase 2+ lifecycle: a fresh booking starts in `chat_open` and progresses
-      // through agreement → signing → deposits → balance via dedicated screens.
-      // Landing on the trip detail (instead of the legacy single-shot payment
-      // screen) lets the agreement flow drive payments. The legacy
-      // `book/payment/[bookingId]` route is preserved for now but no new
-      // bookings should hit it. (Review 2026-05-14 #9.)
-      // Play the boarding-pass reveal, then navigate (reveal.onDone).
-      setReveal({
-        bookingId: booking.id,
-        itineraryName: selectedItin.name ?? selectedItin.title ?? 'Your Mumbai tour',
-        dateLabel: format(startParsed, 'd MMM'),
-        timeLabel: /^\d{2}:\d{2}$/.test(arrivalTime) ? arrivalTime : undefined,
-        flightNumber: flightNumber.trim() || undefined,
-        totalLabel: `${CURRENCY_SYMBOL}${total.toLocaleString('en-IN')}`,
-      });
+      // Inquiry-first: drop the traveler straight into the chat thread so they
+      // can build the plan with the guide. Booking + payment happen later.
+      router.replace(`/(shared)/messages/${booking.id}` as never);
     } catch (err: unknown) {
       hapticError();
       confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 });
@@ -678,10 +715,12 @@ export default function BookingScreen() {
         <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
           {/* ── Tour selection ─────────────────────────────────────────── */}
           <Text style={{ fontFamily: theme.fonts.display, fontSize: 19, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 4 }}>
-            Choose Your Tour
+            {isCasual ? 'Ask about a tour' : 'Which tour?'}
           </Text>
           <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary, marginBottom: 16 }}>
-            Tap a card to select
+            {isCasual
+              ? 'Optional — pick one to ask about, or just send a question below.'
+              : 'Tap a card to select. You can change it together with your guide.'}
           </Text>
         </View>
 
@@ -698,7 +737,7 @@ export default function BookingScreen() {
               <ItinCard
                 itin={item}
                 selected={item.id === selectedItinId}
-                onPress={() => setSelectedItinId(item.id)}
+                onPress={() => setSelectedItinId((prev) => (prev === item.id ? '' : item.id))}
               />
             )}
             contentContainerStyle={{ paddingLeft: 20, paddingRight: 8, paddingBottom: 4 }}
@@ -713,21 +752,23 @@ export default function BookingScreen() {
 
         <View style={{ paddingHorizontal: 20, paddingTop: 28 }}>
 
-          {/* ── Tour dates ────────────────────────────────────────────── */}
-          <Text style={{ fontFamily: theme.fonts.display, fontSize: 19, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 16 }}>
-            Tour Dates
+          {/* ── Preferred dates ───────────────────────────────────────── */}
+          <Text style={{ fontFamily: theme.fonts.display, fontSize: 19, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 4 }}>
+            Preferred Dates
+          </Text>
+          <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary, marginBottom: 16 }}>
+            Optional — you'll lock these in with your guide.
           </Text>
 
           <CalendarPicker
-            label="Tour Start Date"
+            label="Preferred Start Date"
             value={tourStartDate}
             onChange={setTourStartDate}
             minDate={today}
-            helper="First day of your Mumbai tour"
-            required
+            helper="When you'd like to explore"
           />
           <CalendarPicker
-            label="Tour End Date (optional)"
+            label="Preferred End Date (optional)"
             value={tourEndDate}
             onChange={setTourEndDate}
             minDate={tourStartDate || today}
@@ -763,7 +804,7 @@ export default function BookingScreen() {
             Your Flight Details
           </Text>
           <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary, marginBottom: 16 }}>
-            Helps your guide plan around your schedule
+            Pre-filled from your trip info — edit anything that's changed.
           </Text>
 
           <LabeledInput
@@ -816,8 +857,11 @@ export default function BookingScreen() {
           {/* ── Price breakdown ────────────────────────────────────────── */}
           {selectedItin ? (
             <Card style={{ marginTop: 4, marginBottom: 4 }}>
+              <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textMuted, marginBottom: 4 }}>
+                Rough estimate
+              </Text>
               <Text style={{ fontSize: 17, fontWeight: '700', color: theme.colors.text, marginBottom: 14 }}>
-                Price Breakdown
+                What this might cost
               </Text>
               <PriceRow label="Buddy fee" value={`${CURRENCY_SYMBOL}${buddyCost.toLocaleString('en-IN')}`} />
               <PriceRow
@@ -831,12 +875,39 @@ export default function BookingScreen() {
                 muted
               />
               <View style={{ height: 1, backgroundColor: theme.colors.divider, marginVertical: 10 }} />
-              <PriceRow label="Total" value={`${CURRENCY_SYMBOL}${total.toLocaleString('en-IN')}`} bold />
-              <Text style={{ fontSize: 11, color: theme.colors.textMuted, marginTop: 2 }}>
-                Held in escrow until tour completes · expenses may vary
+              <PriceRow label="Estimated total" value={`${CURRENCY_SYMBOL}${total.toLocaleString('en-IN')}`} bold />
+              <Text style={{ fontSize: 11, color: theme.colors.textMuted, marginTop: 2, lineHeight: 16 }}>
+                Just an estimate. You and your guide finalize the plan and price in chat — you only pay once it's agreed.
               </Text>
             </Card>
           ) : null}
+
+          {/* ── Inquiry note ───────────────────────────────────────────── */}
+          <Text style={{ fontFamily: theme.fonts.display, fontSize: 19, color: theme.colors.text, letterSpacing: -0.3, marginTop: 24, marginBottom: 4 }}>
+            Your message
+          </Text>
+          <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary, marginBottom: 12 }}>
+            Say hi and tell {guide?.name?.split(' ')[0] ?? 'your guide'} what you're after — this starts the conversation.
+          </Text>
+          <TextInput
+            value={inquiryNote}
+            onChangeText={setInquiryNote}
+            placeholder={
+              selectedItin
+                ? `e.g. Is "${selectedItin.name ?? selectedItin.title}" doable on my layover?`
+                : 'e.g. I have an 8h layover and love street food — what would you suggest?'
+            }
+            placeholderTextColor={theme.colors.textMuted}
+            multiline
+            style={{
+              backgroundColor: theme.colors.surface,
+              borderRadius: theme.borderRadius.md,
+              borderWidth: 1, borderColor: theme.colors.divider,
+              paddingHorizontal: 14, paddingVertical: 12, minHeight: 90,
+              fontSize: 15, color: theme.colors.text, textAlignVertical: 'top',
+              ...(Platform.OS === 'web' ? { outline: 'none' } as any : {}),
+            }}
+          />
 
           {/* ── Inline error ───────────────────────────────────────────── */}
           {error ? (
@@ -855,7 +926,7 @@ export default function BookingScreen() {
       <View style={{ position: 'absolute', bottom: insets.bottom + 16, left: 20, right: 20 }}>
         <Animated.View style={confirmStyle}>
           <TouchableOpacity
-            onPress={handleConfirm}
+            onPress={handleSend}
             onPressIn={() => { confirmScale.value = withSpring(0.96, { damping: 15, stiffness: 150 }); }}
             onPressOut={() => { confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 }); }}
             disabled={submitting || loading}
@@ -869,26 +940,12 @@ export default function BookingScreen() {
             }}
           >
             <Text style={{ fontFamily: theme.fonts.bodyBold, color: submitting || loading ? '#9A9384' : '#FCF7EA', fontSize: 16, letterSpacing: 0.2 }}>
-              {submitting ? 'Sending request…' : 'Confirm booking'}
+              {submitting ? 'Sending inquiry…' : 'Send inquiry'}
             </Text>
           </TouchableOpacity>
         </Animated.View>
       </View>
 
-      {/* Boarding-pass reveal → then navigate to the trip */}
-      <BoardingPassReveal
-        visible={!!reveal}
-        itineraryName={reveal?.itineraryName ?? ''}
-        guideName={guide?.name ?? 'your guide'}
-        guideAvatar={guide?.avatar_url}
-        dateLabel={reveal?.dateLabel ?? ''}
-        timeLabel={reveal?.timeLabel}
-        flightNumber={reveal?.flightNumber}
-        totalLabel={reveal?.totalLabel ?? ''}
-        onDone={() => {
-          if (reveal) router.replace(`/(traveler)/trips/${reveal.bookingId}` as never);
-        }}
-      />
     </KeyboardAvoidingView>
   );
 }

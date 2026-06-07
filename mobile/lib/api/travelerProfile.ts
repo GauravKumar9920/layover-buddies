@@ -10,6 +10,7 @@ import { supabase } from '../supabase';
 export interface TravelerProfile {
   user_id:                   string;
   nationality:               string | null;
+  gender:                    string | null;   // 'female' | 'male' | 'non_binary' | 'prefer_not_to_say'
   preferred_language:        string | null;
   emergency_contact_name:    string | null;
   emergency_contact_phone:   string | null;
@@ -23,6 +24,7 @@ export interface TravelerProfile {
 
 export interface OnboardingPayload {
   nationality:   string;
+  gender?:       string | null;
   arrival_at:    string;
   departure_at:  string;
   flight_in?:    string | null;
@@ -58,6 +60,7 @@ export async function completeOnboarding(payload: OnboardingPayload): Promise<Tr
       {
         user_id:      user.id,
         nationality:  payload.nationality,
+        gender:       payload.gender ?? null,
         arrival_at:   payload.arrival_at,
         departure_at: payload.departure_at,
         flight_in:    payload.flight_in ?? null,
@@ -72,4 +75,46 @@ export async function completeOnboarding(payload: OnboardingPayload): Promise<Tr
 
   if (error) throw error;
   return data as TravelerProfile;
+}
+
+/** Fields the traveler can edit from their Profile tab. `full_name` and
+ *  `avatar_url` live on the `users` table; everything else on
+ *  `traveler_profiles`. Pass only what changed. */
+export interface TravelerProfilePatch {
+  full_name?: string;
+  avatar_url?: string;
+  nationality?: string | null;
+  gender?: string | null;
+  preferred_language?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+  interests?: string[];
+}
+
+/** Persist a partial edit to the signed-in traveler's profile. Splits writes
+ *  across `users` (name/avatar) and `traveler_profiles` (everything else),
+ *  mirroring how `updateGuideProfile` handles the same split. */
+export async function updateMyTravelerProfile(patch: TravelerProfilePatch): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { full_name, avatar_url, ...profileFields } = patch;
+
+  // users table — name + avatar
+  if (full_name !== undefined || avatar_url !== undefined) {
+    const userUpdates: Record<string, unknown> = {};
+    if (full_name !== undefined) userUpdates.full_name = full_name;
+    if (avatar_url !== undefined) userUpdates.avatar_url = avatar_url;
+    const { error } = await supabase.from('users').update(userUpdates).eq('id', user.id);
+    if (error) throw error;
+  }
+
+  // traveler_profiles — onboarding/contact fields. Upsert so a missing row
+  // (trigger hasn't fired) doesn't fail the save.
+  if (Object.keys(profileFields).length > 0) {
+    const { error } = await supabase
+      .from('traveler_profiles')
+      .upsert({ user_id: user.id, ...profileFields }, { onConflict: 'user_id' });
+    if (error) throw error;
+  }
 }

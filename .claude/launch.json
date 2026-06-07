@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "Profile Redesign Mockup",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8770", "--directory", "design/profile-mockups"],
+      "port": 8770
+    },
+    {
       "name": "Signup Mockup",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "9999", "--directory", "mockup"],

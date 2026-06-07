@@ -116,6 +116,7 @@ export default function EditItineraryScreen() {
             location: typeof s.name === 'string' ? s.name : '',
             description: typeof s.description === 'string' ? s.description : '',
             estimated_duration_minutes: Number(s.estimated_duration_minutes ?? 30),
+            image_url: typeof s.image_url === 'string' ? s.image_url : null,
           }))
           .sort((a, b) => a.order - b.order)
           .map(({ order: _order, ...stop }) => stop);

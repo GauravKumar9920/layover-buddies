@@ -45,6 +45,13 @@ const NATIONALITIES: { code: string; name: string; flag: string }[] = [
   { code: 'OT', name: 'Other',          flag: '🌍' },
 ];
 
+const GENDERS: { key: string; label: string }[] = [
+  { key: 'female',            label: 'Female' },
+  { key: 'male',              label: 'Male' },
+  { key: 'non_binary',        label: 'Non-binary' },
+  { key: 'prefer_not_to_say', label: 'Prefer not to say' },
+];
+
 const INTERESTS: { key: string; label: string; emoji: string }[] = [
   { key: 'food',         label: 'Food & Street Eats', emoji: '🍜' },
   { key: 'history',      label: 'History & Heritage', emoji: '📚' },
@@ -66,6 +73,7 @@ export default function OnboardingScreen() {
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [nationality,  setNationality]  = useState<string | null>(null);
+  const [gender,       setGender]       = useState<string | null>(null);
   const [arrivalDate,  setArrivalDate]  = useState('');
   const [arrivalTime,  setArrivalTime]  = useState('');
   const [departureDate, setDepartureDate] = useState('');
@@ -87,7 +95,7 @@ export default function OnboardingScreen() {
   const isLayoverEligible = layoverHours !== null && layoverHours >= 7;
 
   const canAdvance = useMemo(() => {
-    if (step === 1) return !!nationality;
+    if (step === 1) return !!nationality && !!gender;
     if (step === 2) {
       if (!arrivalDate || !arrivalTime || !departureDate || !departureTime) return false;
       if (!/^\d{2}:\d{2}$/.test(arrivalTime) || !/^\d{2}:\d{2}$/.test(departureTime)) return false;
@@ -98,7 +106,7 @@ export default function OnboardingScreen() {
     }
     if (step === 3) return interests.length >= 1;
     return true;
-  }, [step, nationality, arrivalDate, arrivalTime, departureDate, departureTime, interests, isLayoverEligible]);
+  }, [step, nationality, gender, arrivalDate, arrivalTime, departureDate, departureTime, interests, isLayoverEligible]);
 
   function next() {
     if (!canAdvance) {
@@ -133,6 +141,7 @@ export default function OnboardingScreen() {
 
       await completeOnboarding({
         nationality:  nationality!,
+        gender:       gender,
         arrival_at:   toIstIso(arrivalDate, arrivalTime),
         departure_at: toIstIso(departureDate, departureTime),
         flight_in:    flightIn.trim() || null,
@@ -196,6 +205,36 @@ export default function OnboardingScreen() {
       >
         {step === 1 && (
           <View style={{ gap: 10 }}>
+            {/* Gender */}
+            <Text style={{ ...theme.typography.eyebrow, color: theme.colors.primary, marginBottom: 2 }}>
+              You identify as
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+              {GENDERS.map((g) => {
+                const selected = gender === g.key;
+                return (
+                  <TouchableOpacity
+                    key={g.key}
+                    onPress={() => { hapticImpactMedium(); setGender(g.key); }}
+                    style={{
+                      backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
+                      borderColor: selected ? theme.colors.primaryDark : theme.colors.divider,
+                      borderWidth: 1.5,
+                      borderRadius: 20, paddingVertical: 9, paddingHorizontal: 15,
+                    }}
+                  >
+                    <Text style={{
+                      fontFamily: theme.fonts.bodySemi, fontSize: 13.5,
+                      color: selected ? '#FCF7EA' : theme.colors.textSecondary,
+                    }}>{g.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <Text style={{ ...theme.typography.eyebrow, color: theme.colors.primary, marginBottom: 2 }}>
+              Nationality
+            </Text>
             {NATIONALITIES.map((n) => {
               const selected = nationality === n.name;
               return (

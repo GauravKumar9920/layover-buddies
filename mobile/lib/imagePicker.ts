@@ -73,6 +73,72 @@ export async function pickImage(opts: PickOptions = {}): Promise<PickedImage | n
   };
 }
 
+/**
+ * Open the image library allowing MULTIPLE selections. Returns every picked
+ * image, or an empty array if cancelled. Used by the guide photo gallery.
+ * Note: native multi-select disables per-image cropping (expo limitation).
+ */
+export async function pickImages(opts: { quality?: number; limit?: number } = {}): Promise<PickedImage[]> {
+  const { quality = 0.8, limit = 10 } = opts;
+
+  if (Platform.OS === 'web') {
+    return pickImagesWeb();
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsMultipleSelection: true,
+    selectionLimit: limit,
+    quality,
+  });
+
+  if (result.canceled || result.assets.length === 0) return [];
+
+  return Promise.all(
+    result.assets.map(async (asset) => {
+      const response = await fetch(asset.uri);
+      const blob = await response.blob();
+      const ext = asset.uri.split('.').pop() ?? 'jpg';
+      return {
+        uri: asset.uri,
+        blob,
+        mimeType: asset.mimeType ?? `image/${ext}`,
+        fileName: asset.fileName ?? `photo_${Date.now()}_${Math.round((asset.width ?? 0))}.${ext}`,
+        width: asset.width ?? 0,
+        height: asset.height ?? 0,
+      };
+    }),
+  );
+}
+
+/** Web-only multi-select via <input type="file" multiple>. */
+function pickImagesWeb(): Promise<PickedImage[]> {
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = true;
+    input.addEventListener('cancel', () => resolve([]));
+    input.addEventListener('change', () => {
+      const files = Array.from(input.files ?? []);
+      if (files.length === 0) { resolve([]); return; }
+      resolve(
+        files.map((file) => ({
+          uri: URL.createObjectURL(file),
+          blob: file,
+          mimeType: file.type || 'image/jpeg',
+          fileName: file.name || `photo_${Date.now()}.jpg`,
+          width: 0,
+          height: 0,
+        })),
+      );
+    });
+    document.body.appendChild(input);
+    input.click();
+    requestAnimationFrame(() => document.body.removeChild(input));
+  });
+}
+
 /** Web-only: use a hidden <input type="file"> to open the OS file picker. */
 function pickImageWeb(): Promise<PickedImage | null> {
   return new Promise((resolve, reject) => {
