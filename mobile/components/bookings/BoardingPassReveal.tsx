@@ -1,6 +1,6 @@
 /**
  * Celebratory boarding-pass reveal shown the moment a booking is confirmed.
- * A paper ticket springs up and a "REQUEST SENT" stamp thumps down over it,
+ * A paper ticket springs up and a "Booked" stamp thumps down over it,
  * then it auto-advances to the trip screen (or on tap). Pure presentational —
  * the caller owns the booking data and the onDone navigation.
  */
@@ -71,7 +71,7 @@ export function BoardingPassReveal({
       ),
     );
     // Auto-advance
-    const t = setTimeout(() => runOnJS(onDone)(), 2100);
+    const t = setTimeout(() => onDone(), 2100);
     return () => clearTimeout(t);
   }, [visible]);
 

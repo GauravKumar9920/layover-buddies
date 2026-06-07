@@ -88,7 +88,7 @@ function RootLayoutNav() {
 
     // Design-preview gallery — bypass auth redirects so the Warm Editorial
     // screens render without a signed-in session. (Dev/review only.)
-    if (segments[0] === 'design-preview') return;
+    if (__DEV__ && (segments[0] as string) === 'design-preview') return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inTravelerGroup = segments[0] === '(traveler)';

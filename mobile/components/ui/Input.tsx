@@ -52,7 +52,6 @@ export function Input({ label, error, hint, style, inputStyle, rightIcon, ...pro
           borderRadius: theme.borderRadius.md,
           paddingHorizontal: 14,
           paddingVertical: 12,
-          ...(focused ? theme.shadows.sm : {}),
         }}
       >
         <TextInput

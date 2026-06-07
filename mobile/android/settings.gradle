@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'Mumbai Buddies'
+rootProject.name = 'Detour'
 
 dependencyResolutionManagement {
   versionCatalogs {
