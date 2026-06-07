@@ -93,7 +93,7 @@ function RootLayoutNav() {
     // Let a signed-in guide preview their own traveler-facing profile
     // (/(traveler)/guide/[id]) without the role guard bouncing them back to
     // the guide area. Unauth users still fall through to the login redirect.
-    if (session && segments[0] === '(traveler)' && segments[1] === 'guide') return;
+    if (session && segments[0] === '(traveler)' && (segments as string[])[1] === 'guide') return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inTravelerGroup = segments[0] === '(traveler)';
