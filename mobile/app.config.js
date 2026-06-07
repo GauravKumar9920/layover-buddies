@@ -97,7 +97,7 @@ const config = {
     iosDisplayInForeground: true,
     androidMode: 'default',
     androidCollapsedTitle: 'Detour',
-    color: '#F97316',
+    color: '#C8542A',
   },
   plugins: [
     'expo-router',
@@ -117,7 +117,7 @@ const config = {
     [
       'expo-notifications',
       {
-        color: '#F97316',
+        color: '#C8542A',
       },
     ],
   ],

@@ -86,12 +86,12 @@ export default function SavedScreen() {
         }}
       >
         <Text
-          style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '800', letterSpacing: -0.5 }}
+          style={{ fontFamily: theme.fonts.display, color: '#FCF7EA', fontSize: 28, letterSpacing: -0.5 }}
         >
-          Saved ♥
+          Saved
         </Text>
-        <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, marginTop: 4 }}>
-          {items.length} tour{items.length === 1 ? '' : 's'} you've hearted
+        <Text style={{ fontFamily: theme.fonts.mono, color: 'rgba(252,247,234,0.7)', fontSize: 11, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 6 }}>
+          {items.length} tour{items.length === 1 ? '' : 's'} you’ve hearted
         </Text>
       </LinearGradient>
 
@@ -152,14 +152,14 @@ function SavedRow({
       style={{
         flexDirection: 'row',
         backgroundColor: theme.colors.surface,
-        borderRadius: 16,
+        borderRadius: theme.borderRadius.lg,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: theme.colors.divider,
+        borderColor: 'rgba(14,25,41,0.12)',
         ...theme.shadows.sm,
       }}
     >
-      <View style={{ width: 110, height: 110, backgroundColor: theme.colors.primaryLight }}>
+      <View style={{ width: 110, height: 110, backgroundColor: theme.colors.surfaceMuted }}>
         {photo ? (
           <Image
             source={{ uri: photo }}
@@ -168,7 +168,7 @@ function SavedRow({
           />
         ) : (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 28 }}>🗺️</Text>
+            <Text style={{ fontFamily: theme.fonts.serif, fontSize: 22, color: theme.colors.textMuted }}>Mumbai</Text>
           </View>
         )}
       </View>
@@ -177,13 +177,13 @@ function SavedRow({
         <View>
           <Text
             numberOfLines={1}
-            style={{ fontSize: 15, fontWeight: '700', color: theme.colors.text }}
+            style={{ fontFamily: theme.fonts.displaySemi, fontSize: 15, color: theme.colors.text }}
           >
             {itinerary.name ?? itinerary.title ?? 'Mumbai Tour'}
           </Text>
           <Text
             numberOfLines={2}
-            style={{ fontSize: 12, color: theme.colors.textSecondary, marginTop: 4, lineHeight: 17 }}
+            style={{ fontFamily: theme.fonts.body, fontSize: 12, color: theme.colors.textSecondary, marginTop: 4, lineHeight: 17 }}
           >
             {itinerary.description || `${itinerary.estimated_duration_hours}h in ${itinerary.city}`}
           </Text>
@@ -196,7 +196,7 @@ function SavedRow({
             marginTop: 8,
           }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '800', color: theme.colors.primary }}>
+          <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 15, color: theme.colors.primary }}>
             ₹{itinerary.buddy_cost_inr.toLocaleString('en-IN')}
           </Text>
           <TouchableOpacity

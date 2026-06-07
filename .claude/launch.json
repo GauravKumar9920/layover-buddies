@@ -39,6 +39,13 @@
       "autoPort": false
     },
     {
+      "name": "Detour Web Preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:web", "--prefix", "mobile", "--", "--port", "8082"],
+      "port": 8082,
+      "autoPort": false
+    },
+    {
       "name": "Expo App (iOS Simulator)",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start:ios", "--prefix", "mobile"],

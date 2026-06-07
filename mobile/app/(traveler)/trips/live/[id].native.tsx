@@ -201,7 +201,7 @@ export default function LiveTourScreen() {
 
       {guideLocation && (
         <Text style={styles.timestampLabel}>
-          📍 Updated {new Date(guideLocation.timestamp).toLocaleTimeString()}
+          Updated {new Date(guideLocation.timestamp).toLocaleTimeString()}
         </Text>
       )}
 

@@ -21,9 +21,12 @@ export function Loading({ message, fullScreen = false }: LoadingProps) {
       {message && (
         <Text
           style={{
-            marginTop: 12,
+            marginTop: 14,
+            fontFamily: theme.fonts.mono,
             color: theme.colors.textSecondary,
-            fontSize: 14,
+            fontSize: 11,
+            letterSpacing: 1,
+            textTransform: 'uppercase',
             textAlign: 'center',
           }}
         >
@@ -50,7 +53,7 @@ export function SkeletonLine({
         {
           width,
           height,
-          backgroundColor: '#E5E7EB',
+          backgroundColor: '#E6DBC2',
           borderRadius: 6,
           overflow: 'hidden',
         },
@@ -65,7 +68,7 @@ export function GuideCardSkeleton() {
   return (
     <View
       style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: theme.colors.surface,
         borderRadius: theme.borderRadius.lg,
         overflow: 'hidden',
         marginBottom: 16,
@@ -73,7 +76,7 @@ export function GuideCardSkeleton() {
       }}
     >
       {/* Hero image placeholder */}
-      <View style={{ height: 160, backgroundColor: '#E5E7EB' }} />
+      <View style={{ height: 160, backgroundColor: '#E6DBC2' }} />
 
       {/* Avatar */}
       <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
@@ -82,10 +85,10 @@ export function GuideCardSkeleton() {
             width: 56,
             height: 56,
             borderRadius: 28,
-            backgroundColor: '#E5E7EB',
+            backgroundColor: '#E6DBC2',
             marginTop: -20,
             borderWidth: 3,
-            borderColor: '#FFFFFF',
+            borderColor: theme.colors.surface,
           }}
         />
       </View>

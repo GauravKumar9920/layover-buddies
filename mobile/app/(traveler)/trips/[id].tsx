@@ -111,7 +111,7 @@ export default function TripDetailScreen() {
   // on the backend; we just gate the button visibility here.
   const canCancel = canTransition(booking.status, 'cancel');
   const isGuide = currentUserId === booking.guide_id;
-  const chatLabel = isGuide ? '💬 Message Traveler' : '💬 Message Guide';
+  const chatLabel = isGuide ? 'Message traveler' : 'Message guide';
   const itineraryPhoto = booking.itinerary ? getItineraryPhoto(booking.itinerary) : null;
 
   return (
@@ -156,8 +156,8 @@ export default function TripDetailScreen() {
         />
 
         {/* Tour Info */}
-        <Card style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 17, fontWeight: '700', color: theme.colors.text, marginBottom: 12 }}>
+        <Card style={{ marginBottom: 16 }} framed elevation="none">
+          <Text style={{ fontFamily: theme.fonts.display, fontSize: 19, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 14 }}>
             {booking.itinerary?.name ?? 'Tour'}
           </Text>
           <InfoRow label="Guide" value={booking.guide?.name ?? '—'} />
@@ -168,20 +168,20 @@ export default function TripDetailScreen() {
         </Card>
 
         {/* Price */}
-        <Card style={{ marginBottom: 20 }}>
-          <Text style={{ fontSize: 17, fontWeight: '700', color: theme.colors.text, marginBottom: 12 }}>
+        <Card style={{ marginBottom: 20 }} framed elevation="none">
+          <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textSecondary, marginBottom: 12 }}>
             Payment
           </Text>
-          <InfoRow label="Buddy Cost" value={`₹${booking.total_price.toLocaleString('en-IN')}`} />
-          <View style={{ height: 1, backgroundColor: theme.colors.divider, marginVertical: 10 }} />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text }}>Total</Text>
-            <Text style={{ fontSize: 20, fontWeight: '800', color: theme.colors.primary }}>
+          <InfoRow label="Buddy cost" value={`₹${booking.total_price.toLocaleString('en-IN')}`} mono />
+          <View style={{ height: 1, backgroundColor: 'rgba(14,25,41,0.1)', marginVertical: 12 }} />
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <Text style={{ fontFamily: theme.fonts.bodyBold, fontSize: 15, color: theme.colors.text }}>Total</Text>
+            <Text style={{ ...theme.typography.price, color: theme.colors.primary }}>
               ₹{booking.total_price.toLocaleString('en-IN')}
             </Text>
           </View>
-          <Text style={{ fontSize: 12, color: theme.colors.textMuted, marginTop: 6 }}>
-            {booking.payment_status === 'captured' ? '✅ Payment captured' : '🔒 Held in escrow'}
+          <Text style={{ fontFamily: theme.fonts.mono, fontSize: 10.5, color: theme.colors.textMuted, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 8 }}>
+            {booking.payment_status === 'captured' ? 'Payment captured' : 'Held in escrow'}
           </Text>
         </Card>
 
@@ -196,13 +196,13 @@ export default function TripDetailScreen() {
           )}
           {canLive && (
             <Button
-              title="📍 Live Tour View"
+              title="Track live"
               onPress={() => router.push(`/(traveler)/trips/live/${booking.id}`)}
             />
           )}
           {canReview && (
             <Button
-              title="⭐ Leave a Review"
+              title="Leave a review"
               onPress={() => router.push(`/(traveler)/trips/review/${booking.id}`)}
             />
           )}
@@ -219,11 +219,11 @@ export default function TripDetailScreen() {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-      <Text style={{ fontSize: 14, color: theme.colors.textSecondary }}>{label}</Text>
-      <Text style={{ fontSize: 14, color: theme.colors.text, fontWeight: '500' }}>{value}</Text>
+      <Text style={{ fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.textSecondary }}>{label}</Text>
+      <Text style={{ fontFamily: mono ? theme.fonts.monoMed : theme.fonts.bodySemi, fontSize: 14, color: theme.colors.text }}>{value}</Text>
     </View>
   );
 }

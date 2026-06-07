@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Feather from '@expo/vector-icons/Feather';
 import { Header } from '@/components/ui/Header';
 import { Card } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
@@ -225,7 +226,7 @@ export default function LiveTourScreen() {
               marginBottom: 16,
             }}
           >
-            📍 Updated {new Date(guideLocation.timestamp).toLocaleTimeString()} ·{' '}
+            Updated {new Date(guideLocation.timestamp).toLocaleTimeString()} ·{' '}
             {guideLocation.latitude.toFixed(4)}, {guideLocation.longitude.toFixed(4)}
           </Text>
         )}
@@ -348,8 +349,8 @@ function TripProgressBar({ booking }: { booking: Booking }) {
   return (
     <Card style={{ marginBottom: 12 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.text }}>
-          🎯 Trip progress
+        <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textSecondary }}>
+          Trip progress
         </Text>
         <Text style={{ fontSize: 12, color: theme.colors.textSecondary }}>{label}</Text>
       </View>
@@ -420,9 +421,9 @@ function SafetyBar({ insets, guideName }: { insets: { bottom: number }, guideNam
           flexDirection: 'row', gap: 6,
         }}
       >
-        <Text style={{ fontSize: 14 }}>🚨</Text>
-        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>SOS</Text>
-        <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 9, opacity: 0.85 }}>
+        <Feather name="alert-triangle" size={14} color="#FCF7EA" />
+        <Text style={{ fontFamily: theme.fonts.bodyBold, color: '#FCF7EA', fontSize: 13 }}>SOS</Text>
+        <Text style={{ fontFamily: theme.fonts.mono, color: '#FCF7EA', fontSize: 9, opacity: 0.85 }}>
           (preview)
         </Text>
       </TouchableOpacity>
@@ -435,8 +436,8 @@ function SafetyBar({ insets, guideName }: { insets: { bottom: number }, guideNam
           flexDirection: 'row', gap: 6,
         }}
       >
-        <Text style={{ fontSize: 14 }}>🆘</Text>
-        <Text style={{ color: theme.colors.primary, fontWeight: '700', fontSize: 13 }}>Help</Text>
+        <Feather name="help-circle" size={14} color={theme.colors.primary} />
+        <Text style={{ fontFamily: theme.fonts.bodyBold, color: theme.colors.primary, fontSize: 13 }}>Help</Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={contact}
@@ -448,8 +449,8 @@ function SafetyBar({ insets, guideName }: { insets: { bottom: number }, guideNam
           flexDirection: 'row', gap: 6,
         }}
       >
-        <Text style={{ fontSize: 14 }}>📞</Text>
-        <Text style={{ color: theme.colors.text, fontWeight: '700', fontSize: 13 }}>Contact</Text>
+        <Feather name="phone" size={14} color={theme.colors.text} />
+        <Text style={{ fontFamily: theme.fonts.bodyBold, color: theme.colors.text, fontSize: 13 }}>Contact</Text>
       </TouchableOpacity>
     </View>
   );

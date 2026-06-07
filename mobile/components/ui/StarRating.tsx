@@ -41,7 +41,7 @@ function AnimatedStar({ filled, size, delay, animate }: { filled: boolean; size:
       style={[
         {
           fontSize: size,
-          color: filled ? theme.colors.gold : '#E5E7EB',
+          color: filled ? theme.colors.gold : 'rgba(14,25,41,0.16)',
         },
         animStyle,
       ]}
@@ -64,7 +64,7 @@ export function StarRating({
       <View style={{ flexDirection: 'row', gap: 4 }}>
         {Array.from({ length: maxStars }, (_, i) => (
           <TouchableOpacity key={i} onPress={() => onRate?.(i + 1)}>
-            <Text style={{ fontSize: size, color: i < rating ? theme.colors.gold : '#E5E7EB' }}>
+            <Text style={{ fontSize: size, color: i < rating ? theme.colors.gold : 'rgba(14,25,41,0.16)' }}>
               ★
             </Text>
           </TouchableOpacity>

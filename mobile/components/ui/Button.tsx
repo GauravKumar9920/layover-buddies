@@ -7,7 +7,6 @@ import {
   TextStyle,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -33,8 +32,17 @@ interface ButtonProps {
 
 const SIZE_STYLES: Record<ButtonSize, { paddingH: number; paddingV: number; fontSize: number; borderRadius: number }> = {
   sm: { paddingH: 16, paddingV: 9,  fontSize: 13, borderRadius: 10 },
-  md: { paddingH: 20, paddingV: 13, fontSize: 15, borderRadius: 12 },
-  lg: { paddingH: 24, paddingV: 16, fontSize: 16, borderRadius: 14 },
+  md: { paddingH: 20, paddingV: 14, fontSize: 15, borderRadius: 12 },
+  lg: { paddingH: 24, paddingV: 17, fontSize: 16, borderRadius: 12 },
+};
+
+// Warm Editorial buttons: solid fills with a hairline ink/terracotta border —
+// the "outlined ticket" look from the marketing site — not neon gradients.
+const VARIANT: Record<ButtonVariant, { bg: string; border: string; text: string }> = {
+  primary:   { bg: theme.colors.primary,   border: theme.colors.primaryDark, text: '#FCF7EA' },
+  secondary: { bg: theme.colors.surface,   border: theme.colors.text,        text: theme.colors.text },
+  danger:    { bg: theme.colors.error,     border: '#8E2C20',                text: '#FCF7EA' },
+  ghost:     { bg: 'transparent',          border: 'transparent',            text: theme.colors.primary },
 };
 
 export function Button({
@@ -52,6 +60,7 @@ export function Button({
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const { paddingH, paddingV, fontSize, borderRadius } = SIZE_STYLES[size];
   const isDisabled = disabled || loading;
+  const v = VARIANT[variant];
 
   const handlePressIn = useCallback(() => {
     scale.value = withSpring(0.96, { damping: 15, stiffness: 150 });
@@ -62,35 +71,19 @@ export function Button({
     scale.value = withSpring(1, { damping: 15, stiffness: 150 });
   }, [scale]);
 
-  const sharedInnerStyle = {
-    borderRadius,
-    paddingHorizontal: paddingH,
-    paddingVertical: paddingV,
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    gap: 8,
-  };
-
   const content = loading ? (
-    <ActivityIndicator
-      size="small"
-      color={variant === 'secondary' || variant === 'ghost' ? theme.colors.primary : '#FFFFFF'}
-    />
+    <ActivityIndicator size="small" color={isDisabled ? '#9A9384' : v.text} />
   ) : (
     <>
       {icon && <View>{icon}</View>}
       <Text
         style={[
           {
+            fontFamily: theme.fonts.bodyBold,
             fontSize,
-            fontWeight: '700' as const,
+            fontWeight: '700',
             letterSpacing: 0.2,
-            color:
-              isDisabled ? '#9CA3AF'
-              : variant === 'secondary' ? theme.colors.text
-              : variant === 'ghost' ? theme.colors.primary
-              : '#FFFFFF',
+            color: isDisabled ? '#9A9384' : v.text,
           },
           textStyle,
         ]}
@@ -104,18 +97,9 @@ export function Button({
     <Animated.View
       style={[
         animStyle,
-        variant === 'primary' && !isDisabled
-          ? {
-              shadowColor: theme.colors.primary,
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.38,
-              shadowRadius: 18,
-              elevation: 6,
-              borderRadius,
-            }
-          : undefined,
-        // For non-primary variants, style goes on the wrapper
-        variant !== 'primary' ? style : undefined,
+        variant === 'primary' && !isDisabled ? theme.shadows.sm : undefined,
+        { borderRadius },
+        style,
       ]}
     >
       <TouchableOpacity
@@ -123,37 +107,21 @@ export function Button({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={isDisabled}
-        activeOpacity={0.9}
-        style={{ borderRadius }}
+        activeOpacity={0.85}
+        style={{
+          borderRadius,
+          paddingHorizontal: paddingH,
+          paddingVertical: paddingV,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          backgroundColor: isDisabled ? '#E3D9C2' : v.bg,
+          borderWidth: variant === 'ghost' ? 0 : 1.5,
+          borderColor: isDisabled ? '#D3C6A8' : v.border,
+        }}
       >
-        {variant === 'primary' && !isDisabled ? (
-          <LinearGradient
-            colors={theme.gradients.sunset}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[sharedInnerStyle, style]}
-          >
-            {content}
-          </LinearGradient>
-        ) : (
-          <View
-            style={[
-              sharedInnerStyle,
-              {
-                backgroundColor:
-                  isDisabled ? '#E5E7EB'
-                  : variant === 'secondary' ? theme.colors.surface
-                  : variant === 'danger' ? theme.colors.error
-                  : 'transparent',
-                borderWidth: variant === 'secondary' ? 1.5 : 0,
-                borderColor: theme.colors.divider,
-                ...(variant === 'secondary' ? theme.shadows.sm : {}),
-              },
-            ]}
-          >
-            {content}
-          </View>
-        )}
+        {content}
       </TouchableOpacity>
     </Animated.View>
   );

@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Feather from '@expo/vector-icons/Feather';
 import { Header } from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { scanQrToken } from '@/lib/api/tripLifecycle';
@@ -137,7 +138,9 @@ export default function GuideQrScanScreen() {
       <View style={[styles.root, { paddingBottom: insets.bottom }]}>
         <Header title="Scan QR" />
         <View style={styles.permissionBody}>
-          <Text style={styles.permissionEmoji}>📷</Text>
+          <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: theme.colors.surfaceMuted, borderWidth: 1, borderColor: 'rgba(14,25,41,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+            <Feather name="camera" size={28} color={theme.colors.textMuted} />
+          </View>
           <Text style={styles.permissionHeading}>Camera access needed</Text>
           <Text style={styles.permissionSub}>
             Allow camera access to scan the traveler's QR code and start the trip.
@@ -213,7 +216,7 @@ const styles = StyleSheet.create({
   overlayBand:       { backgroundColor: 'rgba(0,0,0,0.6)' },
   overlayMiddle:     { flexDirection: 'row', height: VF_SIZE },
   viewfinder:        { width: VF_SIZE, height: VF_SIZE, position: 'relative' },
-  corner:            { position: 'absolute', width: CORNER, height: CORNER, borderColor: '#F97316', borderWidth: BORDER },
+  corner:            { position: 'absolute', width: CORNER, height: CORNER, borderColor: theme.colors.primary, borderWidth: BORDER },
   cornerTL:          { top: 0, left: 0, borderBottomWidth: 0, borderRightWidth: 0 },
   cornerTR:          { top: 0, right: 0, borderBottomWidth: 0, borderLeftWidth: 0 },
   cornerBL:          { bottom: 0, left: 0, borderTopWidth: 0, borderRightWidth: 0 },

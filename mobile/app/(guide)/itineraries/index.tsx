@@ -84,7 +84,7 @@ export default function ItinerariesScreen() {
               paddingVertical: 6,
             }}
           >
-            <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '600' }}>+ New Tour</Text>
+            <Text style={{ fontFamily: theme.fonts.bodyBold, color: '#FCF7EA', fontSize: 13 }}>+ New tour</Text>
           </TouchableOpacity>
         }
       />
@@ -115,15 +115,15 @@ export default function ItinerariesScreen() {
               </View>
             )}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text }}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={{ fontFamily: theme.fonts.displaySemi, fontSize: 16, color: theme.colors.text }}>
                   {item.name ?? item.title ?? 'City Tour'}
                 </Text>
-                <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginTop: 2 }}>
-                  📍 {item.city}  ·  ⏱ {item.estimated_duration_hours}h  ·  👥 Max {item.max_travelers}
+                <Text style={{ fontFamily: theme.fonts.mono, fontSize: 10.5, color: theme.colors.textSecondary, letterSpacing: 0.3, textTransform: 'uppercase', marginTop: 5 }}>
+                  {item.city}  ·  {item.estimated_duration_hours}h  ·  Max {item.max_travelers}
                 </Text>
               </View>
-              <Text style={{ fontSize: 18, fontWeight: '800', color: theme.colors.primary }}>
+              <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 17, color: theme.colors.primary }}>
                 ₹{item.buddy_cost_inr.toLocaleString('en-IN')}
               </Text>
             </View>

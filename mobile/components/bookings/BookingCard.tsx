@@ -28,7 +28,7 @@ export function BookingCard({ booking, onPress, showGuide = true, showTraveler =
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: theme.colors.text }}>
+            <Text style={{ fontFamily: theme.fonts.displaySemi, fontSize: 16, color: theme.colors.text }}>
               {booking.itinerary?.name ?? 'Tour'}
             </Text>
             {unreadCount > 0 && (
@@ -41,26 +41,26 @@ export function BookingCard({ booking, onPress, showGuide = true, showTraveler =
                 justifyContent: 'center',
                 paddingHorizontal: 5,
               }}>
-                <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '700' }}>
+                <Text style={{ fontFamily: theme.fonts.monoMed, color: '#FCF7EA', fontSize: 11 }}>
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Text>
               </View>
             )}
           </View>
-          <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginTop: 2 }}>
-            {showGuide ? '👤 Guide: ' : '✈️ Traveler: '}{displayName}
+          <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary, marginTop: 3 }}>
+            {showGuide ? 'Guide · ' : 'Traveler · '}{displayName}
           </Text>
-          <Text style={{ fontSize: 13, color: theme.colors.textMuted, marginTop: 4 }}>
-            📅 {formattedDate}
+          <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textMuted, letterSpacing: 0.3, textTransform: 'uppercase', marginTop: 5 }}>
+            {formattedDate}
           </Text>
         </View>
 
-        <View style={{ alignItems: 'flex-end', gap: 6 }}>
+        <View style={{ alignItems: 'flex-end', gap: 8 }}>
           <Badge
             label={bookingStatusLabel(booking.status)}
             variant={bookingStatusVariant(booking.status)}
           />
-          <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.primary }}>
+          <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 16, color: theme.colors.primary }}>
             ₹{booking.total_price.toLocaleString('en-IN')}
           </Text>
         </View>
@@ -69,15 +69,15 @@ export function BookingCard({ booking, onPress, showGuide = true, showTraveler =
       {booking.itinerary?.city && (
         <View
           style={{
-            marginTop: 10,
-            paddingTop: 10,
+            marginTop: 12,
+            paddingTop: 12,
             borderTopWidth: 1,
-            borderTopColor: theme.colors.divider,
+            borderTopColor: 'rgba(14,25,41,0.08)',
           }}
         >
-          <Text style={{ fontSize: 12, color: theme.colors.textMuted }}>
-            📍 {booking.itinerary.city}
-            {booking.flight_number && `  ✈️ Flight: ${booking.flight_number}`}
+          <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textMuted, letterSpacing: 0.3, textTransform: 'uppercase' }}>
+            {booking.itinerary.city}
+            {booking.flight_number && `  ·  ${booking.flight_number}`}
           </Text>
         </View>
       )}

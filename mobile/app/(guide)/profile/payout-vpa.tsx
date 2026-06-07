@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Feather from '@expo/vector-icons/Feather';
 import { Header } from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
@@ -81,7 +82,9 @@ export default function PayoutVpaScreen() {
       <Header title="Add UPI ID" />
       <View style={[styles.body, { paddingBottom: insets.bottom }]}>
         {/* Icon */}
-        <Text style={styles.icon}>💳</Text>
+        <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: theme.colors.primaryLight, borderWidth: 1, borderColor: 'rgba(200,84,42,0.25)', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+          <Feather name="credit-card" size={28} color={theme.colors.primary} />
+        </View>
 
         <Text style={styles.heading}>Your UPI ID</Text>
         <Text style={styles.sub}>

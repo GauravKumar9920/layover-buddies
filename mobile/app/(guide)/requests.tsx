@@ -52,7 +52,7 @@ export default function RequestsScreen() {
     try {
       await acceptBooking(bookingId);
       setRequests((prev) => prev.filter((r) => r.id !== bookingId));
-      Alert.alert('✅ Accepted!', "The traveler will be notified. Payment will be captured on confirmation.");
+      Alert.alert('Accepted', "The traveler will be notified. Payment will be captured on confirmation.");
     } catch (err: unknown) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to accept');
     } finally {
@@ -118,16 +118,16 @@ export default function RequestsScreen() {
             {/* Traveler Info */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
               <View>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text }}>
+                <Text style={{ fontFamily: theme.fonts.displaySemi, fontSize: 17, color: theme.colors.text }}>
                   {item.traveler?.name ?? 'Traveler'}
                 </Text>
                 {item.traveler?.nationality && (
-                  <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginTop: 2 }}>
-                    🌍 {item.traveler.nationality}
+                  <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 0.3, textTransform: 'uppercase', marginTop: 4 }}>
+                    {item.traveler.nationality}
                   </Text>
                 )}
               </View>
-              <Badge label="New Request" variant="warning" />
+              <Badge label="New request" variant="warning" />
             </View>
 
             {/* Tour Details */}
@@ -135,26 +135,29 @@ export default function RequestsScreen() {
               style={{
                 backgroundColor: theme.colors.primaryLight,
                 borderRadius: theme.borderRadius.md,
-                padding: 12,
-                marginBottom: 12,
+                borderWidth: 1,
+                borderColor: 'rgba(200,84,42,0.2)',
+                padding: 14,
+                marginBottom: 14,
                 gap: 6,
               }}
             >
-              <Text style={{ fontSize: 14, fontWeight: '600', color: theme.colors.primary }}>
+              <Text style={{ fontFamily: theme.fonts.displaySemi, fontSize: 15, color: theme.colors.text }}>
                 {item.itinerary?.name ?? 'Tour'}
               </Text>
-              <Text style={{ fontSize: 13, color: theme.colors.textSecondary }}>
-                📅 {format(new Date(item.start_date), 'EEE, MMM d, yyyy')}
+              <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 0.3, textTransform: 'uppercase' }}>
+                {format(new Date(item.start_date), 'EEE, MMM d, yyyy')}
               </Text>
               {item.flight_number && (
-                <Text style={{ fontSize: 13, color: theme.colors.textSecondary }}>
-                  ✈️ Flight: {item.flight_number}
+                <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 0.3, textTransform: 'uppercase' }}>
+                  Flight {item.flight_number}
                 </Text>
               )}
-              <Text style={{ fontSize: 15, fontWeight: '700', color: theme.colors.primary, marginTop: 4 }}>
-                ₹{(item.total_price - item.commission).toLocaleString('en-IN')} your payout
+              <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 16, color: theme.colors.primary, marginTop: 6 }}>
+                ₹{(item.total_price - item.commission).toLocaleString('en-IN')}
+                <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textMuted }}> your payout</Text>
               </Text>
-              <Text style={{ fontSize: 11, color: theme.colors.textMuted }}>
+              <Text style={{ fontFamily: theme.fonts.mono, fontSize: 10, color: theme.colors.textMuted, letterSpacing: 0.3, textTransform: 'uppercase' }}>
                 After 25% platform fee
               </Text>
             </View>
@@ -162,7 +165,7 @@ export default function RequestsScreen() {
             {/* Actions */}
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <Button
-                title="✓ Accept"
+                title="Accept"
                 onPress={() => handleAccept(item.id)}
                 loading={actionId === item.id}
                 style={{ flex: 1 }}

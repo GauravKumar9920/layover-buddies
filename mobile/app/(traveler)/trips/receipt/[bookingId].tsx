@@ -64,7 +64,7 @@ export default function TravelerReceiptScreen() {
 
   return (
     <View style={[styles.root, { paddingBottom: insets.bottom }]}>
-      <Header title="Day complete 🎉" showBack={false} />
+      <Header title="Day complete" showBack={false} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -203,11 +203,11 @@ function RefundRow({
 
 const rrStyles = StyleSheet.create({
   row:       { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
-  label:     { fontSize: 14, color: theme.colors.text, flex: 1 },
-  value:     { fontSize: 14, color: theme.colors.text, fontWeight: '600' },
+  label:     { fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.text, flex: 1 },
+  value:     { fontFamily: theme.fonts.monoMed, fontSize: 14, color: theme.colors.text },
   muted:     { color: theme.colors.textSecondary },
-  accent:    { color: '#16A34A' },
-  boldValue: { fontSize: 16, fontWeight: '800' },
+  accent:    { color: theme.colors.success },
+  boldValue: { fontFamily: theme.fonts.monoMed, fontSize: 18, color: theme.colors.primary },
   small:     { fontSize: 13 },
 });
 
@@ -217,14 +217,14 @@ const styles = StyleSheet.create({
   errorText:       { color: '#991B1B', fontSize: 15 },
   scroll:          { flex: 1 },
   scrollContent:   { padding: 20, paddingBottom: 40 },
-  heading:         { fontSize: 26, fontWeight: '800', color: theme.colors.text, marginBottom: 4 },
-  completedAt:     { fontSize: 13, color: theme.colors.textSecondary, marginBottom: 16 },
-  statusBadge:     { alignSelf: 'flex-start', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginBottom: 20 },
-  statusText:      { fontSize: 13, fontWeight: '700' },
+  heading:         { fontFamily: theme.fonts.display, fontSize: 28, color: theme.colors.text, letterSpacing: -0.5, marginBottom: 4 },
+  completedAt:     { fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 16 },
+  statusBadge:     { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 8, marginBottom: 20 },
+  statusText:      { fontFamily: theme.fonts.monoMed, fontSize: 11, letterSpacing: 0.5, textTransform: 'uppercase' },
   refundCard:      { padding: 16, marginBottom: 16 },
   expenseCard:     { padding: 16, marginBottom: 16 },
-  cardHeading:     { fontSize: 15, fontWeight: '700', color: theme.colors.text, marginBottom: 8 },
-  divider:         { height: 1, backgroundColor: theme.colors.divider, marginVertical: 8 },
+  cardHeading:     { ...theme.typography.eyebrow, color: theme.colors.textSecondary, marginBottom: 10 },
+  divider:         { height: 1, backgroundColor: 'rgba(14,25,41,0.1)', marginVertical: 8 },
   processingNote:  { fontSize: 13, color: theme.colors.textSecondary, textAlign: 'center', lineHeight: 20, marginVertical: 16 },
   rateBtn:         { marginTop: 8 },
 });

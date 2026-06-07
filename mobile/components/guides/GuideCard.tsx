@@ -13,7 +13,6 @@ import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { StarRating } from '@/components/ui/StarRating';
 import { theme } from '@/config/theme';
-import { CATEGORY_COLORS } from '@/config/constants';
 import { getGuideHeroPhoto } from '@/config/photoLibrary';
 import { hapticImpactLight } from '@/lib/haptics';
 import { interestOverlap, computeTimeFit, timeFitLabel } from '@/lib/booking/timeFit';
@@ -32,6 +31,30 @@ interface GuideCardProps {
   /** Shortest itinerary duration (hours) this guide offers — feeds the
    *  time-fit calculation. Defaults to a reasonable 3h when not provided. */
   shortestTourHours?: number | null;
+}
+
+// A small mono uppercase "stamp" — the recurring tag motif from the
+// marketing site. Optional dark variant for image overlays.
+function Stamp({ label, tone = 'paper' }: { label: string; tone?: 'paper' | 'ink' | 'marigold' }) {
+  const styles =
+    tone === 'ink'
+      ? { bg: 'rgba(14,25,41,0.62)', fg: '#FCF7EA', border: 'rgba(255,255,255,0.18)' }
+      : tone === 'marigold'
+      ? { bg: theme.colors.gold, fg: theme.colors.text, border: 'rgba(14,25,41,0.22)' }
+      : { bg: theme.colors.surfaceMuted, fg: theme.colors.textSecondary, border: 'rgba(14,25,41,0.12)' };
+  return (
+    <View style={{
+      backgroundColor: styles.bg, borderWidth: 1, borderColor: styles.border,
+      borderRadius: theme.borderRadius.sm, paddingHorizontal: 7, paddingVertical: 3,
+    }}>
+      <Text style={{
+        fontFamily: theme.fonts.monoMed, fontSize: 9.5, letterSpacing: 0.6,
+        textTransform: 'uppercase', color: styles.fg,
+      }}>
+        {label}
+      </Text>
+    </View>
+  );
 }
 
 export function GuideCard({
@@ -65,8 +88,6 @@ export function GuideCard({
   const displayRating = isNewGuide ? null : guide.avg_rating;
   const heroPhoto = getGuideHeroPhoto(guide);
 
-  // Interest-match + time-fit chips. Both are nullable so a fresh traveler
-  // (no onboarding yet) sees the same plain card as before.
   const overlap = interestOverlap(guide.categories, travelerInterests ?? null);
   const timeFit = timeFitLabel(
     computeTimeFit(layoverHours ?? null, shortestTourHours ?? 3),
@@ -85,14 +106,16 @@ export function GuideCard({
         >
           <View
             style={{
-              backgroundColor: '#FFFFFF',
+              backgroundColor: theme.colors.surface,
               borderRadius: theme.borderRadius.lg,
+              borderWidth: 1,
+              borderColor: 'rgba(14,25,41,0.12)',
               overflow: 'hidden',
               ...theme.shadows.md,
             }}
           >
             {/* Hero Image */}
-            <View style={{ height: 160, backgroundColor: theme.colors.primaryLight, position: 'relative' }}>
+            <View style={{ height: 168, backgroundColor: theme.colors.surfaceMuted, position: 'relative' }}>
               {heroPhoto ? (
                 <Image
                   source={{ uri: heroPhoto }}
@@ -107,44 +130,24 @@ export function GuideCard({
                   end={{ x: 1, y: 1 }}
                   style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <Text style={{ fontSize: 48 }}>🗺️</Text>
+                  <Text style={{ fontFamily: theme.fonts.serif, fontSize: 30, color: '#FCF7EA' }}>
+                    Mumbai
+                  </Text>
                 </LinearGradient>
               )}
-              {/* Gradient overlay */}
+              {/* Bottom ink gradient for legibility */}
               <LinearGradient
-                colors={['transparent', 'rgba(0,0,0,0.25)']}
+                colors={['transparent', 'rgba(14,25,41,0.30)']}
                 start={{ x: 0.5, y: 0 }}
                 end={{ x: 0.5, y: 1 }}
-                style={{ position: 'absolute', inset: 0 } as object}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as object}
               />
-              <View
-                style={{
-                  position: 'absolute',
-                  left: 10,
-                  bottom: 10,
-                  backgroundColor: 'rgba(15, 23, 42, 0.55)',
-                  borderRadius: theme.borderRadius.sm,
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                }}
-              >
-                <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '700' }}>
-                  Local photo route
-                </Text>
+              <View style={{ position: 'absolute', left: 12, bottom: 12 }}>
+                <Stamp label="Local photo route" tone="ink" />
               </View>
               {isNewGuide && (
-                <View
-                  style={{
-                    position: 'absolute',
-                    top: 12,
-                    right: 12,
-                    backgroundColor: theme.colors.gold,
-                    borderRadius: theme.borderRadius.sm,
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                  }}
-                >
-                  <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '700' }}>NEW GUIDE</Text>
+                <View style={{ position: 'absolute', top: 12, right: 12 }}>
+                  <Stamp label="New guide" tone="marigold" />
                 </View>
               )}
             </View>
@@ -153,28 +156,34 @@ export function GuideCard({
             <View style={{ padding: 16 }}>
               {/* Time-fit + interest-match chips */}
               {(timeFit || overlap > 0) && (
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
                   {timeFit && (
                     <View style={{
-                      flexDirection: 'row', alignItems: 'center', gap: 4,
-                      backgroundColor: timeFit.tone + '15',
-                      borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4,
+                      flexDirection: 'row', alignItems: 'center', gap: 5,
+                      backgroundColor: timeFit.tone + '1A',
+                      borderWidth: 1, borderColor: timeFit.tone + '40',
+                      borderRadius: theme.borderRadius.sm, paddingHorizontal: 8, paddingVertical: 3,
                     }}>
-                      <Text style={{ fontSize: 11 }}>{timeFit.emoji}</Text>
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: timeFit.tone }}>
+                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: timeFit.tone }} />
+                      <Text style={{
+                        fontFamily: theme.fonts.monoMed, fontSize: 10, letterSpacing: 0.4,
+                        textTransform: 'uppercase', color: timeFit.tone,
+                      }}>
                         {timeFit.text}
                       </Text>
                     </View>
                   )}
                   {overlap > 0 && (
                     <View style={{
-                      flexDirection: 'row', alignItems: 'center', gap: 4,
                       backgroundColor: theme.colors.primaryLight,
-                      borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4,
+                      borderWidth: 1, borderColor: 'rgba(200,84,42,0.30)',
+                      borderRadius: theme.borderRadius.sm, paddingHorizontal: 8, paddingVertical: 3,
                     }}>
-                      <Text style={{ fontSize: 11 }}>✨</Text>
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: theme.colors.primary }}>
-                        Matches {overlap} of your interests
+                      <Text style={{
+                        fontFamily: theme.fonts.monoMed, fontSize: 10, letterSpacing: 0.4,
+                        textTransform: 'uppercase', color: theme.colors.primaryDark,
+                      }}>
+                        Matches {overlap} interest{overlap === 1 ? '' : 's'}
                       </Text>
                     </View>
                   )}
@@ -183,16 +192,19 @@ export function GuideCard({
 
               {/* Name & Location */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
                   <Text
-                    style={{ fontSize: 17, fontWeight: '700', color: theme.colors.text }}
+                    style={{ fontFamily: theme.fonts.display, fontSize: 19, color: theme.colors.text, letterSpacing: -0.3 }}
                     numberOfLines={1}
                   >
                     {guide.name}
                   </Text>
                   {guide.hometown && (
-                    <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginTop: 2 }}>
-                      📍 {guide.hometown}
+                    <Text style={{
+                      fontFamily: theme.fonts.mono, fontSize: 11, letterSpacing: 0.4,
+                      color: theme.colors.textMuted, marginTop: 3, textTransform: 'uppercase',
+                    }}>
+                      {guide.hometown}
                     </Text>
                   )}
                 </View>
@@ -200,87 +212,74 @@ export function GuideCard({
                 {/* Price */}
                 {itineraryPrice && (
                   <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={{ fontSize: 18, fontWeight: '700', color: theme.colors.primary }}>
+                    <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 18, color: theme.colors.primary, letterSpacing: -0.5 }}>
                       ₹{itineraryPrice.toLocaleString('en-IN')}
                     </Text>
-                    <Text style={{ fontSize: 11, color: theme.colors.textMuted }}>per tour</Text>
+                    <Text style={{
+                      fontFamily: theme.fonts.mono, fontSize: 9.5, color: theme.colors.textMuted,
+                      letterSpacing: 0.4, textTransform: 'uppercase',
+                    }}>
+                      per tour
+                    </Text>
                   </View>
                 )}
               </View>
 
               {/* Rating */}
               {displayRating !== null && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 }}>
                   <StarRating rating={displayRating} size={14} />
-                  <Text style={{ fontSize: 13, color: theme.colors.textSecondary }}>
+                  <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 12, color: theme.colors.text }}>
                     {displayRating.toFixed(1)}
-                    <Text style={{ color: theme.colors.textMuted }}>
-                      {' '}({guide.total_reviews} {guide.total_reviews === 1 ? 'review' : 'reviews'})
+                    <Text style={{ fontFamily: theme.fonts.mono, color: theme.colors.textMuted }}>
+                      {'  '}{guide.total_reviews} {guide.total_reviews === 1 ? 'review' : 'reviews'}
                     </Text>
                   </Text>
                 </View>
               )}
 
-              {/* Languages */}
-              {guide.languages?.length > 0 && (
-                <View style={{ flexDirection: 'row', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
-                  {guide.languages.slice(0, 3).map((lang) => (
-                    <View
-                      key={lang}
-                      style={{
-                        backgroundColor: theme.colors.primaryLight,
-                        borderRadius: theme.borderRadius.sm,
-                        paddingHorizontal: 8,
-                        paddingVertical: 3,
-                      }}
-                    >
-                      <Text style={{ fontSize: 11, color: theme.colors.primary, fontWeight: '500' }}>
+              {/* Languages + categories as uniform warm tags */}
+              {(guide.languages?.length > 0 || guide.categories?.length > 0) && (
+                <View style={{ flexDirection: 'row', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
+                  {guide.languages?.slice(0, 2).map((lang) => (
+                    <View key={lang} style={{
+                      backgroundColor: theme.colors.accentLight,
+                      borderWidth: 1, borderColor: 'rgba(45,123,169,0.25)',
+                      borderRadius: theme.borderRadius.sm, paddingHorizontal: 8, paddingVertical: 3,
+                    }}>
+                      <Text style={{ fontFamily: theme.fonts.bodyMed, fontSize: 11, color: theme.colors.accentDark }}>
                         {lang}
+                      </Text>
+                    </View>
+                  ))}
+                  {guide.categories?.slice(0, 2).map((cat) => (
+                    <View key={cat} style={{
+                      backgroundColor: theme.colors.surfaceMuted,
+                      borderWidth: 1, borderColor: 'rgba(14,25,41,0.10)',
+                      borderRadius: theme.borderRadius.sm, paddingHorizontal: 8, paddingVertical: 3,
+                    }}>
+                      <Text style={{ fontFamily: theme.fonts.bodyMed, fontSize: 11, color: theme.colors.textSecondary }}>
+                        {cat}
                       </Text>
                     </View>
                   ))}
                 </View>
               )}
 
-              {/* Categories */}
-              {guide.categories?.length > 0 && (
-                <View style={{ flexDirection: 'row', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-                  {guide.categories.slice(0, 3).map((cat) => {
-                    const colors = CATEGORY_COLORS[cat] ?? { bg: '#F3F4F6', text: '#6B7280' };
-                    return (
-                      <View
-                        key={cat}
-                        style={{
-                          backgroundColor: colors.bg,
-                          borderRadius: theme.borderRadius.sm,
-                          paddingHorizontal: 8,
-                          paddingVertical: 3,
-                        }}
-                      >
-                        <Text style={{ fontSize: 11, color: colors.text, fontWeight: '500' }}>
-                          #{cat}
-                        </Text>
-                      </View>
-                    );
-                  })}
-                </View>
-              )}
-
               {/* Footer */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
-                <Text style={{ fontSize: 12, color: theme.colors.textMuted }}>
-                  ⚡ Fast reply
-                </Text>
-                <View
-                  style={{
-                    backgroundColor: theme.colors.primary,
-                    borderRadius: theme.borderRadius.full,
-                    paddingHorizontal: 14,
-                    paddingVertical: 6,
-                  }}
-                >
-                  <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '600' }}>
-                    View Profile
+              <View style={{
+                flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+                marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(14,25,41,0.08)',
+              }}>
+                <Stamp label="Fast reply" />
+                <View style={{
+                  backgroundColor: theme.colors.primary,
+                  borderWidth: 1.5, borderColor: theme.colors.primaryDark,
+                  borderRadius: theme.borderRadius.full,
+                  paddingHorizontal: 16, paddingVertical: 7,
+                }}>
+                  <Text style={{ fontFamily: theme.fonts.bodyBold, color: '#FCF7EA', fontSize: 13 }}>
+                    View profile
                   </Text>
                 </View>
               </View>

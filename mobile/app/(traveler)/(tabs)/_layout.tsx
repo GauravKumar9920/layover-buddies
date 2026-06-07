@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { View, Text } from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -13,9 +14,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { theme } from '@/config/theme';
 
+type FeatherName = React.ComponentProps<typeof Feather>['name'];
+
 function TabIcon({
-  emoji, label, focused, bouncyOnFocus,
-}: { emoji: string; label: string; focused: boolean; bouncyOnFocus?: boolean }) {
+  icon, label, focused, bouncyOnFocus,
+}: { icon: FeatherName; label: string; focused: boolean; bouncyOnFocus?: boolean }) {
   // When the heart is focused, jump it once and then keep a gentle pulse
   // running so the tab bar feels alive. We cancel + reset on blur so other
   // tabs aren't paying the animation cost.
@@ -46,12 +49,16 @@ function TabIcon({
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   return (
-    <View style={{ alignItems: 'center', gap: 2 }}>
-      <Animated.Text style={[{ fontSize: 22 }, animStyle]}>{emoji}</Animated.Text>
+    <View style={{ alignItems: 'center', gap: 4, width: 64 }}>
+      <Animated.View style={animStyle}>
+        <Feather name={icon} size={21} color={focused ? theme.colors.primary : theme.colors.textMuted} />
+      </Animated.View>
       <Text
         style={{
-          fontSize: 10,
-          fontWeight: focused ? '700' : '400',
+          fontFamily: focused ? theme.fonts.monoMed : theme.fonts.mono,
+          fontSize: 9,
+          letterSpacing: 0.4,
+          textTransform: 'uppercase',
           color: focused ? theme.colors.primary : theme.colors.textMuted,
         }}
       >
@@ -86,8 +93,9 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: theme.colors.divider,
+          backgroundColor: theme.colors.surface,
+          borderTopColor: 'rgba(14,25,41,0.12)',
+          borderTopWidth: 1,
           height: 72,
           paddingBottom: 12,
           paddingTop: 8,
@@ -105,13 +113,13 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🗺️" label="Explore" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="compass" label="Explore" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🔍" label="Search" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="search" label="Search" focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -120,20 +128,20 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => (
             // bouncyOnFocus → the heart jumps then pulses while this tab is
             // active. The other tabs stay static so the heart stands out.
-            <TabIcon emoji="♥" label="Saved" focused={focused} bouncyOnFocus />
+            <TabIcon icon="heart" label="Saved" focused={focused} bouncyOnFocus />
           ),
         }}
       />
       <Tabs.Screen
         name="messages/index"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="💬" label="Inbox" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="message-circle" label="Inbox" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="trips/index"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🎒" label="My Trips" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="briefcase" label="Trips" focused={focused} />,
         }}
       />
     </Tabs>

@@ -28,7 +28,21 @@ export function EmptyState({
         style,
       ]}
     >
-      <Text style={{ fontSize: 48, marginBottom: 16 }}>🌏</Text>
+      <View
+        style={{
+          width: 64,
+          height: 64,
+          borderRadius: 32,
+          backgroundColor: theme.colors.surfaceMuted,
+          borderWidth: 1,
+          borderColor: 'rgba(14,25,41,0.12)',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 18,
+        }}
+      >
+        <Text style={{ fontFamily: theme.fonts.serif, fontSize: 30, color: theme.colors.textMuted }}>✦</Text>
+      </View>
       <Text
         style={{
           ...theme.typography.h3,
