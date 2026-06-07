@@ -117,9 +117,9 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="search"
+        name="messages/index"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon icon="search" label="Search" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="message-circle" label="Chats" focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -133,17 +133,20 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="messages/index"
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon icon="message-circle" label="Inbox" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
         name="trips/index"
         options={{
           tabBarIcon: ({ focused }) => <TabIcon icon="briefcase" label="Trips" focused={focused} />,
         }}
       />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          tabBarIcon: ({ focused }) => <TabIcon icon="user" label="Profile" focused={focused} />,
+        }}
+      />
+      {/* Search lives in the Explore header now — keep the route reachable
+          but off the tab bar. */}
+      <Tabs.Screen name="search" options={{ href: null }} />
     </Tabs>
   );
 }

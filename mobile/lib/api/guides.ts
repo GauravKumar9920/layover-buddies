@@ -30,6 +30,8 @@ interface RawGuideProfileRow {
   // Editorial-zine fields (migration 20260420160000)
   prompts?: unknown;
   pull_quote?: string | null;
+  // Guide-uploaded photo gallery (migration 20260607120000)
+  gallery_urls?: unknown;
 }
 
 interface RawItineraryStopRow {
@@ -128,6 +130,9 @@ function normalizeGuideProfile(row: RawGuideProfileRow): GuideProfile {
     created_at: row.created_at,
     prompts: normalizePromptArray(row.prompts) as GuidePrompt[],
     pull_quote: asString(row.pull_quote),
+    gallery_urls: Array.isArray(row.gallery_urls)
+      ? row.gallery_urls.filter((u): u is string => typeof u === 'string')
+      : [],
   };
 }
 
@@ -316,6 +321,7 @@ export async function updateGuideProfile(
       | 'hometown'
       | 'pull_quote'
       | 'prompts'
+      | 'gallery_urls'
     >
   >,
 ): Promise<void> {

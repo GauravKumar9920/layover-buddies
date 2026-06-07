@@ -75,8 +75,8 @@ export function GuideCardSkeleton() {
         ...theme.shadows.md,
       }}
     >
-      {/* Hero image placeholder */}
-      <View style={{ height: 160, backgroundColor: '#E6DBC2' }} />
+      {/* Hero image placeholder — matches GuideCard's 16:9 hero. */}
+      <View style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: '#E6DBC2' }} />
 
       {/* Avatar */}
       <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>

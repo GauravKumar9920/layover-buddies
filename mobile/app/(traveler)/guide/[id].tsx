@@ -7,7 +7,10 @@ import {
   Alert,
   Dimensions,
   FlatList,
+  ScrollView,
   Platform,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
@@ -26,7 +29,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchGuideById, fetchGuideItineraries, fetchGuideReviews } from '@/lib/api/guides';
 import { safeBack } from '@/lib/navigation';
 import { theme } from '@/config/theme';
-import { getGuideHeroPhoto, getItineraryPhoto } from '@/config/photoLibrary';
+import { getGuideHeroPhoto, getGuideAvatar, getGuideGallery, getItineraryPhoto } from '@/config/photoLibrary';
 import { format } from 'date-fns';
 import type { GuideProfile, GuidePrompt, Itinerary, Review } from '@/types';
 
@@ -59,10 +62,7 @@ import type { GuideProfile, GuidePrompt, Itinerary, Review } from '@/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_HEIGHT = 520;
-const PHOTO_JOURNAL_COL_GAP = 4;
 const PHOTO_JOURNAL_OUTER = 20;
-const PHOTO_JOURNAL_TILE =
-  Math.floor((SCREEN_WIDTH - PHOTO_JOURNAL_OUTER * 2 - PHOTO_JOURNAL_COL_GAP * 2) / 3);
 
 /**
  * Deterministic "issue number" from the guide id so the zine cue is stable
@@ -115,6 +115,7 @@ export default function GuideDetailScreen() {
   const [itineraries, setItineraries] = useState<Itinerary[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [heroIndex, setHeroIndex] = useState(0);
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler((e) => {
@@ -232,7 +233,7 @@ export default function GuideDetailScreen() {
   // Two distinct images: the full-bleed editorial scene (Mumbai/walks),
   // and the guide's actual portrait (circular avatar above the name).
   const heroPhoto = getGuideHeroPhoto(guide);
-  const avatarUrl = guide.avatar_url;
+  const avatarUrl = getGuideAvatar(guide);
   const initials = guide.name
     .split(' ')
     .map((p) => p[0])
@@ -254,6 +255,41 @@ export default function GuideDetailScreen() {
     itineraries.length > 0
       ? Math.min(...itineraries.map((i) => i.buddy_cost_inr))
       : null;
+
+  // ① Hero gallery — real hero first, then a couple of curated "walk" scenes
+  // so the hero becomes swipeable instead of a single still.
+  const heroGallery = getGuideGallery(guide, 3, [heroPhoto, avatarUrl]);
+  const heroImages: string[] = (heroPhoto ? [heroPhoto, ...heroGallery] : heroGallery).slice(0, 4);
+
+  // ② Photo behind the interview pull-quote.
+  const quotePhoto = getGuideGallery(guide, 1, [heroPhoto, avatarUrl, ...heroImages])[0] ?? heroPhoto;
+
+  // ③ One photo per prompt card (alternating side).
+  const promptPhotos = getGuideGallery(guide, prompts.length, [heroPhoto, avatarUrl]);
+
+  // ④ "A day with X" — derive a visual timeline from the first tour's stops
+  // when available, otherwise a friendly fabricated day keyed off the guide.
+  const dayGallery = getGuideGallery(guide, 3, [heroPhoto, avatarUrl, quotePhoto]);
+  const realStops = (itineraries[0]?.stops ?? []).filter((s) => s?.location);
+  const daySteps: { time: string; title: string; caption: string; photo: string }[] =
+    realStops.length >= 2
+      ? realStops.slice(0, 4).map((s, i) => ({
+          time: ['9:00', '11:00', '13:00', '15:00'][i] ?? '',
+          title: s.location,
+          caption: s.description?.slice(0, 80) ?? 'A stop on the walk.',
+          photo: s.image_url ?? dayGallery[i % dayGallery.length],
+        }))
+      : [
+          { time: '9:00', title: 'Morning chai', caption: `Where ${guide.name.split(' ')[0]} starts — before the crowds.`, photo: dayGallery[0] },
+          { time: '11:00', title: 'Street-food crawl', caption: 'The stalls only locals queue at.', photo: dayGallery[1] },
+          { time: '13:00', title: 'Hidden lanes', caption: 'The pause-between-two-streets moments.', photo: dayGallery[2] },
+        ];
+
+  // ⑤ Masonry journal — real galleries win; otherwise fill with curated scenes.
+  const journalFallback = getGuideGallery(guide, 6, [heroPhoto, avatarUrl]);
+  const journal = journalPhotos.length > 0 ? journalPhotos : journalFallback;
+  const journalCols: [string[], string[]] = [[], []];
+  journal.forEach((u, i) => journalCols[i % 2].push(u));
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -288,13 +324,27 @@ export default function GuideDetailScreen() {
         {/* ── Editorial hero ──────────────────────────────── */}
         <View style={{ height: HERO_HEIGHT, overflow: 'hidden', backgroundColor: theme.colors.text }}>
           <Animated.View style={[{ width: '100%', height: HERO_HEIGHT + 120 }, heroStyle]}>
-            {heroPhoto ? (
-              <Image
-                source={{ uri: heroPhoto }}
-                contentFit="cover"
+            {heroImages.length > 0 ? (
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                scrollEventThrottle={16}
+                onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) =>
+                  setHeroIndex(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH))
+                }
                 style={{ width: '100%', height: '100%' }}
-                transition={300}
-              />
+              >
+                {heroImages.map((uri) => (
+                  <Image
+                    key={uri}
+                    source={{ uri }}
+                    contentFit="cover"
+                    style={{ width: SCREEN_WIDTH, height: '100%' }}
+                    transition={300}
+                  />
+                ))}
+              </ScrollView>
             ) : (
               <LinearGradient
                 colors={theme.gradients.hero}
@@ -312,6 +362,28 @@ export default function GuideDetailScreen() {
             end={{ x: 0.5, y: 1 }}
             style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: HERO_HEIGHT * 0.75 }}
           />
+
+          {/* Hero gallery page dots */}
+          {heroImages.length > 1 && (
+            <Animated.View
+              style={[
+                heroOverlayStyle,
+                { position: 'absolute', top: insets.top + 22, left: 20, flexDirection: 'row', gap: 6 },
+              ]}
+            >
+              {heroImages.map((_, i) => (
+                <View
+                  key={i}
+                  style={{
+                    width: i === heroIndex ? 22 : 7,
+                    height: 3,
+                    borderRadius: 2,
+                    backgroundColor: i === heroIndex ? '#FFFFFF' : 'rgba(255,255,255,0.45)',
+                  }}
+                />
+              ))}
+            </Animated.View>
+          )}
 
           {/* Top-left zine cue */}
           <Animated.View
@@ -447,34 +519,50 @@ export default function GuideDetailScreen() {
             paddingTop: 32,
           }}
         >
-          {/* Pull quote (serif italic, large) */}
-          <View style={{ paddingHorizontal: 24 }}>
-            <Text style={{ ...theme.typography.eyebrow, color: theme.colors.primary, marginBottom: 14 }}>
-              The interview
-            </Text>
-            <Text
-              style={{
-                fontFamily: theme.fonts.serif,
-                fontSize: 32,
-                lineHeight: 38,
-                color: theme.colors.text,
-                letterSpacing: -0.2,
-              }}
-            >
-              “{pullQuote}”
-            </Text>
-            <Text
-              style={{
-                fontFamily: theme.fonts.mono,
-                fontSize: 11,
-                color: theme.colors.textMuted,
-                marginTop: 14,
-                letterSpacing: 0.6,
-                textTransform: 'uppercase',
-              }}
-            >
-              — {guide.name.split(' ')[0]}, in her own words
-            </Text>
+          {/* ② Pull quote over a darkened photo — editorial spread */}
+          <View style={{ position: 'relative', height: 300, overflow: 'hidden' }}>
+            {quotePhoto && (
+              <Image
+                source={{ uri: quotePhoto }}
+                contentFit="cover"
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as object}
+                transition={300}
+              />
+            )}
+            <LinearGradient
+              colors={['rgba(14,25,41,0.86)', 'rgba(14,25,41,0.45)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as object}
+            />
+            <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24 }}>
+              <Text style={{ ...theme.typography.eyebrow, color: theme.colors.gold, marginBottom: 12 }}>
+                The interview
+              </Text>
+              <Text
+                style={{
+                  fontFamily: theme.fonts.serif,
+                  fontSize: 30,
+                  lineHeight: 36,
+                  color: '#FCF7EA',
+                  letterSpacing: -0.2,
+                }}
+              >
+                “{pullQuote}”
+              </Text>
+              <Text
+                style={{
+                  fontFamily: theme.fonts.mono,
+                  fontSize: 11,
+                  color: 'rgba(252,247,234,0.7)',
+                  marginTop: 14,
+                  letterSpacing: 0.6,
+                  textTransform: 'uppercase',
+                }}
+              >
+                — {guide.name.split(' ')[0]}, in their own words
+              </Text>
+            </View>
           </View>
 
           {/* ── Travel-metadata stats row ──────────────────── */}
@@ -584,7 +672,86 @@ export default function GuideDetailScreen() {
             </Text>
             <View style={{ marginTop: 16, gap: 14 }}>
               {prompts.map((prompt, idx) => (
-                <GuidePromptCard key={idx} prompt={prompt} index={idx + 1} />
+                <GuidePromptCard
+                  key={idx}
+                  prompt={prompt}
+                  index={idx + 1}
+                  photo={promptPhotos[idx]}
+                  flip={idx % 2 === 1}
+                />
+              ))}
+            </View>
+          </View>
+
+          {/* ④ A day with X — visual photo timeline ─────────── */}
+          <View style={{ marginTop: 40, paddingHorizontal: 24 }}>
+            <Text
+              style={{
+                fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
+              }}
+            >
+              A day with {guide.name.split(' ')[0]}
+            </Text>
+            <Text
+              style={{
+                fontFamily: theme.fonts.display, fontSize: 22, color: theme.colors.text, marginTop: 4, letterSpacing: -0.4,
+              }}
+            >
+              How a walk actually flows
+            </Text>
+
+            <View style={{ marginTop: 16, position: 'relative' }}>
+              {/* vertical rail */}
+              <View
+                style={{
+                  position: 'absolute', left: 7, top: 10, bottom: 10, width: 2,
+                  backgroundColor: theme.colors.divider,
+                }}
+              />
+              {daySteps.map((s, i) => (
+                <View key={i} style={{ flexDirection: 'row', gap: 14, marginBottom: 14 }}>
+                  <View style={{ width: 16, alignItems: 'center', paddingTop: 8 }}>
+                    <View
+                      style={{
+                        width: 10, height: 10, borderRadius: 5,
+                        backgroundColor: theme.colors.primary,
+                        borderWidth: 2, borderColor: theme.colors.background,
+                      }}
+                    />
+                  </View>
+                  <View
+                    style={{
+                      flex: 1,
+                      backgroundColor: theme.colors.surface,
+                      borderWidth: 1, borderColor: theme.colors.divider,
+                      borderRadius: 14, overflow: 'hidden',
+                    }}
+                  >
+                    {s.photo && (
+                      <Image
+                        source={{ uri: s.photo }}
+                        contentFit="cover"
+                        transition={250}
+                        style={{ width: '100%', height: 128 }}
+                      />
+                    )}
+                    <View style={{ padding: 12 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        {!!s.time && (
+                          <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 11, color: theme.colors.primary }}>
+                            {s.time}
+                          </Text>
+                        )}
+                        <Text style={{ fontFamily: theme.fonts.displaySemi, fontSize: 15, color: theme.colors.text }} numberOfLines={1}>
+                          {s.title}
+                        </Text>
+                      </View>
+                      <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary, marginTop: 3, lineHeight: 18 }}>
+                        {s.caption}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
               ))}
             </View>
           </View>
@@ -642,9 +809,9 @@ export default function GuideDetailScreen() {
             )}
           </View>
 
-          {/* ── Photo journal (3-col grid) ──────────────────── */}
-          {journalPhotos.length > 0 && (
-            <View style={{ marginTop: 32, paddingHorizontal: PHOTO_JOURNAL_OUTER }}>
+          {/* ⑤ Photo journal — 2-col masonry ───────────────── */}
+          {journal.length > 0 && (
+            <View style={{ marginTop: 36, paddingHorizontal: PHOTO_JOURNAL_OUTER }}>
               <Text
                 style={{
                   fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
@@ -661,30 +828,23 @@ export default function GuideDetailScreen() {
                 From the last few walks
               </Text>
 
-              <View
-                style={{
-                  flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  gap: PHOTO_JOURNAL_COL_GAP,
-                }}
-              >
-                {journalPhotos.map((uri, idx) => (
-                  <View
-                    key={`${uri}-${idx}`}
-                    style={{
-                      width: PHOTO_JOURNAL_TILE,
-                      height: PHOTO_JOURNAL_TILE,
-                      backgroundColor: theme.colors.surface,
-                      borderRadius: 6,
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <Image
-                      source={{ uri }}
-                      contentFit="cover"
-                      style={{ width: '100%', height: '100%' }}
-                      transition={250}
-                    />
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {journalCols.map((col, ci) => (
+                  <View key={ci} style={{ flex: 1, gap: 6 }}>
+                    {col.map((uri, ri) => (
+                      <Image
+                        key={`${uri}-${ri}`}
+                        source={{ uri }}
+                        contentFit="cover"
+                        transition={250}
+                        style={{
+                          width: '100%',
+                          height: (ci + ri) % 2 === 0 ? 200 : 138,
+                          borderRadius: 10,
+                          backgroundColor: theme.colors.surface,
+                        }}
+                      />
+                    ))}
                   </View>
                 ))}
               </View>
@@ -707,46 +867,71 @@ export default function GuideDetailScreen() {
                 No reviews yet — be the first.
               </Text>
             ) : (
-              <View style={{ marginTop: 14, gap: 22 }}>
-                {reviews.slice(0, 5).map((review) => (
-                  <View
-                    key={review.id}
-                    style={{
-                      borderLeftWidth: 2,
-                      borderLeftColor: theme.colors.primary,
-                      paddingLeft: 14,
-                    }}
-                  >
-                    <StarRating rating={review.rating} size={12} />
-                    {review.comment ? (
-                      <Text
-                        style={{
-                          fontFamily: theme.fonts.serif,
-                          fontSize: 19,
-                          color: theme.colors.text,
-                          lineHeight: 25,
-                          marginTop: 8,
-                        }}
-                      >
-                        “{review.comment}”
-                      </Text>
-                    ) : null}
-                    <Text
+              <View style={{ marginTop: 14, gap: 14 }}>
+                {reviews.slice(0, 5).map((review) => {
+                  const rName = (review.reviewer as { name?: string })?.name ?? 'A traveler';
+                  const rAvatar = getGuideAvatar({ id: review.id, name: rName });
+                  const rPhoto = getGuideGallery({ id: review.id, name: rName }, 1, [rAvatar])[0];
+                  return (
+                    <View
+                      key={review.id}
                       style={{
-                        fontFamily: theme.fonts.mono,
-                        fontSize: 10.5,
-                        color: theme.colors.textMuted,
-                        letterSpacing: 0.4,
-                        textTransform: 'uppercase',
-                        marginTop: 8,
+                        flexDirection: 'row',
+                        gap: 14,
+                        backgroundColor: theme.colors.surface,
+                        borderWidth: 1,
+                        borderColor: theme.colors.divider,
+                        borderRadius: 16,
+                        padding: 14,
                       }}
                     >
-                      — {(review.reviewer as { name?: string })?.name ?? 'A traveler'}
-                      {' · '}
-                      {format(new Date(review.created_at), 'MMM yyyy')}
-                    </Text>
-                  </View>
-                ))}
+                      {rPhoto && (
+                        <Image
+                          source={{ uri: rPhoto }}
+                          contentFit="cover"
+                          transition={250}
+                          style={{ width: 76, height: 76, borderRadius: 12, backgroundColor: theme.colors.surfaceMuted }}
+                        />
+                      )}
+                      <View style={{ flex: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          {rAvatar && (
+                            <Image
+                              source={{ uri: rAvatar }}
+                              contentFit="cover"
+                              style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: theme.colors.surfaceMuted }}
+                            />
+                          )}
+                          <Text style={{ fontFamily: theme.fonts.bodySemi, fontSize: 13, color: theme.colors.text, flex: 1 }} numberOfLines={1}>
+                            {rName}
+                          </Text>
+                          <Text
+                            style={{
+                              fontFamily: theme.fonts.mono, fontSize: 9.5, color: theme.colors.textMuted,
+                              letterSpacing: 0.4, textTransform: 'uppercase',
+                            }}
+                          >
+                            {format(new Date(review.created_at), 'MMM yyyy')}
+                          </Text>
+                        </View>
+                        <StarRating rating={review.rating} size={12} />
+                        {review.comment ? (
+                          <Text
+                            style={{
+                              fontFamily: theme.fonts.serif,
+                              fontSize: 17,
+                              color: theme.colors.text,
+                              lineHeight: 23,
+                              marginTop: 7,
+                            }}
+                          >
+                            “{review.comment}”
+                          </Text>
+                        ) : null}
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
             )}
           </View>
@@ -856,58 +1041,77 @@ function MetaDivider() {
   );
 }
 
-function GuidePromptCard({ prompt, index }: { prompt: GuidePrompt; index: number }) {
+function GuidePromptCard({
+  prompt,
+  index,
+  photo,
+  flip,
+}: {
+  prompt: GuidePrompt;
+  index: number;
+  photo?: string;
+  flip?: boolean;
+}) {
   return (
     <View
       style={{
-        padding: 18,
+        flexDirection: flip ? 'row-reverse' : 'row',
         borderRadius: 16,
+        overflow: 'hidden',
         backgroundColor: theme.colors.surface,
         borderWidth: 1,
         borderColor: theme.colors.divider,
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <View
-          style={{
-            width: 22,
-            height: 22,
-            borderRadius: 11,
-            backgroundColor: theme.colors.primaryLight,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Text
-            style={{ fontFamily: theme.fonts.monoMed, fontSize: 11, color: theme.colors.primary }}
+      {photo ? (
+        <Image
+          source={{ uri: photo }}
+          contentFit="cover"
+          transition={250}
+          style={{ width: 116, alignSelf: 'stretch', backgroundColor: theme.colors.surfaceMuted }}
+        />
+      ) : null}
+      <View style={{ flex: 1, padding: 16 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 9 }}>
+          <View
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 11,
+              backgroundColor: theme.colors.primaryLight,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            {index}
+            <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 11, color: theme.colors.primary }}>
+              {index}
+            </Text>
+          </View>
+          <Text
+            style={{
+              fontFamily: theme.fonts.mono,
+              fontSize: 10,
+              color: theme.colors.textMuted,
+              letterSpacing: 0.4,
+              textTransform: 'uppercase',
+              flex: 1,
+            }}
+          >
+            {prompt.question}
           </Text>
         </View>
         <Text
           style={{
-            fontFamily: theme.fonts.mono,
-            fontSize: 11,
-            color: theme.colors.textMuted,
-            letterSpacing: 0.4,
-            textTransform: 'uppercase',
-            flex: 1,
+            fontFamily: theme.fonts.serif,
+            fontSize: 19,
+            lineHeight: 25,
+            color: theme.colors.text,
+            letterSpacing: -0.1,
           }}
         >
-          {prompt.question}
+          {prompt.answer}
         </Text>
       </View>
-      <Text
-        style={{
-          fontFamily: theme.fonts.serif,
-          fontSize: 20,
-          lineHeight: 27,
-          color: theme.colors.text,
-          letterSpacing: -0.1,
-        }}
-      >
-        {prompt.answer}
-      </Text>
     </View>
   );
 }

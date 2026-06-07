@@ -61,7 +61,7 @@ export default function GuideLayout() {
       <Tabs.Screen
         name="messages/index"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon icon="message-circle" label="Inbox" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="message-circle" label="Chats" focused={focused} />,
         }}
       />
       <Tabs.Screen

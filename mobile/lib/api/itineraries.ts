@@ -91,6 +91,7 @@ export async function createItinerary(req: CreateItineraryRequest): Promise<Itin
         name: s.location,
         description: s.description,
         estimated_duration_minutes: s.estimated_duration_minutes,
+        image_url: s.image_url ?? null,
       })),
     );
 
@@ -167,6 +168,7 @@ async function applyStopChanges(
       name: s.location,
       description: s.description,
       estimated_duration_minutes: s.estimated_duration_minutes,
+      image_url: s.image_url ?? null,
     }));
 
   if (inserts.length > 0) {
@@ -184,7 +186,8 @@ async function applyStopChanges(
       !orig ||
       orig.location !== stop.location ||
       orig.description !== stop.description ||
-      orig.estimated_duration_minutes !== stop.estimated_duration_minutes;
+      orig.estimated_duration_minutes !== stop.estimated_duration_minutes ||
+      (orig.image_url ?? null) !== (stop.image_url ?? null);
 
     if (!changed) continue;
 
@@ -195,6 +198,7 @@ async function applyStopChanges(
         name: stop.location,
         description: stop.description,
         estimated_duration_minutes: stop.estimated_duration_minutes,
+        image_url: stop.image_url ?? null,
       })
       .eq('id', stop.id);
     if (error) throw error;

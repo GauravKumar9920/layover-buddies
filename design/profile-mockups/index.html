@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Detour — Photo-Forward Guide Profile (mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4EDDD; --surface:#FCF7EA; --muted:#EBE0C5; --line:#C5BA9C;
+    --ink:#0E1929; --ink-mute:#445169; --ink-soft:#7C8597;
+    --terra:#C8542A; --terra-dk:#9E3A1F; --terra-lt:#F7DECC;
+    --sea:#2D7BA9; --sea-lt:#C9DEEB; --marigold:#E89F2C; --green:#3D8B5A;
+    --display:'Bricolage Grotesque',sans-serif;
+    --body:'Plus Jakarta Sans',sans-serif;
+    --mono:'DM Mono',monospace;
+    --serif:'Instrument Serif',serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#222;font-family:var(--body);color:var(--ink);
+    display:flex;flex-wrap:wrap;gap:40px;justify-content:center;padding:40px 20px 80px;}
+  .lead{width:100%;max-width:880px;color:#EDE6D6;text-align:center;}
+  .lead h1{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.5px;margin-bottom:8px;}
+  .lead p{color:#B8B0A0;font-size:14px;line-height:1.6;}
+  .lead .mono{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--marigold);margin-bottom:14px;}
+
+  /* phone frame */
+  .phone{width:430px;background:var(--paper);border-radius:42px;overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.55);position:relative;border:10px solid #0c0c0c;align-self:flex-start;}
+  .screen{height:920px;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;}
+  .screen::-webkit-scrollbar{width:0;}
+  .caption{width:430px;color:#CDBF8C;font-family:var(--mono);font-size:11px;
+    letter-spacing:1px;text-transform:uppercase;text-align:center;align-self:flex-start;margin-top:-24px;}
+
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--terra);}
+  .ann{position:absolute;z-index:30;background:var(--marigold);color:#3a2a08;font-family:var(--mono);
+    font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:4px 9px;border-radius:7px;
+    box-shadow:0 4px 14px rgba(0,0,0,.3);font-weight:500;white-space:nowrap;}
+  /* each callout anchors to its own section */
+  .stats,.prompt,.tl,.masonry,.rev2,.sec{position:relative;}
+
+  /* ── 1. HERO CAROUSEL ── */
+  .hero{position:relative;height:560px;background:var(--ink);}
+  .carousel{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;}
+  .carousel::-webkit-scrollbar{display:none;}
+  .slide{min-width:430px;height:100%;scroll-snap-align:start;position:relative;}
+  .slide img{width:100%;height:100%;object-fit:cover;}
+  .hero-scrim{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(14,25,41,.15) 0%,transparent 30%,rgba(14,25,41,.2) 55%,rgba(14,25,41,.92) 100%);pointer-events:none;}
+  .hero-top{position:absolute;top:26px;left:0;right:24px;display:flex;justify-content:flex-end;z-index:5;pointer-events:none;}
+  .hero-top .issue{text-align:right;}
+  .hero-top .issue b{font-family:var(--mono);font-weight:500;color:rgba(252,247,234,.9);font-size:10px;letter-spacing:2.5px;display:block;}
+  .hero-top .issue span{font-family:var(--mono);color:rgba(252,247,234,.6);font-size:10px;letter-spacing:2px;}
+  .dots{position:absolute;top:30px;left:24px;display:flex;gap:6px;z-index:5;}
+  .dots i{width:22px;height:3px;border-radius:2px;background:rgba(255,255,255,.4);}
+  .dots i.on{background:#fff;}
+  .hero-foot{position:absolute;left:24px;right:24px;bottom:54px;z-index:5;}
+  .hero-foot .pp{width:78px;height:78px;border-radius:50%;border:3px solid rgba(255,255,255,.85);object-fit:cover;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+  .hero-foot .kicker{font-family:var(--mono);color:rgba(252,247,234,.8);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+  .hero-foot h2{font-family:var(--display);font-weight:800;color:#FCF7EA;font-size:46px;line-height:.98;letter-spacing:-1.4px;}
+  .hero-foot .uni{font-family:var(--serif);color:rgba(252,247,234,.9);font-size:17px;margin-top:8px;}
+
+  /* body sheet */
+  .sheet{background:var(--paper);border-radius:28px 28px 0 0;margin-top:-28px;position:relative;z-index:6;padding-top:30px;}
+
+  /* ── 2. QUOTE OVER PHOTO ── */
+  .quoteband{position:relative;height:300px;margin:8px 0 0;overflow:hidden;}
+  .quoteband img{width:100%;height:100%;object-fit:cover;filter:saturate(.85);}
+  .quoteband .qscrim{position:absolute;inset:0;background:linear-gradient(110deg,rgba(14,25,41,.86),rgba(14,25,41,.45));}
+  .quoteband .qtext{position:absolute;inset:0;padding:30px 26px;display:flex;flex-direction:column;justify-content:center;}
+  .quoteband .qtext .eyebrow{color:var(--marigold);margin-bottom:12px;}
+  .quoteband .qtext q{font-family:var(--serif);font-size:30px;line-height:1.18;color:#FCF7EA;quotes:none;}
+  .quoteband .qtext .by{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:rgba(252,247,234,.7);margin-top:14px;}
+
+  /* stats */
+  .stats{display:flex;justify-content:space-between;margin:22px 24px 0;padding:16px 14px;background:var(--surface);border:1px solid rgba(14,25,41,.12);border-radius:18px;}
+  .stat{flex:1;text-align:center;}
+  .stat b{font-family:var(--mono);font-weight:500;font-size:22px;letter-spacing:-.5px;color:var(--ink);display:block;}
+  .stat span{font-family:var(--mono);font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);}
+  .stat .div{}
+
+  /* section head */
+  .sec{padding:0 24px;margin-top:40px;}
+  .sec .eyebrow{display:block;margin-bottom:4px;}
+  .sec h3{font-family:var(--display);font-weight:700;font-size:23px;letter-spacing:-.5px;}
+
+  /* ── 3. PHOTO-SPLIT PROMPTS ── */
+  .prompt{display:flex;gap:0;margin:14px 24px 0;border:1px solid rgba(14,25,41,.12);border-radius:18px;overflow:hidden;background:var(--surface);}
+  .prompt.rev{flex-direction:row-reverse;}
+  .prompt img{width:128px;object-fit:cover;flex-shrink:0;}
+  .prompt .pbody{padding:16px;}
+  .prompt .num{font-family:var(--mono);font-weight:500;font-size:11px;color:var(--terra);}
+  .prompt .q{font-family:var(--mono);font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin:2px 0 8px;}
+  .prompt .a{font-family:var(--serif);font-size:19px;line-height:1.28;color:var(--ink);}
+
+  /* ── 4. DAY TIMELINE ── */
+  .tl{margin:16px 24px 0;position:relative;}
+  .tl::before{content:'';position:absolute;left:33px;top:8px;bottom:8px;width:2px;background:var(--line);}
+  .stop{display:flex;gap:14px;margin-bottom:14px;position:relative;}
+  .stop .time{width:54px;flex-shrink:0;text-align:right;font-family:var(--mono);font-size:11px;color:var(--ink-soft);padding-top:24px;}
+  .stop .dot{position:absolute;left:30px;top:26px;width:8px;height:8px;border-radius:50%;background:var(--terra);border:2px solid var(--paper);z-index:2;}
+  .stop .card{flex:1;margin-left:18px;background:var(--surface);border:1px solid rgba(14,25,41,.1);border-radius:14px;overflow:hidden;}
+  .stop .card img{width:100%;height:120px;object-fit:cover;}
+  .stop .card .t{padding:10px 12px;}
+  .stop .card .t b{font-family:var(--display);font-weight:600;font-size:14px;}
+  .stop .card .t p{font-size:12px;color:var(--ink-mute);margin-top:2px;line-height:1.4;}
+
+  /* ── 5. MASONRY JOURNAL ── */
+  .masonry{columns:2;column-gap:6px;margin:14px 20px 0;}
+  .masonry img{width:100%;border-radius:8px;margin-bottom:6px;display:block;}
+
+  /* ── walks strip ── */
+  .strip{display:flex;gap:12px;overflow-x:auto;padding:14px 24px 4px;}
+  .strip::-webkit-scrollbar{display:none;}
+  .walk{min-width:230px;background:var(--surface);border:1px solid rgba(14,25,41,.12);border-radius:18px;overflow:hidden;box-shadow:0 4px 14px rgba(14,25,41,.06);}
+  .walk img{width:100%;height:140px;object-fit:cover;}
+  .walk .w{padding:13px;}
+  .walk .w b{font-family:var(--display);font-weight:600;font-size:15px;}
+  .walk .w .m{font-family:var(--mono);font-size:10px;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft);margin-top:5px;}
+  .walk .w .r{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
+  .walk .w .r .p{font-family:var(--mono);font-weight:500;font-size:16px;color:var(--terra);}
+  .walk .w .r .go{font-family:var(--body);font-weight:700;font-size:12px;color:var(--terra);}
+
+  /* ── 6. REVIEWS w/ avatar+photo ── */
+  .rev2{margin:14px 24px 0;background:var(--surface);border:1px solid rgba(14,25,41,.1);border-radius:16px;padding:16px;display:flex;gap:14px;}
+  .rev2 .ph{width:78px;height:78px;border-radius:12px;object-fit:cover;flex-shrink:0;}
+  .rev2 .head{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+  .rev2 .head img{width:26px;height:26px;border-radius:50%;object-fit:cover;}
+  .rev2 .head b{font-size:13px;font-family:var(--body);font-weight:600;}
+  .rev2 .stars{color:var(--marigold);font-size:11px;letter-spacing:1px;}
+  .rev2 q{font-family:var(--serif);font-size:17px;line-height:1.3;color:var(--ink);quotes:none;display:block;}
+
+  /* book bar */
+  .bookbar{position:sticky;bottom:0;background:rgba(244,237,221,.97);border-top:1px solid rgba(14,25,41,.12);
+    padding:12px 18px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(8px);}
+  .bookbar .from span{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);display:block;}
+  .bookbar .from b{font-family:var(--mono);font-weight:500;font-size:19px;}
+  .bookbar .msg{border:1.5px solid var(--ink);border-radius:14px;padding:13px 18px;font-weight:700;font-size:14px;background:transparent;}
+  .bookbar .walk{flex:1;background:var(--terra);color:#FCF7EA;border:1.5px solid var(--terra-dk);border-radius:14px;padding:13px;font-weight:700;font-size:15px;text-align:center;}
+  .spacer{height:18px;}
+</style>
+</head>
+<body>
+
+<div class="lead">
+  <div class="mono">Detour · concept mockup</div>
+  <h1>Photo-Forward Guide Profile</h1>
+  <p>Same Warm-Editorial system, but the long text stretch after the hero is broken up with imagery.<br>
+     Scroll the phone. Orange chips call out each new photo idea. The hero is swipeable →</p>
+</div>
+
+<div class="phone">
+  <div class="screen">
+
+    <!-- 1. HERO CAROUSEL -->
+    <div class="hero">
+      <span class="ann" style="top:92px;left:24px;">① Swipeable hero gallery</span>
+      <div class="dots"><i class="on"></i><i></i><i></i></div>
+      <div class="hero-top"><div class="issue"><b>DETOUR · MUMBAI</b><span>ISSUE N° 77</span></div></div>
+      <div class="carousel">
+        <div class="slide"><img src="https://images.unsplash.com/photo-1567157577867-05ccb1388e66?auto=format&fit=crop&w=900&q=80"></div>
+        <div class="slide"><img src="https://images.unsplash.com/photo-1595658658481-d53d3f999875?auto=format&fit=crop&w=900&q=80"></div>
+        <div class="slide"><img src="https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=900&q=80"></div>
+      </div>
+      <div class="hero-scrim"></div>
+      <div class="hero-foot">
+        <img class="pp" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80">
+        <div class="kicker">A walking feature with</div>
+        <h2>Priya Sharma</h2>
+        <div class="uni">IIT Bombay · Mumbai</div>
+      </div>
+    </div>
+
+    <div class="sheet">
+
+      <!-- 2. QUOTE OVER PHOTO -->
+      <div class="quoteband">
+        <span class="ann" style="top:12px;right:24px;">② Quote over photo</span>
+        <img src="https://images.unsplash.com/photo-1529253355930-ddbe423a2ac7?auto=format&fit=crop&w=900&q=80">
+        <div class="qscrim"></div>
+        <div class="qtext">
+          <span class="eyebrow">The interview</span>
+          <q>“The best part of this city isn't on anyone's checklist — it's in the pause between two streets.”</q>
+          <div class="by">— Priya, in her own words</div>
+        </div>
+      </div>
+
+      <!-- stats -->
+      <div class="stats">
+        <div class="stat"><b>1</b><span>Walks led</span></div>
+        <div class="stat"><b>4.6</b><span>Rating</span></div>
+        <div class="stat"><b>3</b><span>Languages</span></div>
+        <div class="stat"><b>3</b><span>Tours</span></div>
+      </div>
+
+      <!-- 3. PHOTO-SPLIT PROMPTS -->
+      <div class="sec">
+        <span class="ann" style="top:-6px;right:0;">③ Photo-split prompts</span>
+        <span class="eyebrow">Three things about me</span>
+        <h3>In her own frame</h3>
+      </div>
+      <div class="prompt">
+        <img src="https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=400&q=80">
+        <div class="pbody"><div class="num">01</div><div class="q">Three things about me</div>
+          <div class="a">I'm a Powai kid who learned Mumbai by walking it — expect random trivia from dabbawalas to Art Deco.</div></div>
+      </div>
+      <div class="prompt rev">
+        <img src="https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=400&q=80">
+        <div class="pbody"><div class="num">02</div><div class="q">Hosting travelers taught me…</div>
+          <div class="a">People leave remembering one 15-minute chat at a juice stall. I make that happen on purpose.</div></div>
+      </div>
+      <div class="prompt">
+        <img src="https://images.unsplash.com/photo-1576502200916-3808e07386a5?auto=format&fit=crop&w=400&q=80">
+        <div class="pbody"><div class="num">03</div><div class="q">Skip my walk if…</div>
+          <div class="a">You want a strict schedule and the same four monuments every guidebook shows. I go off-script.</div></div>
+      </div>
+
+      <!-- 4. DAY TIMELINE -->
+      <div class="sec">
+        <span class="eyebrow">A day with Priya</span>
+        <h3>How a walk actually flows</h3>
+      </div>
+      <div class="tl">
+        <span class="ann" style="top:-6px;right:0;">④ Visual day timeline</span>
+        <div class="stop"><div class="time">9:00</div><div class="dot"></div>
+          <div class="card"><img src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=500&q=80"><div class="t"><b>Gateway & Colaba</b><p>Chai and the morning light before the crowds.</p></div></div></div>
+        <div class="stop"><div class="time">11:00</div><div class="dot"></div>
+          <div class="card"><img src="https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=500&q=80"><div class="t"><b>Kala Ghoda eats</b><p>Street food crawl through the art district.</p></div></div></div>
+        <div class="stop"><div class="time">13:00</div><div class="dot"></div>
+          <div class="card"><img src="https://images.unsplash.com/photo-1586500036706-41963de24d8b?auto=format&fit=crop&w=500&q=80"><div class="t"><b>Hidden lanes</b><p>The pause-between-two-streets moments.</p></div></div></div>
+      </div>
+
+      <!-- 5. MASONRY JOURNAL -->
+      <div class="sec">
+        <span class="eyebrow">Photo journal</span>
+        <h3>From the last few walks</h3>
+      </div>
+      <div class="masonry">
+        <span class="ann" style="top:-6px;right:0;">⑤ Masonry photo journal</span>
+        <img src="https://images.unsplash.com/photo-1611270629569-8b357cb88da9?auto=format&fit=crop&w=500&q=80">
+        <img src="https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=500&q=80">
+        <img src="https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=500&q=80">
+        <img src="https://images.unsplash.com/photo-1529253355930-ddbe423a2ac7?auto=format&fit=crop&w=500&q=80">
+        <img src="https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=500&q=80">
+        <img src="https://images.unsplash.com/photo-1576502200916-3808e07386a5?auto=format&fit=crop&w=500&q=80">
+      </div>
+
+      <!-- walks -->
+      <div class="sec"><span class="eyebrow">Walks I lead</span><h3>Tap any to read the full story</h3></div>
+      <div class="strip">
+        <div class="walk"><img src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=500&q=80"><div class="w"><b>Art Deco Gateway</b><div class="m">3h · 4 stops</div><div class="r"><span class="p">₹900</span><span class="go">Read →</span></div></div></div>
+        <div class="walk"><img src="https://images.unsplash.com/photo-1586500036706-41963de24d8b?auto=format&fit=crop&w=500&q=80"><div class="w"><b>South Mumbai Heritage</b><div class="m">6h · 5 stops</div><div class="r"><span class="p">₹1,600</span><span class="go">Read →</span></div></div></div>
+      </div>
+
+      <!-- 6. REVIEWS w/ avatar + photo -->
+      <div class="sec"><span class="eyebrow">What travelers said</span><h3>In their words & frames</h3></div>
+      <div class="rev2">
+        <span class="ann" style="top:-6px;right:24px;">⑥ Reviews + faces & photos</span>
+        <img class="ph" src="https://images.unsplash.com/photo-1576502200916-3808e07386a5?auto=format&fit=crop&w=300&q=80">
+        <div>
+          <div class="head"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&q=80"><b>Sofia Mueller</b></div>
+          <div class="stars">★★★★☆</div>
+          <q style="margin-top:7px;">“Priya pointed out details on buildings I'd walked past a hundred times. Great photography tips too.”</q>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+      <div class="bookbar">
+        <div class="from"><span>From</span><b>₹900</b></div>
+        <div class="msg">Message</div>
+        <div class="walk">Walk with Priya</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="lead" style="max-width:340px;">
+  <div class="mono" style="color:var(--sea);">how to read this</div>
+  <p style="color:#B8B0A0;">This is a static HTML mockup with placeholder Mumbai photos — not the real app yet.
+  Each ① – ⑥ chip marks a proposed photo idea. Tell me which to keep and I'll build them into the real screen.</p>
+</div>
+
+</body>
+</html>

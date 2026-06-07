@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import Feather from '@expo/vector-icons/Feather';
-import { pickImage } from '@/lib/imagePicker';
+import { pickImage, pickImages } from '@/lib/imagePicker';
 import { uploadImage } from '@/lib/imageUpload';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Header } from '@/components/ui/Header';
@@ -28,6 +29,7 @@ const DEFAULT_PROMPTS: GuidePrompt[] = [
 
 export default function GuideProfileScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [profile, setProfile] = useState<GuideProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -43,6 +45,10 @@ export default function GuideProfileScreen() {
   // Card 2 — "Your Story" (the editorial-zine fields)
   const [pullQuote, setPullQuote] = useState('');
   const [prompts, setPrompts] = useState<GuidePrompt[]>(DEFAULT_PROMPTS);
+
+  // Card 3 — photo gallery (feeds the traveler-facing hero gallery + journal)
+  const [gallery, setGallery] = useState<string[]>([]);
+  const [galleryBusy, setGalleryBusy] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -120,9 +126,11 @@ export default function GuideProfileScreen() {
         created_at: data.created_at ?? new Date().toISOString(),
         prompts: existingPrompts as GuidePrompt[],
         pull_quote: data.pull_quote ?? null,
+        gallery_urls: Array.isArray(data.gallery_urls) ? data.gallery_urls : [],
       };
 
       setProfile(mappedProfile);
+      setGallery(Array.isArray(data.gallery_urls) ? data.gallery_urls : []);
       setName(userData?.full_name ?? '');
       setBio(data.bio ?? '');
       setLanguages(normalizedLanguages.join(', '));
@@ -202,6 +210,51 @@ export default function GuideProfileScreen() {
     }
   }
 
+  async function persistGallery(next: string[]) {
+    setGallery(next);
+    if (profile) {
+      try {
+        await updateGuideProfile(profile.id, { gallery_urls: next });
+        setProfile({ ...profile, gallery_urls: next });
+      } catch (err: unknown) {
+        Alert.alert('Error', err instanceof Error ? err.message : 'Failed to save gallery');
+      }
+    }
+  }
+
+  async function handleAddGalleryPhoto() {
+    const picked = await pickImages({ quality: 0.8, limit: 10 });
+    if (picked.length === 0) return;
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) return;
+    setGalleryBusy(true);
+    try {
+      const uploaded: string[] = [];
+      for (let i = 0; i < picked.length; i += 1) {
+        const img = picked[i];
+        const ext = img.fileName.split('.').pop() ?? 'jpg';
+        const path = `gallery/${user.id}/${Date.now()}-${i}.${ext}`;
+        const { publicUrl } = await uploadImage({
+          blob: img.blob,
+          bucket: 'itinerary-photos',
+          path,
+          contentType: img.mimeType,
+          blobUri: img.uri,
+        });
+        uploaded.push(publicUrl);
+      }
+      await persistGallery([...gallery, ...uploaded]);
+    } catch (err: unknown) {
+      Alert.alert('Upload failed', err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setGalleryBusy(false);
+    }
+  }
+
+  function handleRemoveGalleryPhoto(url: string) {
+    persistGallery(gallery.filter((u) => u !== url));
+  }
+
   async function handleSignOut() {
     await signOut();
   }
@@ -277,6 +330,26 @@ export default function GuideProfileScreen() {
             </View>
           )}
         </View>
+
+        {/* Preview as traveler — opens the guide's own public-facing profile */}
+        {profile && (
+          <TouchableOpacity
+            onPress={() => router.push(`/(traveler)/guide/${profile.user_id}` as never)}
+            activeOpacity={0.85}
+            style={{
+              flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+              marginBottom: 16,
+              borderWidth: 1.5, borderColor: theme.colors.primary,
+              backgroundColor: theme.colors.primaryLight,
+              borderRadius: theme.borderRadius.full, paddingVertical: 13,
+            }}
+          >
+            <Feather name="eye" size={16} color={theme.colors.primary} />
+            <Text style={{ fontFamily: theme.fonts.bodyBold, fontSize: 14, color: theme.colors.primaryDark }}>
+              Preview as traveler
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Card 1 — basics */}
         <Card style={{ gap: 16 }}>
@@ -358,6 +431,55 @@ export default function GuideProfileScreen() {
               />
             </View>
           ))}
+        </Card>
+
+        {/* Card 3 — Photo gallery */}
+        <Card style={{ gap: 14, marginTop: 16 }}>
+          <View>
+            <Text style={{ fontFamily: theme.fonts.display, fontSize: 18, color: theme.colors.text, letterSpacing: -0.3 }}>
+              Photo gallery
+            </Text>
+            <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginTop: 4, lineHeight: 18 }}>
+              Real photos from your walks. These show up on your profile — the swipeable header and the photo journal travelers scroll through.
+            </Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {gallery.map((url) => (
+              <View key={url} style={{ width: 96, height: 72, borderRadius: 10, overflow: 'hidden', backgroundColor: theme.colors.surfaceMuted }}>
+                <Image source={{ uri: url }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={200} />
+                <TouchableOpacity
+                  onPress={() => handleRemoveGalleryPhoto(url)}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  style={{
+                    position: 'absolute', top: 4, right: 4,
+                    width: 22, height: 22, borderRadius: 11,
+                    backgroundColor: 'rgba(14,25,41,0.7)',
+                    alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <Feather name="x" size={13} color="#FCF7EA" />
+                </TouchableOpacity>
+              </View>
+            ))}
+
+            <TouchableOpacity
+              onPress={handleAddGalleryPhoto}
+              disabled={galleryBusy}
+              style={{
+                width: 96, height: 72, borderRadius: 10,
+                borderWidth: 1.5, borderColor: theme.colors.primary, borderStyle: 'dashed',
+                backgroundColor: theme.colors.primaryLight,
+                alignItems: 'center', justifyContent: 'center', gap: 3,
+                opacity: galleryBusy ? 0.6 : 1,
+              }}
+            >
+              <Feather name={galleryBusy ? 'loader' : 'plus'} size={18} color={theme.colors.primary} />
+              <Text style={{ fontFamily: theme.fonts.mono, fontSize: 9, letterSpacing: 0.4, textTransform: 'uppercase', color: theme.colors.primary }}>
+                {galleryBusy ? 'Adding…' : 'Add photos'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </Card>
 
         {/* Single shared Save button — handleSave writes both cards atomically */}

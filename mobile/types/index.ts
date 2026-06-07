@@ -41,6 +41,8 @@ export interface GuideProfile {
   bio: string | null;
   avatar_url: string | null;
   portfolio_image_url?: string | null;
+  /** Guide-uploaded walk photos — feeds the hero gallery + masonry journal. */
+  gallery_urls?: string[];
   university?: string | null;
   avg_rating: number;
   total_reviews: number;

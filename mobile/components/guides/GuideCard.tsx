@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { StarRating } from '@/components/ui/StarRating';
 import { theme } from '@/config/theme';
-import { getGuideHeroPhoto } from '@/config/photoLibrary';
+import { getGuideHeroPhoto, getGuideAvatar } from '@/config/photoLibrary';
 import { hapticImpactLight } from '@/lib/haptics';
 import { interestOverlap, computeTimeFit, timeFitLabel } from '@/lib/booking/timeFit';
 import type { GuideProfile } from '@/types';
@@ -87,6 +87,14 @@ export function GuideCard({
   const isNewGuide = guide.total_reviews === 0;
   const displayRating = isNewGuide ? null : guide.avg_rating;
   const heroPhoto = getGuideHeroPhoto(guide);
+  const avatarPhoto = getGuideAvatar(guide);
+  const initials = (guide.name || 'G')
+    .split(' ')
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   const overlap = interestOverlap(guide.categories, travelerInterests ?? null);
   const timeFit = timeFitLabel(
@@ -115,7 +123,10 @@ export function GuideCard({
             }}
           >
             {/* Hero Image */}
-            <View style={{ height: 168, backgroundColor: theme.colors.surfaceMuted, position: 'relative' }}>
+            {/* Aspect-ratio hero so the photo scales with the card width
+                instead of sitting as a short fixed-height strip (looked tiny
+                on wider viewports). 16:9 is a comfortable, prominent crop. */}
+            <View style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: theme.colors.surfaceMuted, position: 'relative' }}>
               {heroPhoto ? (
                 <Image
                   source={{ uri: heroPhoto }}
@@ -142,7 +153,9 @@ export function GuideCard({
                 end={{ x: 0.5, y: 1 }}
                 style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as object}
               />
-              <View style={{ position: 'absolute', left: 12, bottom: 12 }}>
+              {/* Stamp moved to the top so the portrait can sit at the
+                  bottom-left of the photo without overlapping it. */}
+              <View style={{ position: 'absolute', left: 12, top: 12 }}>
                 <Stamp label="Local photo route" tone="ink" />
               </View>
               {isNewGuide && (
@@ -150,6 +163,36 @@ export function GuideCard({
                   <Stamp label="New guide" tone="marigold" />
                 </View>
               )}
+
+              {/* Guide portrait — floats on the hero image, just above the
+                  content, so it never crowds the name/text below. */}
+              <View style={{ position: 'absolute', left: 16, bottom: 14 }}>
+                {avatarPhoto ? (
+                  <Image
+                    source={{ uri: avatarPhoto }}
+                    contentFit="cover"
+                    transition={300}
+                    style={{
+                      width: 58, height: 58, borderRadius: 29,
+                      borderWidth: 3, borderColor: theme.colors.surface,
+                      backgroundColor: theme.colors.surfaceMuted,
+                      ...theme.shadows.md,
+                    }}
+                  />
+                ) : (
+                  <View style={{
+                    width: 58, height: 58, borderRadius: 29,
+                    backgroundColor: theme.colors.primaryLight,
+                    borderWidth: 3, borderColor: theme.colors.surface,
+                    alignItems: 'center', justifyContent: 'center',
+                    ...theme.shadows.md,
+                  }}>
+                    <Text style={{ fontFamily: theme.fonts.display, fontSize: 22, color: theme.colors.primary }}>
+                      {initials}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
 
             {/* Content */}
