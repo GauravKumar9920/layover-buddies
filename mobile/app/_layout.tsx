@@ -90,9 +90,12 @@ function RootLayoutNav() {
     // screens render without a signed-in session. (Dev/review only.)
     if (segments[0] === 'design-preview') return;
 
-    // Let a signed-in guide preview their own traveler-facing profile
-    // (/(traveler)/guide/[id]) without the role guard bouncing them back to
-    // the guide area. Unauth users still fall through to the login redirect.
+    // Keep ANY signed-in user on the traveler-facing guide profile route
+    // (/(traveler)/guide/[id]). Travelers can already reach it; the point of
+    // this exception is that a *guide* isn't bounced back to the guide area by
+    // the role check below — which is what powers "Preview as traveler".
+    // (We don't scope it to "their own" id — viewing any guide profile here is
+    // harmless and read-only.) Unauth users still fall through to login.
     if (session && segments[0] === '(traveler)' && (segments as string[])[1] === 'guide') return;
 
     const inAuthGroup = segments[0] === '(auth)';

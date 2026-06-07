@@ -592,9 +592,11 @@ export default function BookingScreen() {
     setSubmitting(true);
 
     try {
-      // A tour is optional — if none is selected this is a casual inquiry with
-      // no package (itinerary_id stays null; price is settled later in chat).
-      const itineraryId = isCasual ? undefined : (selectedItinId || undefined);
+      // A tour is optional in every mode: if the traveler selected one (even
+      // from a casual inquiry) we attach it so the booking is priced; if none
+      // is selected it's a casual inquiry with no package (itinerary_id null,
+      // price settled later in chat).
+      const itineraryId = selectedItinId || undefined;
 
       const booking = await createBooking({
         guide_id: guideId,
