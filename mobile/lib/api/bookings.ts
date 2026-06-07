@@ -234,7 +234,10 @@ export async function createBooking(req: CreateBookingRequest): Promise<Booking>
 
   const tourStartTime = toIsoOrNull(req.start_date, '09:00:00.000Z');
   const tourEndTime = toIsoOrNull(req.end_date, '17:00:00.000Z');
-  const arrivalTime = toIsoOrNull(req.flight_date, '00:00:00.000Z');
+  // Preserve the traveler's actual arrival/departure times (HH:MM, IST) when
+  // provided; fall back to midnight only if no time was entered.
+  const arrivalTime = toIsoOrNull(req.flight_date, req.flight_time || '00:00:00.000Z');
+  const departureTime = toIsoOrNull(req.departure_date, req.departure_time || '00:00:00.000Z');
 
   // Clamp group size to [1, 10] — DB has the same CHECK constraint, this just
   // gives a friendlier failure mode than a 23514.
@@ -276,6 +279,7 @@ export async function createBooking(req: CreateBookingRequest): Promise<Booking>
       itinerary_id: req.itinerary_id ?? null,
       arrival_flight_number: req.flight_number ?? null,
       arrival_time: arrivalTime,
+      departure_time: departureTime,
       tour_start_time: tourStartTime,
       tour_end_time: tourEndTime,
       num_travelers: numTravelers,

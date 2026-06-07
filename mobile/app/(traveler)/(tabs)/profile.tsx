@@ -24,6 +24,13 @@ import { theme } from '@/config/theme';
 
 // Same interest taxonomy the onboarding screen uses, so chips here round-trip
 // cleanly with what was saved at signup. Keys are lowercase to match storage.
+const GENDERS: { key: string; label: string }[] = [
+  { key: 'female', label: 'Female' },
+  { key: 'male', label: 'Male' },
+  { key: 'non_binary', label: 'Non-binary' },
+  { key: 'prefer_not_to_say', label: 'Prefer not to say' },
+];
+
 const INTERESTS: { key: string; label: string; emoji: string }[] = [
   { key: 'food', label: 'Food & Street Eats', emoji: '🍜' },
   { key: 'history', label: 'History & Heritage', emoji: '📚' },
@@ -77,6 +84,7 @@ export default function TravelerProfileScreen() {
   // Editable fields
   const [name, setName] = useState('');
   const [nationality, setNationality] = useState('');
+  const [gender, setGender] = useState<string | null>(null);
   const [language, setLanguage] = useState('');
   const [emName, setEmName] = useState('');
   const [emPhone, setEmPhone] = useState('');
@@ -110,6 +118,7 @@ export default function TravelerProfileScreen() {
       setAvatarUrl(avatar);
       setName(fullName);
       setNationality(tp?.nationality ?? '');
+      setGender(tp?.gender ?? null);
       setLanguage(tp?.preferred_language ?? '');
       setEmName(tp?.emergency_contact_name ?? '');
       setEmPhone(tp?.emergency_contact_phone ?? '');
@@ -131,6 +140,7 @@ export default function TravelerProfileScreen() {
       await updateMyTravelerProfile({
         full_name: name.trim(),
         nationality: nationality.trim() || null,
+        gender,
         preferred_language: language.trim() || null,
         emergency_contact_name: emName.trim() || null,
         emergency_contact_phone: emPhone.trim() || null,
@@ -274,6 +284,37 @@ export default function TravelerProfileScreen() {
             Edit profile
           </Text>
           <Input label="Full Name" value={name} onChangeText={setName} autoCapitalize="words" />
+
+          {/* Gender */}
+          <View>
+            <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1.2 }}>
+              Gender
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {GENDERS.map((g) => {
+                const active = gender === g.key;
+                return (
+                  <TouchableOpacity
+                    key={g.key}
+                    onPress={() => setGender(active ? null : g.key)}
+                    activeOpacity={0.8}
+                    style={{
+                      paddingHorizontal: 13, paddingVertical: 8,
+                      borderRadius: theme.borderRadius.full,
+                      backgroundColor: active ? theme.colors.primary : theme.colors.surface,
+                      borderWidth: 1.5,
+                      borderColor: active ? theme.colors.primaryDark : 'rgba(14,25,41,0.14)',
+                    }}
+                  >
+                    <Text style={{ fontFamily: theme.fonts.bodySemi, fontSize: 12.5, color: active ? '#FCF7EA' : theme.colors.textSecondary }}>
+                      {g.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
           <Input
             label="Nationality"
             value={nationality}

@@ -222,8 +222,14 @@ export interface CreateBookingRequest {
   guide_id: string;
   /** Null/omitted for a casual inquiry (no specific package chosen yet). */
   itinerary_id?: string | null;
+  /** Arrival flight number. */
   flight_number?: string;
+  /** Arrival date (YYYY-MM-DD) + time (HH:MM, IST) → bookings.arrival_time. */
   flight_date?: string;
+  flight_time?: string;
+  /** Departure date (YYYY-MM-DD) + time (HH:MM, IST) → bookings.departure_time. */
+  departure_date?: string;
+  departure_time?: string;
   start_date?: string;
   end_date?: string;
   /** Group size, 1–10. Pricing scales linearly with this count. */

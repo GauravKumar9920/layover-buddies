@@ -870,8 +870,12 @@ export default function GuideDetailScreen() {
             ) : (
               <View style={{ marginTop: 14, gap: 14 }}>
                 {reviews.slice(0, 5).map((review) => {
-                  const rName = (review.reviewer as { name?: string })?.name ?? 'A traveler';
-                  const rAvatar = getGuideAvatar({ id: review.id, name: rName });
+                  const reviewer = review.reviewer as { name?: string; id?: string; avatar_url?: string } | undefined;
+                  const rName = reviewer?.name ?? 'A traveler';
+                  // Prefer the traveler's real avatar; else a stable fallback
+                  // seeded by their user id (not the review id) + name.
+                  const rAvatar = reviewer?.avatar_url
+                    || getGuideAvatar({ id: reviewer?.id ?? review.id, name: rName });
                   const rPhoto = getGuideGallery({ id: review.id, name: rName }, 1, [rAvatar])[0];
                   return (
                     <View
