@@ -10,6 +10,7 @@ import { supabase } from '../supabase';
 export interface TravelerProfile {
   user_id:                   string;
   nationality:               string | null;
+  gender:                    string | null;   // 'female' | 'male' | 'non_binary' | 'prefer_not_to_say'
   preferred_language:        string | null;
   emergency_contact_name:    string | null;
   emergency_contact_phone:   string | null;
@@ -23,6 +24,7 @@ export interface TravelerProfile {
 
 export interface OnboardingPayload {
   nationality:   string;
+  gender?:       string | null;
   arrival_at:    string;
   departure_at:  string;
   flight_in?:    string | null;
@@ -58,6 +60,7 @@ export async function completeOnboarding(payload: OnboardingPayload): Promise<Tr
       {
         user_id:      user.id,
         nationality:  payload.nationality,
+        gender:       payload.gender ?? null,
         arrival_at:   payload.arrival_at,
         departure_at: payload.departure_at,
         flight_in:    payload.flight_in ?? null,
@@ -81,6 +84,7 @@ export interface TravelerProfilePatch {
   full_name?: string;
   avatar_url?: string;
   nationality?: string | null;
+  gender?: string | null;
   preferred_language?: string | null;
   emergency_contact_name?: string | null;
   emergency_contact_phone?: string | null;

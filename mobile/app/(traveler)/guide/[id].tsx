@@ -979,7 +979,7 @@ export default function GuideDetailScreen() {
             />
             <View style={{ flex: 1 }}>
               <Button
-                title={`Walk with ${guide.name.split(' ')[0]}`}
+                title={`Plan with ${guide.name.split(' ')[0]}`}
                 size="lg"
                 onPress={() =>
                   router.push({

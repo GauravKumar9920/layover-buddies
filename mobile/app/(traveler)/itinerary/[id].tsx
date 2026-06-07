@@ -943,7 +943,7 @@ export default function ItineraryDetailScreen() {
         />
         <View style={{ flex: 1 }}>
           <Button
-            title={`Request · ₹${itinerary.buddy_cost_inr.toLocaleString('en-IN')}`}
+            title={`Inquire · ₹${itinerary.buddy_cost_inr.toLocaleString('en-IN')}`}
             size="lg"
             onPress={() =>
               router.push({

@@ -220,11 +220,12 @@ export interface Message {
 
 export interface CreateBookingRequest {
   guide_id: string;
-  itinerary_id: string;
+  /** Null/omitted for a casual inquiry (no specific package chosen yet). */
+  itinerary_id?: string | null;
   flight_number?: string;
   flight_date?: string;
-  start_date: string;
-  end_date: string;
+  start_date?: string;
+  end_date?: string;
   /** Group size, 1–10. Pricing scales linearly with this count. */
   num_travelers?: number;
 }

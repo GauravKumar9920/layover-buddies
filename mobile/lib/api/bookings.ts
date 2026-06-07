@@ -240,31 +240,40 @@ export async function createBooking(req: CreateBookingRequest): Promise<Booking>
   // gives a friendlier failure mode than a 23514.
   const numTravelers = Math.max(1, Math.min(10, Math.round(req.num_travelers ?? 1)));
 
-  // Fetch itinerary to get price (deleted tours can't be booked)
-  const { data: itin, error: itinErr } = await supabase
-    .from('itineraries')
-    .select('buddy_cost')
-    .eq('id', req.itinerary_id)
-    .is('deleted_at', null)
-    .single();
+  // A casual inquiry has no package yet — pricing is figured out later in the
+  // chat/agreement once the itinerary is built. Only fetch + price when a tour
+  // was actually selected.
+  let buddyCost = 0;
+  let estimatedExpenses = 0;
+  let commission = 0;
 
-  if (itinErr || !itin) throw new Error('Itinerary not found');
+  if (req.itinerary_id) {
+    // Fetch itinerary to get price (deleted tours can't be booked)
+    const { data: itin, error: itinErr } = await supabase
+      .from('itineraries')
+      .select('buddy_cost')
+      .eq('id', req.itinerary_id)
+      .is('deleted_at', null)
+      .single();
 
-  // Per-person rates from the itinerary; total scales linearly with group size.
-  const perPersonBuddyCost = itin.buddy_cost;
-  const perPersonExpenses  = Math.round(perPersonBuddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
-  const perPersonCommission = calcCommission(perPersonBuddyCost);
+    if (itinErr || !itin) throw new Error('Itinerary not found');
 
-  const buddyCost          = perPersonBuddyCost  * numTravelers;
-  const estimatedExpenses  = perPersonExpenses   * numTravelers;
-  const commission         = perPersonCommission * numTravelers;
+    // Per-person rates from the itinerary; total scales linearly with group size.
+    const perPersonBuddyCost = itin.buddy_cost;
+    const perPersonExpenses  = Math.round(perPersonBuddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
+    const perPersonCommission = calcCommission(perPersonBuddyCost);
+
+    buddyCost          = perPersonBuddyCost  * numTravelers;
+    estimatedExpenses  = perPersonExpenses   * numTravelers;
+    commission         = perPersonCommission * numTravelers;
+  }
 
   const { data, error } = await supabase
     .from('bookings')
     .insert({
       traveler_id: user.id,
       guide_id: req.guide_id,
-      itinerary_id: req.itinerary_id,
+      itinerary_id: req.itinerary_id ?? null,
       arrival_flight_number: req.flight_number ?? null,
       arrival_time: arrivalTime,
       tour_start_time: tourStartTime,
@@ -274,8 +283,8 @@ export async function createBooking(req: CreateBookingRequest): Promise<Booking>
       estimated_expenses: estimatedExpenses,
       platform_fee: commission,
       total_amount: buddyCost + estimatedExpenses + commission,
-      // New bookings start at chat_open (Phase 1 lifecycle).
-      // BOOKING_STATUS.PENDING is kept in constants for legacy read-compat only.
+      // Every booking starts as an inquiry (chat_open); the agreement flow
+      // turns it into a paid booking later.
       status: 'chat_open',
       payment_status: 'pending',
     })
