@@ -529,13 +529,20 @@ export default function BookingScreen() {
         if (!isCasual && !selectedItinId && it.length > 0) setSelectedItinId(it[0].id);
 
         // Autofill flight + trip window from what the traveler entered at
-        // onboarding. Everything stays editable below.
+        // onboarding. Functional updates so we only fill fields the traveler
+        // hasn't already started editing while this async fetch was in flight.
         if (profile) {
-          if (profile.flight_in && !flightNumber) setFlightNumber(profile.flight_in);
+          if (profile.flight_in) setFlightNumber((v) => v || profile.flight_in!);
           const arr = istParts(profile.arrival_at);
-          if (arr) { setArrivalDate(arr.date); setArrivalTime(arr.time); }
+          if (arr) {
+            setArrivalDate((v) => v || arr.date);
+            setArrivalTime((v) => v || arr.time);
+          }
           const dep = istParts(profile.departure_at);
-          if (dep) { setDepartureDate(dep.date); setDepartureTime(dep.time); }
+          if (dep) {
+            setDepartureDate((v) => v || dep.date);
+            setDepartureTime((v) => v || dep.time);
+          }
         }
       })
       .catch((err: unknown) => {

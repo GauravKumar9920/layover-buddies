@@ -329,8 +329,9 @@ export default function GuideDetailScreen() {
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
-                scrollEventThrottle={16}
-                onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) =>
+                // Only update the dots when a page settles — avoids a setState
+                // on every scroll frame while swiping this heavy screen.
+                onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) =>
                   setHeroIndex(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH))
                 }
                 style={{ width: '100%', height: '100%' }}

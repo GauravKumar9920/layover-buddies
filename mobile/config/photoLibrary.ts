@@ -112,8 +112,8 @@ export function getGuideHeroPhoto(guide: Partial<GuideProfile>): string | null {
 
 /** The guide's headshot for the circular avatar shown above their name.
  *  Uses their uploaded `avatar_url` when present, else a stable curated
- *  portrait seeded by id so the same face appears on the card and the
- *  detail screen. Returns null only when there's no id to seed with. */
+ *  portrait seeded by `id` + `name` so the same face appears on the card and
+ *  the detail screen. Returns null only when both id and name are empty. */
 export function getGuideAvatar(guide: Partial<GuideProfile>): string | null {
   if (guide.avatar_url) return guide.avatar_url;
   const seed = `${guide.id ?? ''}-${guide.name ?? ''}`;

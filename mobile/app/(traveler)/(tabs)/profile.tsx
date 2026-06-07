@@ -49,11 +49,19 @@ function Eyebrow({ children }: { children: string }) {
   );
 }
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// arrival_at / departure_at are UTC instants representing an IST wall clock
+// (see onboarding). Format them back as IST so travelers in other timezones
+// see the same times they entered — not the device-local conversion.
 function fmtDate(iso?: string | null): string | null {
   if (!iso) return null;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
-  return format(d, 'd MMM, HH:mm');
+  const ist = new Date(d.getTime() + (5 * 60 + 30) * 60_000);
+  const hh = String(ist.getUTCHours()).padStart(2, '0');
+  const mm = String(ist.getUTCMinutes()).padStart(2, '0');
+  return `${ist.getUTCDate()} ${MONTHS[ist.getUTCMonth()]}, ${hh}:${mm}`;
 }
 
 export default function TravelerProfileScreen() {
