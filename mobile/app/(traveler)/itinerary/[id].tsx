@@ -455,30 +455,41 @@ export default function ItineraryDetailScreen() {
               },
             ]}
           >
-            {itinerary.category && (
-              <View
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <Text
                 style={{
-                  alignSelf: 'flex-start',
-                  backgroundColor: 'rgba(255,255,255,0.25)',
-                  paddingHorizontal: 10,
-                  paddingVertical: 4,
-                  borderRadius: 999,
-                  marginBottom: 10,
+                  fontFamily: theme.fonts.monoMed,
+                  color: 'rgba(252,247,234,0.85)',
+                  fontSize: 10,
+                  letterSpacing: 2.5,
+                  textTransform: 'uppercase',
                 }}
               >
-                <Text
+                Detour · {itinerary.city}
+              </Text>
+              {itinerary.category && (
+                <View
                   style={{
-                    fontFamily: theme.fonts.monoMed,
-                    color: '#FCF7EA',
-                    fontSize: 10,
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
+                    backgroundColor: 'rgba(255,255,255,0.22)',
+                    paddingHorizontal: 9,
+                    paddingVertical: 3,
+                    borderRadius: 999,
                   }}
                 >
-                  {itinerary.category}
-                </Text>
-              </View>
-            )}
+                  <Text
+                    style={{
+                      fontFamily: theme.fonts.monoMed,
+                      color: '#FCF7EA',
+                      fontSize: 9.5,
+                      letterSpacing: 0.8,
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {itinerary.category}
+                  </Text>
+                </View>
+              )}
+            </View>
             <Text
               style={{
                 fontFamily: theme.fonts.displayX,
@@ -500,7 +511,8 @@ export default function ItineraryDetailScreen() {
                 textTransform: 'uppercase',
               }}
             >
-              {itinerary.city}  ·  {itinerary.estimated_duration_hours}h  ·  {(itinerary.stops ?? []).length} stops
+              {itinerary.estimated_duration_hours}h walk  ·  {(itinerary.stops ?? []).length} stops
+              {guide?.name ? `  ·  with ${guide.name.split(' ')[0]}` : ''}
             </Text>
           </Animated.View>
         </View>
@@ -515,34 +527,21 @@ export default function ItineraryDetailScreen() {
             paddingTop: 24,
           }}
         >
-          {/* Tagline + Price row */}
-          <View
-            style={{
-              paddingHorizontal: 20,
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-            }}
-          >
-            <View style={{ flex: 1, paddingRight: 14 }}>
-              <Text style={{ fontFamily: theme.fonts.serif, fontSize: 21, color: theme.colors.text, lineHeight: 27 }}>
-                {content.tagline}
-              </Text>
-            </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text
-                style={{
-                  fontFamily: theme.fonts.monoMed,
-                  fontSize: 24,
-                  color: theme.colors.primary,
-                  letterSpacing: -0.5,
-                }}
-              >
-                ₹{itinerary.buddy_cost_inr.toLocaleString('en-IN')}
-              </Text>
-              <Text style={{ fontFamily: theme.fonts.mono, fontSize: 9.5, color: theme.colors.textMuted, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 2 }}>buddy fee</Text>
-            </View>
+          {/* Tagline (serif intro) */}
+          <View style={{ paddingHorizontal: 20 }}>
+            <Text style={{ fontFamily: theme.fonts.serif, fontSize: 22, color: theme.colors.text, lineHeight: 29 }}>
+              {content.tagline}
+            </Text>
           </View>
+
+          {/* Stat strip */}
+          <StatStrip
+            items={[
+              { label: 'Duration', value: `${itinerary.estimated_duration_hours}h` },
+              { label: 'Stops', value: String((itinerary.stops ?? []).length) },
+              { label: 'From', value: `₹${itinerary.buddy_cost_inr.toLocaleString('en-IN')}` },
+            ]}
+          />
 
           {/* ── Guide mini-strip ───────────────────────────── */}
           {guide && (
@@ -612,7 +611,23 @@ export default function ItineraryDetailScreen() {
           )}
 
           {/* ── Hinge feed: prompt → photo → prompt → photo → prompt ── */}
-          <View style={{ marginTop: 28 }}>
+          <View style={{ marginTop: 32 }}>
+            <View style={{ paddingHorizontal: 20 }}>
+              <Text
+                style={{
+                  fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
+                }}
+              >
+                In their words
+              </Text>
+              <Text
+                style={{
+                  fontFamily: theme.fonts.display, fontSize: 22, color: theme.colors.text, marginTop: 4, letterSpacing: -0.4,
+                }}
+              >
+                Why walk this one
+              </Text>
+            </View>
             {content.prompts.map((prompt, idx) => (
               <View key={`prompt-${idx}`}>
                 <PromptCard prompt={prompt} />
@@ -961,6 +976,51 @@ export default function ItineraryDetailScreen() {
 // ─────────────────────────────────────────────────────────────────────────
 // Sub-components
 // ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * A scannable 3-up stat strip (duration · stops · from price) — bordered
+ * surface with mono numerals, matching the guide profile's meta row.
+ */
+function StatStrip({ items }: { items: { label: string; value: string }[] }) {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        marginHorizontal: 20,
+        marginTop: 18,
+        paddingVertical: 16,
+        borderRadius: 18,
+        borderWidth: 1,
+        borderColor: 'rgba(14,25,41,0.12)',
+        backgroundColor: theme.colors.surface,
+      }}
+    >
+      {items.map((it, i) => (
+        <View
+          key={it.label}
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            borderLeftWidth: i > 0 ? 1 : 0,
+            borderLeftColor: theme.colors.divider,
+          }}
+        >
+          <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 20, color: theme.colors.text, letterSpacing: -0.5 }}>
+            {it.value}
+          </Text>
+          <Text
+            style={{
+              fontFamily: theme.fonts.mono, fontSize: 9.5, color: theme.colors.textMuted,
+              letterSpacing: 0.8, textTransform: 'uppercase', marginTop: 5,
+            }}
+          >
+            {it.label}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
 
 /**
  * A single Hinge-style prompt card. Soft-filled block with a small
