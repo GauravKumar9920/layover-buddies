@@ -3,18 +3,77 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Detour — See the city through a local friend.</title>
-<meta name="description" content="Detour helps international travellers experience cities through verified local students. Land in Mumbai, skip the scams, and see the real city between flights." />
+<title>Mumbai Layover Tours with Local Student Guides | Detour</title>
+<meta name="description" content="Turn your Mumbai layover into the best part of your trip. A local student guide plans a route around your flight, meets you at BOM, and gets you back with time to spare. Free in early access." />
+<link rel="canonical" href="https://detourtrips.com/" />
 <!-- Detour pin favicon -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 30 C 10 22 6 18 6 13 A 10 10 0 1 1 26 13 C 26 18 22 22 16 30 Z' fill='%23C8542A'/%3E%3Ccircle cx='16' cy='13' r='3.6' fill='%23FCF7EA'/%3E%3C/svg%3E">
 <!-- Open Graph / social preview -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="Detour — See the city through a local friend.">
-<meta property="og:description" content="Land in Mumbai between flights and explore the real city with a verified local student. Detour.">
+<meta property="og:site_name" content="Detour">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Mumbai Layover Tours with Local Student Guides | Detour">
+<meta property="og:description" content="Got a few hours between flights in Mumbai? A local student guide plans your route, meets you at BOM, and gets you back with time to spare. Free in early access.">
 <meta property="og:url" content="https://detourtrips.com">
 <meta property="og:image" content="https://detourtrips.com/images/hero-skyline-main.jpg">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Mumbai Layover Tours with Local Student Guides | Detour">
+<meta name="twitter:description" content="Got a few hours between flights in Mumbai? A local student guide plans your route, meets you at BOM, and gets you back with time to spare.">
 <meta name="twitter:image" content="https://detourtrips.com/images/hero-skyline-main.jpg">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://detourtrips.com/#org",
+      "name": "Detour",
+      "url": "https://detourtrips.com",
+      "email": "admin@detourtrips.com",
+      "logo": "https://detourtrips.com/images/hero-skyline-main.jpg",
+      "description": "Detour matches international travellers on Mumbai layovers with verified local student guides for free, flight-safe city routes.",
+      "sameAs": ["https://www.instagram.com/detour_trips/"],
+      "areaServed": { "@type": "City", "name": "Mumbai" }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://detourtrips.com/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Do I need a visa to leave Mumbai airport on a layover?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes — most nationalities need an Indian visa to step outside the airport, and the easiest route is the e-Tourist visa (around US$25), applied for online before you fly. Apply at least 4–7 days ahead. If you stay inside the international transit area, no visa is needed — but then there's no detour either. We'll walk you through the process when you request a detour." }
+        },
+        {
+          "@type": "Question",
+          "name": "What if my incoming flight is delayed?",
+          "acceptedAnswer": { "@type": "Answer", "text": "We track your flight in real time, so your buddy simply waits or reshapes the plan. You only ever spend the hours you actually have on the ground." }
+        },
+        {
+          "@type": "Question",
+          "name": "What do I do with my heavy luggage?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Mumbai airport has a secure left-luggage cloakroom. Your buddy meets you at arrivals and walks you there first, so you explore the city hands-free." }
+        },
+        {
+          "@type": "Question",
+          "name": "How much does a Detour cost?",
+          "acceptedAnswer": { "@type": "Answer", "text": "While we're in early access, Detour is completely free — there's no service fee at all. You only cover your own cab, food, and tickets, paid directly at honest local prices with zero markup." }
+        },
+        {
+          "@type": "Question",
+          "name": "I'm travelling solo — is this for me?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Solo travellers are most of why Detour exists. Every buddy is identity- and student-status-verified, you see your full route before you land, you can share your live location with anyone back home, and evening detours always end in a vetted cab. Solo women can ask to be matched with a female buddy, subject to availability." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it safe to leave the airport in Mumbai on a layover?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes — with a verified local student, planned transport, and a route that always keeps an airport buffer. Doing it with a trusted buddy is exactly what makes a layover stop safe." }
+        }
+      ]
+    }
+  ]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -838,10 +897,62 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .chip.free{background:var(--terra-lt);border-color:var(--terracotta);color:var(--terra-dk);}
 .chip.free svg{color:var(--terracotta);}
 
-/* ---------- BOOKING MODAL — GOOGLE FORM EMBED ---------- */
-#booking-modal .modal-card{max-width:560px;}
-.modal-iframe-wrap{margin-top:18px;border:1.5px solid var(--line-soft);border-radius:14px;overflow:hidden;}
-.modal-iframe-wrap iframe{width:100%;height:62vh;min-height:440px;max-height:640px;border:none;display:block;background:var(--paper-3);}
+/* ---------- BOOKING MODAL — REQUEST FORM ---------- */
+#booking-modal .modal-card{max-width:560px;max-height:90vh;overflow-y:auto;}
+.form-status{display:none;text-align:center;padding:28px 12px;}
+.form-status.show{display:block;}
+.form-status h3{font-family:var(--display);font-weight:700;font-size:22px;margin-bottom:8px;}
+.form-status p{font-size:14px;color:var(--ink-mute);line-height:1.55;max-width:360px;margin:0 auto;}
+.btn-submit{width:100%;justify-content:center;border:none;margin-top:4px;}
+.btn-submit[disabled]{opacity:.6;pointer-events:none;}
+
+/* ---------- HERO STAGE NOTE ---------- */
+.stage-note{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--sea-dk);opacity:.65;white-space:nowrap;}
+
+/* ---------- STREET TICKER ---------- */
+.ticker-band{border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);background:var(--taxi);padding:13px 0;overflow:hidden;}
+.ticker-track{display:flex;gap:0;width:max-content;animation:tickerscroll 38s linear infinite;}
+.ticker-band:hover .ticker-track{animation-play-state:paused;}
+.ticker-item{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.04em;color:var(--ink);white-space:nowrap;padding:0 14px;display:inline-flex;align-items:center;gap:14px;}
+.ticker-item::after{content:'✦';font-size:10px;opacity:.55;margin-left:14px;}
+@keyframes tickerscroll{to{transform:translateX(-50%);}}
+@media (prefers-reduced-motion:reduce){.ticker-track{animation:none;}}
+
+/* ---------- VIDEO IN ATMOSPHERE BAND ---------- */
+.break-band .band video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+.break-band .band img.kenburns{animation:kenburns 18s ease-in-out infinite alternate;}
+@keyframes kenburns{from{transform:scale(1) translateX(0);}to{transform:scale(1.08) translateX(-1.5%);}}
+@media (prefers-reduced-motion:reduce){.break-band .band img.kenburns{animation:none;}}
+
+/* ---------- FOUNDER NOTE ---------- */
+.founder{background:var(--paper-2);}
+.founder-card{max-width:760px;margin:0 auto;background:var(--paper-3);border:1.5px solid var(--ink);border-radius:24px;padding:44px 48px;box-shadow:6px 6px 0 rgba(14,25,41,.12);position:relative;transform:rotate(-.4deg);}
+@media(max-width:600px){.founder-card{padding:32px 24px;}}
+.founder-card .stamp{position:absolute;top:-16px;right:32px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;background:var(--terracotta);color:var(--paper-3);padding:7px 13px;border-radius:9999px;transform:rotate(2deg);box-shadow:2px 2px 0 var(--ink);}
+.founder-card p{font-size:16.5px;line-height:1.7;color:var(--ink-2);margin-bottom:16px;}
+.founder-card p:last-of-type{margin-bottom:0;}
+.founder-card .sign{font-family:var(--serif);font-style:italic;font-size:26px;color:var(--terracotta);margin-top:22px;}
+.founder-card .sign small{display:block;font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute);margin-top:6px;}
+.founder-card a{color:var(--terracotta);text-decoration:underline;text-underline-offset:3px;}
+
+/* ---------- EMAIL CAPTURE STRIP ---------- */
+.capture{background:var(--ink);color:var(--paper);}
+.capture-inner{display:flex;align-items:center;justify-content:space-between;gap:36px;flex-wrap:wrap;}
+.capture h3{font-family:var(--display);font-weight:700;font-size:clamp(22px,3vw,30px);letter-spacing:-.025em;line-height:1.1;}
+.capture h3 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--taxi);}
+.capture p{font-size:14.5px;color:rgba(244,237,221,.65);margin-top:8px;max-width:440px;line-height:1.5;}
+.capture-form{display:flex;gap:10px;flex:1;min-width:280px;max-width:440px;}
+.capture-form input{flex:1;padding:14px 18px;border-radius:9999px;border:1.5px solid rgba(244,237,221,.25);background:rgba(244,237,221,.07);color:var(--paper);font-family:inherit;font-size:14.5px;}
+.capture-form input::placeholder{color:rgba(244,237,221,.45);}
+.capture-form input:focus{outline:none;border-color:var(--taxi);}
+.capture-form .btn-primary{padding:14px 22px;white-space:nowrap;}
+.capture-done{font-family:var(--mono);font-size:13px;color:var(--taxi);display:none;}
+
+/* ---------- APP COMING SOON ---------- */
+.app-soon{margin-top:30px;padding-top:26px;border-top:1px solid rgba(252,247,234,.25);display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
+.app-badge{display:inline-flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:14px;color:var(--paper-3);border:1.5px solid rgba(252,247,234,.45);border-radius:12px;padding:10px 18px;position:relative;opacity:.92;}
+.app-badge::after{content:'soon';position:absolute;top:-9px;right:-10px;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;background:var(--taxi);color:var(--ink);padding:3px 7px;border-radius:9999px;transform:rotate(3deg);}
+.app-soon-label{flex-basis:100%;font-size:12.5px;color:rgba(252,247,234,.75);margin-top:4px;}
 </style>
 </head>
 <body>
@@ -910,7 +1021,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     <div>
       <span class="hero-eyebrow"><span class="pulse"></span> Launching soon · Mumbai first · free in early access</span>
       <h1>Turn your Mumbai layover into a <span class="serif">story.</span></h1>
-      <p class="hero-sub">A layover used to be dead time between flights. Detour opens the gates: a custom route matching your hours, a verified student buddy, and a city that suddenly feels like home.</p>
+      <p class="hero-sub">You've got eight hours in Mumbai and no idea what's possible. We match you with a local college student who does — they plan a route around your flight, meet you at arrivals, and get you back with time to spare.</p>
       <div class="hero-ctas">
         <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
@@ -918,6 +1029,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       </div>
       <div class="trust-row">
         <span class="chip free"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 8.2l7.1-.6z"/></svg> Free in early access</span>
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> English-speaking buddies</span>
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Always back with a buffer</span>
       </div>
     </div>
 
@@ -945,8 +1058,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       </div>
       <div class="buddy-chip">
         <span class="av">A</span>
-        <div><b>Arjun is on the way</b><span>4.92 ★ · replies in 6 min</span></div>
+        <div><b>Arjun is on the way</b><span>3rd-year engineering student</span></div>
       </div>
+      <div class="stage-note">How a detour unfolds — illustration, not a live feed</div>
       <div class="route-card rc-2">
         <div class="step">Live · via Sea Link</div>
         <div class="big">42 min to the city</div>
@@ -966,14 +1080,43 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   <div class="wrap">
     <span class="eyebrow">The idea</span>
     <h2>A layover is dead time. A <em>detour</em> is a story you didn't expect to bring home.</h2>
-    <p class="lead">Millions of travellers pass through Mumbai every year and never leave the terminal — too unsure, too nervous, too short on time. Detour exists to open that door: a verified local friend, a route that fits your hours, and a city that suddenly feels like it's on your side.</p>
+    <p class="lead">Millions of travellers pass through Mumbai every year and never leave the terminal — too unsure, too nervous, too short on time. Detour opens that door. A local student walks out of arrivals with you, and the city stops being intimidating about four minutes later.</p>
   </div>
 </section>
+
+<!-- STREET TICKER — real numbers from the street -->
+<div class="ticker-band" aria-hidden="true">
+  <div class="ticker-track">
+    <span class="ticker-item">Vada pav · ₹20</span>
+    <span class="ticker-item">Cutting chai at an Irani café · ₹25</span>
+    <span class="ticker-item">Sea Link crossing · 8 min</span>
+    <span class="ticker-item">Airport to Marine Drive · ~45 min</span>
+    <span class="ticker-item">Kala Ghoda art walk · free</span>
+    <span class="ticker-item">Sunset on the sea wall · also free</span>
+    <span class="ticker-item">Bun maska at Kyani · ₹60</span>
+    <span class="ticker-item">Left-luggage at BOM · by the hour</span>
+    <span class="ticker-item">Vada pav · ₹20</span>
+    <span class="ticker-item">Cutting chai at an Irani café · ₹25</span>
+    <span class="ticker-item">Sea Link crossing · 8 min</span>
+    <span class="ticker-item">Airport to Marine Drive · ~45 min</span>
+    <span class="ticker-item">Kala Ghoda art walk · free</span>
+    <span class="ticker-item">Sunset on the sea wall · also free</span>
+    <span class="ticker-item">Bun maska at Kyani · ₹60</span>
+    <span class="ticker-item">Left-luggage at BOM · by the hour</span>
+  </div>
+</div>
 
 <!-- DUOTONE ATMOSPHERE BAND (section break) -->
 <section class="break-band">
   <div class="band">
-    <img src="images/hero-skyline-main.jpg" alt="Mumbai skyline, between flights" loading="lazy" />
+    <img src="images/hero-skyline-main.jpg" alt="Mumbai skyline at dusk, seen between flights" loading="lazy" class="kenburns" id="band-fallback" />
+    <!-- "Mumbai's iconic BMC building at twilight" by RAJU THAPA — Pexels (free for commercial use,
+         no attribution required: pexels.com/license). Plays from videos/ if you self-host via
+         get-videos.sh; otherwise streams straight from the Pexels CDN. -->
+    <video id="band-video" autoplay muted loop playsinline preload="metadata" poster="images/hero-skyline-main.jpg" style="display:none;">
+      <source src="videos/mumbai-twilight.mp4" type="video/mp4">
+      <source src="https://videos.pexels.com/video-files/35370261/14986410_1080_1920_30fps.mp4" type="video/mp4">
+    </video>
     <div class="grain"></div>
     <span class="coord">19.0760°N · 72.8777°E · BOM</span>
     <svg class="route-ghost" viewBox="0 0 1600 480" preserveAspectRatio="none" aria-hidden="true">
@@ -1009,7 +1152,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       <div class="why-card reveal">
         <div class="why-ic" style="background:var(--marigold-lt);color:var(--terra-dk);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M3 9V7a2 2 0 0 1 2-2h11"/><path d="M16 13h.01"/></svg></div>
         <h3>Transparent pricing</h3>
-        <p>A flat fee for your buddy's time — and it's free while we're in early access. Cabs, food, and tickets are paid directly at the real local price.</p>
+        <p>Your buddy's time is free while we're in early access. Everything else you pay directly, at the price a local pays — a vada pav is ₹20, and your buddy will tell you when something's overpriced before you reach for your wallet.</p>
       </div>
     </div>
   </div>
@@ -1057,7 +1200,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
           <div class="card-content">
             <span class="card-num">02 · Tempo</span>
             <h3 class="card-title">Chaos <em>&amp;</em> calm.</h3>
-            <p class="card-desc">The adrenaline-fueled, packed local trains of CSMT station standing in stark contrast to the absolute ancient silence of the Banganga Tank.</p>
+            <p class="card-desc">A local train at CSMT in rush hour will rearrange your idea of crowded. Twenty minutes away, Banganga Tank is so quiet you can hear the temple bells across the water.</p>
           </div>
         </div>
         
@@ -1105,7 +1248,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
           <div class="card-content">
             <span class="card-num">06 · Spirit</span>
             <h3 class="card-title">Grit <em>&amp;</em> gold.</h3>
-            <p class="card-desc">The relentless, sweat-stained hustle of local Crawford market wholesalers running adjacent to the opulent, quiet mansions of Malabar Hill.</p>
+            <p class="card-desc">At Crawford Market a wholesaler will sell you a single mango like it's a business deal. Ten minutes up the hill, Malabar's old mansions sit behind banyan trees pretending the city isn't there.</p>
           </div>
         </div>
         
@@ -1134,7 +1277,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     <div class="contrasts-footer reveal">
       <div class="cf-left">
         <h4>Your detour. We show you <em>all of it.</em></h4>
-        <p>Not the generic postcard tourist trap. The real, breathing city through a local buddy's eyes.</p>
+        <p>Whichever of these cities you want — your buddy grew up moving between all seven.</p>
       </div>
       <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
@@ -1179,21 +1322,21 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     <div class="section-head">
       <span class="eyebrow">What a detour looks like</span>
       <h2>Three moods, hand-built by Mumbai students.</h2>
-      <p class="lead">Not packages — possibilities. A glimpse of the kind of day a local would actually plan for you, depending on who you are.</p>
+      <p class="lead">These aren't fixed packages. They're examples of the kind of day your buddy might build — depending on whether you're a food person, a history person, or just need sea air after fourteen hours in a middle seat.</p>
     </div>
     <div class="routes">
       <div class="route reveal">
-        <div class="ph a"><img src="images/gallery-gateway.jpg" alt="" loading="lazy"><div class="grain"></div><span class="badge">The postcard</span><span class="where">Marine Drive sunset</span></div>
+        <div class="ph a"><img src="images/gallery-gateway.jpg" alt="Gateway of India on the South Mumbai waterfront" loading="lazy"><div class="grain"></div><span class="badge">The postcard</span><span class="where">Marine Drive sunset</span></div>
         <div class="body"><h3>First-time Mumbai classic</h3><p>Famous, iconic, cinematic — the classic South Mumbai story everyone shares back home.</p>
           <div class="stops"><span class="s">Gateway</span><span class="ar">›</span><span class="s">Kala Ghoda</span><span class="ar">›</span><span class="s">CSMT</span><span class="ar">›</span><span class="s">Marine Drive</span></div></div>
       </div>
       <div class="route reveal">
-        <div class="ph b"><img src="images/gallery-dharavi.jpg" alt="" loading="lazy"><div class="grain"></div><span class="badge">Hyper-local</span><span class="where">Sunday like a local</span></div>
+        <div class="ph b"><img src="images/gallery-dharavi.jpg" alt="Everyday neighbourhood life in Mumbai" loading="lazy"><div class="grain"></div><span class="badge">Hyper-local</span><span class="where">Sunday like a local</span></div>
         <div class="body"><h3>Where Mumbaikars actually go</h3><p>Local life, vada pav, sea, old-new contrasts — minus the tourist crowd.</p>
           <div class="stops"><span class="s">Dadar Market</span><span class="ar">›</span><span class="s">Shivaji Park</span><span class="ar">›</span><span class="s">Worli Koliwada</span><span class="ar">›</span><span class="s">Bandra Fort</span></div></div>
       </div>
       <div class="route reveal">
-        <div class="ph c"><img src="images/gallery-cst.jpg" alt="" loading="lazy"><div class="grain"></div><span class="badge">Old Bombay</span><span class="where">Irani cafés &amp; stone</span></div>
+        <div class="ph c"><img src="images/gallery-cst.jpg" alt="Victorian Gothic architecture of CSMT station, Mumbai" loading="lazy"><div class="grain"></div><span class="badge">Old Bombay</span><span class="where">Irani cafés &amp; stone</span></div>
         <div class="body"><h3>Colonial Bombay, stuck in 1932</h3><p>Gothic stations, Art Deco facades, berry pulao at Britannia, chai at Kyani.</p>
           <div class="stops"><span class="s">CSMT</span><span class="ar">›</span><span class="s">Fort</span><span class="ar">›</span><span class="s">Ballard Estate</span><span class="ar">›</span><span class="s">Britannia</span></div></div>
       </div>
@@ -1207,10 +1350,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     <div class="section-head"><div class="section-head-text">
       <span class="eyebrow">The city, unfiltered</span>
       <h2>Mumbai, as seen by the people who <em>live it.</em></h2>
-      <p class="lead">Not stock photos. The streets, plates, and corners your buddy will actually take you through — hover to bring them to life.</p>
+      <p class="lead">The streets, plates, and corners a buddy will actually walk you through. As real detours happen, photos from those trips will land here too.</p>
     </div></div>
     <div class="gallery-grid">
-      <div class="g-item reveal"><img src="images/gallery-vadapav.jpg" alt="Vada pav, Mumbai's street classic" loading="lazy"><div class="grain"></div></div>
+      <!-- Photos below marked with data-pexels stream from the Pexels CDN — free for commercial use, no attribution required (pexels.com/license) -->
+      <div class="g-item reveal"><img src="https://images.pexels.com/photos/17433337/pexels-photo-17433337.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Vada pav with green chilli, Mumbai's street classic" loading="lazy" data-pexels="17433337"><div class="grain"></div></div>
       <div class="g-item reveal"><img src="images/hero-gateway-night.jpg" alt="Gateway of India after dark" loading="lazy"><div class="grain"></div></div>
       <div class="g-item reveal"><img src="images/package-real-mumbai.jpg" alt="The real, everyday Mumbai" loading="lazy"><div class="grain"></div></div>
       <div class="g-item reveal"><img src="images/step-streets.jpg" alt="Mumbai streets up close" loading="lazy"><div class="grain"></div></div>
@@ -1219,6 +1363,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       <div class="g-item reveal"><img src="images/step-airport.jpg" alt="Mumbai airport, where the detour begins" loading="lazy"><div class="grain"></div></div>
       <div class="g-item reveal"><img src="images/package-quick-escape.jpg" alt="A quick layover escape" loading="lazy"><div class="grain"></div></div>
       <div class="g-item reveal"><img src="images/step-university.jpg" alt="University grounds in the heart of the city" loading="lazy"><div class="grain"></div></div>
+      <div class="g-item reveal"><img src="https://images.pexels.com/photos/4602266/pexels-photo-4602266.jpeg?auto=compress&cs=tinysrgb&w=900" alt="A street food vendor at his stall in Mumbai" loading="lazy" data-pexels="4602266"><div class="grain"></div></div>
+      <div class="g-item reveal"><img src="https://images.pexels.com/photos/10906000/pexels-photo-10906000.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Marine Drive skyline silhouetted at sunset" loading="lazy" data-pexels="10906000"><div class="grain"></div></div>
+      <div class="g-item reveal"><img src="https://images.pexels.com/photos/30570738/pexels-photo-30570738.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Fresh street food being fried at a Mumbai stall" loading="lazy" data-pexels="30570738"><div class="grain"></div></div>
     </div>
   </div>
 </section>
@@ -1240,14 +1387,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   </div>
 </section>
 
+<!-- FOUNDER NOTE -->
+<section class="founder" id="founder">
+  <div class="wrap">
+    <div class="founder-card reveal">
+      <span class="stamp">From the founder</span>
+      <!-- ═══ GAURAV: rewrite this in your own words before launch. One draft, don't polish — that's the point. ═══ -->
+      <p>I'm Gaurav. I started Detour because I kept meeting travellers who'd spent twelve hours inside BOM — twenty minutes from one of the most alive cities on earth — because leaving the terminal alone felt too risky.</p>
+      <p>It isn't, if someone from here walks out with you. So that's the whole product: a student who loves this city, a route built around your flight, and you back at the gate with time to spare.</p>
+      <p>The first detours are free. Honestly? Because right now we want you to fly home raving about Mumbai more than we want your money. If you have a layover coming up, write to me directly — I read everything: <a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a></p>
+      <div class="sign">— Gaurav<small>Founder, Detour · Mumbai</small></div>
+    </div>
+  </div>
+</section>
+
 <!-- FAQ -->
 <section id="faq">
   <div class="wrap">
     <div class="section-head-text" style="text-align:center;margin:0 auto 48px;max-width:680px;">
       <span class="eyebrow" style="justify-content:center;">Got questions?</span>
-      <h2>The things travellers <em>always ask.</em></h2>
+      <h2>Questions travellers actually ask.</h2>
     </div>
     <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">Do I need a visa to leave the airport?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">Yes — most nationalities need an Indian visa to step outside, and the easiest route is the e-Tourist visa (around US$25, applied for online before you fly — allow 4–7 days). If you stay inside the international transit area you don't need one, but then there's no detour either. When you request a detour we'll send you the exact steps for your nationality, so there are no surprises at immigration.</div></div>
+      </div>
       <div class="faq-item">
         <button class="faq-q" aria-expanded="false">What if my incoming flight is delayed?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
         <div class="faq-a"><div class="faq-a-inner">We track your flight in real time, so your buddy simply waits or reshapes the plan. You only ever spend the hours you actually have on the ground.</div></div>
@@ -1264,7 +1429,27 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
         <button class="faq-q" aria-expanded="false">Is it safe to leave the airport on a layover?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
         <div class="faq-a"><div class="faq-a-inner">Yes — with a verified local student, planned transport, and a route that always keeps an airport buffer. Doing it with a trusted buddy is exactly what makes a layover stop safe.</div></div>
       </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">I'm travelling solo — is this for me?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">Solo travellers are most of why Detour exists. Every buddy is identity- and student-status-verified, you see your full route before you land, you can share your live location with anyone back home, and evening detours always end in a vetted cab — never a late-night train. Solo women can ask to be matched with a female buddy, subject to availability.</div></div>
+      </div>
     </div>
+  </div>
+</section>
+
+<!-- EMAIL CAPTURE -->
+<section class="capture" id="cheatsheet" style="padding:64px 0;">
+  <div class="wrap capture-inner">
+    <div>
+      <h3>Flying through Mumbai <em>someday?</em></h3>
+      <p>Leave your email and we'll send you our one-page layover cheat sheet — visa steps, luggage storage, and how much time you really need.</p>
+    </div>
+    <form class="capture-form" id="capture-form" novalidate>
+      <input type="email" name="email" placeholder="you@email.com" required aria-label="Your email address">
+      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+      <button class="btn-primary" type="submit">Send it</button>
+    </form>
+    <span class="capture-done" id="capture-done">Done — check your inbox soon. ✦</span>
   </div>
 </section>
 
@@ -1278,6 +1463,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
       <div class="trustline">Verified students · Free in early access · Made in Mumbai</div>
+      <div class="app-soon">
+        <span class="app-badge"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.96.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg> App Store</span>
+        <span class="app-badge"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.69 12l-9.85 9.85c-.5-.25-.84-.76-.84-1.35zm13.81-5.38L6.05 21.34l8.49-8.49 2.27 2.27zm3.35-4.31c.34.27.59.69.59 1.19s-.22.9-.57 1.18l-2.29 1.32-2.5-2.5 2.5-2.5 2.27 1.31zM6.05 2.66l10.76 6.22-2.27 2.27-8.49-8.49z"/></svg> Google Play</span>
+        <span class="app-soon-label">The Detour app is on its way — iOS &amp; Android, coming soon. Until then, everything happens right here.</span>
+      </div>
     </div>
   </div>
 </section>
@@ -1295,7 +1485,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       </div>
       <div><h5>Detour</h5><a href="#idea">The idea</a><a href="#why">Why Detour</a><a href="#how">How it works</a><a href="#routes">Detours</a><a href="careers.html">Careers</a></div>
       <div><h5>Trust</h5><a href="#values">How we travel</a><a href="#gallery">Gallery</a><a href="#faq">FAQ</a></div>
-      <div><h5>Connect</h5><a href="https://www.instagram.com/detour_trips/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">Instagram</a><a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a><a href="https://detourtrips.com">detourtrips.com</a></div>
+      <div><h5>Connect</h5><a href="https://www.instagram.com/detour_trips/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">Instagram</a><a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a><span style="display:block;font-size:13.5px;margin-bottom:9px;color:rgba(244,237,221,.45);">iOS &amp; Android app — coming soon</span></div>
     </div>
     <div class="foot-legal">
       <div>© 2026 Detour · Made in Mumbai with a lot of cutting chai.</div>
@@ -1313,26 +1503,48 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       <h2>Be the first to take a <em>Detour.</em></h2>
       <p style="font-size:14px;color:var(--ink-mute);margin-top:10px;line-height:1.55;">We're matching our very first travellers in Mumbai — completely free while we're in early access. Tell us about your layover and we'll build a route around it.</p>
     </div>
-    <div class="modal-iframe-wrap">
-      <!-- ═══ REPLACE data-src WITH YOUR GOOGLE FORM EMBED URL ═══ -->
-      <!-- Get it: open your Google Form → Send → embed icon (<>) → copy the src URL → paste as data-src below -->
-      <iframe
-        id="booking-form-iframe"
-        src="about:blank"
-        data-src=""
-        title="Request a Detour — early access form"
-        loading="lazy"
-      >Loading…</iframe>
-      <!-- Fallback shown until a Google Form URL is configured -->
-      <div id="booking-placeholder" style="padding:40px 28px;text-align:center;">
-        <div style="font-size:44px;margin-bottom:14px;">✈️</div>
-        <h3 style="font-family:var(--display);font-weight:700;font-size:21px;margin-bottom:10px;color:var(--ink);">Tell us about your layover</h3>
-        <p style="font-size:14px;color:var(--ink-mute);line-height:1.55;max-width:360px;margin:0 auto 20px;">We're matching our very first early-access travellers — completely free. Email us your arrival &amp; departure times and we'll build a route around them.</p>
-        <a href="mailto:admin@detourtrips.com?subject=Request%20a%20Detour%20(early%20access)&amp;body=Hi%20Detour%20team%2C%0A%0AI'd%20love%20to%20do%20a%20Detour%20on%20my%20Mumbai%20layover.%0A%0AArrival%20date%20%26%20time%3A%0ADeparture%20date%20%26%20time%3A%0AFlight%20numbers%3A%0AWhat%20I'm%20into%20(food%2C%20history%2C%20markets...)%3A%0A%0AThanks!" style="display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--paper-3);background:var(--terracotta);box-shadow:0 5px 0 var(--terra-dk);padding:13px 24px;border-radius:9999px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          Email admin@detourtrips.com
-        </a>
+    <!-- Submissions are emailed to admin@detourtrips.com via FormSubmit (free, no account).
+         IMPORTANT: the very first submission triggers an activation email from formsubmit.co — click it once and you're live. -->
+    <form id="booking-form" novalidate>
+      <div class="form-group">
+        <label for="bf-name">Your name</label>
+        <input type="text" id="bf-name" name="name" required autocomplete="name">
       </div>
+      <div class="form-group">
+        <label for="bf-email">Email</label>
+        <input type="email" id="bf-email" name="email" required autocomplete="email">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="bf-arrive">Arriving at BOM (date &amp; time)</label>
+          <input type="text" id="bf-arrive" name="arrival" placeholder="e.g. 14 Aug, 09:30" required>
+        </div>
+        <div class="form-group">
+          <label for="bf-depart">Departing (date &amp; time)</label>
+          <input type="text" id="bf-depart" name="departure" placeholder="e.g. 14 Aug, 21:15" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="bf-flights">Flight numbers <span style="text-transform:none;letter-spacing:0;">(optional)</span></label>
+        <input type="text" id="bf-flights" name="flights" placeholder="e.g. LH756 → LH757">
+      </div>
+      <div class="form-group">
+        <label for="bf-into">What are you into?</label>
+        <textarea id="bf-into" name="interests" rows="2" placeholder="food, history, markets, sea, photography…"></textarea>
+      </div>
+      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+      <button class="btn-primary btn-submit" type="submit" id="booking-submit">Send my layover
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+      <p style="font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);text-align:center;margin-top:12px;">No spam, no account — we reply by email, usually within a day.</p>
+    </form>
+    <div class="form-status" id="booking-success">
+      <svg class="success-icon" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="30" stroke="#3D8B5A" stroke-width="3"/><path d="M20 33l8 8 16-17" stroke="#3D8B5A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h3>Got it — we're on it.</h3>
+      <p>We'll reply to your email with a buddy match and a draft route. Keep an eye on your inbox (and spam folder, just once).</p>
+    </div>
+    <div class="form-status" id="booking-error">
+      <h3>Hmm, that didn't send.</h3>
+      <p>No stress — email us directly at <a href="mailto:admin@detourtrips.com" style="color:var(--terracotta);text-decoration:underline;">admin@detourtrips.com</a> with your arrival &amp; departure times.</p>
     </div>
   </div>
 </div>
@@ -1499,31 +1711,75 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     });
   });
 
-  // Booking modal: lazy-load embedded Google Form (falls back to email link)
-  const bookingIframe = document.getElementById('booking-form-iframe');
-  const bookingPlaceholder = document.getElementById('booking-placeholder');
-  const loadBookingForm = () => {
-    if (!bookingIframe) return;
-    const src = bookingIframe.getAttribute('data-src');
-    if (src && src.length > 5) {
-      if (bookingIframe.src === 'about:blank' || !bookingIframe.src.includes('http')) bookingIframe.src = src;
-      bookingIframe.style.display = 'block';
-      if (bookingPlaceholder) bookingPlaceholder.style.display = 'none';
-    } else {
-      bookingIframe.style.display = 'none';
-      if (bookingPlaceholder) bookingPlaceholder.style.display = 'block';
-    }
-  };
-
   // Attach triggers for Booking Modal
   document.querySelectorAll('.btn-trigger-booking').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       closeModal('route-modal'); // Close route modal first if it is open
-      loadBookingForm();
       openModal('booking-modal');
     });
   });
+
+  // Booking form → FormSubmit (free, no backend). First-ever submission triggers
+  // a one-time activation email from formsubmit.co to admin@detourtrips.com.
+  const FORM_ENDPOINT = 'https://formsubmit.co/ajax/admin@detourtrips.com';
+  const bookingForm = document.getElementById('booking-form');
+  bookingForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!bookingForm.reportValidity()) return;
+    const btn = document.getElementById('booking-submit');
+    btn.setAttribute('disabled', '');
+    btn.firstChild.textContent = 'Sending… ';
+    const data = Object.fromEntries(new FormData(bookingForm).entries());
+    data._subject = 'Detour request (early access)';
+    data._template = 'table';
+    try {
+      const res = await fetch(FORM_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) throw new Error('send failed');
+      bookingForm.style.display = 'none';
+      document.getElementById('booking-success').classList.add('show');
+    } catch (err) {
+      bookingForm.style.display = 'none';
+      document.getElementById('booking-error').classList.add('show');
+    }
+  });
+
+  // Cheat-sheet email capture → same FormSubmit inbox
+  const captureForm = document.getElementById('capture-form');
+  captureForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!captureForm.reportValidity()) return;
+    const data = Object.fromEntries(new FormData(captureForm).entries());
+    data._subject = 'Cheat sheet request';
+    try {
+      await fetch(FORM_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    } catch (err) { /* fall through — still show confirmation */ }
+    captureForm.style.display = 'none';
+    document.getElementById('capture-done').style.display = 'inline';
+  });
+
+  // Atmosphere band: play the local video if it exists, otherwise keep the Ken Burns photo
+  const bandVideo = document.getElementById('band-video');
+  const bandFallback = document.getElementById('band-fallback');
+  if (bandVideo && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    bandVideo.addEventListener('canplay', () => {
+      bandVideo.style.display = 'block';
+      if (bandFallback) bandFallback.style.display = 'none';
+      bandVideo.play().catch(() => {});
+    }, { once: true });
+    // Only give up when the LAST <source> fails (browser tries them in order)
+    const sources = bandVideo.querySelectorAll('source');
+    sources[sources.length - 1]?.addEventListener('error', () => { bandVideo.style.display = 'none'; });
+    bandVideo.load();
+  }
 
   // Wiring up Route dynamic timeline drawers
   const routeTimelineContainer = document.getElementById('route-timeline-container');
