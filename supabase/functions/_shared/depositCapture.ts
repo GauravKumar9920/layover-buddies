@@ -162,10 +162,8 @@ export async function handleDepositCaptured(
 
   // Second deposit: write deposits_held, then immediately write awaiting_balance
   // (documented Phase 1 backend-only second jump from stateMachine.ts).
-  // TODO[Phase 3]: extend the bookings.deposit_window_expire cron to detect
-  // any deposits_held rows that didn't advance to awaiting_balance within 30s
-  // and bump them — covers the case where this Edge function dies between
-  // the two writes.
+  // If this Edge function dies between the two writes, cron_deposits_held_sweep
+  // (20260611100000) advances the stuck row to awaiting_balance within ~5 min.
   const w1 = await db
     .from('bookings')
     .update({ status: 'deposits_held' })

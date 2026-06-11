@@ -70,12 +70,13 @@ serve(async (req: Request) => {
     return errorResponse('forbidden', 403);
   }
 
-  // `awaiting_deposits` = neither side paid yet. `deposits_held` = exactly
-  // one side has paid (the booking only flips to `awaiting_balance` once
-  // BOTH deposits land), and the unpaid side must still be able to create
-  // their order. The existing-deposit check below catches the "already
-  // held" case for the side that has paid, so allowing `deposits_held` here
-  // is safe and necessary for the second-deposit path.
+  // `awaiting_deposits` = at least one side still owes (first deposit
+  // self-loops in this state — see _shared/stateMachine.ts). `deposits_held`
+  // = BOTH deposits captured; it is a transient state the webhook normally
+  // replaces with `awaiting_balance` within a second. The existing-deposit
+  // check below rejects order creation for a side whose deposit is already
+  // held, so admitting `deposits_held` here is harmless belt-and-suspenders
+  // for the half-written webhook case, not a payment path.
   if (booking.status !== 'awaiting_deposits' && booking.status !== 'deposits_held') {
     return errorResponse('booking_not_awaiting_deposits', 409, {
       current_status: booking.status,

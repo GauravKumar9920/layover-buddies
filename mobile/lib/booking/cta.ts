@@ -57,15 +57,16 @@ const VIEWER_AGREEMENT: Record<BookingState, Partial<Record<Viewer, BookingCta>>
     buddy:    { label: 'Pay ₹500 deposit', route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'primary' },
   },
   deposits_held: {
-    // `deposits_held` means at least one deposit is in — NOT both. The booking
-    // only transitions to `awaiting_balance` once both sides are held. So this
-    // state is reached as soon as the first deposit lands, and the other side
-    // still owes their ₹500. Route both viewers to the agreement screen; the
-    // screen's own `canPayDeposit` check (gated on the viewer's own deposit
-    // row) renders the Pay button for the side that hasn't paid and just
-    // shows the status rows for the side that has.
-    traveler: { label: 'Open agreement',          route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'primary' },
-    buddy:    { label: 'Pay ₹500 deposit',        route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'primary' },
+    // `deposits_held` means BOTH ₹500 deposits are in escrow — the state
+    // machine only writes it on the second `deposit_captured` (see
+    // stateMachine.ts `awaiting_deposits` rules, and depositCapture.ts which
+    // immediately follows it with `awaiting_balance`). It is normally visible
+    // for under a second; if the webhook dies between the two writes, the
+    // deposits-held sweep cron advances it. Nobody owes anything here, so
+    // never show a Pay CTA — route both viewers to the agreement screen to
+    // review status.
+    traveler: { label: 'Deposits secured', route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'success' },
+    buddy:    { label: 'Deposits secured', route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'success' },
   },
   awaiting_balance: {
     // Phase 3: balance payment is now a real screen.

@@ -263,6 +263,34 @@ describe('Cancellation edges', () => {
       next('trip_ready', { kind: 'cancel', actor: 'buddy', reason: 'no_show' }),
     ).toBe('cancelled_buddy');
   });
+
+  // Platform/system cancellations must never be recorded as traveler-voluntary:
+  // the voluntary tiers penalise the traveler (voucher / forfeiture) for a
+  // decision they didn't make. They get force-majeure treatment instead.
+  const platformCancellableStates = [
+    'awaiting_balance',
+    'late_fee_due',
+    'balance_paid',
+    'trip_ready',
+  ] as const;
+
+  test.each(platformCancellableStates)(
+    '%s + cancel (platform) → cancelled_force_majeure',
+    (state) => {
+      expect(
+        next(state, { kind: 'cancel', actor: 'platform', reason: 'ops_decision' }),
+      ).toBe('cancelled_force_majeure');
+    },
+  );
+
+  test.each(platformCancellableStates)(
+    '%s + cancel (system) → cancelled_force_majeure',
+    (state) => {
+      expect(
+        next(state, { kind: 'cancel', actor: 'system', reason: 'automated_cleanup' }),
+      ).toBe('cancelled_force_majeure');
+    },
+  );
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

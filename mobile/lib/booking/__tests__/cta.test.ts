@@ -35,11 +35,11 @@ describe('getBookingCta — Phase 2 active states', () => {
     // awaiting_deposits
     ['awaiting_deposits', 'traveler', 'Pay ₹500 deposit', false, '/(shared)/agreements/[bookingId]'],
     ['awaiting_deposits', 'buddy',    'Pay ₹500 deposit', false, '/(shared)/agreements/[bookingId]'],
-    // deposits_held — at least one side paid, the other still owes. Both
-    // viewers route to the agreement screen (which gates the Pay button on
-    // the viewer's own deposit row).
-    ['deposits_held', 'traveler', 'Open agreement',   false, '/(shared)/agreements/[bookingId]'],
-    ['deposits_held', 'buddy',    'Pay ₹500 deposit', false, '/(shared)/agreements/[bookingId]'],
+    // deposits_held — BOTH deposits are in escrow (second deposit_captured
+    // just landed; webhook writes awaiting_balance moments later). Nobody
+    // owes anything, so no Pay CTA for either viewer.
+    ['deposits_held', 'traveler', 'Deposits secured', false, '/(shared)/agreements/[bookingId]'],
+    ['deposits_held', 'buddy',    'Deposits secured', false, '/(shared)/agreements/[bookingId]'],
     // awaiting_balance — Phase 3: traveler pays the balance (actionable);
     // buddy waits (info-only).
     ['awaiting_balance', 'traveler', 'Pay trip balance',          false, '/(traveler)/trips/balance/[bookingId]'],
@@ -72,7 +72,7 @@ describe('getBookingCta — route/disabled consistency', () => {
       'agreement_signed_traveler',
       'agreement_signed_buddy',
       'awaiting_deposits',
-      // deposits_held is now actionable too: at least one side still owes.
+      // deposits_held routes to the agreement screen (status review).
       'deposits_held',
     ];
     for (const status of actionableStatuses) {
@@ -91,8 +91,6 @@ describe('getBookingCta — route/disabled consistency', () => {
       ['agreement_drafting',        'traveler'],
       ['agreement_signed_traveler', 'traveler'],
       ['agreement_signed_buddy',    'buddy'],
-      // deposits_held removed — at least one side still owes a deposit, so
-      // it's actionable now (both viewers route to the agreement screen).
       ['awaiting_balance',          'buddy'],
     ];
     for (const [status, viewer] of infoStatuses) {
@@ -214,8 +212,13 @@ describe('getBookingCta — variant', () => {
     expect(getBookingCta('agreement_signed_traveler', 'traveler').variant).toBe('info');
   });
 
-  it('deposits_held buddy CTA is actionable (Pay button)', () => {
-    expect(getBookingCta('deposits_held', 'buddy').disabled).toBe(false);
-    expect(getBookingCta('deposits_held', 'buddy').route?.pathname).toBe('/(shared)/agreements/[bookingId]');
+  it('deposits_held never shows a Pay CTA — both deposits are already held', () => {
+    for (const viewer of ['traveler', 'buddy'] as const) {
+      const cta = getBookingCta('deposits_held', viewer);
+      expect(cta.label).not.toContain('Pay');
+      expect(cta.variant).toBe('success');
+      expect(cta.disabled).toBe(false);
+      expect(cta.route?.pathname).toBe('/(shared)/agreements/[bookingId]');
+    }
   });
 });

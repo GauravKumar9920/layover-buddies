@@ -84,11 +84,12 @@ export default function AgreementViewerScreen() {
 
   const canPayDeposit = useMemo(() => {
     if (!viewerSide || !booking || !agreement) return false;
-    // `awaiting_deposits` = both sides still owe. `deposits_held` = one side
-    // paid, the other still owes — that side must still see the Pay button.
-    // The `myDeposit.status === 'pending'` check below guarantees we only
-    // surface the button to the side that hasn't paid yet, so the booking
-    // status gate just has to admit any pre-balance state.
+    // `awaiting_deposits` = at least one side still owes. `deposits_held` =
+    // both deposits captured (transient — the webhook writes awaiting_balance
+    // right after), so normally no Pay button survives there; the
+    // `myDeposit.status === 'pending'` check below is what actually gates the
+    // button to the side that hasn't paid. Admitting `deposits_held` is just
+    // belt-and-suspenders for a half-written webhook state.
     if (booking.status !== 'awaiting_deposits' && booking.status !== 'deposits_held') {
       return false;
     }

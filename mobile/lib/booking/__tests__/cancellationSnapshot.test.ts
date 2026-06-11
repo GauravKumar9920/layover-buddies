@@ -176,6 +176,30 @@ describe('force_majeure — ops adjudicates a force-majeure event', () => {
   });
 });
 
+// ─── Tier: platform/system voluntary → force-majeure treatment ──────────────
+
+describe('platform/system voluntary cancellation — force-majeure treatment', () => {
+  it.each(['platform', 'system'] as const)(
+    '%s actor <24h before trip: full cash refunds, no voucher, no penalty',
+    (actor) => {
+      const r = computeCancellationResolution(baseInputs({
+        triggerActor: actor,
+        hoursUntilTrip: 5, // would be the punitive lt_24h tier for a traveler
+        balancePaid: true,
+        lateFeePaise: 100_000,
+      }));
+      expect(r.tier).toBe('force_majeure');
+      expect(r.next_booking_status).toBe('cancelled_force_majeure');
+      expect(r.traveler_deposit.fate).toBe('refunded'); // NOT voucher
+      expect(r.buddy_deposit.fate).toBe('refunded');
+      expect(r.itinerary_buffer.fate).toBe('refunded');
+      expect(r.buddy_fee.fate).toBe('refunded');
+      expect(r.late_fee.fate).toBe('waived');
+      expect(r.buddy_ban).toBe(false);
+    },
+  );
+});
+
 // ─── Tier: pre_signing (deposit window expired) ─────────────────────────────
 
 describe('pre_signing — deposit window expired before deposits collected', () => {

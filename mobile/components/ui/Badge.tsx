@@ -119,7 +119,7 @@ export function bookingStatusLabel(status: string): string {
     agreement_signed_traveler: 'You Signed',
     agreement_signed_buddy: 'Guide Signed',
     awaiting_deposits: 'Awaiting Deposit',
-    deposits_held: 'Deposit Paid',
+    deposits_held: 'Deposits Secured',
     awaiting_balance: 'Balance Due',
     late_fee_due: 'Late Fee Due',
     balance_paid: 'Fully Paid',

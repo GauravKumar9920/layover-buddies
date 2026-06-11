@@ -20,7 +20,7 @@ export type CancellationTrigger =
   | 'force_majeure_verified' // ops adjudicated a force-majeure event
   | 'deposit_window_expired'; // cron fired: awaiting_deposits aged > 24h
 
-export type CancellationActor = 'traveler' | 'buddy' | 'system';
+export type CancellationActor = 'traveler' | 'buddy' | 'platform' | 'system';
 
 export type CancellationTier =
   | 'gt_72h'
@@ -140,10 +140,13 @@ export function computeCancellationResolution(
     else tier = 'lt_24h';
     nextStatus = 'cancelled_traveler_voluntary';
   } else {
-    // System-initiated voluntary cancellations are treated as traveler-side
-    // for refund purposes (e.g. ops cleanup of stale chats). >72h tier.
-    tier = 'gt_72h';
-    nextStatus = 'cancelled_traveler_voluntary';
+    // Platform/system-initiated voluntary cancellations get force-majeure
+    // treatment: full cash refunds both sides, late fee waived, no penalties.
+    // They must never fall into the traveler's penalty tiers — a <24h
+    // platform cancellation would otherwise voucher the traveler's deposit
+    // for a decision the platform made.
+    tier = 'force_majeure';
+    nextStatus = 'cancelled_force_majeure';
   }
 
   // ── Resolve each component per the truth table ──────────────────────────
