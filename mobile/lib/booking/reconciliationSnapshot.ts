@@ -31,6 +31,17 @@ export interface ReconciliationInputs {
   capturedTopUpsPaise: number;
   /** Sum of all expense_proofs.amount_paise for the booking. */
   declaredSpendPaise: number;
+  /**
+   * Buddy-side platform fee rate snapshotted on the agreement
+   * (`agreements.platform_fee_down_rate`). 0 for early-access agreements.
+   * Defaults to the historical 12.5% for back-compat.
+   */
+  platformFeeDownRate?: number;
+  /**
+   * TDS rate snapshotted on the agreement (`agreements.tds_rate`).
+   * 0 for early-access agreements. Defaults to the historical 1%.
+   */
+  tdsRate?: number;
 }
 
 export interface ReconciliationSnapshot {
@@ -40,9 +51,9 @@ export interface ReconciliationSnapshot {
   declaredSpendCappedPaise: number;
   /** tripPot − declaredSpendCapped */
   unusedBufferPaise: number;
-  /** floor(buddyFee × 0.875) — buddy fee after 12.5% platform-down */
+  /** floor(buddyFee × (1 − platformFeeDownRate)) — buddy fee after platform-down */
   buddyFeeAfterPlatformPaise: number;
-  /** round(buddyFeeAfterPlatform × 0.01) — Section 194C TDS */
+  /** round(buddyFeeAfterPlatform × tdsRate) — Section 194C TDS */
   tdsPaise: number;
   /** afterPlatform − tds + ₹500 deposit refund − unused buffer */
   buddyNetPaise: number;
@@ -92,13 +103,22 @@ export function computeReconciliationSnapshot(
 
   const unusedBufferPaise = tripPotPaise - declaredSpendCappedPaise;
 
-  // 12.5% platform-down on the buddy fee.
+  const platformFeeDownRate = inputs.platformFeeDownRate ?? PLATFORM_FEE_DOWN_RATE;
+  const tdsRate             = inputs.tdsRate ?? TDS_RATE;
+  if (!Number.isFinite(platformFeeDownRate) || platformFeeDownRate < 0 || platformFeeDownRate > 1) {
+    throw new InvalidReconciliationInputError('platformFeeDownRate', platformFeeDownRate);
+  }
+  if (!Number.isFinite(tdsRate) || tdsRate < 0 || tdsRate > 1) {
+    throw new InvalidReconciliationInputError('tdsRate', tdsRate);
+  }
+
+  // Platform-down on the buddy fee (0 for early-access agreements).
   const buddyFeeAfterPlatformPaise = Math.floor(
-    inputs.buddyFeePaise * (1 - PLATFORM_FEE_DOWN_RATE),
+    inputs.buddyFeePaise * (1 - platformFeeDownRate),
   );
 
-  // Section 194C TDS — 1% on the post-platform amount.
-  const tdsPaise = Math.round(buddyFeeAfterPlatformPaise * TDS_RATE);
+  // Section 194C TDS on the post-platform amount (0 for early-access agreements).
+  const tdsPaise = Math.round(buddyFeeAfterPlatformPaise * tdsRate);
 
   // Buddy net = (fee × 0.875) − TDS + 500 deposit refund − unused buffer
   const buddyNetPaise =

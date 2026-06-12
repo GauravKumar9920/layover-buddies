@@ -279,7 +279,9 @@ export default function AgreementViewerScreen() {
             sub={cp.buffer.sub}
             value={formatPaise(agreement.buffer_paise)}
           />
-          <PricingRow label={cp.gst.label} value={formatPaise(agreement.traveler_gst_paise)} />
+          {agreement.gst_rate > 0 && (
+            <PricingRow label={cp.gst.label} value={formatPaise(agreement.traveler_gst_paise)} />
+          )}
           <PricingRow
             label={cp.deposit.label}
             sub={cp.deposit.sub}
@@ -292,6 +294,11 @@ export default function AgreementViewerScreen() {
               {formatPaise(agreement.traveler_total_paise)}
             </Text>
           </View>
+          {agreement.platform_fee_up_rate === 0 && agreement.gst_rate === 0 && (
+            <Text style={{ fontSize: 12, color: theme.colors.success, fontWeight: '600', marginTop: 8 }}>
+              Early access — Detour adds no platform fee or GST to this trip.
+            </Text>
+          )}
         </Card>
 
         {/* ── Signing status ───────────────────────────────────────────── */}

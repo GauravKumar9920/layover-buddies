@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
@@ -7,6 +7,7 @@ import { Header } from '@/components/ui/Header';
 import { Card } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
 import { TopUpApprovalModal } from '@/components/bookings/TopUpApprovalModal';
+import { SafetyBar } from '@/components/bookings/SafetyBar';
 import { fetchBookingById } from '@/lib/api/bookings';
 import { useTopUpRequest } from '@/lib/hooks/useTopUpRequest';
 import { supabase } from '@/lib/supabase';
@@ -33,6 +34,46 @@ function WebMapEmbed({ latitude, longitude }: { latitude: number; longitude: num
   // Round to 3 d.p. (~110 m) so GPS jitter doesn't reload the map on every tick.
   const lat = Math.round(latitude * 1000) / 1000;
   const lng = Math.round(longitude * 1000) / 1000;
+
+  // No API key configured (it's deferred per CLAUDE.md) → the embed would
+  // render Google's raw "rejected your request" error tile. Degrade to a
+  // branded placeholder with the coordinates instead.
+  if (!apiKey) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: theme.colors.surfaceMuted,
+          padding: 24,
+        }}
+      >
+        <Feather name="map-pin" size={28} color={theme.colors.textMuted} />
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: '600',
+            color: theme.colors.textSecondary,
+            marginTop: 10,
+          }}
+        >
+          Live map coming soon
+        </Text>
+        <Text
+          style={{
+            fontSize: 12,
+            color: theme.colors.textMuted,
+            marginTop: 4,
+            textAlign: 'center',
+          }}
+        >
+          Your buddy's position: {lat.toFixed(3)}, {lng.toFixed(3)}
+        </Text>
+      </View>
+    );
+  }
+
   const src = `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${lat},${lng}&zoom=16&maptype=roadmap`;
 
   return React.createElement('iframe', {
@@ -315,10 +356,16 @@ export default function LiveTourScreen() {
         )}
       </ScrollView>
 
-      {/* Fixed-bottom safety bar — SOS / Help / Contact. SOS is currently a
-          dummy stub (logs to console + shows alert) per product decision;
-          full sos_event integration is queued. */}
-      <SafetyBar insets={insets} guideName={booking?.guide?.name ?? 'your buddy'} />
+      {/* Fixed-bottom safety bar — SOS / Help / Contact. SOS is REAL: it
+          writes to sos_alerts, which the admin console's SOS page monitors.
+          Falls back to the guide's last shared position when the traveler's
+          device can't produce a fix. */}
+      <SafetyBar
+        bookingId={id ?? ''}
+        insets={insets}
+        guideName={booking?.guide?.name ?? 'your buddy'}
+        fallbackCoords={guideLocation ?? DEFAULT_MUMBAI_COORDS}
+      />
     </View>
   );
 }
@@ -372,86 +419,3 @@ function TripProgressBar({ booking }: { booking: Booking }) {
   );
 }
 
-// ─── Safety Bar — SOS / Help / Contact ──────────────────────────────────────
-// All three buttons are visible whenever the live tour screen is mounted.
-// SOS is currently a STUB — it logs and shows an explicit "preview" alert
-// telling the user this does NOT contact anyone. Until the sos_events table
-// + Edge Function ship, the button must not be advertised as a real safety
-// affordance: the label, accessibility hint, and confirmation copy are all
-// scoped to "preview" so testers can't mistake it for a live signal.
-function SafetyBar({ insets, guideName }: { insets: { bottom: number }, guideName: string }) {
-  function sos() {
-    const msg =
-      `⚠️ PREVIEW ONLY — this button does NOT contact anyone yet.\n\n` +
-      `In production it will alert on-call ops + ${guideName} + your emergency contact. ` +
-      `For a real emergency right now, call 112 (India national emergency) or contact ${guideName} directly.`;
-    if (Platform.OS === 'web') window.alert(msg);
-    else Alert.alert('SOS preview', msg);
-    // eslint-disable-next-line no-console
-    console.log('[SOS] preview event for live trip screen (no backend wiring)');
-  }
-  function help() {
-    const msg = `Need help? In production this opens the help center / chat-to-ops. For now, message ${guideName} directly.`;
-    if (Platform.OS === 'web') window.alert(msg);
-    else Alert.alert('Help', msg);
-  }
-  function contact() {
-    const msg = 'Contact Detour support at hello@detourtrips.com or +91 9999 XXXXX.';
-    if (Platform.OS === 'web') window.alert(msg);
-    else Alert.alert('Contact us', msg);
-  }
-  return (
-    <View style={{
-      position: 'absolute', bottom: 0, left: 0, right: 0,
-      flexDirection: 'row', gap: 8,
-      paddingHorizontal: 12,
-      paddingTop: 10, paddingBottom: insets.bottom + 10,
-      backgroundColor: '#FFFFFF',
-      borderTopWidth: 1, borderTopColor: theme.colors.divider,
-    }}>
-      <TouchableOpacity
-        onPress={sos}
-        accessibilityRole="button"
-        accessibilityLabel="SOS preview button"
-        accessibilityHint="This is a preview — does not contact anyone. For a real emergency call 112."
-        style={{
-          flex: 1.4, paddingVertical: 12, borderRadius: 12,
-          backgroundColor: theme.colors.error,
-          alignItems: 'center', justifyContent: 'center',
-          flexDirection: 'row', gap: 6,
-        }}
-      >
-        <Feather name="alert-triangle" size={14} color="#FCF7EA" />
-        <Text style={{ fontFamily: theme.fonts.bodyBold, color: '#FCF7EA', fontSize: 13 }}>SOS</Text>
-        <Text style={{ fontFamily: theme.fonts.mono, color: '#FCF7EA', fontSize: 9, opacity: 0.85 }}>
-          (preview)
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={help}
-        style={{
-          flex: 1, paddingVertical: 12, borderRadius: 12,
-          backgroundColor: theme.colors.primaryLight,
-          alignItems: 'center', justifyContent: 'center',
-          flexDirection: 'row', gap: 6,
-        }}
-      >
-        <Feather name="help-circle" size={14} color={theme.colors.primary} />
-        <Text style={{ fontFamily: theme.fonts.bodyBold, color: theme.colors.primary, fontSize: 13 }}>Help</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={contact}
-        style={{
-          flex: 1, paddingVertical: 12, borderRadius: 12,
-          backgroundColor: theme.colors.background,
-          borderWidth: 1, borderColor: theme.colors.divider,
-          alignItems: 'center', justifyContent: 'center',
-          flexDirection: 'row', gap: 6,
-        }}
-      >
-        <Feather name="phone" size={14} color={theme.colors.text} />
-        <Text style={{ fontFamily: theme.fonts.bodyBold, color: theme.colors.text, fontSize: 13 }}>Contact</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}

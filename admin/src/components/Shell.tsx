@@ -8,12 +8,14 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
+  { to: '/overview',      label: 'Overview',      emoji: '🧭' },
   { to: '/users',         label: 'Users',         emoji: '👥' },
   { to: '/bookings',      label: 'Bookings',      emoji: '🧾' },
   { to: '/revenue',       label: 'Revenue',       emoji: '💰' },
   { to: '/sos',           label: 'SOS events',    emoji: '🚨' },
   { to: '/cancellations', label: 'Cancellations', emoji: '❌' },
   { to: '/payouts',       label: 'Payouts',       emoji: '💳' },
+  { to: '/settings',      label: 'Pricing',       emoji: '⚙️' },
 ];
 
 interface Props {

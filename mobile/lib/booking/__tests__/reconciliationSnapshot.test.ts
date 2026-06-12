@@ -191,3 +191,47 @@ describe('computeReconciliationSnapshot — invariants hold for random inputs', 
     },
   );
 });
+
+// ─── Early access: zero platform-down + zero TDS → buddy keeps the full fee ──
+
+describe('computeReconciliationSnapshot — early access (zero rates)', () => {
+  test('buddy net = full fee + deposit − unused buffer; no platform cut, no TDS', () => {
+    const snap = computeReconciliationSnapshot({
+      buddyFeePaise:       200_000,  // ₹2,000
+      itineraryFundPaise:  300_000,
+      bufferPaise:         60_000,
+      capturedTopUpsPaise: 0,
+      declaredSpendPaise:  340_000,  // ₹400 of pot unused
+      platformFeeDownRate: 0,
+      tdsRate:             0,
+    });
+    expect(snap.buddyFeeAfterPlatformPaise).toBe(200_000); // untouched
+    expect(snap.tdsPaise).toBe(0);
+    // 200000 − 0 + 50000 deposit − 20000 unused buffer = 230000 (₹2,300)
+    expect(snap.buddyNetPaise).toBe(230_000);
+    expect(snap.travelerRefundPaise).toBe(70_000);          // unchanged by rates
+  });
+
+  test('omitted rates fall back to historical 12.5% + 1% (canonical fixture intact)', () => {
+    const snap = computeReconciliationSnapshot({
+      buddyFeePaise:       200_000,
+      itineraryFundPaise:  300_000,
+      bufferPaise:         60_000,
+      capturedTopUpsPaise: 0,
+      declaredSpendPaise:  340_000,
+    });
+    expect(snap.buddyNetPaise).toBe(203_250);       // ₹2,032.50 per handoff §2
+    expect(snap.travelerRefundPaise).toBe(70_000);  // ₹700
+  });
+
+  test('rejects out-of-range rates', () => {
+    const base = {
+      buddyFeePaise: 200_000, itineraryFundPaise: 300_000, bufferPaise: 60_000,
+      capturedTopUpsPaise: 0, declaredSpendPaise: 0,
+    };
+    expect(() => computeReconciliationSnapshot({ ...base, platformFeeDownRate: -0.1 }))
+      .toThrow(InvalidReconciliationInputError);
+    expect(() => computeReconciliationSnapshot({ ...base, tdsRate: 2 }))
+      .toThrow(InvalidReconciliationInputError);
+  });
+});

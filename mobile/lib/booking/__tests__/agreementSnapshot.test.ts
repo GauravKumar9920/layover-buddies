@@ -229,3 +229,40 @@ describe('computeAgreementSnapshot — property: total invariant holds', () => {
     },
   );
 });
+
+// ─── Early access: platformFeeUpRate = 0 zeroes the platform-up entirely ─────
+
+describe('computeAgreementSnapshot — early access (zero platform fee + GST)', () => {
+  test('traveler pays exactly buddy fee + itinerary + buffer + deposit', () => {
+    const snap = computeAgreementSnapshot({
+      buddyFeePaise:      200_000,  // ₹2,000
+      itineraryFundPaise: 300_000,  // ₹3,000
+      bufferPaise:        60_000,   // ₹600
+      gstRate:            0,
+      platformFeeUpRate:  0,
+    });
+    expect(snap.buddyFeeTravelerViewPaise).toBe(200_000); // no 12.5% mark-up
+    expect(snap.travelerSubtotalPaise).toBe(560_000);
+    expect(snap.travelerGstPaise).toBe(0);
+    expect(snap.travelerTotalPaise).toBe(610_000);        // ₹6,100 — vs ₹6,642.50 standard
+  });
+
+  test('omitted platformFeeUpRate falls back to the historical 12.5% (canonical fixture intact)', () => {
+    const snap = computeAgreementSnapshot({
+      buddyFeePaise:      200_000,
+      itineraryFundPaise: 300_000,
+      bufferPaise:        60_000,
+      gstRate:            0.05,
+    });
+    expect(snap.travelerTotalPaise).toBe(664_250); // the §2 worked example
+  });
+
+  test('rejects out-of-range platformFeeUpRate', () => {
+    const base = {
+      buddyFeePaise: 200_000, itineraryFundPaise: 300_000,
+      bufferPaise: 60_000, gstRate: 0.05,
+    };
+    expect(() => computeAgreementSnapshot({ ...base, platformFeeUpRate: -0.1 })).toThrow(InvalidAmountError);
+    expect(() => computeAgreementSnapshot({ ...base, platformFeeUpRate: 1.5 })).toThrow(InvalidAmountError);
+  });
+});

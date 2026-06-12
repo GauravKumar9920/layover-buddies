@@ -37,6 +37,10 @@ export interface TripAgreement {
   traveler_subtotal_paise: number;
   traveler_gst_paise:      number;
   traveler_total_paise:    number;
+  // Rates snapshotted at draft time — 0 for early-access agreements.
+  // Receipt math must use these, never the current platform_settings.
+  platform_fee_down_rate:  number;
+  tds_rate:                number;
   trip_starts_at:          string;
   trip_ends_at:            string | null;
 }
@@ -97,6 +101,7 @@ export function useTrip(bookingId: string | null): UseTripResult {
         supabase.from('agreements').select(
           'id, buddy_fee_paise, itinerary_fund_paise, buffer_paise, ' +
           'traveler_subtotal_paise, traveler_gst_paise, traveler_total_paise, ' +
+          'platform_fee_down_rate, tds_rate, ' +
           'trip_starts_at, trip_ends_at',
         ).eq('booking_id', bookingId).order('created_at', { ascending: false }).limit(1).single(),
 
