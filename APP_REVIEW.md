@@ -8,10 +8,10 @@ First, credit where due: this codebase is far stronger than CLAUDE.md suggests. 
 
 ## 1. Bugs & contradictions found in the code (fix before launch)
 
-**1.1 `deposits_held` means two different things in two files.**
+**1.1 `deposits_held` means two different things in two files.** ✅ **FIXED 2026-06-11** — `cta.ts` now follows the state machine (both deposits held): both viewers see "Deposits secured". Regression test in `cta.test.ts` asserts no "pay" CTA can appear in this state.
 `stateMachine.ts` is unambiguous: first deposit self-loops in `awaiting_deposits`, second deposit → `deposits_held` (both held). But `cta.ts` says the opposite in its comment ("reached as soon as the first deposit lands — the other side still owes their ₹500") and gives the buddy a **"Pay ₹500 deposit"** CTA in that state — a button for a payment that's already been made. One of the two models is wrong; if the screen's `canPayDeposit` check saves you, the CTA label still lies. Decide the semantics, fix the other file, and add a test asserting it.
 
-**1.2 Platform/system cancellations are recorded as traveler-voluntary.**
+**1.2 Platform/system cancellations are recorded as traveler-voluntary.** ✅ **FIXED 2026-06-11** — platform/system cancels now route to `cancelled_force_majeure` (full refunds, nobody penalised) in `trip_ready`, and the same rule was added to `awaiting_balance`/`late_fee_due`/`balance_paid` where they were previously illegal. Tests added.
 In `trip_ready`, a `cancel` by `platform` or `system` lands in `cancelled_traveler_voluntary`. If your cancellation-receipt math penalizes voluntary traveler cancellations (deposit forfeiture?), a platform-initiated cancellation will charge the traveler for your decision. Add `cancelled_platform` (or route to `cancelled_force_majeure`) and check the same actor-mapping in `awaiting_balance`/`late_fee_due`/`balance_paid`.
 
 **1.3 Stuck states with no exit:**
@@ -30,6 +30,7 @@ In `trip_ready`, a `cancel` by `platform` or `system` lands in `cancelled_travel
 **1.7 The commission question is still open.** `COMMISSION_RATE = 0.25` with a note "Task 7 says 15% — confirm with Gaurav." That's been unresolved since April. Also note the stack: 25% commission + 12.5% platform-down + 12.5% platform-up + 1% TDS is a hefty take rate — model a sample ₹2,000 trip end-to-end and sanity-check what the buddy actually receives vs. what the traveler pays.
 
 **1.8 Marketing site vs. app pricing contradiction.** The website (FAQ + three sections) promises "completely free — no service fee at all" in early access. The app charges ₹500 deposits both sides, a ₹1,000 late fee, and platform fees in the agreement snapshot. A traveler coming from the site into this flow will feel baited. Either (a) add an `EARLY_ACCESS` flag that zeroes platform fees (keep deposits — they're refundable and behavioral), and say "₹500 refundable deposit" on the site FAQ, or (b) soften the website copy. **(a) is better — deposits are defensible; hidden fees are not.**
+✅ **BUILT 2026-06-11 — option (a), generalised.** New single-row `platform_settings` table with `early_access_mode` (default ON) zeroing platform-up/down fees, commission, GST, TDS and the late fee; deposits and buffer stay. Rates are snapshotted onto each agreement at draft time so flipping the switch never reprices signed trips; `compute_reconciliation_tx` and `cron_late_fee_assess` read the stored/configured rates. Admin panel got a **Pricing** page (toggle + rate editors + live worked example) and an **Overview** dashboard. Migration: `supabase/migrations/20260611100000_platform_settings.sql`.
 
 ---
 

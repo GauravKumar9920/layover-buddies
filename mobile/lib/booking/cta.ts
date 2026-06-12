@@ -58,13 +58,14 @@ const VIEWER_AGREEMENT: Record<BookingState, Partial<Record<Viewer, BookingCta>>
   },
   deposits_held: {
     // `deposits_held` means BOTH ₹500 deposits are in escrow — the state
-    // machine only writes it on the second `deposit_captured` (see
-    // stateMachine.ts `awaiting_deposits` rules, and depositCapture.ts which
-    // immediately follows it with `awaiting_balance`). It is normally visible
-    // for under a second; if the webhook dies between the two writes, the
-    // deposits-held sweep cron advances it. Nobody owes anything here, so
-    // never show a Pay CTA — route both viewers to the agreement screen to
-    // review status.
+    // machine only enters it on the second `deposit_captured` (guard:
+    // bothDepositsHeld). A single deposit self-loops in `awaiting_deposits`.
+    // The backend webhook advances deposits_held → awaiting_balance moments
+    // later (and the deposits-held sweep cron covers a dead webhook), so this
+    // is a transient "all locked in" state: nobody owes anything here. Both
+    // viewers get a reassuring confirmation that links back to the agreement
+    // for review. (Fixed per APP_REVIEW §1.1 — this file previously showed the
+    // buddy a "Pay ₹500 deposit" button for a payment they had already made.)
     traveler: { label: 'Deposits secured', route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'success' },
     buddy:    { label: 'Deposits secured', route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'success' },
   },
@@ -75,9 +76,11 @@ const VIEWER_AGREEMENT: Record<BookingState, Partial<Record<Viewer, BookingCta>>
   },
   // ── Phase 3: balance + late-fee states ─────────────────────────────────────
   late_fee_due: {
-    // Balance + ₹1,000 late fee bundled. Amount shown dynamically by the screen.
-    traveler: { label: 'Pay balance + ₹1,000 late fee', route: { pathname: '/(traveler)/trips/balance/[bookingId]' }, disabled: false, variant: 'warning' },
-    buddy:    { label: 'Awaiting traveler balance',      route: null, disabled: true,  variant: 'info' },
+    // Balance + late fee bundled. The fee amount is configurable in
+    // platform_settings (₹0 during early access), so the label stays generic —
+    // the balance screen shows the exact rupee figure.
+    traveler: { label: 'Pay balance + late fee', route: { pathname: '/(traveler)/trips/balance/[bookingId]' }, disabled: false, variant: 'warning' },
+    buddy:    { label: 'Awaiting traveler balance', route: null, disabled: true,  variant: 'info' },
   },
   balance_paid: {
     // Countdown shown by the screen itself; this is just the navigator anchor.

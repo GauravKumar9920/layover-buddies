@@ -35,9 +35,11 @@ describe('getBookingCta — Phase 2 active states', () => {
     // awaiting_deposits
     ['awaiting_deposits', 'traveler', 'Pay ₹500 deposit', false, '/(shared)/agreements/[bookingId]'],
     ['awaiting_deposits', 'buddy',    'Pay ₹500 deposit', false, '/(shared)/agreements/[bookingId]'],
-    // deposits_held — BOTH deposits are in escrow (second deposit_captured
-    // just landed; webhook writes awaiting_balance moments later). Nobody
-    // owes anything, so no Pay CTA for either viewer.
+    // deposits_held — BOTH deposits are in escrow (the state machine only
+    // enters this state on the second deposit_captured with bothDepositsHeld).
+    // Nobody owes anything; both viewers see a confirmation that links back
+    // to the agreement. (APP_REVIEW §1.1 — previously showed the buddy a
+    // "Pay ₹500 deposit" button for a payment already made.)
     ['deposits_held', 'traveler', 'Deposits secured', false, '/(shared)/agreements/[bookingId]'],
     ['deposits_held', 'buddy',    'Deposits secured', false, '/(shared)/agreements/[bookingId]'],
     // awaiting_balance — Phase 3: traveler pays the balance (actionable);
@@ -72,7 +74,8 @@ describe('getBookingCta — route/disabled consistency', () => {
       'agreement_signed_traveler',
       'agreement_signed_buddy',
       'awaiting_deposits',
-      // deposits_held routes to the agreement screen (status review).
+      // deposits_held routes to the agreement screen for review (not a
+      // payment — both deposits are already held).
       'deposits_held',
     ];
     for (const status of actionableStatuses) {
@@ -212,13 +215,21 @@ describe('getBookingCta — variant', () => {
     expect(getBookingCta('agreement_signed_traveler', 'traveler').variant).toBe('info');
   });
 
-  it('deposits_held never shows a Pay CTA — both deposits are already held', () => {
+  // APP_REVIEW §1.1 regression: deposits_held means BOTH deposits are held
+  // (stateMachine.ts is authoritative — second deposit_captured with
+  // bothDepositsHeld is the only way in). The CTA must never ask either side
+  // to pay a deposit again from this state.
+  it('deposits_held never shows a pay CTA (both deposits already held)', () => {
     for (const viewer of ['traveler', 'buddy'] as const) {
       const cta = getBookingCta('deposits_held', viewer);
-      expect(cta.label).not.toContain('Pay');
+      expect(cta.label).not.toMatch(/pay/i);
       expect(cta.variant).toBe('success');
       expect(cta.disabled).toBe(false);
       expect(cta.route?.pathname).toBe('/(shared)/agreements/[bookingId]');
     }
+  });
+
+  it('late_fee_due label does not hardcode the fee amount (configurable in platform_settings)', () => {
+    expect(getBookingCta('late_fee_due', 'traveler').label).not.toMatch(/₹\s?1,?000/);
   });
 });

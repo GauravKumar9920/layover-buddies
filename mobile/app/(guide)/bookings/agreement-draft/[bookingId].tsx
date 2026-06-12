@@ -57,6 +57,7 @@ import {
   type DraftLineItem,
 } from '@/lib/api/agreements';
 import { fetchBookingById } from '@/lib/api/bookings';
+import { getEffectiveRates, EARLY_ACCESS_RATES, type EffectiveRates } from '@/lib/api/platformSettings';
 
 const CATEGORIES: CostCategory[] = ['food', 'transport', 'entry', 'activity', 'misc'];
 
@@ -69,6 +70,8 @@ export default function AgreementDraftScreen() {
   const [saving, setSaving]     = useState(false);
   const [sending, setSending]   = useState(false);
   const [agreement, setAgreement] = useState<Agreement | null>(null);
+  // Rates for a NEW draft (an existing draft uses the rates stored on its row).
+  const [effectiveRates, setEffectiveRates] = useState<EffectiveRates>(EARLY_ACCESS_RATES);
 
   // Form state — kept in rupees for the input; converted to paise on save.
   const [buddyFeeRupees, setBuddyFeeRupees] = useState('');
@@ -81,6 +84,11 @@ export default function AgreementDraftScreen() {
   const buddyFeePaise      = rupeesToPaise(parseFloat(buddyFeeRupees) || 0);
   const itineraryFundPaise = rupeesToPaise(parseFloat(itineraryRupees) || 0);
   const bufferPaise        = Math.floor(itineraryFundPaise * BUFFER_PERCENT);
+
+  // ── Load effective rates (for pricing a brand-new draft) ─────────────────
+  useEffect(() => {
+    getEffectiveRates().then(setEffectiveRates).catch(() => {});
+  }, []);
 
   // ── Load existing draft (or default trip start to +1 day) ────────────────
   useEffect(() => {
@@ -116,17 +124,23 @@ export default function AgreementDraftScreen() {
   }, [bookingId]);
 
   // ── Live preview snapshot ────────────────────────────────────────────────
+  // Existing drafts price with the rates snapshotted on their row; a brand-new
+  // draft previews with the effective rates it will be created under.
+  const gstRate           = agreement?.gst_rate              ?? effectiveRates.gstRate;
+  const platformFeeUpRate = agreement?.platform_fee_up_rate  ?? effectiveRates.platformFeeUpRate;
+  const isZeroFee         = platformFeeUpRate === 0 && gstRate === 0;
+
   const preview = useMemo(() => {
     if (buddyFeePaise <= 0 || itineraryFundPaise <= 0) return null;
     try {
       return computeAgreementSnapshot({
-        buddyFeePaise, itineraryFundPaise, bufferPaise, gstRate: 0.05,
+        buddyFeePaise, itineraryFundPaise, bufferPaise, gstRate, platformFeeUpRate,
       });
     } catch (err) {
       if (err instanceof InvalidBufferError) return null;
       return null;
     }
-  }, [buddyFeePaise, itineraryFundPaise, bufferPaise]);
+  }, [buddyFeePaise, itineraryFundPaise, bufferPaise, gstRate, platformFeeUpRate]);
 
   // ── Line items management ───────────────────────────────────────────────
   function addLineItem() {
@@ -393,7 +407,9 @@ export default function AgreementDraftScreen() {
               <PreviewRow label="Buddy fee"      value={formatPaise(preview.buddyFeeTravelerViewPaise)} />
               <PreviewRow label="Day's expenses" value={formatPaise(itineraryFundPaise)} />
               <PreviewRow label="Buffer (20%)"   value={formatPaise(bufferPaise)} />
-              <PreviewRow label="GST (5%)"       value={formatPaise(preview.travelerGstPaise)} />
+              {gstRate > 0 && (
+                <PreviewRow label={`GST (${(gstRate * 100).toFixed(gstRate * 100 % 1 === 0 ? 0 : 1)}%)`} value={formatPaise(preview.travelerGstPaise)} />
+              )}
               <PreviewRow label="Refundable deposit" value="₹500.00" />
               <View style={{ height: 1, backgroundColor: theme.colors.divider, marginVertical: 8 }} />
               <PreviewRow
@@ -401,6 +417,11 @@ export default function AgreementDraftScreen() {
                 value={formatPaise(preview.travelerTotalPaise)}
                 bold
               />
+              {isZeroFee && (
+                <Text style={{ fontSize: 12, color: theme.colors.success, fontWeight: '600', marginTop: 8 }}>
+                  Early access — Detour adds no platform fee or GST. You keep your full fee.
+                </Text>
+              )}
             </Card>
           )}
 

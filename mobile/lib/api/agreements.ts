@@ -11,8 +11,10 @@
 
 import { supabase } from '../supabase';
 import { computeAgreementSnapshot } from '../booking/agreementSnapshot';
+import { bookingFieldsFromAgreement } from '../booking/bookingSyncFromAgreement';
 import { transition, type BookingState } from '../booking/stateMachine';
 import { MIN_BOOKING_NOTICE_HOURS } from '@/config/constants';
+import { getEffectiveRates } from './platformSettings';
 import type { Database } from '@/types/supabase';
 
 export type Agreement      = Database['public']['Tables']['agreements']['Row'];
@@ -92,14 +94,17 @@ export async function createAgreementDraft(input: CreateDraftInput): Promise<Agr
   const user = (await supabase.auth.getUser()).data.user;
   if (!user) throw new Error('Not authenticated');
 
+  // Snapshot the rates in force RIGHT NOW into the agreement row. This is the
+  // moment early-access pricing is locked in: if the admin flips the toggle
+  // later, this agreement keeps the rates it was drafted under.
+  const rates = await getEffectiveRates();
+
   // Seed values that satisfy CHECK constraints. Real numbers go in via
   // `saveAgreementDraft` before the user can hit "Send".
   const itineraryFundPaise = 100;
   const bufferPaise        = 20;             // floor(100 * 0.20) — satisfies CHECK
   const subtotal           = 0 + itineraryFundPaise + bufferPaise; // = 120
-  const gst                = 0;              // floor(120 * 0.05) → 6, but CHECK only requires equality if we compute; use 0
-  // The total CHECK is: total = subtotal + gst + 50000
-  // So: 120 + 0 + 50000 = 50120
+  const gst                = 0;              // CHECK only requires total = subtotal + gst + 50000
   const totalSeed          = subtotal + gst + 50_000;
 
   const insert: AgreementInsert = {
@@ -109,7 +114,10 @@ export async function createAgreementDraft(input: CreateDraftInput): Promise<Agr
     buddy_fee_paise:          0,
     itinerary_fund_paise:     itineraryFundPaise,
     buffer_paise:             bufferPaise,
-    gst_rate:                 0.05,
+    gst_rate:                 rates.gstRate,
+    platform_fee_up_rate:     rates.platformFeeUpRate,
+    platform_fee_down_rate:   rates.platformFeeDownRate,
+    tds_rate:                 rates.tdsRate,
     traveler_subtotal_paise:  subtotal,
     traveler_gst_paise:       gst,
     traveler_total_paise:     totalSeed,
@@ -186,7 +194,7 @@ export async function saveAgreementDraft(
     // Re-fetch current to fill in any fields the patch didn't touch.
     const { data: current, error: readErr } = await supabase
       .from('agreements')
-      .select('buddy_fee_paise, itinerary_fund_paise, buffer_paise, gst_rate')
+      .select('buddy_fee_paise, itinerary_fund_paise, buffer_paise, gst_rate, platform_fee_up_rate')
       .eq('id', agreementId)
       .single();
     if (readErr) throw readErr;
@@ -196,11 +204,12 @@ export async function saveAgreementDraft(
       itinerary_fund_paise: patch.itinerary_fund_paise ?? current.itinerary_fund_paise,
       buffer_paise:         patch.buffer_paise         ?? current.buffer_paise,
       gstRate:              current.gst_rate,
+      platformFeeUpRate:    current.platform_fee_up_rate,
     };
 
     // Tentative snapshot — may not be the canonical formula (zero buddy fee,
     // etc.), but the CHECK constraint just needs total = subtotal + gst + 50000.
-    const subtotal = Math.round(merged.buddy_fee_paise * 1.125)
+    const subtotal = Math.round(merged.buddy_fee_paise * (1 + merged.platformFeeUpRate))
                    + merged.itinerary_fund_paise
                    + merged.buffer_paise;
     const gst      = Math.round(subtotal * merged.gstRate);
@@ -301,12 +310,13 @@ export async function sendAgreement(agreementId: string): Promise<Agreement> {
     );
   }
 
-  // ── Compute canonical snapshot ───────────────────────────────────────────
+  // ── Compute canonical snapshot (rates were locked in at draft time) ──────
   const snap = computeAgreementSnapshot({
     buddyFeePaise:      agreement.buddy_fee_paise,
     itineraryFundPaise: agreement.itinerary_fund_paise,
     bufferPaise:        agreement.buffer_paise,
     gstRate:            agreement.gst_rate,
+    platformFeeUpRate:  agreement.platform_fee_up_rate,
   });
 
   // ── Persist snapshot + status='sent' + sent_at ──────────────────────────
@@ -359,9 +369,25 @@ export async function sendAgreement(agreementId: string): Promise<Agreement> {
     );
   }
 
+  // The agreement snapshot is now the source of truth for this trip's money
+  // and timing — refresh the booking's denormalized display fields in the
+  // same write that advances the status, so trip-detail/admin screens can
+  // never show a different total or date than the agreement the traveler is
+  // about to sign.
+  const displayFields = bookingFieldsFromAgreement({
+    buddy_fee_paise:      updated.buddy_fee_paise,
+    itinerary_fund_paise: updated.itinerary_fund_paise,
+    buffer_paise:         updated.buffer_paise,
+    platform_fee_up_rate: updated.platform_fee_up_rate,
+    traveler_gst_paise:   updated.traveler_gst_paise,
+    traveler_total_paise: updated.traveler_total_paise,
+    trip_starts_at:       updated.trip_starts_at,
+    trip_ends_at:         updated.trip_ends_at,
+  });
+
   const { error: bookUpdErr } = await supabase
     .from('bookings')
-    .update({ status: result.next })
+    .update({ status: result.next, ...displayFields })
     .eq('id', agreement.booking_id);
   if (bookUpdErr) throw bookUpdErr;
 

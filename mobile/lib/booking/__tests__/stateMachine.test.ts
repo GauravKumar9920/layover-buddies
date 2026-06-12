@@ -264,33 +264,30 @@ describe('Cancellation edges', () => {
     ).toBe('cancelled_buddy');
   });
 
-  // Platform/system cancellations must never be recorded as traveler-voluntary:
-  // the voluntary tiers penalise the traveler (voucher / forfeiture) for a
-  // decision they didn't make. They get force-majeure treatment instead.
-  const platformCancellableStates = [
-    'awaiting_balance',
-    'late_fee_due',
-    'balance_paid',
-    'trip_ready',
-  ] as const;
+  // APP_REVIEW §1.2 regression: a platform- or system-initiated cancellation
+  // must NEVER land in cancelled_traveler_voluntary — that would charge the
+  // traveler (deposit forfeiture) for the platform's decision. It routes to
+  // force-majeure economics instead: full refunds, nobody penalised.
+  describe('platform/system cancellations are never traveler-voluntary', () => {
+    const states = ['awaiting_balance', 'late_fee_due', 'balance_paid', 'trip_ready'] as const;
+    const actors = ['platform', 'system'] as const;
 
-  test.each(platformCancellableStates)(
-    '%s + cancel (platform) → cancelled_force_majeure',
-    (state) => {
-      expect(
-        next(state, { kind: 'cancel', actor: 'platform', reason: 'ops_decision' }),
-      ).toBe('cancelled_force_majeure');
-    },
-  );
+    for (const state of states) {
+      for (const actor of actors) {
+        test(`${state} + cancel (${actor}) → cancelled_force_majeure`, () => {
+          expect(
+            next(state, { kind: 'cancel', actor, reason: 'ops_decision' }),
+          ).toBe('cancelled_force_majeure');
+        });
+      }
+    }
 
-  test.each(platformCancellableStates)(
-    '%s + cancel (system) → cancelled_force_majeure',
-    (state) => {
+    test('trip_ready + cancel (traveler) still → cancelled_traveler_voluntary', () => {
       expect(
-        next(state, { kind: 'cancel', actor: 'system', reason: 'automated_cleanup' }),
-      ).toBe('cancelled_force_majeure');
-    },
-  );
+        next('trip_ready', { kind: 'cancel', actor: 'traveler', reason: 'changed_mind' }),
+      ).toBe('cancelled_traveler_voluntary');
+    });
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

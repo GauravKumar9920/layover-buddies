@@ -180,9 +180,9 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
 
   // ── 8. awaiting_balance ──────────────────────────────────────────────────
   // Default confirmation state. T–72h cron fires t_minus_72_reached.
-  // Platform/system cancellations route to cancelled_force_majeure: the
-  // traveler must never be penalised (deposit voucher/forfeiture) for a
-  // cancellation the platform initiated.
+  // Platform/system cancellations route to cancelled_force_majeure (full
+  // refunds, no party penalised) — per APP_REVIEW §1.2, a platform-initiated
+  // cancellation must never be recorded as the traveler's voluntary choice.
   ['awaiting_balance', [
     { event: 'balance_captured',       next: 'balance_paid' },
     { event: 't_minus_72_reached',     next: 'late_fee_due' },

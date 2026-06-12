@@ -6,6 +6,7 @@ import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps
 import { Header } from '@/components/ui/Header';
 import { Card } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
+import { SafetyBar } from '@/components/bookings/SafetyBar';
 import { fetchBookingById } from '@/lib/api/bookings';
 import { supabase } from '@/lib/supabase';
 import { theme } from '@/config/theme';
@@ -214,7 +215,7 @@ export default function LiveTourScreen() {
       {booking?.itinerary?.stops && booking.itinerary.stops.length > 0 && (
         <ScrollView
           style={{ flex: 1, marginTop: 12 }}
-          contentContainerStyle={{ marginHorizontal: 16, paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={{ marginHorizontal: 16, paddingBottom: insets.bottom + 96 }}
         >
           <Card>
             <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.text, marginBottom: 12 }}>
@@ -257,6 +258,20 @@ export default function LiveTourScreen() {
           </Card>
         </ScrollView>
       )}
+
+      {/* Fixed-bottom safety bar — SOS writes a real sos_alerts row that the
+          admin console's SOS page monitors. Falls back to the guide's last
+          shared position if this device can't produce a fix. */}
+      <SafetyBar
+        bookingId={id ?? ''}
+        insets={insets}
+        guideName={booking?.guide?.name ?? 'your buddy'}
+        fallbackCoords={
+          guideLocation
+            ? { latitude: guideLocation.latitude, longitude: guideLocation.longitude }
+            : { latitude: DEFAULT_MUMBAI_REGION.latitude, longitude: DEFAULT_MUMBAI_REGION.longitude }
+        }
+      />
     </View>
   );
 }
