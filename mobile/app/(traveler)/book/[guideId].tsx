@@ -45,9 +45,10 @@ import { fetchGuideById, fetchGuideItineraries } from '@/lib/api/guides';
 import { fetchMyTravelerProfile } from '@/lib/api/travelerProfile';
 import { createBooking, calcCommission } from '@/lib/api/bookings';
 import { sendMessage } from '@/lib/api/messages';
+import { getEffectiveRates, EARLY_ACCESS_RATES, type EffectiveRates } from '@/lib/api/platformSettings';
 import { hapticImpactMedium, hapticSuccess, hapticError } from '@/lib/haptics';
 import { theme } from '@/config/theme';
-import { COMMISSION_RATE, ESTIMATED_EXPENSES_PERCENT, CURRENCY_SYMBOL } from '@/config/constants';
+import { ESTIMATED_EXPENSES_PERCENT, CURRENCY_SYMBOL } from '@/config/constants';
 import type { GuideProfile, Itinerary } from '@/types';
 
 const CARD_WIDTH = 288;
@@ -503,8 +504,13 @@ export default function BookingScreen() {
   const [departureTime, setDepartureTime] = useState('');
   const [flightNumber, setFlightNumber] = useState('');
   const [numTravelers, setNumTravelers] = useState('1');
+  const [rates, setRates] = useState<EffectiveRates>(EARLY_ACCESS_RATES);
 
   const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
+
+  useEffect(() => {
+    getEffectiveRates().then(setRates).catch(() => {});
+  }, []);
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler((e) => { scrollY.value = e.contentOffset.y; });
@@ -558,7 +564,7 @@ export default function BookingScreen() {
   const groupSize = Math.max(1, Math.min(10, parseInt(numTravelers, 10) || 1));
   const perPersonBuddyCost = selectedItin?.buddy_cost_inr ?? 0;
   const perPersonExpenses = Math.round(perPersonBuddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
-  const perPersonCommission = calcCommission(perPersonBuddyCost);
+  const perPersonCommission = calcCommission(perPersonBuddyCost, rates.commissionRate);
   const buddyCost = perPersonBuddyCost * groupSize;
   const estimatedExpenses = perPersonExpenses * groupSize;
   const commission = perPersonCommission * groupSize;
@@ -869,13 +875,20 @@ export default function BookingScreen() {
                 value={`${CURRENCY_SYMBOL}${estimatedExpenses.toLocaleString('en-IN')}`}
                 muted
               />
-              <PriceRow
-                label={`Platform commission (${(COMMISSION_RATE * 100).toFixed(0)}%)`}
-                value={`${CURRENCY_SYMBOL}${commission.toLocaleString('en-IN')}`}
-                muted
-              />
+              {rates.commissionRate > 0 && (
+                <PriceRow
+                  label={`Platform commission (${(rates.commissionRate * 100).toFixed(0)}%)`}
+                  value={`${CURRENCY_SYMBOL}${commission.toLocaleString('en-IN')}`}
+                  muted
+                />
+              )}
               <View style={{ height: 1, backgroundColor: theme.colors.divider, marginVertical: 10 }} />
               <PriceRow label="Estimated total" value={`${CURRENCY_SYMBOL}${total.toLocaleString('en-IN')}`} bold />
+              {rates.commissionRate === 0 && (
+                <Text style={{ fontSize: 12, color: theme.colors.success, fontWeight: '600', marginTop: 6 }}>
+                  Early access — no platform fees. You pay only your buddy and the day's expenses.
+                </Text>
+              )}
               <Text style={{ fontSize: 11, color: theme.colors.textMuted, marginTop: 2, lineHeight: 16 }}>
                 Just an estimate. You and your guide finalize the plan and price in chat — you only pay once it's agreed.
               </Text>

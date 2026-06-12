@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import { COMMISSION_RATE, BOOKING_STATUS, ESTIMATED_EXPENSES_PERCENT } from '@/config/constants';
+import { getEffectiveRates } from './platformSettings';
 import type { Booking, CreateBookingRequest, BookingStatus, PaymentStatus } from '@/types';
 
 interface RawUserJoin {
@@ -224,8 +225,13 @@ function normalizeBooking(row: RawBookingRow): Booking {
   };
 }
 
-export function calcCommission(buddyCost: number): number {
-  return Math.round(buddyCost * COMMISSION_RATE);
+/**
+ * Estimate-path commission. Pass the effective rate from
+ * `getEffectiveRates()` — 0 during early access. Falls back to the
+ * legacy constant when no rate is supplied.
+ */
+export function calcCommission(buddyCost: number, commissionRate: number = COMMISSION_RATE): number {
+  return Math.round(buddyCost * commissionRate);
 }
 
 export async function createBooking(req: CreateBookingRequest): Promise<Booking> {
@@ -261,10 +267,12 @@ export async function createBooking(req: CreateBookingRequest): Promise<Booking>
 
     if (itinErr || !itin) throw new Error('Itinerary not found');
 
+    const rates = await getEffectiveRates();
+
     // Per-person rates from the itinerary; total scales linearly with group size.
     const perPersonBuddyCost = itin.buddy_cost;
     const perPersonExpenses  = Math.round(perPersonBuddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
-    const perPersonCommission = calcCommission(perPersonBuddyCost);
+    const perPersonCommission = calcCommission(perPersonBuddyCost, rates.commissionRate);
 
     buddyCost          = perPersonBuddyCost  * numTravelers;
     estimatedExpenses  = perPersonExpenses   * numTravelers;

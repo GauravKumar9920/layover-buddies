@@ -263,6 +263,31 @@ describe('Cancellation edges', () => {
       next('trip_ready', { kind: 'cancel', actor: 'buddy', reason: 'no_show' }),
     ).toBe('cancelled_buddy');
   });
+
+  // APP_REVIEW §1.2 regression: a platform- or system-initiated cancellation
+  // must NEVER land in cancelled_traveler_voluntary — that would charge the
+  // traveler (deposit forfeiture) for the platform's decision. It routes to
+  // force-majeure economics instead: full refunds, nobody penalised.
+  describe('platform/system cancellations are never traveler-voluntary', () => {
+    const states = ['awaiting_balance', 'late_fee_due', 'balance_paid', 'trip_ready'] as const;
+    const actors = ['platform', 'system'] as const;
+
+    for (const state of states) {
+      for (const actor of actors) {
+        test(`${state} + cancel (${actor}) → cancelled_force_majeure`, () => {
+          expect(
+            next(state, { kind: 'cancel', actor, reason: 'ops_decision' }),
+          ).toBe('cancelled_force_majeure');
+        });
+      }
+    }
+
+    test('trip_ready + cancel (traveler) still → cancelled_traveler_voluntary', () => {
+      expect(
+        next('trip_ready', { kind: 'cancel', actor: 'traveler', reason: 'changed_mind' }),
+      ).toBe('cancelled_traveler_voluntary');
+    });
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

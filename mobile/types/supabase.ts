@@ -51,8 +51,11 @@ export type Database = {
           id: string
           itinerary_fund_paise: number
           pdf_url: string | null
+          platform_fee_down_rate: number
+          platform_fee_up_rate: number
           sent_at: string | null
           status: Database["public"]["Enums"]["agreement_status"]
+          tds_rate: number
           traveler_gst_paise: number
           traveler_signed_at: string | null
           traveler_subtotal_paise: number
@@ -77,8 +80,11 @@ export type Database = {
           id?: string
           itinerary_fund_paise: number
           pdf_url?: string | null
+          platform_fee_down_rate?: number
+          platform_fee_up_rate?: number
           sent_at?: string | null
           status?: Database["public"]["Enums"]["agreement_status"]
+          tds_rate?: number
           traveler_gst_paise: number
           traveler_signed_at?: string | null
           traveler_subtotal_paise: number
@@ -103,8 +109,11 @@ export type Database = {
           id?: string
           itinerary_fund_paise?: number
           pdf_url?: string | null
+          platform_fee_down_rate?: number
+          platform_fee_up_rate?: number
           sent_at?: string | null
           status?: Database["public"]["Enums"]["agreement_status"]
+          tds_rate?: number
           traveler_gst_paise?: number
           traveler_signed_at?: string | null
           traveler_subtotal_paise?: number
@@ -1343,6 +1352,42 @@ export type Database = {
           },
         ]
       }
+      platform_settings: {
+        Row: {
+          commission_rate: number
+          early_access_mode: boolean
+          gst_rate: number
+          id: number
+          late_fee_paise: number
+          platform_fee_down_rate: number
+          platform_fee_up_rate: number
+          tds_rate: number
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number
+          early_access_mode?: boolean
+          gst_rate?: number
+          id?: number
+          late_fee_paise?: number
+          platform_fee_down_rate?: number
+          platform_fee_up_rate?: number
+          tds_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number
+          early_access_mode?: boolean
+          gst_rate?: number
+          id?: number
+          late_fee_paise?: number
+          platform_fee_down_rate?: number
+          platform_fee_up_rate?: number
+          tds_rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payouts: {
         Row: {
           amount: number
@@ -1715,6 +1760,18 @@ export type Database = {
     }
     Functions: {
       backfill_public_users_from_auth: { Args: never; Returns: number }
+      get_effective_rates: {
+        Args: never
+        Returns: {
+          early_access_mode: boolean
+          platform_fee_up_rate: number
+          platform_fee_down_rate: number
+          commission_rate: number
+          gst_rate: number
+          tds_rate: number
+          late_fee_paise: number
+        }[]
+      }
       get_my_role: { Args: never; Returns: string }
       handle_new_auth_user_sync: {
         Args: { target_user_id: string }

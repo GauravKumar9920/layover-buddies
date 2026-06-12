@@ -56,6 +56,8 @@ export default function TravelerReceiptScreen() {
     bufferPaise:         agreement.buffer_paise,
     capturedTopUpsPaise,
     declaredSpendPaise,
+    platformFeeDownRate: agreement.platform_fee_down_rate,
+    tdsRate:             agreement.tds_rate,
   });
 
   const copy = financialCopy.reconciliationReceipt.traveler;

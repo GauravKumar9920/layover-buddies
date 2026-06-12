@@ -180,6 +180,9 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
 
   // ── 8. awaiting_balance ──────────────────────────────────────────────────
   // Default confirmation state. T–72h cron fires t_minus_72_reached.
+  // Platform/system cancellations route to cancelled_force_majeure (full
+  // refunds, no party penalised) — per APP_REVIEW §1.2, a platform-initiated
+  // cancellation must never be recorded as the traveler's voluntary choice.
   ['awaiting_balance', [
     { event: 'balance_captured',       next: 'balance_paid' },
     { event: 't_minus_72_reached',     next: 'late_fee_due' },
@@ -192,6 +195,11 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
       event: 'cancel',
       guard: (e) => e.kind === 'cancel' && e.actor === 'buddy',
       next:  'cancelled_buddy',
+    },
+    {
+      event: 'cancel',
+      guard: (e) => e.kind === 'cancel' && (e.actor === 'platform' || e.actor === 'system'),
+      next:  'cancelled_force_majeure',
     },
     { event: 'force_majeure_verified', next: 'cancelled_force_majeure' },
   ]],
@@ -211,6 +219,11 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
       guard: (e) => e.kind === 'cancel' && e.actor === 'buddy',
       next:  'cancelled_buddy',
     },
+    {
+      event: 'cancel',
+      guard: (e) => e.kind === 'cancel' && (e.actor === 'platform' || e.actor === 'system'),
+      next:  'cancelled_force_majeure',
+    },
     { event: 'force_majeure_verified', next: 'cancelled_force_majeure' },
   ]],
 
@@ -228,6 +241,11 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
       guard: (e) => e.kind === 'cancel' && e.actor === 'buddy',
       next:  'cancelled_buddy',
     },
+    {
+      event: 'cancel',
+      guard: (e) => e.kind === 'cancel' && (e.actor === 'platform' || e.actor === 'system'),
+      next:  'cancelled_force_majeure',
+    },
     { event: 'force_majeure_verified', next: 'cancelled_force_majeure' },
   ]],
 
@@ -242,8 +260,17 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
     },
     {
       event: 'cancel',
-      guard: (e) => e.kind === 'cancel' && (e.actor === 'traveler' || e.actor === 'platform' || e.actor === 'system'),
+      guard: (e) => e.kind === 'cancel' && e.actor === 'traveler',
       next:  'cancelled_traveler_voluntary',
+    },
+    {
+      // Platform/system cancellations were previously lumped in with the
+      // traveler's voluntary rule above — which would have penalised the
+      // traveler (deposit forfeiture) for a decision the platform made.
+      // They now route to force-majeure economics: full refunds both sides.
+      event: 'cancel',
+      guard: (e) => e.kind === 'cancel' && (e.actor === 'platform' || e.actor === 'system'),
+      next:  'cancelled_force_majeure',
     },
     { event: 'force_majeure_verified', next: 'cancelled_force_majeure' },
   ]],

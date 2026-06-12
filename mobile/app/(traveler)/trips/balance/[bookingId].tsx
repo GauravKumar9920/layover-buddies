@@ -172,7 +172,9 @@ export default function BalancePaymentScreen() {
   }
 
   const isLateFee = booking.status === 'late_fee_due';
-  const lateFee   = isLateFee ? (booking.late_fee_paise || LATE_FEE_PAISE) : 0;
+  // `??` not `||`: the cron writes the CONFIGURED fee, which is legitimately 0
+  // during early access — `||` would silently re-charge the ₹1,000 default.
+  const lateFee   = isLateFee ? (booking.late_fee_paise ?? LATE_FEE_PAISE) : 0;
   const total     = agreement.traveler_subtotal_paise + agreement.traveler_gst_paise + lateFee;
 
   const copy = financialCopy.balancePricing;
@@ -185,8 +187,8 @@ export default function BalancePaymentScreen() {
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
       >
-        {/* Late-fee banner */}
-        {isLateFee && (
+        {/* Late-fee banner — hidden when the configured fee is ₹0 (early access) */}
+        {isLateFee && lateFee > 0 && (
           <Card style={styles.lateFeeBanner}>
             <Text style={styles.lateFeeHeading}>{financialCopy.lateFeeBanner.heading}</Text>
             <Text style={styles.lateFeeBody}>
@@ -204,11 +206,13 @@ export default function BalancePaymentScreen() {
             sub={copy.lineItems.tripFund.sub}
             amount={agreement.itinerary_fund_paise + agreement.buffer_paise}
           />
-          <LineItem
-            label={copy.lineItems.gst.label}
-            amount={agreement.traveler_gst_paise}
-          />
-          {isLateFee && (
+          {agreement.traveler_gst_paise > 0 && (
+            <LineItem
+              label={copy.lineItems.gst.label}
+              amount={agreement.traveler_gst_paise}
+            />
+          )}
+          {isLateFee && lateFee > 0 && (
             <LineItem
               label={copy.lineItems.lateFee.label}
               sub={copy.lineItems.lateFee.sub}

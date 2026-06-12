@@ -57,15 +57,17 @@ const VIEWER_AGREEMENT: Record<BookingState, Partial<Record<Viewer, BookingCta>>
     buddy:    { label: 'Pay ₹500 deposit', route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'primary' },
   },
   deposits_held: {
-    // `deposits_held` means at least one deposit is in — NOT both. The booking
-    // only transitions to `awaiting_balance` once both sides are held. So this
-    // state is reached as soon as the first deposit lands, and the other side
-    // still owes their ₹500. Route both viewers to the agreement screen; the
-    // screen's own `canPayDeposit` check (gated on the viewer's own deposit
-    // row) renders the Pay button for the side that hasn't paid and just
-    // shows the status rows for the side that has.
-    traveler: { label: 'Open agreement',          route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'primary' },
-    buddy:    { label: 'Pay ₹500 deposit',        route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'primary' },
+    // `deposits_held` means BOTH ₹500 deposits are in escrow — the state
+    // machine only enters it on the second `deposit_captured` (guard:
+    // bothDepositsHeld). A single deposit self-loops in `awaiting_deposits`.
+    // The backend webhook advances deposits_held → awaiting_balance moments
+    // later, so this is a transient "all locked in" state: nobody owes
+    // anything here. Both viewers get a reassuring confirmation that links
+    // back to the agreement for review. (Fixed per APP_REVIEW §1.1 — this
+    // file previously showed the buddy a "Pay ₹500 deposit" button for a
+    // payment they had already made.)
+    traveler: { label: 'Deposits secured', route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'success' },
+    buddy:    { label: 'Deposits secured', route: { pathname: '/(shared)/agreements/[bookingId]' }, disabled: false, variant: 'success' },
   },
   awaiting_balance: {
     // Phase 3: balance payment is now a real screen.
@@ -74,9 +76,11 @@ const VIEWER_AGREEMENT: Record<BookingState, Partial<Record<Viewer, BookingCta>>
   },
   // ── Phase 3: balance + late-fee states ─────────────────────────────────────
   late_fee_due: {
-    // Balance + ₹1,000 late fee bundled. Amount shown dynamically by the screen.
-    traveler: { label: 'Pay balance + ₹1,000 late fee', route: { pathname: '/(traveler)/trips/balance/[bookingId]' }, disabled: false, variant: 'warning' },
-    buddy:    { label: 'Awaiting traveler balance',      route: null, disabled: true,  variant: 'info' },
+    // Balance + late fee bundled. The fee amount is configurable in
+    // platform_settings (₹0 during early access), so the label stays generic —
+    // the balance screen shows the exact rupee figure.
+    traveler: { label: 'Pay balance + late fee', route: { pathname: '/(traveler)/trips/balance/[bookingId]' }, disabled: false, variant: 'warning' },
+    buddy:    { label: 'Awaiting traveler balance', route: null, disabled: true,  variant: 'info' },
   },
   balance_paid: {
     // Countdown shown by the screen itself; this is just the navigator anchor.

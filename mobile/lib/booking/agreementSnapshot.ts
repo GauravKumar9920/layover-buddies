@@ -12,7 +12,7 @@
 // `agreementSnapshot.test.ts` asserts the same against this function.
 // ============================================================================
 
-import { DEPOSIT_PAISE, BUFFER_PERCENT } from '@/config/constants';
+import { DEPOSIT_PAISE, BUFFER_PERCENT, PLATFORM_FEE_UP_RATE } from '@/config/constants';
 
 export interface AgreementInputs {
   /** Gross buddy fee in paise (pre-platform-up). */
@@ -23,10 +23,18 @@ export interface AgreementInputs {
   bufferPaise: number;
   /** GST rate as a decimal (e.g. 0.05 for 5%). */
   gstRate: number;
+  /**
+   * Traveler-side platform fee rate as a decimal (e.g. 0.125 for 12.5%).
+   * 0 during early access. When rendering an EXISTING agreement, pass the
+   * rate snapshotted on its row (`agreements.platform_fee_up_rate`); when
+   * drafting a NEW one, pass the effective rate from platformSettings.
+   * Defaults to the historical 12.5% for back-compat.
+   */
+  platformFeeUpRate?: number;
 }
 
 export interface AgreementSnapshot {
-  /** Traveler-view buddy fee = buddy fee × 1.125 (12.5% platform-up). */
+  /** Traveler-view buddy fee = buddy fee × (1 + platformFeeUpRate). */
   buddyFeeTravelerViewPaise: number;
   /** Subtotal that GST is computed on. */
   travelerSubtotalPaise: number;
@@ -75,14 +83,19 @@ export function computeAgreementSnapshot(inputs: AgreementInputs): AgreementSnap
     throw new InvalidAmountError('gstRate', inputs.gstRate);
   }
 
+  const platformFeeUpRate = inputs.platformFeeUpRate ?? PLATFORM_FEE_UP_RATE;
+  if (!Number.isFinite(platformFeeUpRate) || platformFeeUpRate < 0 || platformFeeUpRate > 1) {
+    throw new InvalidAmountError('platformFeeUpRate', platformFeeUpRate);
+  }
+
   // Buffer invariant — must match the DB CHECK constraint exactly.
   const expectedBuffer = Math.floor(inputs.itineraryFundPaise * BUFFER_PERCENT);
   if (inputs.bufferPaise !== expectedBuffer) {
     throw new InvalidBufferError(inputs.itineraryFundPaise, inputs.bufferPaise);
   }
 
-  // 12.5% platform-up on the traveler's view of the buddy fee.
-  const buddyFeeTravelerViewPaise = Math.round(inputs.buddyFeePaise * 1.125);
+  // Platform-up on the traveler's view of the buddy fee (0 during early access).
+  const buddyFeeTravelerViewPaise = Math.round(inputs.buddyFeePaise * (1 + platformFeeUpRate));
 
   const travelerSubtotalPaise =
     buddyFeeTravelerViewPaise + inputs.itineraryFundPaise + inputs.bufferPaise;
