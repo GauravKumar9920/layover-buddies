@@ -67,4 +67,22 @@
       document.getElementById('booking-error').classList.add('show');
     }
   });
+
+  // Cheat-sheet email capture → same FormSubmit inbox
+  var captureForm = document.getElementById('capture-form');
+  if (captureForm) captureForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    if (!captureForm.reportValidity()) return;
+    var data = Object.fromEntries(new FormData(captureForm).entries());
+    data._subject = 'Cheat sheet request (from a guide page)';
+    try {
+      await fetch(FORM_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    } catch (err) { /* fall through — still show confirmation */ }
+    captureForm.style.display = 'none';
+    document.getElementById('capture-done').style.display = 'inline';
+  });
 })();
