@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>The Mumbai Layover Cheat Sheet — Detour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root{
+    --paper:#F4EDDD; --paper-3:#FCF7EA; --ink:#0E1929; --ink-2:#1F2A3D; --ink-mute:#445169;
+    --line-soft:#C5BA9C; --marigold:#E89F2C; --marigold-lt:#FBEACB; --terracotta:#C8542A;
+    --terra-dk:#9E3A1F; --terra-lt:#F7DECC; --sea:#2D7BA9; --sea-lt:#C9DEEB; --taxi:#F4C430;
+    --display:'Bricolage Grotesque',sans-serif; --serif:'Instrument Serif',serif;
+    --body:'Plus Jakarta Sans',sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  html,body{width:210mm;height:297mm;}
+  body{font-family:var(--body);background:var(--paper);color:var(--ink-2);padding:13mm 13mm 9mm;font-size:9.4px;line-height:1.42;}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1.5px solid var(--ink);padding-bottom:8px;margin-bottom:11px;}
+  .brand{display:flex;align-items:center;gap:8px;}
+  .brand .wm{font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.04em;color:var(--ink);}
+  .brand .wm em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);}
+  .brand .tag{font-family:var(--mono);font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-mute);}
+  .kicker{font-family:var(--mono);font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--terracotta);text-align:right;line-height:1.5;}
+  h1{font-family:var(--display);font-weight:700;font-size:25px;letter-spacing:-.03em;line-height:1;margin:2px 0 10px;}
+  h1 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .card{background:var(--paper-3);border:1px solid var(--line-soft);border-radius:9px;padding:9px 11px;}
+  .card.span{grid-column:1 / -1;}
+  .card h2{font-family:var(--display);font-weight:700;font-size:11.5px;color:var(--ink);margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+  .num{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:var(--terracotta);color:var(--paper-3);font-family:var(--mono);font-size:8px;font-weight:600;}
+  .card p{margin-bottom:3px;}
+  .card strong{color:var(--ink);}
+  ul{list-style:none;}
+  li{position:relative;padding-left:11px;margin-bottom:2.5px;}
+  li::before{content:'';position:absolute;left:0;top:5px;width:4px;height:4px;border-radius:50%;background:var(--terracotta);}
+  .price{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px dotted var(--line-soft);}
+  .price:last-child{border-bottom:none;}
+  .price .p{font-family:var(--mono);font-weight:500;color:var(--terracotta);white-space:nowrap;}
+  .steps{counter-reset:s;}
+  .steps li{padding-left:18px;margin-bottom:3px;}
+  .steps li::before{counter-increment:s;content:counter(s);top:0;width:13px;height:13px;border-radius:50%;background:var(--ink);color:var(--paper-3);font-family:var(--mono);font-size:7.5px;display:flex;align-items:center;justify-content:center;}
+  .flag{background:var(--marigold-lt);border:1px solid var(--marigold);border-radius:7px;padding:6px 9px;font-size:8.6px;margin-top:8px;}
+  .flag b{color:var(--terra-dk);}
+  .foot{margin-top:11px;padding-top:7px;border-top:1.5px solid var(--ink);display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:7.6px;letter-spacing:.03em;color:var(--ink-mute);}
+  .foot .cta{color:var(--terracotta);font-weight:500;}
+  .sea-card{background:var(--sea-lt);border-color:var(--sea);}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="brand">
+      <svg width="30" height="24" viewBox="0 0 92 74" aria-hidden="true">
+        <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
+        <circle cx="8" cy="60" r="4.5" fill="#2D7BA9"/>
+        <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
+        <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
+      </svg>
+      <div><div class="wm">Det<em>ou</em>r</div><div class="tag">Mumbai · BOM</div></div>
+    </div>
+    <div class="kicker">The 1-page<br>Mumbai layover<br>cheat sheet</div>
+  </div>
+
+  <h1>Your Mumbai layover, <em>sorted</em> — on one page.</h1>
+
+  <div class="grid">
+    <div class="card">
+      <h2><span class="num">1</span> Visa — do this first</h2>
+      <p><strong>You need a visa to leave the terminal.</strong> Most travellers use the <strong>e-Tourist visa</strong>.</p>
+      <ul>
+        <li>Apply online ≈ <strong>1 week before</strong> you fly</li>
+        <li>Cost ≈ <strong>US$25</strong> (varies by nationality/season)</li>
+        <li>Approval usually <strong>24–72h</strong> — print the ETA</li>
+        <li>Only use the official <strong>indianvisaonline.gov.in</strong></li>
+        <li>Passport valid <strong>6+ months</strong>, 2 blank pages</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">2</span> Time budget</h2>
+      <p>Your layover length ≠ your city time. Subtract immigration + drive + buffer.</p>
+      <ul>
+        <li><strong>&lt;6h:</strong> tight — maybe stay near the airport</li>
+        <li><strong>6–8h:</strong> one neighbourhood, done well</li>
+        <li><strong>10–12h:</strong> the greatest hits + a real meal</li>
+        <li><strong>18h+:</strong> a proper day in the city</li>
+      </ul>
+      <p style="margin-top:4px;"><strong>Golden rule:</strong> never touch your airport buffer.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">3</span> Luggage</h2>
+      <p>BOM has a secure <strong>left-luggage cloakroom</strong> — pay per bag, explore hands-free.</p>
+      <ul>
+        <li>Keep on you: passport, ETA printout, phone, cash, meds, claim ticket</li>
+        <li>Stash the heavy roller bag</li>
+        <li>Allow a few minutes each end</li>
+      </ul>
+    </div>
+
+    <div class="card sea-card">
+      <h2><span class="num">4</span> Eat this (honest ₹)</h2>
+      <div class="price"><span>Vada pav</span><span class="p">₹20</span></div>
+      <div class="price"><span>Cutting chai</span><span class="p">₹15–20</span></div>
+      <div class="price"><span>Pav bhaji</span><span class="p">₹120–180</span></div>
+      <div class="price"><span>Dosa</span><span class="p">₹100–160</span></div>
+      <div class="price"><span>Sit-down lunch</span><span class="p">₹300–600</span></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">5</span> Safety basics</h2>
+      <ul>
+        <li>Central areas are busy &amp; fine — risks are petty, not dramatic</li>
+        <li>App cabs (Uber/Ola), esp. after dark</li>
+        <li>Sealed bottled water only</li>
+        <li>Carry cash; know rough prices to avoid markup</li>
+        <li>Solo women: share live location, ask for a female buddy</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">6</span> Money &amp; getting around</h2>
+      <ul>
+        <li>India runs on UPI — but <strong>carry cash</strong> as a visitor</li>
+        <li>Airport → South Mumbai taxi ≈ <strong>₹500–700</strong></li>
+        <li>Sea Link toll <strong>₹100</strong></li>
+        <li>eSIM/roaming is easier than a local SIM for a few hours</li>
+        <li>Monsoon (Jun–Sep): assume rain</li>
+      </ul>
+    </div>
+
+    <div class="card span">
+      <h2><span class="num">✦</span> Leave the airport in 6 steps</h2>
+      <ul class="steps" style="columns:2;column-gap:18px;">
+        <li>Sort your e-visa about a week before flying</li>
+        <li>Land &amp; clear immigration (biometrics on arrival)</li>
+        <li>Drop bags at the cloakroom</li>
+        <li>Head into the city — buddy meets you at arrivals</li>
+        <li>Eat, wander, sea — keep an eye on the buffer</li>
+        <li>Collect bags &amp; back to BOM, comfortably early</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="flag"><b>One rule above all:</b> protect the buffer before your outbound flight. The best layover story is the one where you also made your flight. With Detour, a verified local student plans the route around your exact flight times and tracks the clock so you don't have to.</div>
+
+  <div class="foot">
+    <div>© 2026 Detour · Made in Mumbai with a lot of cutting chai · Prices are a feel, not a quote — verify on the day.</div>
+    <div class="cta">Plan yours free → detourtrips.com</div>
+  </div>
+</body>
+</html>

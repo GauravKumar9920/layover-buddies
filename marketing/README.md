@@ -6,13 +6,26 @@ Created 10 June 2026 · Updated after full website implementation.
 
 - **strategy/** — the three planning docs:
   - `01-website-review.md` — the humanization review (✅ now implemented on the site)
-  - `02-seo-audit.md` — technical + keyword audit (✅ quick wins implemented; content pages still to write)
+  - `02-seo-audit.md` — technical + keyword audit (✅ quick wins implemented; ✅ first 6 guide pages now LIVE — see below)
   - `03-marketing-pipeline-90-days.md` — the zero-budget 90-day plan (live in the Notion tracker)
 - **previews/** — screenshots of the rebuilt site before launch, plus the Pexels photo contact sheets used to pick gallery images
 
 ## What's already done on the website (`web/marketing/`)
 
 Images compressed 67MB→4.7MB · keyword title/meta/canonical · Organization + FAQPage schema · robots.txt + sitemap.xml · founder note · visa + solo FAQ · FormSubmit request form + cheat-sheet email capture · street-price ticker · video band (streams from Pexels CDN; run `get-videos.sh` to self-host) · 4 new licensed Pexels photos · App Store / Google Play "coming soon" badges.
+
+## Guide content cluster — LIVE as of 14 June 2026
+
+The `/guides/` SEO cluster (doc 02's #1 strategic investment) is built and deployed. Shared design system in `web/marketing/assets/site.css` + `booking.js`; each page has Article + FAQPage + BreadcrumbList JSON-LD, the homepage booking modal, and is interlinked. Branded `404.html` added. All in the sitemap; GA4 (`G-54QYM83DKF`) on every page.
+
+- `/guides/mumbai-layover-visa` — keystone (the visa question)
+- `/guides/complete-mumbai-layover-guide` — pillar / hub
+- `/guides/8-hour-layover-mumbai` · `/guides/12-hour-layover-mumbai` — itineraries
+- `/guides/mumbai-airport-luggage-storage` · `/guides/is-mumbai-safe-on-a-layover`
+
+Cheat-sheet **PDF lead magnet** built (`downloads/mumbai-layover-cheat-sheet.pdf`, source HTML alongside) and wired to the homepage capture form. Outreach/content **templates** in `marketing/templates/`. Notion Content Pipeline rows for these are marked Live.
+
+**Still to write (next waves):** 6-hour + overnight itineraries, street-food guide, "meet the buddies" page. **Still manual (Gaurav):** Brevo email platform, Reels, sending pitches, Reddit answers, Google Business Profile + Trustpilot.
 
 ## Still needs YOU (can't be done on your behalf)
 
