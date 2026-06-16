@@ -1,0 +1,130 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Detour//Marketing Plan//EN
+CALSCALE:GREGORIAN
+X-WR-CALNAME:Detour — Founder Schedule
+X-WR-TIMEZONE:Asia/Kolkata
+BEGIN:VTIMEZONE
+TZID:Asia/Kolkata
+BEGIN:STANDARD
+DTSTART:19700101T000000
+TZOFFSETFROM:+0530
+TZOFFSETTO:+0530
+TZNAME:IST
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:detour-mon-sweep@detourtrips.com
+DTSTART;TZID=Asia/Kolkata:20260615T200000
+DTEND;TZID=Asia/Kolkata:20260615T203000
+RRULE:FREQ=WEEKLY;BYDAY=MO;UNTIL=20260914T000000Z
+SUMMARY:🧭 Detour — Community sweep + metrics (15+15 min)
+DESCRIPTION:Answer 2-3 layover threads (Reddit/TripAdvisor saved searches). Log weekly metrics in Notion → Weekly Metrics. Don't check numbers any other day.
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-tue-guide@detourtrips.com
+DTSTART;TZID=Asia/Kolkata:20260616T200000
+DTEND;TZID=Asia/Kolkata:20260616T220000
+RRULE:FREQ=WEEKLY;BYDAY=TU;UNTIL=20260914T000000Z
+SUMMARY:🧭 Detour — Write guide page (draft)
+DESCRIPTION:This week's guide page from Notion → Content Pipeline. Draft only\, don't polish.
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-wed-guide@detourtrips.com
+DTSTART;TZID=Asia/Kolkata:20260617T200000
+DTEND;TZID=Asia/Kolkata:20260617T220000
+RRULE:FREQ=WEEKLY;BYDAY=WE;UNTIL=20260914T000000Z
+SUMMARY:🧭 Detour — Finish + publish guide page
+DESCRIPTION:Polish\, add FAQ schema\, interlink\, push live\, mark Live in Notion.
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-thu-reels@detourtrips.com
+DTSTART;TZID=Asia/Kolkata:20260618T200000
+DTEND;TZID=Asia/Kolkata:20260618T213000
+RRULE:FREQ=WEEKLY;BYDAY=TH;UNTIL=20260914T000000Z
+SUMMARY:🧭 Detour — Film/edit 2 reels (batch with a buddy)
+DESCRIPTION:Guide-led POV reels. Batch filming\, CapCut edit\, schedule posts.
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-fri-outreach@detourtrips.com
+DTSTART;TZID=Asia/Kolkata:20260619T200000
+DTEND;TZID=Asia/Kolkata:20260619T203000
+RRULE:FREQ=WEEKLY;BYDAY=FR;UNTIL=20260914T000000Z
+SUMMARY:🧭 Detour — One outreach email + community sweep
+DESCRIPTION:Pick next target from Notion → Outreach CRM. Personalized pitch. Update status.
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-sat-deep@detourtrips.com
+DTSTART;TZID=Asia/Kolkata:20260613T100000
+DTEND;TZID=Asia/Kolkata:20260613T120000
+RRULE:FREQ=WEEKLY;BYDAY=SA;UNTIL=20260914T000000Z
+SUMMARY:🧭 Detour — Deep work block
+DESCRIPTION:App P0s via Claude Code\, site updates\, PR follow-ups — whatever's biggest in the tracker.
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-d1@detourtrips.com
+DTSTART;VALUE=DATE:20260611
+SUMMARY:🚀 DEADLINE: Site live + FormSubmit activation
+DESCRIPTION:git push origin main (commit is ready). After deploy: submit the request form once\, click activation email in admin@detourtrips.com\, test again.
+BEGIN:VALARM
+TRIGGER:-PT2H
+ACTION:DISPLAY
+DESCRIPTION:Deploy Detour site
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-d2@detourtrips.com
+DTSTART;VALUE=DATE:20260612
+SUMMARY:🚀 DEADLINE: Founder note in your voice + GSC/GA4/Bing setup
+DESCRIPTION:Rewrite founder note in index.html (marked with comment). Add site to Google Search Console + GA4 + Bing Webmaster\, submit sitemap.xml.
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-d3@detourtrips.com
+DTSTART;VALUE=DATE:20260613
+SUMMARY:🚀 DEADLINE: Google Business Profile + Trustpilot + hand P0s to Claude Code
+DESCRIPTION:Create both review profiles. Hand APP_REVIEW.md §1 (P0 fixes) to Claude Code: deposits_held contradiction\, platform-cancel mislabel\, early-access pricing flag\, crons\, no-show event.
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-d4@detourtrips.com
+DTSTART;VALUE=DATE:20260621
+SUMMARY:🚀 DEADLINE: Visa guide live (keystone SEO page)
+DESCRIPTION:"Do I need a visa to leave Mumbai airport?" — the single most important content asset.
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-d5@detourtrips.com
+DTSTART;VALUE=DATE:20260628
+SUMMARY:🚀 DEADLINE: Pillar layover guide live + first 3 reels posted
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-d6@detourtrips.com
+DTSTART;VALUE=DATE:20260705
+SUMMARY:🚀 DEADLINE: 8h itinerary + luggage guide + PR wave 1 (5 Indian outlets)
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-d7@detourtrips.com
+DTSTART;VALUE=DATE:20260712
+SUMMARY:🚀 DEADLINE: Safety guide + 12h itinerary + 5 newsletter/creator pitches
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-d8@detourtrips.com
+DTSTART;VALUE=DATE:20260719
+SUMMARY:🚀 DEADLINE: Overnight guide + Email #1 to list
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-d9@detourtrips.com
+DTSTART;VALUE=DATE:20260726
+SUMMARY:🚀 DEADLINE: Meet-the-buddies page + PR wave 2 (international)
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-d10@detourtrips.com
+DTSTART;VALUE=DATE:20260802
+SUMMARY:🚀 DEADLINE: 6h itinerary + food guide + GSC checkpoint
+DESCRIPTION:Review Search Console queries — double down on whatever is getting impressions.
+END:VEVENT
+BEGIN:VEVENT
+UID:detour-d11@detourtrips.com
+DTSTART;VALUE=DATE:20260914
+SUMMARY:🚀 DEADLINE: 90-day review — metrics vs targets\, month-4 plan
+DESCRIPTION:Targets: 25 detours · 60 requests · 1000+ impressions/mo · 100 subs · 500 IG · 18 reviews · 3 mentions.
+END:VEVENT
+END:VCALENDAR

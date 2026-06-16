@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "Marketing Site",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8791", "--directory", "/Users/gaurav/Desktop/mumbai-buddies/web/marketing"],
+      "port": 8791
+    },
+    {
       "name": "Profile Redesign Mockup",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8770", "--directory", "design/profile-mockups"],
