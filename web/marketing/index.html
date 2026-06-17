@@ -129,6 +129,65 @@ nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-
 .btn-ig:active{transform:translateY(2px);box-shadow:0 1px 0 var(--terra-dk);}
 @media(max-width:860px){.nav-links{display:none;}}
 
+/* ---------- FLOATING SECTION-NAV PANEL ---------- */
+section[id]{scroll-margin-top:88px;}
+.secnav-fab{
+  position:fixed;right:24px;bottom:24px;z-index:90;
+  width:54px;height:54px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--ink);color:var(--paper-3);border:none;cursor:pointer;
+  box-shadow:0 6px 0 var(--terra-dk),0 14px 30px rgba(14,25,41,.28);
+  opacity:0;visibility:hidden;transform:translateY(14px) scale(.9);
+  transition:opacity .3s var(--ease),transform .3s var(--ease),box-shadow .18s ease,visibility .3s;
+}
+.secnav-fab.show{opacity:1;visibility:visible;transform:translateY(0) scale(1);}
+.secnav-fab:hover{transform:translateY(-2px) scale(1);box-shadow:0 8px 0 var(--terra-dk),0 18px 36px rgba(14,25,41,.32);}
+.secnav-fab:active{transform:translateY(1px) scale(.97);}
+.secnav-fab svg{width:23px;height:23px;}
+.secnav-fab .icon-close{display:none;}
+.secnav-fab.open .icon-open{display:none;}
+.secnav-fab.open .icon-close{display:block;}
+.secnav-panel{
+  position:fixed;right:24px;bottom:90px;z-index:91;
+  width:248px;max-width:calc(100vw - 48px);
+  background:var(--paper-3);border:1.5px solid var(--ink);border-radius:18px;
+  box-shadow:6px 6px 0 var(--ink),0 24px 50px rgba(14,25,41,.22);
+  padding:14px;
+  opacity:0;visibility:hidden;transform:translateY(10px) scale(.97);transform-origin:bottom right;
+  transition:opacity .25s var(--ease),transform .25s var(--ease),visibility .25s;
+}
+.secnav-panel.open{opacity:1;visibility:visible;transform:translateY(0) scale(1);}
+.secnav-title{
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mute);padding:4px 10px 10px;display:flex;align-items:center;gap:8px;
+}
+.secnav-title::before{content:'';width:16px;height:1px;background:var(--terracotta);}
+.secnav-panel nav{position:static;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:0;}
+.secnav-link{
+  display:flex;align-items:center;gap:11px;
+  font-size:14.5px;font-weight:600;color:var(--ink-2);
+  padding:9px 11px;border-radius:10px;text-decoration:none;
+  transition:background .18s ease,color .18s ease;
+}
+.secnav-link::before{
+  content:'';width:6px;height:6px;border-radius:50%;background:var(--line-soft);
+  flex:none;transition:background .18s ease,transform .18s ease;
+}
+.secnav-link:hover{background:var(--paper);color:var(--ink);}
+.secnav-link.active{color:var(--terracotta);background:var(--terra-lt);}
+.secnav-link.active::before{background:var(--terracotta);transform:scale(1.5);}
+.secnav-link .ext{margin-left:auto;opacity:.5;}
+.secnav-scrim{position:fixed;inset:0;z-index:89;background:transparent;visibility:hidden;}
+.secnav-scrim.show{visibility:visible;}
+@media(max-width:520px){
+  .secnav-fab{right:16px;bottom:16px;}
+  .secnav-panel{right:16px;bottom:80px;}
+}
+@media print{.secnav-fab,.secnav-panel,.secnav-scrim{display:none !important;}}
+@media (prefers-reduced-motion: reduce){
+  .secnav-fab,.secnav-panel{transition:opacity .2s ease,visibility .2s ease;}
+}
+
 /* ---------- HERO ---------- */
 .hero{padding:150px 0 90px;}
 .hero-grid{display:grid;grid-template-columns:1fr 1.02fr;gap:56px;align-items:center;}
@@ -962,6 +1021,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   gtag('js', new Date());
   gtag('config', 'G-54QYM83DKF');
 </script>
+<!-- UTM attribution tracker (capture → persist → GA → stamp forms) -->
+<script src="assets/utm.js" defer></script>
 </head>
 <body>
 
@@ -1022,6 +1083,27 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     Follow the journey
   </a>
 </nav>
+
+<!-- FLOATING SECTION NAV (collapsible jump-to panel) -->
+<div class="secnav-scrim" id="secnav-scrim"></div>
+<div class="secnav-panel" id="secnav-panel" role="dialog" aria-label="Jump to a section" aria-hidden="true">
+  <div class="secnav-title">Jump to</div>
+  <nav aria-label="Page sections">
+    <a class="secnav-link" href="#idea">The idea</a>
+    <a class="secnav-link" href="#why">Why a local</a>
+    <a class="secnav-link" href="#mumbai">Why Mumbai</a>
+    <a class="secnav-link" href="#how">How it works</a>
+    <a class="secnav-link" href="#routes">Detours</a>
+    <a class="secnav-link" href="#gallery">Gallery</a>
+    <a class="secnav-link" href="#values">How we travel</a>
+    <a class="secnav-link" href="#faq">FAQ</a>
+    <a class="secnav-link" href="guides/complete-mumbai-layover-guide.html">Layover guides<svg class="ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+  </nav>
+</div>
+<button class="secnav-fab" id="secnav-fab" aria-label="Jump to a section" aria-expanded="false" aria-controls="secnav-panel">
+  <svg class="icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+  <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+</button>
 
 <!-- HERO -->
 <section class="hero" id="top">
@@ -1664,22 +1746,69 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     }
   };
 
-  // IntersectionObserver for active navigation links highlighting
-  const navLinks = document.querySelectorAll('.nav-links a');
-  const sections = document.querySelectorAll('section[id]');
-  
-  const navObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.getAttribute('id');
-        navLinks.forEach(link => {
-          link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-        });
-      }
-    });
-  }, { threshold: 0.25, rootMargin: "-80px 0px -40% 0px" });
-  
-  sections.forEach(section => navObserver.observe(section));
+  // ---- Active-section spy (scroll-position based, never goes stale) ----
+  // Drives two sets of links independently:
+  //   • Top nav  — range based: each nav item "owns" the page span until the
+  //     next nav item, so it stays put through unlinked in-between sections
+  //     (Gallery, Values…) instead of blanking out or showing the wrong item.
+  //   • Panel    — precise: highlights the exact section you're currently in,
+  //     because the panel lists every section.
+  const topNavLinks = [...document.querySelectorAll('.nav-links a[href^="#"]')];
+  const panelLinks  = [...document.querySelectorAll('.secnav-link[href^="#"]')];
+
+  const idsFor = (links) => links.map(a => a.getAttribute('href').slice(1));
+  const navIds   = idsFor(topNavLinks);              // idea, mumbai, how, routes, faq
+  const allIds   = [...new Set([...navIds, ...idsFor(panelLinks)])]; // + why, gallery, values
+
+  // Pick the last id (in document order) whose section top sits above the line.
+  const pickCurrent = (ids, line) => {
+    let current = null;
+    ids
+      .map(id => ({ id, el: document.getElementById(id) }))
+      .filter(s => s.el)
+      .sort((a, b) => a.el.offsetTop - b.el.offsetTop)
+      .forEach(s => { if (s.el.getBoundingClientRect().top <= line) current = s.id; });
+    return current;
+  };
+
+  const setActive = (links, id) =>
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+
+  let spyTick = false;
+  const updateSpy = () => {
+    spyTick = false;
+    const line = (document.getElementById('nav')?.offsetHeight || 64) + 28;
+    setActive(topNavLinks, pickCurrent(navIds, line));
+    setActive(panelLinks,  pickCurrent(allIds, line));
+  };
+  const requestSpy = () => { if (!spyTick) { spyTick = true; requestAnimationFrame(updateSpy); } };
+  addEventListener('scroll', requestSpy, { passive: true });
+  addEventListener('resize', requestSpy);
+  addEventListener('load', updateSpy);
+  updateSpy();
+
+  // ---- Floating section-nav panel (collapsible "Jump to") ----
+  const fab = document.getElementById('secnav-fab');
+  const panel = document.getElementById('secnav-panel');
+  const scrim = document.getElementById('secnav-scrim');
+  if (fab && panel && scrim) {
+    const setPanel = (open) => {
+      fab.classList.toggle('open', open);
+      panel.classList.toggle('open', open);
+      scrim.classList.toggle('show', open);
+      fab.setAttribute('aria-expanded', String(open));
+      panel.setAttribute('aria-hidden', String(!open));
+    };
+    fab.addEventListener('click', () => setPanel(!panel.classList.contains('open')));
+    scrim.addEventListener('click', () => setPanel(false));
+    panel.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setPanel(false)));
+    addEventListener('keydown', (e) => { if (e.key === 'Escape') setPanel(false); });
+
+    // Reveal the FAB once the hero is out of the way so it never covers it.
+    const toggleFab = () => fab.classList.toggle('show', scrollY > 320);
+    addEventListener('scroll', toggleFab, { passive: true });
+    toggleFab();
+  }
 
   // Modal utility handlers
   const openModal = (modalId) => {
