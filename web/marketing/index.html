@@ -1,13 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Mumbai Layover Tours with Local Student Guides | Detour</title>
 <meta name="description" content="Turn your Mumbai layover into the best part of your trip. A local student guide plans a route around your flight, meets you at BOM, and gets you back with time to spare. Free in early access." />
 <link rel="canonical" href="https://detourtrips.com/" />
-<!-- Detour pin favicon -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 30 C 10 22 6 18 6 13 A 10 10 0 1 1 26 13 C 26 18 22 22 16 30 Z' fill='%23C8542A'/%3E%3Ccircle cx='16' cy='13' r='3.6' fill='%23FCF7EA'/%3E%3C/svg%3E">
 <!-- Open Graph / social preview -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Detour">
@@ -74,994 +72,473 @@
   ]
 }
 </script>
+<!-- Detour pin favicon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 30 C 10 22 6 18 6 13 A 10 10 0 1 1 26 13 C 26 18 22 22 16 30 Z' fill='%23C8542A'/%3E%3Ccircle cx='16' cy='13' r='3.6' fill='%23FCF7EA'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --paper:#F4EDDD; --paper-2:#EBE0C5; --paper-3:#FCF7EA;
-  --ink:#0E1929; --ink-2:#1F2A3D; --ink-mute:#445169;
-  --line:#0E1929; --line-soft:#C5BA9C;
-  --marigold:#E89F2C; --marigold-lt:#FBEACB;
-  --terracotta:#C8542A; --terra-dk:#9E3A1F; --terra-lt:#F7DECC;
-  --sea:#2D7BA9; --sea-dk:#1F5B7E; --sea-lt:#C9DEEB;
-  --taxi:#F4C430; --pink:#D4347A; --olive:#5E7A2C; --green:#3D8B5A;
-  --display:'Bricolage Grotesque',sans-serif;
-  --serif:'Instrument Serif',serif;
-  --body:'Plus Jakarta Sans',sans-serif;
-  --mono:'DM Mono',monospace;
+/* ============ THEME TOKENS ============ */
+:root, [data-theme="light"]{
+  --bg:#F4EDDD; --bg-2:#EBE0C5; --panel:#FCF7EA; --panel-2:#FCF7EA;
+  --ink:#0E1929; --ink-2:#1F2A3D; --mute:#445169;
+  --line:#C5BA9C; --line-2:#0E1929; --line-soft:rgba(14,25,41,.12);
+  --accent:#C8542A; --accent-dk:#9E3A1F; --accent-soft:#F7DECC;
+  --accent-2:#2D7BA9; --accent-2-soft:#C9DEEB; --gold:#E89F2C; --taxi:#F4C430;
+  --em:#C8542A; --eyebrow:#C8542A;
+  --display:'Bricolage Grotesque',sans-serif; --serif:'Instrument Serif',serif;
+  --body:'Plus Jakarta Sans',sans-serif; --mono:'DM Mono',monospace;
+  --btn-shadow:0 5px 0 var(--accent-dk); --btn-shadow-h:0 6px 0 var(--accent-dk); --btn-shadow-a:0 1px 0 var(--accent-dk);
+  --card-bd:1.5px solid var(--line); --card-bd-h:var(--ink);
+  --hairline:1.5px;
+  --grain-op:.4; --mesh-op:0;
   --shadow-card:0 1px 0 rgba(14,25,41,.04),0 2px 6px rgba(14,25,41,.05),0 14px 40px rgba(14,25,41,.08);
-  --ease:cubic-bezier(.2,.8,.2,1);
+  --r:20px;
 }
+[data-theme="dark"]{
+  --bg:#0C1719; --bg-2:#0F1F22; --panel:#13262A; --panel-2:#172E33;
+  --ink:#EAF2F0; --ink-2:#C4D6D2; --mute:#8AA39E;
+  --line:rgba(234,242,240,.12); --line-2:rgba(234,242,240,.22); --line-soft:rgba(234,242,240,.1);
+  --accent:#FF6A3D; --accent-dk:#E0512A; --accent-soft:rgba(255,106,61,.14);
+  --accent-2:#35E0B6; --accent-2-soft:rgba(53,224,182,.14); --gold:#E8B14C; --taxi:#E8B14C;
+  --em:#35E0B6; --eyebrow:#35E0B6;
+  --display:'Space Grotesk',sans-serif; --serif:'Newsreader',serif;
+  --body:'Manrope',sans-serif; --mono:'Space Mono',monospace;
+  --btn-shadow:0 0 0 1px rgba(255,106,61,.4),0 14px 36px -10px var(--accent);
+  --btn-shadow-h:0 0 0 1px rgba(255,106,61,.5),0 18px 44px -10px var(--accent);
+  --btn-shadow-a:0 0 0 1px rgba(255,106,61,.4),0 6px 18px -8px var(--accent);
+  --card-bd:1px solid var(--line); --card-bd-h:var(--line-2);
+  --hairline:1px;
+  --grain-op:0; --mesh-op:.5;
+  --shadow-card:0 24px 60px -28px rgba(0,0,0,.7);
+}
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{font-family:var(--body);color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+body{font-family:var(--body);color:var(--ink);background-color:var(--bg);-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background-color .4s ease,color .4s ease;}
+[data-theme="dark"] body{background-image:
+  radial-gradient(80% 50% at 12% 4%,rgba(255,106,61,.08),transparent 60%),
+  radial-gradient(80% 50% at 88% 8%,rgba(53,224,182,.08),transparent 60%);background-attachment:fixed;}
 a{color:inherit;text-decoration:none;}
 button{font-family:inherit;cursor:pointer;}
 img{display:block;max-width:100%;}
-.wrap{max-width:1180px;margin:0 auto;padding:0 5%;}
-section{padding:96px 0;position:relative;}
-/* paper grain */
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.4;mix-blend-mode:multiply;
+.wrap{max-width:1200px;margin:0 auto;padding:0 5%;}
+section{padding:100px 0;position:relative;}
+::selection{background:var(--accent-2);color:var(--bg);}
+
+/* paper grain (light only) */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opacity:var(--grain-op);mix-blend-mode:multiply;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .15 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  background-size:240px 240px;
-}
-.eyebrow{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--terracotta);display:inline-flex;align-items:center;gap:10px;}
-.eyebrow::before{content:'';width:22px;height:1px;background:var(--terracotta);}
-h2{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.4vw,52px);letter-spacing:-.03em;line-height:1.02;margin:16px 0 16px;}
-h2 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);}
-.lead{font-size:18px;line-height:1.55;color:var(--ink-mute);max-width:640px;}
-.section-head{max-width:760px;margin-bottom:48px;}
+  background-size:240px 240px;transition:opacity .4s ease;}
 
-/* ---------- NAV ---------- */
+.eyebrow{font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--eyebrow);display:inline-flex;align-items:center;gap:11px;}
+.eyebrow::before{content:'';width:24px;height:1px;background:var(--eyebrow);}
+h2{font-family:var(--display);font-weight:700;font-size:clamp(31px,4.6vw,54px);letter-spacing:-.03em;line-height:1.02;margin:18px 0 16px;}
+[data-theme="dark"] h2{font-weight:600;}
+h2 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--em);}
+.lead{font-size:17.5px;line-height:1.6;color:var(--mute);max-width:620px;}
+.section-head{max-width:760px;margin-bottom:50px;}
+.mesh{position:absolute;border-radius:50%;filter:blur(90px);opacity:var(--mesh-op);pointer-events:none;z-index:0;transition:opacity .4s ease;}
+
+/* ============ NAV ============ */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 5%;display:flex;align-items:center;justify-content:space-between;transition:all .3s ease;}
-nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 1px 0 rgba(14,25,41,.08);padding:12px 5%;}
+nav.scrolled{background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--line);padding:12px 5%;}
 .logo{display:flex;align-items:center;gap:11px;}
-.logo .wm{font-family:var(--display);font-weight:800;font-size:25px;letter-spacing:-.04em;color:var(--ink);line-height:1;}
-.logo .wm em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);}
-.logo .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute);margin-top:3px;}
-.nav-links{display:flex;align-items:center;gap:30px;}
-.nav-links a{font-size:14px;font-weight:500;color:var(--ink-2);transition:color .2s;}
-.nav-links a:hover{color:var(--terracotta);}
-.btn-ig{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:9999px;box-shadow:0 4px 0 var(--terra-dk);transition:transform .18s var(--ease),box-shadow .18s ease;}
-.btn-ig:hover{transform:translateY(-1px);box-shadow:0 5px 0 var(--terra-dk);}
-.btn-ig:active{transform:translateY(2px);box-shadow:0 1px 0 var(--terra-dk);}
-@media(max-width:860px){.nav-links{display:none;}}
+.logo .wm{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.04em;color:var(--ink);line-height:1;}
+[data-theme="dark"] .logo .wm{font-weight:700;}
+.logo .wm em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--accent);}
+.logo .tag{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);margin-top:3px;}
+.nav-right{display:flex;align-items:center;gap:26px;}
+.nav-links{display:flex;align-items:center;gap:28px;}
+.nav-links a{font-size:14px;font-weight:600;color:var(--ink-2);transition:color .2s;position:relative;padding-bottom:4px;}
+.nav-links a:hover{color:var(--accent);}
+.nav-links a.active{color:var(--accent);}
+.nav-links a::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent);border-radius:9999px;transform:scaleX(0);transition:transform .25s var(--ease,cubic-bezier(.2,.8,.2,1));}
+.nav-links a.active::after{transform:scaleX(1);}
+.theme-toggle{display:inline-flex;align-items:center;gap:6px;border:var(--hairline) solid var(--line-2);background:transparent;color:var(--ink);border-radius:9999px;padding:7px 9px;transition:all .25s ease;}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent);}
+.theme-toggle svg{width:17px;height:17px;}
+.theme-toggle .ic-sun{display:none;}
+[data-theme="dark"] .theme-toggle .ic-sun{display:block;}
+[data-theme="dark"] .theme-toggle .ic-moon{display:none;}
+.btn-ig{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;background:var(--accent);color:#fff;padding:10px 18px;border-radius:9999px;box-shadow:var(--btn-shadow);transition:transform .18s var(--ease),box-shadow .18s ease,background .2s;}
+.btn-ig:hover{transform:translateY(-1px);box-shadow:var(--btn-shadow-h);background:var(--accent-dk);}
+.btn-ig:active{transform:translateY(2px);box-shadow:var(--btn-shadow-a);}
+@media(max-width:920px){.nav-links{display:none;}}
 
-/* ---------- FLOATING SECTION-NAV PANEL ---------- */
-section[id]{scroll-margin-top:88px;}
-.secnav-fab{
-  position:fixed;right:24px;bottom:24px;z-index:90;
-  width:54px;height:54px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  background:var(--ink);color:var(--paper-3);border:none;cursor:pointer;
-  box-shadow:0 6px 0 var(--terra-dk),0 14px 30px rgba(14,25,41,.28);
-  opacity:0;visibility:hidden;transform:translateY(14px) scale(.9);
-  transition:opacity .3s var(--ease),transform .3s var(--ease),box-shadow .18s ease,visibility .3s;
-}
-.secnav-fab.show{opacity:1;visibility:visible;transform:translateY(0) scale(1);}
-.secnav-fab:hover{transform:translateY(-2px) scale(1);box-shadow:0 8px 0 var(--terra-dk),0 18px 36px rgba(14,25,41,.32);}
-.secnav-fab:active{transform:translateY(1px) scale(.97);}
-.secnav-fab svg{width:23px;height:23px;}
-.secnav-fab .icon-close{display:none;}
-.secnav-fab.open .icon-open{display:none;}
-.secnav-fab.open .icon-close{display:block;}
-.secnav-panel{
-  position:fixed;right:24px;bottom:90px;z-index:91;
-  width:248px;max-width:calc(100vw - 48px);
-  background:var(--paper-3);border:1.5px solid var(--ink);border-radius:18px;
-  box-shadow:6px 6px 0 var(--ink),0 24px 50px rgba(14,25,41,.22);
-  padding:14px;
-  opacity:0;visibility:hidden;transform:translateY(10px) scale(.97);transform-origin:bottom right;
-  transition:opacity .25s var(--ease),transform .25s var(--ease),visibility .25s;
-}
-.secnav-panel.open{opacity:1;visibility:visible;transform:translateY(0) scale(1);}
-.secnav-title{
-  font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--ink-mute);padding:4px 10px 10px;display:flex;align-items:center;gap:8px;
-}
-.secnav-title::before{content:'';width:16px;height:1px;background:var(--terracotta);}
-.secnav-panel nav{position:static;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:0;}
-.secnav-link{
-  display:flex;align-items:center;gap:11px;
-  font-size:14.5px;font-weight:600;color:var(--ink-2);
-  padding:9px 11px;border-radius:10px;text-decoration:none;
-  transition:background .18s ease,color .18s ease;
-}
-.secnav-link::before{
-  content:'';width:6px;height:6px;border-radius:50%;background:var(--line-soft);
-  flex:none;transition:background .18s ease,transform .18s ease;
-}
-.secnav-link:hover{background:var(--paper);color:var(--ink);}
-.secnav-link.active{color:var(--terracotta);background:var(--terra-lt);}
-.secnav-link.active::before{background:var(--terracotta);transform:scale(1.5);}
-.secnav-link .ext{margin-left:auto;opacity:.5;}
-.secnav-scrim{position:fixed;inset:0;z-index:89;background:transparent;visibility:hidden;}
-.secnav-scrim.show{visibility:visible;}
-@media(max-width:520px){
-  .secnav-fab{right:16px;bottom:16px;}
-  .secnav-panel{right:16px;bottom:80px;}
-}
-@media print{.secnav-fab,.secnav-panel,.secnav-scrim{display:none !important;}}
-@media (prefers-reduced-motion: reduce){
-  .secnav-fab,.secnav-panel{transition:opacity .2s ease,visibility .2s ease;}
-}
+/* ============ BUTTONS / CHIPS ============ */
+.btn-primary{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:15px;background:var(--accent);color:#fff;padding:15px 26px;border-radius:9999px;border:none;box-shadow:var(--btn-shadow);transition:transform .18s var(--ease),box-shadow .2s ease,background .2s;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:var(--btn-shadow-h);background:var(--accent-dk);}
+.btn-primary:active{transform:translateY(2px);box-shadow:var(--btn-shadow-a);}
+.btn-ghost{display:inline-flex;align-items:center;gap:9px;font-weight:600;font-size:15px;color:var(--ink);padding:15px 24px;border-radius:9999px;border:var(--hairline) solid var(--line-2);background:transparent;transition:border-color .2s,background .2s,color .2s;}
+.btn-ghost:hover{border-color:var(--accent-2);color:var(--accent-2);background:var(--accent-2-soft);}
+.chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:color-mix(in srgb,var(--ink) 5%,transparent);border:1px solid var(--line);padding:8px 14px;border-radius:9999px;}
+.chip svg{width:14px;height:14px;color:var(--accent-2);}
+.chip.free{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-dk);}
+[data-theme="dark"] .chip.free{color:#FFCBB8;}
+.chip.free svg{color:var(--accent);}
+:root{--ease:cubic-bezier(.2,.8,.2,1);}
 
-/* ---------- HERO ---------- */
-.hero{padding:150px 0 90px;}
-.hero-grid{display:grid;grid-template-columns:1fr 1.02fr;gap:56px;align-items:center;}
-@media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:40px;}}
-.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;background:var(--paper-3);border:1.5px solid var(--ink);padding:7px 14px;border-radius:9999px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;box-shadow:3px 3px 0 var(--ink);transform:rotate(-1deg);margin-bottom:28px;}
-.hero-eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite;}
+/* ============ HERO ============ */
+.hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:flex-end;overflow:hidden;border-bottom:1px solid var(--line);}
+.hero-media{position:absolute;inset:0;z-index:0;background:#0C1719;}
+.hero-media img,.hero-media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.hero-media img.kenburns{animation:kenburns 24s ease-in-out infinite alternate;}
+@keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.1) translateX(-1.5%)}}
+.hero-scrim{position:absolute;inset:0;z-index:1;background:
+  linear-gradient(180deg,rgba(12,23,25,.5) 0%,rgba(12,23,25,.12) 28%,rgba(12,23,25,.28) 56%,rgba(12,23,25,.9) 100%),
+  radial-gradient(120% 80% at 80% 10%,color-mix(in srgb,var(--accent-2) 24%,transparent),transparent 60%);}
+.hero .route-ghost{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;}
+.hero .coord{position:absolute;top:104px;right:6%;z-index:3;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:rgba(252,247,234,.62);}
+.hero .wrap{position:relative;z-index:3;width:100%;padding-top:120px;padding-bottom:78px;}
+.hero-copy{max-width:740px;color:#FCF7EA;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:9px;background:rgba(12,23,25,.5);border:1px solid rgba(252,247,234,.3);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:8px 15px;border-radius:9999px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#FCF7EA;margin-bottom:26px;}
+.hero-eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 10px var(--accent-2);animation:pulse 1.6s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(44px,6.4vw,84px);line-height:.95;letter-spacing:-.045em;color:var(--ink);margin-bottom:26px;}
-.hero h1 .serif{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--terracotta);position:relative;}
-.hero h1 .serif::after{content:'';position:absolute;left:-1%;right:-1%;bottom:.1em;height:.16em;background:var(--marigold);opacity:.45;border-radius:9999px;}
-.hero-sub{font-size:19px;line-height:1.55;color:var(--ink-2);max-width:520px;margin-bottom:30px;}
+.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(46px,7.2vw,92px);line-height:.95;letter-spacing:-.045em;color:#fff;margin:0 0 20px;text-shadow:0 2px 34px rgba(12,23,25,.45);}
+[data-theme="dark"] .hero h1{font-weight:600;}
+.hero h1 .serif{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--em);}
+.hero-sub{font-size:19px;line-height:1.55;color:rgba(252,247,234,.92);max-width:540px;margin-bottom:30px;}
 .hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:30px;}
-.btn-primary{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:15px;background:var(--terracotta);color:var(--paper-3);padding:15px 26px;border-radius:9999px;box-shadow:0 5px 0 var(--terra-dk);transition:transform .18s var(--ease),box-shadow .18s ease;border:none;}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 0 var(--terra-dk);}
-.btn-primary:active{transform:translateY(2px);box-shadow:0 1px 0 var(--terra-dk);}
-.btn-ghost{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;color:var(--ink);padding:15px 22px;border-radius:9999px;border:1.5px solid var(--line-soft);transition:border-color .2s,background .2s;}
-.btn-ghost:hover{border-color:var(--ink);background:var(--paper-3);}
-.trust-row{display:flex;gap:9px;flex-wrap:wrap;}
-.chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--paper-3);border:1px solid var(--line-soft);padding:7px 13px;border-radius:9999px;}
-.chip svg{width:14px;height:14px;color:var(--terracotta);}
-
-/* hero map stage */
-.hero-stage{position:relative;background:var(--sea-lt);border:1.5px solid var(--ink);border-radius:26px;overflow:hidden;min-height:480px;box-shadow:0 24px 60px rgba(14,25,41,.16);}
-.hero-stage .paper-edge{position:absolute;inset:0;background:
-  repeating-linear-gradient(0deg,transparent 0 38px,rgba(31,91,126,.06) 38px 39px),
-  repeating-linear-gradient(90deg,transparent 0 38px,rgba(31,91,126,.06) 38px 39px);}
-.map-label{position:absolute;font-family:var(--serif);font-style:italic;color:var(--sea-dk);}
-.map-city{top:30px;left:34px;font-size:34px;opacity:.55;}
-.map-city small{display:block;font-family:var(--mono);font-style:normal;font-size:9px;letter-spacing:.3em;opacity:.8;margin-top:2px;}
-.map-sea{top:48%;left:24px;font-size:18px;transform:rotate(-90deg);transform-origin:left;opacity:.5;}
-.route-card{position:absolute;background:var(--paper-3);border:1.5px solid var(--ink);border-radius:14px;padding:12px 14px;box-shadow:5px 5px 0 rgba(14,25,41,.14);max-width:215px;}
-.route-card .step{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--terracotta);margin-bottom:5px;}
-.route-card .big{font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:-.02em;}
-.route-card .small{font-size:11.5px;color:var(--ink-mute);margin-top:3px;}
-.rc-1{top:34px;right:26px;}
-.rc-2{bottom:120px;left:30px;}
-.rc-3{bottom:30px;right:34px;background:var(--ink);color:var(--paper-3);}
-.rc-3 .step{color:var(--taxi);}
-.rc-3 .small{color:rgba(244,237,221,.6);}
-.buddy-chip{position:absolute;top:46%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:9px;background:var(--paper-3);border:1.5px solid var(--ink);border-radius:9999px;padding:6px 14px 6px 6px;box-shadow:4px 4px 0 rgba(14,25,41,.16);}
-.buddy-chip .av{width:30px;height:30px;border-radius:50%;background:var(--terracotta);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:14px;}
-.buddy-chip b{font-size:12.5px;}
-.buddy-chip span{font-size:10px;color:var(--ink-mute);display:block;}
-
-/* the route comes alive — the stitch travels from the sea origin toward the pin */
+.hero .btn-ghost{color:#FCF7EA;border-color:rgba(252,247,234,.45);}
+.hero .btn-ghost:hover{background:rgba(252,247,234,.14);border-color:#FCF7EA;color:#FCF7EA;}
+.trust-row{display:flex;gap:10px;flex-wrap:wrap;}
+.hero .chip{background:rgba(252,247,234,.12);border-color:rgba(252,247,234,.3);color:#FCF7EA;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+.hero .chip svg{color:var(--accent-2);}
+.hero .chip.free{background:color-mix(in srgb,var(--accent) 22%,transparent);border-color:var(--accent);color:#FCF7EA;}
+.hero .chip.free svg{color:#FCF7EA;}
+.scroll-cue{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:3;font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:rgba(252,247,234,.6);display:flex;flex-direction:column;align-items:center;gap:8px;}
+.scroll-cue .line{width:1px;height:32px;background:linear-gradient(var(--accent-2),transparent);animation:scrollline 2s ease-in-out infinite;transform-origin:top;}
+@keyframes scrollline{0%,100%{transform:scaleY(.4);opacity:.4}50%{transform:scaleY(1);opacity:1}}
 .route-live{animation:routeflow 3.4s linear infinite;}
 @keyframes routeflow{to{stroke-dashoffset:-100;}}
 .route-ping{transform-box:fill-box;transform-origin:center;animation:routeping 3.4s ease-out infinite;}
-@keyframes routeping{0%{transform:scale(1);opacity:.55;}70%,100%{transform:scale(3.4);opacity:0;}}
-.dot-mid{transform-box:fill-box;transform-origin:center;animation:midpulse 3.4s ease-in-out infinite;}
-@keyframes midpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.28);}}
+@keyframes routeping{0%{transform:scale(1);opacity:.6;}70%,100%{transform:scale(3.6);opacity:0;}}
 .pin-drop{transform-box:fill-box;transform-origin:50% 100%;animation:pinbob 3.4s ease-in-out infinite;}
-@keyframes pinbob{0%,72%,100%{transform:translateY(0);}80%{transform:translateY(-5px);}88%{transform:translateY(0);}}
-@media (prefers-reduced-motion:reduce){
-  .route-live,.route-ping,.dot-mid,.pin-drop{animation:none;}
-  .route-ping{opacity:0;}
-}
+@keyframes pinbob{0%,72%,100%{transform:translateY(0);}80%{transform:translateY(-6px);}88%{transform:translateY(0);}}
+@media(max-width:600px){.scroll-cue{display:none;}}
+@media (prefers-reduced-motion:reduce){.hero-media img.kenburns,.route-live,.route-ping,.pin-drop,.scroll-cue .line{animation:none;}.route-ping{opacity:0;}}
 
-/* ---------- MANIFESTO ---------- */
-.manifesto{background:var(--ink);color:var(--paper);}
-.manifesto .wrap{text-align:center;}
-.manifesto h2{color:var(--paper);max-width:900px;margin:16px auto 0;}
-.manifesto h2 em{color:var(--taxi);}
-.manifesto .eyebrow{color:var(--taxi);}
-.manifesto .eyebrow::before{background:var(--taxi);}
-.manifesto .lead{color:rgba(244,237,221,.7);margin:22px auto 0;text-align:center;}
+/* nav over hero (dark photo) */
+nav:not(.scrolled) .logo .wm{color:#FCF7EA;}
+nav:not(.scrolled) .logo .wm em{color:var(--accent-2);}
+nav:not(.scrolled) .logo .tag{color:rgba(252,247,234,.6);}
+nav:not(.scrolled) .nav-links a{color:rgba(252,247,234,.92);}
+nav:not(.scrolled) .nav-links a:hover,nav:not(.scrolled) .nav-links a.active{color:var(--accent-2);}
+nav:not(.scrolled) .nav-links a.active::after{background:var(--accent-2);}
+nav:not(.scrolled) .theme-toggle{color:#FCF7EA;border-color:rgba(252,247,234,.4);}
+nav:not(.scrolled) .theme-toggle:hover{color:var(--accent-2);border-color:var(--accent-2);}
 
-/* ---------- HORIZONTAL SLIDING WINDOW CAROUSEL ---------- */
-.contrasts-slider-container {
-  width: 100vw;
-  position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-  overflow: hidden;
-}
-.contrasts-slider-track {
-  display: flex;
-  gap: 24px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  padding: 12px 5% 32px;
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
-.contrasts-slider-track::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-}
-@media (min-width: 1180px) {
-  .contrasts-slider-track {
-    padding-left: calc((100vw - 1180px) / 2 + 5%);
-    padding-right: calc((100vw - 1180px) / 2 + 5%);
-  }
-}
-.contrast-card {
-  flex: 0 0 340px;
-  height: 480px;
-  position: relative;
-  border: 1.5px solid var(--ink);
-  border-radius: 26px;
-  overflow: hidden;
-  scroll-snap-align: start;
-  background: var(--ink);
-  box-shadow: var(--shadow-card);
-  transition: transform 0.3s var(--ease), border-color 0.3s, box-shadow 0.3s;
-}
-.contrast-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 48px rgba(14,25,41,0.18);
-}
-.contrast-card .card-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-  transition: transform 0.6s var(--ease);
-}
-.contrast-card:hover .card-img {
-  transform: scale(1.05);
-}
-.contrast-card .duo-gradient {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(180deg, rgba(14,25,41,0) 30%, rgba(14,25,41,0.3) 55%, rgba(14,25,41,0.85) 100%);
-  pointer-events: none;
-}
-.contrast-card .grain {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  opacity: 0.45;
-  mix-blend-mode: overlay;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='ng'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .2 0'/></filter><rect width='100%25' height='100%25' filter='url(%23ng)'/></svg>");
-  background-size: 200px 200px;
-}
-.contrast-card .card-content {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  color: var(--paper-3);
-  pointer-events: none;
-}
-.contrast-card .card-num {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--marigold);
-  margin-bottom: 8px;
-}
-.contrast-card .card-title {
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: clamp(20px, 3vw, 25px);
-  letter-spacing: -.02em;
-  line-height: 1.1;
-  margin-bottom: 8px;
-  color: var(--paper-3);
-}
-.contrast-card .card-title em {
-  font-family: var(--serif);
-  font-style: italic;
-  font-weight: 400;
-  color: var(--taxi);
-}
-.contrast-card .card-desc {
-  font-size: 13.5px;
-  line-height: 1.45;
-  color: rgba(244, 237, 221, 0.85);
-}
-@media(max-width: 480px) {
-  .contrast-card {
-    flex: 0 0 290px;
-    height: 420px;
-  }
-  .contrast-card .card-content {
-    padding: 24px;
-  }
-}
-
-/* Header Controls */
-.section-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  max-width: 100% !important;
-  margin-bottom: 48px;
-  gap: 32px;
-}
-.section-head-text {
-  max-width: 760px;
-}
-.slider-controls {
-  display: flex;
-  gap: 12px;
-  flex-shrink: 0;
-  margin-bottom: 8px;
-}
-.slider-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 1.5px solid var(--ink);
-  background: var(--paper-3);
-  color: var(--ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.25s var(--ease);
-  box-shadow: 3px 3px 0 var(--ink);
-  cursor: pointer;
-}
-.slider-btn:hover {
-  background: var(--terracotta);
-  color: var(--paper-3);
-  transform: translateY(-2px);
-  box-shadow: 4px 4px 0 var(--ink);
-}
-.slider-btn:active {
-  transform: translateY(1px);
-  box-shadow: 1px 1px 0 var(--ink);
-}
-.slider-btn.disabled {
-  opacity: 0.35;
-  pointer-events: none;
-  box-shadow: none;
-  transform: none;
-  border-color: var(--line-soft);
-  color: var(--ink-mute);
-}
-@media (max-width: 760px) {
-  .section-head {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
-  }
-  .slider-controls {
-    align-self: flex-end;
-  }
-}
-
-/* Bottom Progress Tracker */
-.slider-progress-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 28px;
-}
-.slider-progress-bar-bg {
-  width: 200px;
-  height: 4px;
-  background: var(--line-soft);
-  border-radius: 9999px;
-  position: relative;
-  overflow: hidden;
-}
-.slider-progress-bar-fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 20%;
-  background: var(--terracotta);
-  border-radius: 9999px;
-  transition: left 0.15s ease;
-}
-.slider-status-text {
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-mute);
-  min-width: 50px;
-  text-align: right;
-}
-
-/* contrasts footer reveal card */
-.contrasts-footer {
-  margin-top: 48px;
-  background: var(--terracotta);
-  border: 1.5px solid var(--ink);
-  border-radius: 24px;
-  padding: 28px 36px;
-  color: var(--paper-3);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 32px;
-  box-shadow: 0 10px 30px rgba(200, 84, 42, 0.12);
-  transition: transform .3s var(--ease), box-shadow .3s var(--ease);
-}
-.contrasts-footer:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 36px rgba(200, 84, 42, 0.22);
-}
-.cf-left h4 {
-  font-family: var(--display);
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -.02em;
-  line-height: 1.1;
-}
-.cf-left h4 em {
-  font-family: var(--serif);
-  font-style: italic;
-  font-weight: 400;
-  color: var(--taxi);
-}
-.cf-left p {
-  font-size: 14px;
-  color: rgba(252, 247, 234, 0.85);
-  margin-top: 6px;
-}
-.contrasts-footer .btn-primary {
-  background: var(--ink);
-  box-shadow: 0 5px 0 #000;
-  white-space: nowrap;
-}
-.contrasts-footer .btn-primary:hover {
-  box-shadow: 0 6px 0 #000;
-}
-@media(max-width: 760px) {
-  .contrasts-footer {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 32px;
-    gap: 24px;
-  }
-}
-
-
-/* ---------- BUDDIES ---------- */
-.buddy-wrap{display:grid;grid-template-columns:1fr 1.05fr;gap:54px;align-items:center;}
-@media(max-width:900px){.buddy-wrap{grid-template-columns:1fr;}}
-.buddy-text ul{list-style:none;margin:22px 0 0;display:flex;flex-direction:column;gap:14px;}
-.buddy-text li{display:flex;gap:12px;font-size:15px;line-height:1.45;color:var(--ink-2);}
-.buddy-text li svg{width:20px;height:20px;flex-shrink:0;color:var(--terracotta);margin-top:1px;}
-.buddy-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.buddy{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:18px;padding:20px;box-shadow:var(--shadow-card);}
-.buddy .av{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:22px;color:#fff;margin-bottom:12px;}
-.buddy h4{font-family:var(--display);font-weight:700;font-size:17px;display:flex;align-items:center;gap:6px;}
-.buddy h4 svg{width:15px;height:15px;color:var(--green);}
-.buddy .sub{font-size:11.5px;color:var(--ink-mute);margin:4px 0 12px;line-height:1.4;}
-.skills{display:flex;gap:6px;flex-wrap:wrap;}
-.skill{font-size:11px;font-weight:600;padding:4px 9px;border-radius:9999px;background:var(--paper-2);color:var(--ink-2);}
-.ph-note{font-family:var(--mono);font-size:10px;color:var(--ink-mute);margin-top:14px;opacity:.7;}
-
-/* ---------- ROUTES (inspiration) ---------- */
-.routes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
-@media(max-width:900px){.routes{grid-template-columns:1fr;}}
-.route{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:20px;overflow:hidden;transition:transform .2s var(--ease),border-color .2s;}
-.route:hover{transform:translateY(-4px);border-color:var(--ink);}
-.route .ph{height:150px;position:relative;display:flex;align-items:flex-end;padding:16px;color:#fff;}
-.route .ph .badge{position:absolute;top:14px;left:14px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;background:rgba(14,25,41,.55);padding:4px 9px;border-radius:9999px;backdrop-filter:blur(4px);}
-.route .ph .where{font-family:var(--serif);font-style:italic;font-size:20px;}
-.ph.a{background:linear-gradient(135deg,#E89F2C,#C8542A);}
-.ph.b{background:linear-gradient(135deg,#2D7BA9,#1F2A3D);}
-.ph.c{background:linear-gradient(135deg,#D4347A,#9E3A1F);}
-.route .body{padding:18px 18px 22px;}
-.route h3{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.02em;margin-bottom:8px;}
-.route p{font-size:13.5px;color:var(--ink-mute);line-height:1.5;margin-bottom:14px;}
-.route .stops{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:11.5px;color:var(--ink-2);}
-.route .stops .s{background:var(--paper-2);padding:3px 8px;border-radius:7px;font-weight:600;}
-.route .stops .ar{color:var(--terracotta);}
-
-/* ---------- IMAGE SYSTEM (full-colour photos) ---------- */
-/* route photos -> full colour, gentle zoom on hover */
-.route .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;transition:transform .6s var(--ease);}
-.route:hover .ph img{transform:scale(1.06);}
-.route .ph::after{content:'';position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,rgba(14,25,41,.05) 30%,rgba(14,25,41,.62) 100%);}
-.route .ph .badge,.route .ph .where{position:relative;z-index:3;}
-.route .ph .grain{position:absolute;inset:0;z-index:2;opacity:.45;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='ng'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .2 0'/></filter><rect width='100%25' height='100%25' filter='url(%23ng)'/></svg>");background-size:200px 200px;}
-
-/* buddy avatars -> real (full-colour) faces, never duotone */
-.buddy .av{overflow:hidden;background:var(--paper-2);}
-.buddy .av img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
-
-/* duotone atmosphere band — a section break */
-.break-band{padding:0;}
-.break-band .band{position:relative;border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);overflow:hidden;min-height:420px;display:flex;align-items:flex-end;transform:translateZ(0);}
-.break-band .band img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease);}
-.break-band:hover .band img{transform:scale(1.04);}
-.break-band .band::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,25,41,0) 35%,rgba(14,25,41,.72) 100%);}
-.break-band .grain{position:absolute;inset:0;z-index:2;opacity:.5;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'><filter id='nb'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .2 0'/></filter><rect width='100%25' height='100%25' filter='url(%23nb)'/></svg>");background-size:220px 220px;}
-.break-band .route-ghost{position:absolute;inset:0;width:100%;height:100%;z-index:2;}
-.break-band .band-copy{position:relative;z-index:3;padding:46px 6%;max-width:1180px;margin:0 auto;width:100%;color:var(--paper-3);}
-.break-band .band-copy .step{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--taxi);}
-.break-band .band-copy h3{font-family:var(--display);font-weight:800;font-size:clamp(30px,4vw,46px);letter-spacing:-.035em;line-height:1.03;margin-top:10px;max-width:760px;}
-.break-band .band-copy h3 em{font-family:var(--serif);font-style:italic;font-weight:400;color:#F1B27E;}
-.break-band .coord{position:absolute;top:18px;right:6%;z-index:3;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:rgba(252,247,234,.75);}
-
-/* ---------- ETHICS ---------- */
-.ethics{background:var(--paper-3);}
-.ethics-list{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-@media(max-width:760px){.ethics-list{grid-template-columns:1fr;}}
-.ethics-item{display:flex;gap:14px;background:var(--paper);border:1.5px solid var(--line-soft);border-radius:16px;padding:18px;}
-.ethics-item .lbl{font-family:var(--mono);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--terracotta);background:var(--terra-lt);padding:5px 10px;border-radius:8px;height:fit-content;white-space:nowrap;}
-.ethics-item h4{font-family:var(--display);font-weight:700;font-size:15.5px;margin-bottom:5px;}
-.ethics-item p{font-size:13px;color:var(--ink-mute);line-height:1.5;}
-
-/* ---------- REVIEWS ---------- */
-.reviews{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
-@media(max-width:860px){.reviews{grid-template-columns:1fr;}}
-.review{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:18px;padding:24px;box-shadow:var(--shadow-card);}
-.stars{display:flex;gap:3px;margin-bottom:14px;color:var(--taxi);}
-.stars svg{width:16px;height:16px;}
-.review .q{font-size:15px;line-height:1.55;color:var(--ink-2);margin-bottom:18px;}
-.review .by{display:flex;align-items:center;gap:11px;}
-.review .av{width:38px;height:38px;border-radius:50%;background:var(--sea);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;}
-.review .name{font-weight:700;font-size:14px;}
-.review .ctx{font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);}
-
-/* ---------- CITIES ---------- */
-.cities{background:var(--ink);color:var(--paper);}
-.cities .eyebrow{color:var(--taxi);}.cities .eyebrow::before{background:var(--taxi);}
-.cities h2{color:var(--paper);}.cities h2 em{color:var(--taxi);}
-.cities .lead{color:rgba(244,237,221,.7);}
-.city-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:40px;}
-.city-pill{display:flex;align-items:center;gap:10px;background:rgba(244,237,221,.06);border:1.5px solid rgba(244,237,221,.16);border-radius:14px;padding:16px 22px;}
-.city-pill .dot{width:9px;height:9px;border-radius:50%;background:var(--green);}
-.city-pill.soon{opacity:.6;}
-.city-pill.soon .dot{background:var(--marigold);}
-.city-pill b{font-family:var(--display);font-weight:700;font-size:18px;}
-.city-pill span{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(244,237,221,.55);}
-
-/* ---------- FINAL CTA ---------- */
-.final{text-align:center;background:var(--terracotta);color:var(--paper-3);border-radius:30px;padding:72px 32px;position:relative;overflow:hidden;margin:0 auto;}
-.final h2{color:var(--paper-3);}
-.final h2 em{color:var(--taxi);}
-.final p{font-size:18px;color:rgba(252,247,234,.85);max-width:540px;margin:14px auto 30px;line-height:1.5;}
-.final .btn-primary{background:var(--ink);box-shadow:0 5px 0 #000;}
-.final .btn-primary:hover{box-shadow:0 6px 0 #000;}
-.final .trustline{font-family:var(--mono);font-size:12px;letter-spacing:.06em;margin-top:22px;color:rgba(252,247,234,.7);}
-
-/* ---------- FOOTER ---------- */
-footer{background:var(--ink);color:rgba(244,237,221,.7);padding:64px 0 32px;}
-.foot{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr;gap:32px;}
-@media(max-width:760px){.foot{grid-template-columns:1fr 1fr;}}
-.foot .logo .wm{color:var(--paper);}
-.foot p{font-size:13.5px;line-height:1.55;margin-top:14px;max-width:280px;}
-.foot h5{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--taxi);margin-bottom:14px;}
-.foot a{display:block;font-size:13.5px;margin-bottom:9px;color:rgba(244,237,221,.7);transition:color .2s;}
-.foot a:hover{color:var(--paper);}
-.foot-legal{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:48px;padding-top:24px;border-top:1px solid rgba(244,237,221,.12);font-family:var(--mono);font-size:11.5px;}
-.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
-.reveal.in{opacity:1;transform:none;}
-
-/* ---------- ACCESSIBILITY FOCUS INDICATORS ---------- */
-a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex="0"]:focus-visible {
-  outline: 2px solid var(--terracotta);
-  outline-offset: 4px;
-}
-
-/* ---------- DYNAMIC ACTIVE NAV ---------- */
-.nav-links a {
-  position: relative;
-  padding-bottom: 4px;
-}
-.nav-links a.active {
-  color: var(--terracotta) !important;
-}
-.nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--terracotta);
-  border-radius: 9999px;
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform .25s var(--ease);
-}
-.nav-links a.active::after {
-  transform: scaleX(1);
-}
-
-/* ---------- MODALS & DIALOGS ---------- */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  background: rgba(14, 25, 41, 0.45);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .35s var(--ease);
-}
-.modal-overlay.open {
-  opacity: 1;
-  pointer-events: auto;
-}
-.modal-card {
-  background: var(--paper-3);
-  border: 1.5px solid var(--ink);
-  border-radius: 24px;
-  width: 100%;
-  max-width: 520px;
-  padding: 36px;
-  box-shadow: 0 30px 90px rgba(14, 25, 41, 0.24);
-  position: relative;
-  transform: translateY(30px) scale(0.96);
-  transition: transform .35s var(--ease), opacity .35s var(--ease);
-}
-.modal-overlay.open .modal-card {
-  transform: translateY(0) scale(1);
-}
-.modal-close {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: none;
-  border: none;
-  font-size: 26px;
-  line-height: 1;
-  font-weight: 700;
-  color: var(--ink-mute);
-  transition: color .2s;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-}
-.modal-close:hover {
-  color: var(--ink);
-  background: var(--paper-2);
-}
-.modal-header {
-  margin-bottom: 24px;
-}
-.modal-header h2 {
-  font-family: var(--display);
-  font-size: clamp(24px, 3.5vw, 32px);
-  font-weight: 700;
-  letter-spacing: -.02em;
-  margin: 8px 0 0;
-  line-height: 1.1;
-}
-
-/* Forms */
-.form-group {
-  margin-bottom: 20px;
-}
-.form-group label {
-  display: block;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-  margin-bottom: 6px;
-}
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group input[type="date"],
-.form-group textarea {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1.5px solid var(--line-soft);
-  background: var(--paper);
-  font-family: inherit;
-  font-size: 14.5px;
-  color: var(--ink);
-  transition: border-color .2s, box-shadow .2s;
-}
-.form-group input[type="text"]:focus,
-.form-group input[type="email"]:focus,
-.form-group input[type="date"]:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: var(--ink);
-  background: var(--paper-3);
-  box-shadow: 0 0 0 3px rgba(200, 84, 42, 0.1);
-}
-.form-row {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 16px;
-}
-@media(max-width:480px){
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-}
-.slider-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-top: 10px;
-}
-.slider-container input[type="range"] {
-  flex-grow: 1;
-  accent-color: var(--terracotta);
-  cursor: pointer;
-  height: 6px;
-  border-radius: 9999px;
-  background: var(--line-soft);
-}
-.slider-container span {
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--terracotta);
-  white-space: nowrap;
-  background: var(--terra-lt);
-  padding: 2px 8px;
-  border-radius: 6px;
-}
-.success-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 16px;
-  display: block;
-}
-
-/* Route Timeline Drawer */
-.drawer-card {
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-.route-badge {
-  font-family: var(--mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  background: var(--terra-lt);
-  color: var(--terracotta);
-  padding: 4px 10px;
-  border-radius: 9999px;
-  display: inline-block;
-  margin-bottom: 12px;
-}
-.drawer-card.theme-sea .route-badge {
-  background: var(--sea-lt);
-  color: var(--sea-dk);
-}
-.timeline {
-  position: relative;
-  margin: 28px 0 20px 10px;
-  padding-left: 24px;
-  border-left: 1.5px dashed var(--line-soft);
-}
-.timeline-item {
-  position: relative;
-  margin-bottom: 28px;
-}
-.timeline-item:last-child {
-  margin-bottom: 0;
-}
-.timeline-badge {
-  position: absolute;
-  left: -33px;
-  top: 2px;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: var(--paper-3);
-  border: 1.5px solid var(--ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.timeline-badge::after {
-  content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--terracotta);
-}
-.timeline-item.origin .timeline-badge::after {
-  background: var(--sea);
-}
-.timeline-item.destination .timeline-badge::after {
-  background: var(--taxi);
-}
-.timeline-time {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--terracotta);
-}
-.timeline-item.origin .timeline-time {
-  color: var(--sea);
-}
-.timeline-title {
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 16px;
-  margin: 3px 0 2px;
-}
-.timeline-desc {
-  font-size: 13.5px;
-  color: var(--ink-mute);
-  line-height: 1.45;
-}
-
-/* Route Hover State */
-.route {
-  cursor: pointer;
-}
-
-/* ---------- WHY DETOUR (value cards) ---------- */
-.why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
-@media(max-width:900px){.why-grid{grid-template-columns:1fr;}}
-.why-card{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:20px;padding:32px 28px;box-shadow:var(--shadow-card);transition:transform .2s var(--ease),border-color .2s,box-shadow .2s;}
-.why-card:hover{transform:translateY(-4px);border-color:var(--ink);box-shadow:0 18px 44px rgba(14,25,41,.12);}
-.why-ic{width:56px;height:56px;border-radius:15px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;border:1.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink);}
-.why-ic svg{width:27px;height:27px;}
-.why-card h3{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.02em;margin-bottom:9px;}
-.why-card p{font-size:14px;line-height:1.55;color:var(--ink-mute);}
-
-/* ---------- HOW IT WORKS ---------- */
-.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
-@media(max-width:900px){.how-grid{grid-template-columns:1fr;}}
-.how-step{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:20px;padding:32px 28px;box-shadow:var(--shadow-card);transition:transform .2s var(--ease),border-color .2s;}
-.how-step:hover{transform:translateY(-4px);border-color:var(--ink);}
-.how-num{font-family:var(--display);font-weight:800;font-size:25px;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--ink);color:var(--paper-3);margin-bottom:18px;box-shadow:0 4px 0 var(--terra-dk);}
-.how-step .mono-tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--terracotta);display:block;margin-bottom:8px;}
-.how-step h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em;margin-bottom:8px;}
-.how-step p{font-size:14px;line-height:1.55;color:var(--ink-mute);}
-
-/* ---------- GALLERY ---------- */
-.gallery-grid{columns:3 280px;column-gap:16px;}
-.gallery-grid .g-item{break-inside:avoid;margin-bottom:16px;position:relative;border:1.5px solid var(--ink);border-radius:18px;overflow:hidden;box-shadow:var(--shadow-card);}
-.gallery-grid img{width:100%;display:block;transition:transform .6s var(--ease);}
-.gallery-grid .g-item:hover img{transform:scale(1.05);}
-.gallery-grid .grain{position:absolute;inset:0;z-index:2;opacity:.4;mix-blend-mode:overlay;pointer-events:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='ng'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .2 0'/></filter><rect width='100%25' height='100%25' filter='url(%23ng)'/></svg>");background-size:200px 200px;}
-@media(max-width:600px){.gallery-grid{columns:2 150px;}}
-
-/* ---------- FAQ ACCORDION ---------- */
-.faq-list{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
-.faq-item{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:16px;overflow:hidden;transition:border-color .2s,box-shadow .2s;}
-.faq-item.open{border-color:var(--ink);box-shadow:var(--shadow-card);}
-.faq-q{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px;background:none;border:none;text-align:left;font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.01em;color:var(--ink);}
-.faq-ico{flex-shrink:0;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;transition:transform .3s var(--ease),background .2s,color .2s,border-color .2s;}
-.faq-ico svg{width:13px;height:13px;}
-.faq-item.open .faq-ico{transform:rotate(45deg);background:var(--terracotta);color:var(--paper-3);border-color:var(--terracotta);}
-.faq-a{max-height:0;overflow:hidden;transition:max-height .35s var(--ease);}
-.faq-a-inner{padding:0 22px 20px;font-size:14.5px;line-height:1.6;color:var(--ink-mute);}
-
-/* ---------- EARLY-ACCESS CHIP ---------- */
-.chip.free{background:var(--terra-lt);border-color:var(--terracotta);color:var(--terra-dk);}
-.chip.free svg{color:var(--terracotta);}
-
-/* ---------- BOOKING MODAL — REQUEST FORM ---------- */
-#booking-modal .modal-card{max-width:560px;max-height:90vh;overflow-y:auto;}
-.form-status{display:none;text-align:center;padding:28px 12px;}
-.form-status.show{display:block;}
-.form-status h3{font-family:var(--display);font-weight:700;font-size:22px;margin-bottom:8px;}
-.form-status p{font-size:14px;color:var(--ink-mute);line-height:1.55;max-width:360px;margin:0 auto;}
-.btn-submit{width:100%;justify-content:center;border:none;margin-top:4px;}
-.btn-submit[disabled]{opacity:.6;pointer-events:none;}
-
-/* ---------- HERO STAGE NOTE ---------- */
-.stage-note{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--sea-dk);opacity:.65;white-space:nowrap;}
-
-/* ---------- STREET TICKER ---------- */
-.ticker-band{border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);background:var(--taxi);padding:13px 0;overflow:hidden;}
-.ticker-track{display:flex;gap:0;width:max-content;animation:tickerscroll 38s linear infinite;}
+/* ============ TICKER ============ */
+.ticker-band{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-2);padding:14px 0;overflow:hidden;}
+[data-theme="light"] .ticker-band{background:var(--taxi);border-color:var(--ink);}
+.ticker-track{display:flex;width:max-content;animation:tickerscroll 40s linear infinite;}
 .ticker-band:hover .ticker-track{animation-play-state:paused;}
-.ticker-item{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.04em;color:var(--ink);white-space:nowrap;padding:0 14px;display:inline-flex;align-items:center;gap:14px;}
-.ticker-item::after{content:'✦';font-size:10px;opacity:.55;margin-left:14px;}
+.ticker-item{font-family:var(--mono);font-size:13px;letter-spacing:.02em;color:var(--ink-2);white-space:nowrap;padding:0 16px;display:inline-flex;align-items:center;}
+[data-theme="light"] .ticker-item{color:var(--ink);}
+.ticker-item b{color:var(--accent-2);font-weight:700;}
+[data-theme="light"] .ticker-item b{color:var(--accent-dk);}
+.ticker-item::after{content:'/';margin-left:32px;color:var(--mute);opacity:.5;}
+[data-theme="light"] .ticker-item::after{content:'✦';font-size:10px;color:var(--ink);opacity:.5;}
 @keyframes tickerscroll{to{transform:translateX(-50%);}}
 @media (prefers-reduced-motion:reduce){.ticker-track{animation:none;}}
 
-/* ---------- VIDEO IN ATMOSPHERE BAND ---------- */
-.break-band .band video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
-.break-band .band img.kenburns{animation:kenburns 18s ease-in-out infinite alternate;}
-@keyframes kenburns{from{transform:scale(1) translateX(0);}to{transform:scale(1.08) translateX(-1.5%);}}
-@media (prefers-reduced-motion:reduce){.break-band .band img.kenburns{animation:none;}}
+/* ============ MANIFESTO ============ */
+.manifesto{background:var(--bg-2);overflow:hidden;}
+.manifesto .wrap{text-align:center;position:relative;z-index:1;}
+.manifesto h2{max-width:920px;margin:18px auto 0;}
+.manifesto .lead{margin:24px auto 0;text-align:center;}
 
-/* ---------- FOUNDER NOTE ---------- */
-.founder{background:var(--paper-2);}
-.founder-card{max-width:760px;margin:0 auto;background:var(--paper-3);border:1.5px solid var(--ink);border-radius:24px;padding:44px 48px;box-shadow:6px 6px 0 rgba(14,25,41,.12);position:relative;transform:rotate(-.4deg);}
-@media(max-width:600px){.founder-card{padding:32px 24px;}}
-.founder-card .stamp{position:absolute;top:-16px;right:32px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;background:var(--terracotta);color:var(--paper-3);padding:7px 13px;border-radius:9999px;transform:rotate(2deg);box-shadow:2px 2px 0 var(--ink);}
-.founder-card p{font-size:16.5px;line-height:1.7;color:var(--ink-2);margin-bottom:16px;}
+/* ============ CARD base ============ */
+.card{background:var(--panel);border:var(--card-bd);border-radius:var(--r);box-shadow:var(--shadow-card);transition:transform .25s var(--ease),border-color .25s,box-shadow .25s;}
+[data-theme="dark"] .card{background:linear-gradient(180deg,var(--panel),var(--bg-2));}
+.card:hover{transform:translateY(-5px);border-color:var(--card-bd-h);}
+
+/* ============ HOW ============ */
+.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+@media(max-width:900px){.how-grid{grid-template-columns:1fr;}}
+.how-step{padding:34px 30px;}
+.how-num{font-family:var(--display);font-weight:800;font-size:22px;width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--accent-soft);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);margin-bottom:20px;}
+[data-theme="light"] .how-num{background:var(--ink);color:var(--panel);border:none;border-radius:50%;box-shadow:0 4px 0 var(--accent-dk);}
+.how-step .mono-tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:9px;}
+.how-step h3{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.02em;margin-bottom:9px;}
+[data-theme="dark"] .how-step h3{font-weight:600;}
+.how-step p{font-size:14.5px;line-height:1.6;color:var(--mute);}
+
+/* ============ MUMBAI MOSAIC ============ */
+.contrast-grid{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:200px;gap:16px;}
+.ct{position:relative;border-radius:var(--r);overflow:hidden;border:var(--hairline) solid var(--line);grid-column:span 4;}
+.ct.tall{grid-row:span 2;}
+.ct.wide{grid-column:span 8;}
+.ct.half{grid-column:span 6;}
+.ct img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .7s var(--ease);}
+.ct:hover img{transform:scale(1.07);}
+.ct::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,23,25,0) 30%,rgba(12,23,25,.5) 64%,rgba(12,23,25,.92) 100%);}
+.ct .ct-body{position:absolute;inset:0;z-index:2;padding:22px;display:flex;flex-direction:column;justify-content:flex-end;}
+.ct .num{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2);margin-bottom:7px;}
+[data-theme="light"] .ct .num{color:var(--taxi);}
+.ct h3{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.02em;color:#fff;margin-bottom:6px;}
+[data-theme="dark"] .ct h3{font-weight:600;}
+.ct h3 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--gold);}
+.ct p{font-size:13px;line-height:1.45;color:rgba(252,247,234,.85);max-width:34ch;opacity:0;transform:translateY(8px);transition:opacity .3s var(--ease),transform .3s var(--ease);}
+.ct:hover p{opacity:1;transform:none;}
+@media(max-width:900px){.contrast-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:190px;}.ct,.ct.wide,.ct.half{grid-column:span 1;}.ct.tall{grid-row:span 1;}.ct p{opacity:1;transform:none;}}
+@media(max-width:560px){.contrast-grid{grid-template-columns:1fr;}}
+
+/* ============ DETOUR TICKETS ============ */
+.tickets{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;}
+@media(max-width:720px){.tickets{grid-template-columns:1fr;max-width:440px;margin:0 auto;}}
+@media(min-width:721px) and (max-width:900px){.tickets{grid-template-columns:repeat(2,1fr);}}
+.ticket{position:relative;cursor:pointer;transition:transform .25s var(--ease);}
+.ticket:hover{transform:translateY(-6px);}
+.ticket-inner{position:relative;background:var(--panel);border:var(--hairline) solid var(--line-2);border-radius:18px;box-shadow:var(--shadow-card);}
+[data-theme="dark"] .ticket-inner{background:linear-gradient(180deg,var(--panel),var(--bg-2));}
+.ticket-photo{position:relative;height:150px;overflow:hidden;border-radius:18px 18px 0 0;}
+.ticket-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s var(--ease);}
+.ticket:hover .ticket-photo img{transform:scale(1.06);}
+.ticket-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,23,25,.05) 30%,rgba(12,23,25,.7) 100%);}
+.ticket-photo .badge{position:absolute;top:13px;left:13px;z-index:2;white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;background:rgba(12,23,25,.55);border:1px solid rgba(252,247,234,.25);color:#FCF7EA;padding:5px 10px;border-radius:9999px;backdrop-filter:blur(6px);}
+.ticket-photo .where{position:absolute;left:16px;bottom:12px;z-index:2;white-space:nowrap;font-family:var(--serif);font-style:italic;font-size:20px;color:#fff;}
+.ticket-main{padding:20px 22px 14px;}
+.ticket-head{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:12px;}
+.ticket-head .code{color:var(--accent);font-weight:700;}
+.ticket-main h3{font-family:var(--display);font-weight:700;font-size:18.5px;letter-spacing:-.02em;margin-bottom:8px;}
+[data-theme="dark"] .ticket-main h3{font-weight:600;}
+.ticket-main p{font-size:13px;color:var(--mute);line-height:1.5;margin-bottom:14px;}
+.routeline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--ink-2);}
+.routeline .pt{display:inline-flex;align-items:center;gap:6px;}
+.routeline .pt::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent-2);}
+.routeline .pt.end::before{background:var(--accent);}
+.routeline .seg{flex:1;min-width:14px;height:0;border-top:1.5px dashed var(--line);}
+/* perforation */
+.perf{position:relative;height:26px;margin:0 22px;border-top:1.5px dashed var(--line);top:13px;}
+.perf::before,.perf::after{content:'';position:absolute;top:-13px;width:24px;height:24px;border-radius:50%;background:var(--bg);border:var(--hairline) solid var(--line-2);}
+.perf::before{left:-34px;}
+.perf::after{right:-34px;}
+[data-theme="dark"] .perf::before,[data-theme="dark"] .perf::after{background:var(--bg);}
+.ticket-stub{padding:6px 22px 20px;}
+.stub-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stub-stats .st{display:flex;flex-direction:column;gap:3px;}
+.stub-stats .st .k{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);}
+.stub-stats .st .v{font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink);}
+[data-theme="dark"] .stub-stats .st .v{font-weight:600;}
+.stub-stats .st.fare .v{color:var(--accent);}
+.stub-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.barcode{height:34px;flex:1;background-image:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 5px,transparent 5px 9px,var(--ink) 9px 12px,transparent 12px 14px,var(--ink) 14px 15px,transparent 15px 18px);opacity:.85;border-radius:2px;}
+.stub-cta{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);white-space:nowrap;font-weight:700;}
+[data-theme="light"] .stub-cta{color:var(--accent);}
+
+/* ============ BAND ============ */
+.break-band{padding:0;}
+.break-band .band{position:relative;border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;min-height:460px;display:flex;align-items:flex-end;}
+.break-band .band img,.break-band .band video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.break-band .band img.kenburns{animation:kenburns 22s ease-in-out infinite alternate;}
+.break-band .band::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,23,25,.08) 30%,rgba(12,23,25,.86) 100%);}
+.break-band .route-ghost{position:absolute;inset:0;width:100%;height:100%;z-index:2;}
+.break-band .band-copy{position:relative;z-index:3;padding:52px 6%;max-width:1200px;margin:0 auto;width:100%;color:#FCF7EA;}
+.break-band .band-copy .step{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-2);}
+.break-band .band-copy h3{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.2vw,50px);letter-spacing:-.035em;line-height:1.04;margin-top:12px;max-width:780px;color:#fff;}
+[data-theme="dark"] .break-band .band-copy h3{font-weight:600;}
+.break-band .band-copy h3 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--gold);}
+.break-band .coord{position:absolute;top:20px;right:6%;z-index:3;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:rgba(252,247,234,.7);}
+
+/* ============ PROMISE ============ */
+.why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+@media(max-width:900px){.why-grid{grid-template-columns:1fr;}}
+.why-card{padding:30px 28px;}
+.why-ic{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;border:1px solid var(--line-2);background:color-mix(in srgb,var(--ink) 4%,transparent);}
+[data-theme="light"] .why-ic{box-shadow:3px 3px 0 var(--ink);}
+.why-ic svg{width:24px;height:24px;color:var(--accent-2);}
+.why-card.coral .why-ic svg{color:var(--accent);}
+.why-card.coral .why-ic{border-color:color-mix(in srgb,var(--accent) 35%,transparent);background:var(--accent-soft);}
+.why-card.gold .why-ic svg{color:var(--gold);}
+.why-card h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em;margin-bottom:9px;}
+[data-theme="dark"] .why-card h3{font-weight:600;}
+.why-card p{font-size:14px;line-height:1.6;color:var(--mute);}
+
+/* ============ GALLERY ============ */
+.gallery-grid{columns:3 280px;column-gap:16px;}
+.gallery-grid .g-item{break-inside:avoid;margin-bottom:16px;position:relative;border:var(--hairline) solid var(--line-2);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card);}
+.gallery-grid img{width:100%;display:block;transition:transform .6s var(--ease);}
+.gallery-grid .g-item:hover img{transform:scale(1.05);}
+@media(max-width:600px){.gallery-grid{columns:2 150px;}}
+
+/* ============ FOUNDER ============ */
+.founder{background:var(--bg-2);}
+.founder-card{max-width:780px;margin:0 auto;background:var(--panel);border:var(--hairline) solid var(--line-2);border-radius:24px;padding:46px 50px;position:relative;}
+[data-theme="dark"] .founder-card{background:linear-gradient(180deg,var(--panel),var(--bg-2));}
+[data-theme="light"] .founder-card{box-shadow:6px 6px 0 rgba(14,25,41,.12);transform:rotate(-.4deg);}
+@media(max-width:600px){.founder-card{padding:34px 26px;}}
+.founder-card .stamp{position:absolute;top:-14px;left:40px;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;background:var(--accent);color:#fff;padding:7px 14px;border-radius:9999px;}
+[data-theme="light"] .founder-card .stamp{box-shadow:2px 2px 0 var(--ink);transform:rotate(2deg);}
+.founder-card p{font-size:16.5px;line-height:1.75;color:var(--ink-2);margin-bottom:16px;}
 .founder-card p:last-of-type{margin-bottom:0;}
-.founder-card .sign{font-family:var(--serif);font-style:italic;font-size:26px;color:var(--terracotta);margin-top:22px;}
-.founder-card .sign small{display:block;font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute);margin-top:6px;}
-.founder-card a{color:var(--terracotta);text-decoration:underline;text-underline-offset:3px;}
+.founder-card .sign{font-family:var(--serif);font-style:italic;font-size:27px;color:var(--em);margin-top:24px;}
+.founder-card .sign small{display:block;font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:7px;}
+.founder-card a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;}
 
-/* ---------- EMAIL CAPTURE STRIP ---------- */
-.capture{background:var(--ink);color:var(--paper);}
-.capture-inner{display:flex;align-items:center;justify-content:space-between;gap:36px;flex-wrap:wrap;}
-.capture h3{font-family:var(--display);font-weight:700;font-size:clamp(22px,3vw,30px);letter-spacing:-.025em;line-height:1.1;}
-.capture h3 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--taxi);}
-.capture p{font-size:14.5px;color:rgba(244,237,221,.65);margin-top:8px;max-width:440px;line-height:1.5;}
+/* ============ FAQ ============ */
+.faq-list{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
+.faq-item{background:var(--panel);border:var(--hairline) solid var(--line);border-radius:16px;overflow:hidden;transition:border-color .2s,box-shadow .2s;}
+.faq-item.open{border-color:var(--accent-2);box-shadow:var(--shadow-card);}
+[data-theme="light"] .faq-item.open{border-color:var(--ink);}
+.faq-q{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:21px 24px;background:none;border:none;text-align:left;font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.01em;color:var(--ink);}
+[data-theme="dark"] .faq-q{font-weight:600;}
+.faq-ico{flex-shrink:0;width:25px;height:25px;border-radius:50%;border:var(--hairline) solid var(--line-2);display:flex;align-items:center;justify-content:center;transition:transform .3s var(--ease),background .2s,color .2s,border-color .2s;color:var(--ink-2);}
+.faq-ico svg{width:13px;height:13px;}
+.faq-item.open .faq-ico{transform:rotate(45deg);background:var(--accent);color:#fff;border-color:var(--accent);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s var(--ease);}
+.faq-a-inner{padding:0 24px 22px;font-size:14.5px;line-height:1.65;color:var(--mute);}
+
+/* ============ CAPTURE ============ */
+.capture{background:var(--bg-2);}
+.capture-inner{display:flex;align-items:center;justify-content:space-between;gap:36px;flex-wrap:wrap;background:var(--panel);border:var(--hairline) solid var(--line-2);border-radius:24px;padding:40px 44px;}
+[data-theme="dark"] .capture-inner{background:linear-gradient(120deg,var(--panel),var(--bg-2));}
+.capture h3{font-family:var(--display);font-weight:700;font-size:clamp(23px,3vw,32px);letter-spacing:-.025em;line-height:1.1;}
+[data-theme="dark"] .capture h3{font-weight:600;}
+.capture h3 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--em);}
+.capture p{font-size:14.5px;color:var(--mute);margin-top:9px;max-width:440px;line-height:1.55;}
 .capture-form{display:flex;gap:10px;flex:1;min-width:280px;max-width:440px;}
-.capture-form input{flex:1;padding:14px 18px;border-radius:9999px;border:1.5px solid rgba(244,237,221,.25);background:rgba(244,237,221,.07);color:var(--paper);font-family:inherit;font-size:14.5px;}
-.capture-form input::placeholder{color:rgba(244,237,221,.45);}
-.capture-form input:focus{outline:none;border-color:var(--taxi);}
+.capture-form input{flex:1;padding:14px 18px;border-radius:9999px;border:var(--hairline) solid var(--line-2);background:color-mix(in srgb,var(--ink) 4%,transparent);color:var(--ink);font-family:inherit;font-size:14.5px;}
+.capture-form input::placeholder{color:var(--mute);}
+.capture-form input:focus{outline:none;border-color:var(--accent-2);}
 .capture-form .btn-primary{padding:14px 22px;white-space:nowrap;}
-.capture-done{font-family:var(--mono);font-size:13px;color:var(--taxi);display:none;}
+.capture-done{font-family:var(--mono);font-size:13px;color:var(--accent-2);display:none;}
+.capture-done a{color:var(--gold);text-decoration:underline;text-underline-offset:2px;}
 
-/* ---------- APP COMING SOON ---------- */
-.app-soon{margin-top:30px;padding-top:26px;border-top:1px solid rgba(252,247,234,.25);display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
-.app-badge{display:inline-flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:14px;color:var(--paper-3);border:1.5px solid rgba(252,247,234,.45);border-radius:12px;padding:10px 18px;position:relative;opacity:.92;}
-.app-badge::after{content:'soon';position:absolute;top:-9px;right:-10px;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;background:var(--taxi);color:var(--ink);padding:3px 7px;border-radius:9999px;transform:rotate(3deg);}
-.app-soon-label{flex-basis:100%;font-size:12.5px;color:rgba(252,247,234,.75);margin-top:4px;}
+/* ============ FINAL ============ */
+.final{position:relative;overflow:hidden;text-align:center;border-radius:28px;padding:74px 32px;}
+[data-theme="light"] .final{background:var(--accent);color:#FCF7EA;}
+[data-theme="light"] .final h2,[data-theme="light"] .final .eyebrow{color:#FCF7EA;}
+[data-theme="light"] .final h2 em{color:var(--taxi);}
+[data-theme="light"] .final p{color:rgba(252,247,234,.85);}
+[data-theme="light"] .final .btn-primary{background:var(--ink);box-shadow:0 5px 0 #000;}
+[data-theme="light"] .final .eyebrow::before{background:#FCF7EA;}
+[data-theme="dark"] .final{border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);background:radial-gradient(120% 120% at 50% 0%,rgba(255,106,61,.22),transparent 60%),linear-gradient(180deg,var(--panel-2),var(--bg-2));}
+[data-theme="dark"] .final h2 em{color:var(--accent-2);}
+.final p{font-size:18px;color:var(--ink-2);max-width:540px;margin:14px auto 30px;line-height:1.5;}
+.final .trustline{font-family:var(--mono);font-size:12px;letter-spacing:.06em;margin-top:24px;color:var(--mute);}
+[data-theme="light"] .final .trustline{color:rgba(252,247,234,.7);}
+.app-soon{margin-top:30px;padding-top:26px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
+[data-theme="light"] .app-soon{border-top-color:rgba(252,247,234,.25);}
+.app-badge{display:inline-flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:14px;color:var(--ink);border:1px solid var(--line-2);border-radius:12px;padding:10px 18px;position:relative;}
+[data-theme="light"] .app-badge{color:#FCF7EA;border-color:rgba(252,247,234,.45);}
+.app-badge::after{content:'soon';position:absolute;top:-9px;right:-10px;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;background:var(--accent-2);color:var(--bg);padding:3px 7px;border-radius:9999px;}
+[data-theme="light"] .app-badge::after{background:var(--taxi);color:var(--ink);}
+.app-soon-label{flex-basis:100%;font-size:12.5px;color:var(--mute);margin-top:4px;}
+[data-theme="light"] .app-soon-label{color:rgba(252,247,234,.75);}
+
+/* ============ FOOTER ============ */
+footer{background:var(--bg-2);border-top:1px solid var(--line);color:var(--mute);padding:64px 0 34px;}
+[data-theme="light"] footer{background:var(--ink);color:rgba(244,237,221,.7);border:none;}
+.foot{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr;gap:32px;}
+@media(max-width:760px){.foot{grid-template-columns:1fr 1fr;}}
+[data-theme="light"] .foot .logo .wm{color:#F4EDDD;}
+[data-theme="light"] .foot .logo .tag{color:rgba(244,237,221,.5);}
+.foot p{font-size:13.5px;line-height:1.6;margin-top:14px;max-width:280px;}
+.foot h5{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2);margin-bottom:14px;}
+[data-theme="light"] .foot h5{color:var(--taxi);}
+.foot a{display:block;font-size:13.5px;margin-bottom:9px;color:var(--mute);transition:color .2s;}
+[data-theme="light"] .foot a{color:rgba(244,237,221,.7);}
+.foot a:hover{color:var(--ink);}
+[data-theme="light"] .foot a:hover{color:#F4EDDD;}
+.foot-legal{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:48px;padding-top:24px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11.5px;}
+[data-theme="light"] .foot-legal{border-top-color:rgba(244,237,221,.12);}
+
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.reveal.in{opacity:1;transform:none;}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:4px;}
+
+/* ============ MODALS ============ */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(8,14,16,.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .35s var(--ease);}
+[data-theme="light"] .modal-overlay{background:rgba(14,25,41,.45);}
+.modal-overlay.open{opacity:1;pointer-events:auto;}
+.modal-card{background:var(--panel);border:var(--hairline) solid var(--line-2);border-radius:24px;width:100%;max-width:520px;padding:38px;box-shadow:0 40px 100px rgba(0,0,0,.5);position:relative;transform:translateY(30px) scale(.96);transition:transform .35s var(--ease);}
+[data-theme="dark"] .modal-card{background:linear-gradient(180deg,var(--panel-2),var(--bg-2));}
+.modal-overlay.open .modal-card{transform:translateY(0) scale(1);}
+.modal-close{position:absolute;top:20px;right:20px;background:none;border:none;font-size:26px;line-height:1;font-weight:700;color:var(--mute);transition:color .2s,background .2s;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,transparent);}
+.modal-header{margin-bottom:24px;}
+.modal-header h2{font-family:var(--display);font-size:clamp(24px,3.5vw,32px);font-weight:700;letter-spacing:-.02em;margin:8px 0 0;line-height:1.1;}
+[data-theme="dark"] .modal-header h2{font-weight:600;}
+.modal-header h2 em{font-family:var(--serif);font-style:italic;color:var(--em);}
+.form-group{margin-bottom:20px;}
+.form-group label{display:block;font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-bottom:7px;}
+.form-group input,.form-group textarea{width:100%;padding:12px 16px;border-radius:12px;border:var(--hairline) solid var(--line-2);background:color-mix(in srgb,var(--ink) 4%,transparent);font-family:inherit;font-size:14.5px;color:var(--ink);transition:border-color .2s,box-shadow .2s;}
+.form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--accent-2);box-shadow:0 0 0 3px var(--accent-2-soft);}
+.form-group input::placeholder,.form-group textarea::placeholder{color:var(--mute);}
+.form-row{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;}
+@media(max-width:480px){.form-row{grid-template-columns:1fr;gap:0;}}
+.btn-submit{width:100%;justify-content:center;margin-top:4px;}
+.btn-submit[disabled]{opacity:.6;pointer-events:none;}
+.form-status{display:none;text-align:center;padding:18px 12px;}
+.form-status.show{display:block;}
+.form-status h3{font-family:var(--display);font-weight:700;font-size:22px;margin-bottom:8px;}
+.form-status p{font-size:14px;color:var(--mute);line-height:1.55;max-width:360px;margin:0 auto;}
+.success-icon{width:64px;height:64px;margin:0 auto 16px;display:block;}
+.drawer-card{max-width:600px;max-height:90vh;overflow-y:auto;}
+.route-badge{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;background:var(--accent-2-soft);color:var(--accent-2);padding:5px 11px;border-radius:9999px;display:inline-block;margin-bottom:12px;}
+[data-theme="light"] .route-badge{color:var(--accent);background:var(--accent-soft);}
+.timeline{position:relative;margin:28px 0 20px 10px;padding-left:24px;border-left:1.5px dashed var(--line-2);}
+.timeline-item{position:relative;margin-bottom:26px;}
+.timeline-item:last-child{margin-bottom:0;}
+.timeline-badge{position:absolute;left:-33px;top:2px;width:17px;height:17px;border-radius:50%;background:var(--panel);border:1.5px solid var(--line-2);display:flex;align-items:center;justify-content:center;}
+.timeline-badge::after{content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);}
+.timeline-item.origin .timeline-badge::after{background:var(--accent-2);}
+.timeline-item.destination .timeline-badge::after{background:var(--gold);}
+.timeline-time{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);}
+.timeline-item.origin .timeline-time{color:var(--accent-2);}
+.timeline-title{font-family:var(--display);font-weight:700;font-size:16px;margin:4px 0 2px;}
+[data-theme="dark"] .timeline-title{font-weight:600;}
+.timeline-desc{font-size:13.5px;color:var(--mute);line-height:1.45;}
+.modal-scroll{max-height:80vh;overflow-y:auto;}
+.legal-body{font-size:13.5px;color:var(--mute);line-height:1.65;display:flex;flex-direction:column;gap:12px;}
+.legal-body b{color:var(--ink-2);}
+.legal-body a{color:var(--accent);text-decoration:underline;}
+
+/* ============ FLOATING SECTION NAV ============ */
+.secnav-fab{position:fixed;right:24px;bottom:24px;z-index:150;display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.04em;background:var(--accent);color:#fff;border:none;padding:13px 18px;border-radius:9999px;box-shadow:var(--btn-shadow);cursor:pointer;opacity:0;visibility:hidden;transform:translateY(12px);transition:opacity .3s var(--ease),transform .25s var(--ease),background .2s,box-shadow .2s;}
+.secnav-fab.show{opacity:1;visibility:visible;transform:none;}
+.secnav-fab:hover{background:var(--accent-dk);box-shadow:var(--btn-shadow-h);}
+.secnav-fab:active{transform:translateY(2px);box-shadow:var(--btn-shadow-a);}
+.secnav-fab svg{width:15px;height:15px;}
+.secnav-fab .ic-close{display:none;}
+.secnav-fab.open .ic-open{display:none;}
+.secnav-fab.open .ic-close{display:block;}
+.secnav-scrim{position:fixed;inset:0;z-index:149;background:rgba(8,14,16,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease;}
+.secnav-scrim.show{opacity:1;visibility:visible;}
+.secnav-panel{position:fixed;right:24px;bottom:84px;z-index:151;width:236px;background:var(--panel);border:var(--hairline) solid var(--line-2);border-radius:18px;box-shadow:var(--shadow-card);padding:12px;opacity:0;visibility:hidden;transform:translateY(12px) scale(.97);transform-origin:bottom right;transition:opacity .25s var(--ease),transform .25s var(--ease),visibility .25s;}
+[data-theme="dark"] .secnav-panel{background:linear-gradient(180deg,var(--panel-2),var(--bg-2));}
+.secnav-panel.open{opacity:1;visibility:visible;transform:none;}
+.secnav-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);padding:4px 10px 10px;}
+.secnav-link{display:block;font-size:14px;font-weight:600;color:var(--ink-2);padding:9px 11px;border-radius:11px;transition:background .15s,color .15s;}
+.secnav-link:hover{background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--accent);}
+.secnav-link.active{color:var(--accent);background:var(--accent-soft);}
+[data-theme="dark"] .secnav-link.active{color:#FFCBB8;}
+@media(max-width:600px){.secnav-fab{right:16px;bottom:16px;padding:12px 15px;}.secnav-panel{right:16px;bottom:74px;width:212px;}}
+@media print{.secnav-fab,.secnav-panel,.secnav-scrim{display:none !important;}}
+@media (prefers-reduced-motion:reduce){.secnav-fab,.secnav-panel{transition:opacity .2s ease,visibility .2s ease;}}
 </style>
-<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-54QYM83DKF"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-54QYM83DKF');
+  // apply saved theme ASAP to avoid flash
+  try{var t=localStorage.getItem('detour-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}
 </script>
 <!-- UTM attribution tracker (capture → persist → GA → stamp forms) -->
 <script src="assets/utm.js" defer></script>
 </head>
 <body>
 
-<!-- duotone filters: shadows->ink, mids->terracotta/sea, highlights->cream. tritone + midtone lift keeps brand tint on dark photos -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <filter id="duo-terra" color-interpolation-filters="sRGB">
-    <feColorMatrix type="matrix" values="0.34 0.5 0.16 0 0  0.34 0.5 0.16 0 0  0.34 0.5 0.16 0 0  0 0 0 1 0"/>
-    <feComponentTransfer>
-      <feFuncR type="gamma" amplitude="1" exponent="0.68" offset="0"/>
-      <feFuncG type="gamma" amplitude="1" exponent="0.68" offset="0"/>
-      <feFuncB type="gamma" amplitude="1" exponent="0.68" offset="0"/>
-    </feComponentTransfer>
-    <feComponentTransfer>
-      <feFuncR type="table" tableValues="0.055 0.784 0.988"/>
-      <feFuncG type="table" tableValues="0.098 0.329 0.945"/>
-      <feFuncB type="table" tableValues="0.160 0.165 0.870"/>
-    </feComponentTransfer>
-  </filter>
-  <filter id="duo-sea" color-interpolation-filters="sRGB">
-    <feColorMatrix type="matrix" values="0.34 0.5 0.16 0 0  0.34 0.5 0.16 0 0  0.34 0.5 0.16 0 0  0 0 0 1 0"/>
-    <feComponentTransfer>
-      <feFuncR type="gamma" amplitude="1" exponent="0.68" offset="0"/>
-      <feFuncG type="gamma" amplitude="1" exponent="0.68" offset="0"/>
-      <feFuncB type="gamma" amplitude="1" exponent="0.68" offset="0"/>
-    </feComponentTransfer>
-    <feComponentTransfer>
-      <feFuncR type="table" tableValues="0.055 0.176 0.860"/>
-      <feFuncG type="table" tableValues="0.098 0.482 0.910"/>
-      <feFuncB type="table" tableValues="0.160 0.663 0.945"/>
-    </feComponentTransfer>
-  </filter>
-</svg>
-
 <!-- NAV -->
 <nav id="nav">
   <a class="logo" href="#top">
-    <svg width="50" height="40" viewBox="0 0 92 74" aria-hidden="true">
-      <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#0E1929" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/>
-      <circle cx="8" cy="60" r="4.5" fill="#2D7BA9"/>
+    <svg width="48" height="38" viewBox="0 0 92 74" aria-hidden="true">
+      <path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8" style="color:var(--accent-2)"/>
+      <circle cx="8" cy="60" r="4.5" fill="var(--accent-2)"/>
       <path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/>
       <circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/>
     </svg>
@@ -1070,148 +547,108 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       <div class="tag">Mumbai · BOM</div>
     </div>
   </a>
-  <div class="nav-links">
-    <a href="#idea">The idea</a>
-    <a href="#mumbai">Mumbai</a>
-    <a href="#how">How it works</a>
-    <a href="#routes">Detours</a>
-    <a href="guides/complete-mumbai-layover-guide.html">Layover guides</a>
-    <a href="#faq">FAQ</a>
+  <div class="nav-right">
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#mumbai">Mumbai</a>
+      <a href="#routes">Detours</a>
+      <a href="guides/complete-mumbai-layover-guide.html">Guides</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light or dark mode">
+      <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+    </button>
+    <a class="btn-ig" href="https://www.instagram.com/detour_trips/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      Follow
+    </a>
   </div>
-  <a class="btn-ig" href="https://www.instagram.com/detour_trips/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-    Follow the journey
-  </a>
 </nav>
-
-<!-- FLOATING SECTION NAV (collapsible jump-to panel) -->
-<div class="secnav-scrim" id="secnav-scrim"></div>
-<div class="secnav-panel" id="secnav-panel" role="dialog" aria-label="Jump to a section" aria-hidden="true">
-  <div class="secnav-title">Jump to</div>
-  <nav aria-label="Page sections">
-    <a class="secnav-link" href="#idea">The idea</a>
-    <a class="secnav-link" href="#why">Why a local</a>
-    <a class="secnav-link" href="#mumbai">Why Mumbai</a>
-    <a class="secnav-link" href="#how">How it works</a>
-    <a class="secnav-link" href="#routes">Detours</a>
-    <a class="secnav-link" href="#gallery">Gallery</a>
-    <a class="secnav-link" href="#values">How we travel</a>
-    <a class="secnav-link" href="#faq">FAQ</a>
-    <a class="secnav-link" href="guides/complete-mumbai-layover-guide.html">Layover guides<svg class="ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
-  </nav>
-</div>
-<button class="secnav-fab" id="secnav-fab" aria-label="Jump to a section" aria-expanded="false" aria-controls="secnav-panel">
-  <svg class="icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
-  <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-</button>
 
 <!-- HERO -->
 <section class="hero" id="top">
-  <div class="wrap hero-grid">
-    <div>
-      <span class="hero-eyebrow"><span class="pulse"></span> Launching soon · Mumbai first · free in early access</span>
-      <h1>Turn your Mumbai layover into a <span class="serif">story.</span></h1>
-      <p class="hero-sub">You've got eight hours in Mumbai and no idea what's possible. We match you with a local college student who does — they plan a route around your flight, meet you at arrivals, and get you back with time to spare.</p>
+  <div class="hero-media">
+    <img src="images/hero-gateway-night.jpg" alt="Gateway of India and the Mumbai waterfront after dark" class="kenburns" id="hero-fallback">
+    <video id="hero-video" autoplay muted loop playsinline preload="metadata" poster="images/hero-gateway-night.jpg" style="display:none;">
+      <source src="https://videos.pexels.com/video-files/35370261/14986410_1080_1920_30fps.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="hero-scrim"></div>
+  <svg class="route-ghost" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">
+    <path class="route-live" d="M110 130 C 520 210 700 520 1000 560 S 1410 720 1500 760" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="1 10" stroke-linecap="round" opacity=".8" style="color:var(--accent-2)"/>
+    <circle class="route-ping" cx="110" cy="130" r="9" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-2)"/>
+    <circle cx="110" cy="130" r="7" fill="currentColor" stroke="#0C1719" stroke-width="2" style="color:var(--accent-2)"/>
+    <g class="pin-drop">
+      <path d="M1500 748 C 1492 738 1486 732 1486 724 a14 14 0 1 1 28 0 c0 8 -6 14 -14 24 z" fill="#C8542A" stroke="#0C1719" stroke-width="2"/>
+      <circle cx="1500" cy="724" r="5" fill="#FCF7EA"/>
+    </g>
+  </svg>
+  <span class="coord">BOM · 19.0760°N 72.8777°E</span>
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="hero-eyebrow"><span class="pulse"></span> Mumbai first · free in early access</span>
+      <h1>Your layover is a <span class="serif">city</span> you haven't met yet.</h1>
+      <p class="hero-sub">A Mumbai student plans a route around your flight, meets you at arrivals, and gets you back with time to spare.</p>
       <div class="hero-ctas">
-        <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
+        <button class="btn-primary btn-trigger-booking">Request a Detour
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
-        <a class="btn-ghost" href="#idea">See the idea</a>
+        <a class="btn-ghost" href="#how">See how it works</a>
       </div>
       <div class="trust-row">
         <span class="chip free"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 8.2l7.1-.6z"/></svg> Free in early access</span>
         <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> English-speaking buddies</span>
-        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Always back with a buffer</span>
-      </div>
-    </div>
-
-    <!-- MAP STAGE -->
-    <div class="hero-stage">
-      <div class="paper-edge"></div>
-      <div class="map-label map-city">Mumbai<small>City of Dreams</small></div>
-      <div class="map-label map-sea">Arabian Sea</div>
-
-      <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 520 480" preserveAspectRatio="none" aria-hidden="true">
-        <path class="route-live" d="M60 60 C 150 70 200 150 230 230 S 320 360 380 420" fill="none" stroke="#1F2A3D" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round"/>
-        <circle class="route-ping" cx="60" cy="60" r="7" fill="none" stroke="#2D7BA9" stroke-width="2"/>
-        <circle cx="60" cy="60" r="7" fill="#2D7BA9" stroke="#0E1929" stroke-width="2"/>
-        <circle class="dot-mid" cx="230" cy="230" r="6" fill="#F4C430" stroke="#0E1929" stroke-width="2"/>
-        <g class="pin-drop">
-          <path d="M380 408 C 372 398 366 392 366 384 a14 14 0 1 1 28 0 c0 8 -6 14 -14 24 z" fill="#C8542A" stroke="#0E1929" stroke-width="2"/>
-          <circle cx="380" cy="384" r="5" fill="#FCF7EA"/>
-        </g>
-      </svg>
-
-      <div class="route-card rc-1">
-        <div class="step">Step 01 · Arrival</div>
-        <div class="big">Land at BOM</div>
-        <div class="small">Terminal 2 · your buddy is notified</div>
-      </div>
-      <div class="buddy-chip">
-        <span class="av">A</span>
-        <div><b>Arjun is on the way</b><span>3rd-year engineering student</span></div>
-      </div>
-      <div class="stage-note">How a detour unfolds — illustration, not a live feed</div>
-      <div class="route-card rc-2">
-        <div class="step">Live · via Sea Link</div>
-        <div class="big">42 min to the city</div>
-        <div class="small">light traffic · AC cab</div>
-      </div>
-      <div class="route-card rc-3">
-        <div class="step">Your detour ends</div>
-        <div class="big">Marine Drive · sunset</div>
-        <div class="small">back at T2 with a 90-min buffer</div>
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Back with a buffer</span>
       </div>
     </div>
   </div>
+  <div class="scroll-cue"><span>Scroll</span><span class="line"></span></div>
 </section>
 
-<!-- MANIFESTO -->
-<section class="manifesto" id="idea">
-  <div class="wrap">
-    <span class="eyebrow">The idea</span>
-    <h2>A layover is dead time. A <em>detour</em> is a story you didn't expect to bring home.</h2>
-    <p class="lead">Millions of travellers pass through Mumbai every year and never leave the terminal — too unsure, too nervous, too short on time. Detour opens that door. A local student walks out of arrivals with you, and the city stops being intimidating about four minutes later.</p>
-  </div>
-</section>
-
-<!-- STREET TICKER — real numbers from the street -->
+<!-- TICKER -->
 <div class="ticker-band" aria-hidden="true">
   <div class="ticker-track">
-    <span class="ticker-item">Vada pav · ₹20</span>
-    <span class="ticker-item">Cutting chai at an Irani café · ₹25</span>
-    <span class="ticker-item">Sea Link crossing · 8 min</span>
-    <span class="ticker-item">Airport to Marine Drive · ~45 min</span>
-    <span class="ticker-item">Kala Ghoda art walk · free</span>
-    <span class="ticker-item">Sunset on the sea wall · also free</span>
-    <span class="ticker-item">Bun maska at Kyani · ₹60</span>
-    <span class="ticker-item">Left-luggage at BOM · by the hour</span>
-    <span class="ticker-item">Vada pav · ₹20</span>
-    <span class="ticker-item">Cutting chai at an Irani café · ₹25</span>
-    <span class="ticker-item">Sea Link crossing · 8 min</span>
-    <span class="ticker-item">Airport to Marine Drive · ~45 min</span>
-    <span class="ticker-item">Kala Ghoda art walk · free</span>
-    <span class="ticker-item">Sunset on the sea wall · also free</span>
-    <span class="ticker-item">Bun maska at Kyani · ₹60</span>
-    <span class="ticker-item">Left-luggage at BOM · by the hour</span>
+    <span class="ticker-item">Vada pav <b>₹20</b></span>
+    <span class="ticker-item">Cutting chai at an Irani café <b>₹25</b></span>
+    <span class="ticker-item">Sea Link crossing <b>8 min</b></span>
+    <span class="ticker-item">Airport to Marine Drive <b>~45 min</b></span>
+    <span class="ticker-item">Kala Ghoda art walk <b>free</b></span>
+    <span class="ticker-item">Sunset on the sea wall <b>also free</b></span>
+    <span class="ticker-item">Bun maska at Kyani <b>₹60</b></span>
+    <span class="ticker-item">Left-luggage at BOM <b>by the hour</b></span>
+    <span class="ticker-item">Vada pav <b>₹20</b></span>
+    <span class="ticker-item">Cutting chai at an Irani café <b>₹25</b></span>
+    <span class="ticker-item">Sea Link crossing <b>8 min</b></span>
+    <span class="ticker-item">Airport to Marine Drive <b>~45 min</b></span>
+    <span class="ticker-item">Kala Ghoda art walk <b>free</b></span>
+    <span class="ticker-item">Sunset on the sea wall <b>also free</b></span>
+    <span class="ticker-item">Bun maska at Kyani <b>₹60</b></span>
+    <span class="ticker-item">Left-luggage at BOM <b>by the hour</b></span>
   </div>
 </div>
 
-<!-- DUOTONE ATMOSPHERE BAND (section break) -->
+<!-- MANIFESTO -->
+<section class="manifesto" id="idea">
+  <div class="mesh" style="width:420px;height:420px;background:rgba(53,224,182,.22);top:-120px;left:-60px;"></div>
+  <div class="mesh" style="width:380px;height:380px;background:rgba(255,106,61,.18);bottom:-120px;right:-40px;"></div>
+  <div class="wrap">
+    <span class="eyebrow" style="justify-content:center;">The idea</span>
+    <h2>A layover is dead time. A <em>detour</em> is a story you didn't expect to bring home.</h2>
+    <p class="lead">A local student walks out of arrivals with you — and the city stops being intimidating about four minutes later.</p>
+  </div>
+</section>
+
+<!-- BAND -->
 <section class="break-band">
   <div class="band">
     <img src="images/hero-skyline-main.jpg" alt="Mumbai skyline at dusk, seen between flights" loading="lazy" class="kenburns" id="band-fallback" />
-    <!-- "Mumbai's iconic BMC building at twilight" by RAJU THAPA — Pexels (free for commercial use,
-         no attribution required: pexels.com/license). Plays from videos/ if you self-host via
-         get-videos.sh; otherwise streams straight from the Pexels CDN. -->
     <video id="band-video" autoplay muted loop playsinline preload="metadata" poster="images/hero-skyline-main.jpg" style="display:none;">
-      <source src="videos/mumbai-twilight.mp4" type="video/mp4">
       <source src="https://videos.pexels.com/video-files/35370261/14986410_1080_1920_30fps.mp4" type="video/mp4">
     </video>
-    <div class="grain"></div>
     <span class="coord">19.0760°N · 72.8777°E · BOM</span>
     <svg class="route-ghost" viewBox="0 0 1600 480" preserveAspectRatio="none" aria-hidden="true">
-      <path class="route-live" d="M120 150 C 460 190 640 330 920 350 S 1320 420 1480 340" fill="none" stroke="#F4EDDD" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round" opacity="0.85"/>
-      <circle cx="120" cy="150" r="6" fill="#F4C430" stroke="#0E1929" stroke-width="1.5"/>
+      <path class="route-live" d="M120 150 C 460 190 640 330 920 350 S 1320 420 1480 340" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round" opacity="0.85" style="color:var(--accent-2)"/>
+      <circle cx="120" cy="150" r="6" fill="currentColor" stroke="#0C1719" stroke-width="1.5" style="color:var(--accent-2)"/>
     </svg>
     <div class="band-copy">
       <div class="step">The city, between flights</div>
@@ -1220,183 +657,28 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   </div>
 </section>
 
-<!-- WHY DETOUR -->
-<section id="why">
-  <div class="wrap">
-    <div class="section-head"><div class="section-head-text">
-      <span class="eyebrow">Why Detour</span>
-      <h2>Why explore with a <em>local student?</em></h2>
-      <p class="lead">Skip the tourist traps and the airport-taxi anxiety. See the city through someone who actually lives it — on a schedule built around your flight.</p>
-    </div></div>
-    <div class="why-grid">
-      <div class="why-card reveal">
-        <div class="why-ic" style="background:var(--terra-lt);color:var(--terracotta);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1 2.5 3 6 3s6-2 6-3v-5"/></svg></div>
-        <h3>Smart &amp; cultured</h3>
-        <p>Your buddy is a vetted student from one of Mumbai's top colleges — fluent in English and in the city's shortcuts, food, and stories.</p>
-      </div>
-      <div class="why-card reveal">
-        <div class="why-ic" style="background:var(--sea-lt);color:var(--sea-dk);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
-        <h3>Flight-safe by design</h3>
-        <p>Every route is built around your departure time, with live traffic buffers — so you're always back at BOM with time to spare.</p>
-      </div>
-      <div class="why-card reveal">
-        <div class="why-ic" style="background:var(--marigold-lt);color:var(--terra-dk);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M3 9V7a2 2 0 0 1 2-2h11"/><path d="M16 13h.01"/></svg></div>
-        <h3>Transparent pricing</h3>
-        <p>Your buddy's time is free while we're in early access. Everything else you pay directly, at the price a local pays — a vada pav is ₹20, and your buddy will tell you when something's overpriced before you reach for your wallet.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- MUMBAI / CONTRASTS -->
-<section id="mumbai">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="section-head-text">
-        <span class="eyebrow">Why Mumbai first</span>
-        <h2>Mumbai isn't one city. It's <em>seven contradictions</em> stacked on one peninsula.</h2>
-        <p class="lead">That's exactly why it stays in your head long after the flight. Every block is a different city — slide or swipe to explore them all.</p>
-      </div>
-      <div class="slider-controls">
-        <button class="slider-btn disabled" id="slider-prev" aria-label="Scroll left">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        </button>
-        <button class="slider-btn" id="slider-next" aria-label="Scroll right">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        </button>
-      </div>
-    </div>
-    
-    <div class="contrasts-slider-container">
-      <div class="contrasts-slider-track">
-        
-        <!-- Card 1 -->
-        <div class="contrast-card">
-          <img class="card-img" src="images/gallery-sealink.jpg" alt="Sea and skyline" loading="lazy">
-          <div class="duo-gradient"></div>
-          <div class="grain"></div>
-          <div class="card-content">
-            <span class="card-num">01 · Geography</span>
-            <h3 class="card-title">Sea <em>&amp;</em> skyline.</h3>
-            <p class="card-desc">The refreshing Arabian Sea breeze along the Marine Drive crescent meeting the towering glass skyline of the Worli Sea Link coastline.</p>
-          </div>
-        </div>
-        
-        <!-- Card 2 -->
-        <div class="contrast-card">
-          <img class="card-img" src="images/gallery-local-train.jpg" alt="Chaos and calm" loading="lazy">
-          <div class="duo-gradient"></div>
-          <div class="grain"></div>
-          <div class="card-content">
-            <span class="card-num">02 · Tempo</span>
-            <h3 class="card-title">Chaos <em>&amp;</em> calm.</h3>
-            <p class="card-desc">A local train at CSMT in rush hour will rearrange your idea of crowded. Twenty minutes away, Banganga Tank is so quiet you can hear the temple bells across the water.</p>
-          </div>
-        </div>
-        
-        <!-- Card 3 -->
-        <div class="contrast-card">
-          <img class="card-img" src="images/hero-skyline-side.jpg" alt="Old and new" loading="lazy">
-          <div class="duo-gradient"></div>
-          <div class="grain"></div>
-          <div class="card-content">
-            <span class="card-num">03 · Time</span>
-            <h3 class="card-title">Old <em>&amp;</em> new.</h3>
-            <p class="card-desc">Centuries-old, beautifully preserved wooden Portuguese cottages in Khotachiwadi standing in the shadow of the sprawling financial high-rises of BKC.</p>
-          </div>
-        </div>
-        
-        <!-- Card 4 -->
-        <div class="contrast-card">
-          <img class="card-img" src="images/gallery-chai.jpg" alt="Street and lounges" loading="lazy">
-          <div class="duo-gradient"></div>
-          <div class="grain"></div>
-          <div class="card-content">
-            <span class="card-num">04 · Plate</span>
-            <h3 class="card-title">Street <em>&amp;</em> lounges.</h3>
-            <p class="card-desc">Piping hot, spicy midnight street food at Mohammed Ali Road contrasting with the high-concept speakeasy lounges of Colaba and Bandra.</p>
-          </div>
-        </div>
-        
-        <!-- Card 5 -->
-        <div class="contrast-card">
-          <img class="card-img" src="images/gallery-csmt.jpg" alt="Gothic and docks" loading="lazy">
-          <div class="duo-gradient"></div>
-          <div class="grain"></div>
-          <div class="card-content">
-            <span class="card-num">05 · Stone</span>
-            <h3 class="card-title">Gothic <em>&amp;</em> docks.</h3>
-            <p class="card-desc">The majestic Victorian stone carvings of Crawford and CSMT standing alongside the raw, salt-crusted maritime history of the Sassoon Docks.</p>
-          </div>
-        </div>
-        
-        <!-- Card 6 -->
-        <div class="contrast-card">
-          <img class="card-img" src="images/gallery-bazaar.jpg" alt="Grit and gold" loading="lazy">
-          <div class="duo-gradient"></div>
-          <div class="grain"></div>
-          <div class="card-content">
-            <span class="card-num">06 · Spirit</span>
-            <h3 class="card-title">Grit <em>&amp;</em> gold.</h3>
-            <p class="card-desc">At Crawford Market a wholesaler will sell you a single mango like it's a business deal. Ten minutes up the hill, Malabar's old mansions sit behind banyan trees pretending the city isn't there.</p>
-          </div>
-        </div>
-        
-        <!-- Card 7 -->
-        <div class="contrast-card">
-          <img class="card-img" src="images/gallery-temple.jpg" alt="Stars and shrines" loading="lazy">
-          <div class="duo-gradient"></div>
-          <div class="grain"></div>
-          <div class="card-content">
-            <span class="card-num">07 · Culture</span>
-            <h3 class="card-title">Stars <em>&amp;</em> shrines.</h3>
-            <p class="card-desc">The shimmering Bollywood movie marquees of Bandra existing alongside the ancient spiritual path of Haji Ali Mosque extending into the Arabian Sea.</p>
-          </div>
-        </div>
-        
-      </div>
-      
-      <div class="slider-progress-wrap">
-        <span class="slider-status-text">01 / 07</span>
-        <div class="slider-progress-bar-bg">
-          <div class="slider-progress-bar-fill" id="slider-progress-fill"></div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="contrasts-footer reveal">
-      <div class="cf-left">
-        <h4>Your detour. We show you <em>all of it.</em></h4>
-        <p>Whichever of these cities you want — your buddy grew up moving between all seven.</p>
-      </div>
-      <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
-    </div>
-  </div>
-</section>
-
 <!-- HOW IT WORKS -->
 <section id="how">
   <div class="wrap">
-    <div class="section-head"><div class="section-head-text">
+    <div class="section-head">
       <span class="eyebrow">How it works</span>
       <h2>Three steps from <em>terminal to the city.</em></h2>
       <p class="lead">No haggling, no guesswork. Tell us about your layover and we handle the rest.</p>
-    </div></div>
+    </div>
     <div class="how-grid">
-      <div class="how-step reveal">
+      <div class="card how-step reveal">
         <div class="how-num">1</div>
         <span class="mono-tag">Step 01</span>
         <h3>Share your layover</h3>
         <p>Send your arrival and departure times. We work out the real free window you have after immigration and bag-drop.</p>
       </div>
-      <div class="how-step reveal">
+      <div class="card how-step reveal">
         <div class="how-num">2</div>
         <span class="mono-tag">Step 02</span>
         <h3>Get matched</h3>
         <p>We pair you with a verified student buddy and a route shaped to your hours — and the things you're actually into.</p>
       </div>
-      <div class="how-step reveal">
+      <div class="card how-step reveal">
         <div class="how-num">3</div>
         <span class="mono-tag">Step 03</span>
         <h3>Explore the city</h3>
@@ -1406,29 +688,139 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   </div>
 </section>
 
-<!-- ROUTES (inspiration, not products) -->
-<section id="routes" style="background:var(--paper-2);">
+<!-- MUMBAI -->
+<section id="mumbai" style="background:var(--bg-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Why Mumbai first</span>
+      <h2>Not one city — <em>seven contradictions</em> on one peninsula.</h2>
+      <p class="lead">Every block is a different city. That's why it stays in your head long after the flight.</p>
+    </div>
+    <div class="contrast-grid">
+      <div class="ct tall wide reveal"><img src="images/gallery-sealink.jpg" alt="Sea and skyline" loading="lazy"><div class="ct-body"><span class="num">01 · Geography</span><h3>Sea <em>&amp;</em> skyline</h3><p>The Marine Drive crescent meeting the glass towers of the Worli Sea Link.</p></div></div>
+      <div class="ct tall reveal"><img src="images/gallery-local-train.jpg" alt="Chaos and calm" loading="lazy"><div class="ct-body"><span class="num">02 · Tempo</span><h3>Chaos <em>&amp;</em> calm</h3><p>A rush-hour local at CSMT — then Banganga Tank, quiet enough to hear the temple bells.</p></div></div>
+      <div class="ct half reveal"><img src="images/hero-skyline-side.jpg" alt="Old and new" loading="lazy"><div class="ct-body"><span class="num">03 · Time</span><h3>Old <em>&amp;</em> new</h3><p>Wooden Portuguese cottages in Khotachiwadi, in the shadow of BKC's high-rises.</p></div></div>
+      <div class="ct half reveal"><img src="images/gallery-chai.jpg" alt="Street and lounges" loading="lazy"><div class="ct-body"><span class="num">04 · Plate</span><h3>Street <em>&amp;</em> lounges</h3><p>Midnight street food on Mohammed Ali Road; speakeasy lounges in Bandra.</p></div></div>
+      <div class="ct reveal"><img src="images/gallery-csmt.jpg" alt="Gothic and docks" loading="lazy"><div class="ct-body"><span class="num">05 · Stone</span><h3>Gothic <em>&amp;</em> docks</h3><p>Victorian stone at CSMT, then the salt-crusted Sassoon Docks.</p></div></div>
+      <div class="ct reveal"><img src="images/gallery-bazaar.jpg" alt="Grit and gold" loading="lazy"><div class="ct-body"><span class="num">06 · Spirit</span><h3>Grit <em>&amp;</em> gold</h3><p>A mango sold like a business deal at Crawford; Malabar Hill's mansions behind the banyans.</p></div></div>
+      <div class="ct reveal"><img src="images/gallery-temple.jpg" alt="Stars and shrines" loading="lazy"><div class="ct-body"><span class="num">07 · Culture</span><h3>Stars <em>&amp;</em> shrines</h3><p>Bollywood marquees in Bandra; the causeway to Haji Ali, out in the sea.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DETOURS (TICKETS) -->
+<section id="routes">
   <div class="wrap">
     <div class="section-head">
       <span class="eyebrow">What a detour looks like</span>
-      <h2>Three moods, hand-built by Mumbai students.</h2>
-      <p class="lead">These aren't fixed packages. They're examples of the kind of day your buddy might build — depending on whether you're a food person, a history person, or just need sea air after fourteen hours in a middle seat.</p>
+      <h2>Three moods, hand-built by <em>Mumbai students.</em></h2>
+      <p class="lead">Not fixed packages — boarding passes for a day your buddy might build, shaped to your hours and what you're into. Tap a ticket for the full timeline.</p>
     </div>
-    <div class="routes">
-      <div class="route reveal">
-        <div class="ph a"><img src="images/gallery-gateway.jpg" alt="Gateway of India on the South Mumbai waterfront" loading="lazy"><div class="grain"></div><span class="badge">The postcard</span><span class="where">Marine Drive sunset</span></div>
-        <div class="body"><h3>First-time Mumbai classic</h3><p>Famous, iconic, cinematic — the classic South Mumbai story everyone shares back home.</p>
-          <div class="stops"><span class="s">Gateway</span><span class="ar">›</span><span class="s">Kala Ghoda</span><span class="ar">›</span><span class="s">CSMT</span><span class="ar">›</span><span class="s">Marine Drive</span></div></div>
+    <div class="tickets">
+      <div class="ticket reveal" data-route="0">
+        <div class="ticket-inner">
+          <div class="ticket-photo"><img src="images/gallery-gateway.jpg" alt="Gateway of India on the South Mumbai waterfront" loading="lazy"><span class="badge">The postcard</span><span class="where">Marine Drive sunset</span></div>
+          <div class="ticket-main">
+            <div class="ticket-head"><span>Detour Pass</span><span class="code">DT · 01</span></div>
+            <h3>First-time Mumbai classic</h3>
+            <p>Famous, iconic, cinematic — the South Mumbai story everyone shares back home.</p>
+            <div class="routeline"><span class="pt">Gateway</span><span class="seg"></span><span class="pt">Kala Ghoda</span><span class="seg"></span><span class="pt end">Marine Dr</span></div>
+          </div>
+          <div class="perf"></div>
+          <div class="ticket-stub">
+            <div class="stub-stats">
+              <div class="st"><span class="k">City time</span><span class="v">~5h 30m</span></div>
+              <div class="st"><span class="k">Buffer</span><span class="v">90 min</span></div>
+              <div class="st fare"><span class="k">Fare</span><span class="v">Free</span></div>
+            </div>
+            <div class="stub-foot"><div class="barcode"></div><span class="stub-cta">View timeline →</span></div>
+          </div>
+        </div>
       </div>
-      <div class="route reveal">
-        <div class="ph b"><img src="images/gallery-dharavi.jpg" alt="Everyday neighbourhood life in Mumbai" loading="lazy"><div class="grain"></div><span class="badge">Hyper-local</span><span class="where">Sunday like a local</span></div>
-        <div class="body"><h3>Where Mumbaikars actually go</h3><p>Local life, vada pav, sea, old-new contrasts — minus the tourist crowd.</p>
-          <div class="stops"><span class="s">Dadar Market</span><span class="ar">›</span><span class="s">Shivaji Park</span><span class="ar">›</span><span class="s">Worli Koliwada</span><span class="ar">›</span><span class="s">Bandra Fort</span></div></div>
+
+      <div class="ticket reveal" data-route="1">
+        <div class="ticket-inner">
+          <div class="ticket-photo"><img src="images/gallery-dharavi.jpg" alt="Everyday neighbourhood life in Mumbai" loading="lazy"><span class="badge">Hyper-local</span><span class="where">Sunday like a local</span></div>
+          <div class="ticket-main">
+            <div class="ticket-head"><span>Detour Pass</span><span class="code">DT · 02</span></div>
+            <h3>Where Mumbaikars actually go</h3>
+            <p>Local life, vada pav, sea, old-new contrasts — minus the tourist crowd.</p>
+            <div class="routeline"><span class="pt">Dadar</span><span class="seg"></span><span class="pt">Worli</span><span class="seg"></span><span class="pt end">Bandra Fort</span></div>
+          </div>
+          <div class="perf"></div>
+          <div class="ticket-stub">
+            <div class="stub-stats">
+              <div class="st"><span class="k">City time</span><span class="v">~5h</span></div>
+              <div class="st"><span class="k">Buffer</span><span class="v">75 min</span></div>
+              <div class="st fare"><span class="k">Fare</span><span class="v">Free</span></div>
+            </div>
+            <div class="stub-foot"><div class="barcode"></div><span class="stub-cta">View timeline →</span></div>
+          </div>
+        </div>
       </div>
-      <div class="route reveal">
-        <div class="ph c"><img src="images/gallery-cst.jpg" alt="Victorian Gothic architecture of CSMT station, Mumbai" loading="lazy"><div class="grain"></div><span class="badge">Old Bombay</span><span class="where">Irani cafés &amp; stone</span></div>
-        <div class="body"><h3>Colonial Bombay, stuck in 1932</h3><p>Gothic stations, Art Deco facades, berry pulao at Britannia, chai at Kyani.</p>
-          <div class="stops"><span class="s">CSMT</span><span class="ar">›</span><span class="s">Fort</span><span class="ar">›</span><span class="s">Ballard Estate</span><span class="ar">›</span><span class="s">Britannia</span></div></div>
+
+      <div class="ticket reveal" data-route="2">
+        <div class="ticket-inner">
+          <div class="ticket-photo"><img src="images/gallery-cst.jpg" alt="Victorian Gothic architecture of CSMT station, Mumbai" loading="lazy"><span class="badge">Old Bombay</span><span class="where">Irani cafés &amp; stone</span></div>
+          <div class="ticket-main">
+            <div class="ticket-head"><span>Detour Pass</span><span class="code">DT · 03</span></div>
+            <h3>Colonial Bombay, stuck in 1932</h3>
+            <p>Gothic stations, Art Deco facades, berry pulao at Britannia, chai at Kyani.</p>
+            <div class="routeline"><span class="pt">CSMT</span><span class="seg"></span><span class="pt">Fort</span><span class="seg"></span><span class="pt end">Britannia</span></div>
+          </div>
+          <div class="perf"></div>
+          <div class="ticket-stub">
+            <div class="stub-stats">
+              <div class="st"><span class="k">City time</span><span class="v">~5h 30m</span></div>
+              <div class="st"><span class="k">Buffer</span><span class="v">80 min</span></div>
+              <div class="st fare"><span class="k">Fare</span><span class="v">Free</span></div>
+            </div>
+            <div class="stub-foot"><div class="barcode"></div><span class="stub-cta">View timeline →</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROMISE -->
+<section id="why" style="background:var(--bg-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Why Detour</span>
+      <h2>Someone who <em>lives here</em> — and holds a line on how.</h2>
+      <p class="lead">Skip the tourist traps and the airport-taxi anxiety. A local who knows the city, on a schedule built around your flight.</p>
+    </div>
+    <div class="why-grid">
+      <div class="card why-card coral reveal">
+        <div class="why-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1 2.5 3 6 3s6-2 6-3v-5"/></svg></div>
+        <h3>Local &amp; vetted</h3>
+        <p>A verified student from one of Mumbai's top colleges — fluent in English and in the city's shortcuts, food, and stories.</p>
+      </div>
+      <div class="card why-card reveal">
+        <div class="why-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3>Flight-safe by design</h3>
+        <p>Every route is built around your departure, with live traffic buffers — so you're always back at BOM with time to spare.</p>
+      </div>
+      <div class="card why-card gold reveal">
+        <div class="why-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M3 9V7a2 2 0 0 1 2-2h11"/><path d="M16 13h.01"/></svg></div>
+        <h3>Honest prices</h3>
+        <p>You pay what a local pays — zero markup. Your buddy flags anything overpriced before you reach for your wallet.</p>
+      </div>
+      <div class="card why-card coral reveal">
+        <div class="why-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg></div>
+        <h3>Dignity, not spectacle</h3>
+        <p>Working neighbourhoods are visited with community-run guides, focused on craft and enterprise — never camera-pointing tours.</p>
+      </div>
+      <div class="card why-card reveal">
+        <div class="why-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17l1.5-5h9L18 17M7.5 12l1-3h7l1 3"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></div>
+        <h3>Safe transport</h3>
+        <p>Known venues, planned rides. Every evening detour ends in a vetted cab — never a late-night local train.</p>
+      </div>
+      <div class="card why-card gold reveal">
+        <div class="why-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M16 8l-2 6-6 2 2-6 6-2Z"/></svg></div>
+        <h3>The city's terms</h3>
+        <p>Prayer times, market days, dress at sacred sites, photo etiquette — your buddy knows, so you never have to guess.</p>
       </div>
     </div>
   </div>
@@ -1437,55 +829,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 <!-- GALLERY -->
 <section id="gallery">
   <div class="wrap">
-    <div class="section-head"><div class="section-head-text">
+    <div class="section-head">
       <span class="eyebrow">The city, unfiltered</span>
       <h2>Mumbai, as seen by the people who <em>live it.</em></h2>
-      <p class="lead">The streets, plates, and corners a buddy will actually walk you through. As real detours happen, photos from those trips will land here too.</p>
-    </div></div>
+      <p class="lead">The streets, plates, and corners a buddy will actually walk you through.</p>
+    </div>
     <div class="gallery-grid">
-      <!-- Photos below marked with data-pexels stream from the Pexels CDN — free for commercial use, no attribution required (pexels.com/license) -->
-      <div class="g-item reveal"><img src="https://images.pexels.com/photos/17433337/pexels-photo-17433337.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Vada pav with green chilli, Mumbai's street classic" loading="lazy" data-pexels="17433337"><div class="grain"></div></div>
-      <div class="g-item reveal"><img src="images/hero-gateway-night.jpg" alt="Gateway of India after dark" loading="lazy"><div class="grain"></div></div>
-      <div class="g-item reveal"><img src="images/package-real-mumbai.jpg" alt="The real, everyday Mumbai" loading="lazy"><div class="grain"></div></div>
-      <div class="g-item reveal"><img src="images/step-streets.jpg" alt="Mumbai streets up close" loading="lazy"><div class="grain"></div></div>
-      <div class="g-item reveal"><img src="images/gallery-university.jpg" alt="Students on a Mumbai college campus" loading="lazy"><div class="grain"></div></div>
-      <div class="g-item reveal"><img src="images/package-deep-dive.jpg" alt="A deeper wander through the city" loading="lazy"><div class="grain"></div></div>
-      <div class="g-item reveal"><img src="images/step-airport.jpg" alt="Mumbai airport, where the detour begins" loading="lazy"><div class="grain"></div></div>
-      <div class="g-item reveal"><img src="images/package-quick-escape.jpg" alt="A quick layover escape" loading="lazy"><div class="grain"></div></div>
-      <div class="g-item reveal"><img src="images/step-university.jpg" alt="University grounds in the heart of the city" loading="lazy"><div class="grain"></div></div>
-      <div class="g-item reveal"><img src="https://images.pexels.com/photos/4602266/pexels-photo-4602266.jpeg?auto=compress&cs=tinysrgb&w=900" alt="A street food vendor at his stall in Mumbai" loading="lazy" data-pexels="4602266"><div class="grain"></div></div>
-      <div class="g-item reveal"><img src="https://images.pexels.com/photos/10906000/pexels-photo-10906000.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Marine Drive skyline silhouetted at sunset" loading="lazy" data-pexels="10906000"><div class="grain"></div></div>
-      <div class="g-item reveal"><img src="https://images.pexels.com/photos/30570738/pexels-photo-30570738.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Fresh street food being fried at a Mumbai stall" loading="lazy" data-pexels="30570738"><div class="grain"></div></div>
+      <div class="g-item reveal"><img src="https://images.pexels.com/photos/17433337/pexels-photo-17433337.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Vada pav with green chilli, Mumbai's street classic" loading="lazy"></div>
+      <div class="g-item reveal"><img src="images/hero-gateway-night.jpg" alt="Gateway of India after dark" loading="lazy"></div>
+      <div class="g-item reveal"><img src="images/package-real-mumbai.jpg" alt="The real, everyday Mumbai" loading="lazy"></div>
+      <div class="g-item reveal"><img src="images/step-streets.jpg" alt="Mumbai streets up close" loading="lazy"></div>
+      <div class="g-item reveal"><img src="images/gallery-university.jpg" alt="Students on a Mumbai college campus" loading="lazy"></div>
+      <div class="g-item reveal"><img src="images/package-deep-dive.jpg" alt="A deeper wander through the city" loading="lazy"></div>
+      <div class="g-item reveal"><img src="images/step-airport.jpg" alt="Mumbai airport, where the detour begins" loading="lazy"></div>
+      <div class="g-item reveal"><img src="images/package-quick-escape.jpg" alt="A quick layover escape" loading="lazy"></div>
+      <div class="g-item reveal"><img src="https://images.pexels.com/photos/10906000/pexels-photo-10906000.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Marine Drive skyline silhouetted at sunset" loading="lazy"></div>
     </div>
   </div>
 </section>
 
-<!-- VALUES / ETHICS -->
-<section class="ethics" id="values">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">How we travel</span>
-      <h2>We care <em>how</em> we move through a city. Not just where we go.</h2>
-      <p class="lead">Mumbai is generous, but a few corners need care. We don't sell poverty as spectacle, and we don't cut corners on safety. Here's the line we hold.</p>
-    </div>
-    <div class="ethics-list">
-      <div class="ethics-item reveal"><span class="lbl">Dignity</span><div><h4>Community-led, never "slum sightseeing"</h4><p>Where we visit working neighbourhoods, it's with community-run guides, focused on craft and enterprise — never camera-pointing tours.</p></div></div>
-      <div class="ethics-item reveal"><span class="lbl">Safety</span><div><h4>Known venues, planned transport</h4><p>Every evening detour ends with a vetted cab. We never put a solo traveller on a late-night local train.</p></div></div>
-      <div class="ethics-item reveal"><span class="lbl">Honesty</span><div><h4>Fixed price, no surprises</h4><p>The number you see is the number you pay. No surge, no commission detours, no end-of-day surprise bill.</p></div></div>
-      <div class="ethics-item reveal"><span class="lbl">Respect</span><div><h4>The city's terms, not ours</h4><p>Prayer times, market days, dress at sacred sites, photography etiquette — your buddy knows, so you never have to guess.</p></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- FOUNDER NOTE -->
+<!-- FOUNDER -->
 <section class="founder" id="founder">
   <div class="wrap">
     <div class="founder-card reveal">
       <span class="stamp">From the founder</span>
-      <!-- ═══ GAURAV: rewrite this in your own words before launch. One draft, don't polish — that's the point. ═══ -->
-      <p>I'm Gaurav. I started Detour because I kept meeting travellers who'd spent twelve hours inside BOM — twenty minutes from one of the most alive cities on earth — because leaving the terminal alone felt too risky.</p>
-      <p>It isn't, if someone from here walks out with you. So that's the whole product: a student who loves this city, a route built around your flight, and you back at the gate with time to spare.</p>
-      <p>The first detours are free. Honestly? Because right now we want you to fly home raving about Mumbai more than we want your money. If you have a layover coming up, write to me directly — I read everything: <a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a></p>
+      <p>I'm Gaurav. I kept meeting travellers who'd spent twelve hours inside BOM — twenty minutes from one of the most alive cities on earth — because leaving the terminal alone felt too risky.</p>
+      <p>It isn't, if someone from here walks out with you. That's the whole product. The first detours are free — write to me directly: <a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a></p>
       <div class="sign">— Gaurav<small>Founder, Detour · Mumbai</small></div>
     </div>
   </div>
@@ -1494,63 +863,57 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 <!-- FAQ -->
 <section id="faq">
   <div class="wrap">
-    <div class="section-head-text" style="text-align:center;margin:0 auto 48px;max-width:680px;">
+    <div class="section-head" style="text-align:center;margin:0 auto 48px;max-width:680px;">
       <span class="eyebrow" style="justify-content:center;">Got questions?</span>
       <h2>Questions travellers actually ask.</h2>
     </div>
     <div class="faq-list">
       <div class="faq-item">
         <button class="faq-q" aria-expanded="false">Do I need a visa to leave the airport?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
-        <div class="faq-a"><div class="faq-a-inner">Yes — most nationalities need an Indian visa to step outside, and the easiest route is the e-Tourist visa (around US$25, applied for online before you fly — allow 4–7 days). If you stay inside the international transit area you don't need one, but then there's no detour either. When you request a detour we'll send you the exact steps for your nationality, so there are no surprises at immigration.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Most nationalities do — the easiest is the e-Tourist visa (around US$25, applied for online, allow 4–7 days). When you request a detour we send you the exact steps for your nationality.</div></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" aria-expanded="false">What if my incoming flight is delayed?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
-        <div class="faq-a"><div class="faq-a-inner">We track your flight in real time, so your buddy simply waits or reshapes the plan. You only ever spend the hours you actually have on the ground.</div></div>
+        <button class="faq-q" aria-expanded="false">What if my flight is delayed?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">We track your flight in real time, so your buddy simply waits or reshapes the plan. You only ever spend the hours you actually have.</div></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" aria-expanded="false">What do I do with my heavy luggage?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
-        <div class="faq-a"><div class="faq-a-inner">Mumbai airport has a secure left-luggage cloakroom. Your buddy meets you at arrivals and walks you there first, so you explore the city hands-free.</div></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" aria-expanded="false">How much does a Detour cost?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
-        <div class="faq-a"><div class="faq-a-inner">While we're in early access, Detour is completely free — there's no service fee at all. You only cover your own cab, food, and tickets, paid directly at honest local prices with zero markup.</div></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" aria-expanded="false">Is it safe to leave the airport on a layover?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
-        <div class="faq-a"><div class="faq-a-inner">Yes — with a verified local student, planned transport, and a route that always keeps an airport buffer. Doing it with a trusted buddy is exactly what makes a layover stop safe.</div></div>
+        <button class="faq-q" aria-expanded="false">What about my heavy luggage?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">BOM has a secure left-luggage cloakroom. Your buddy walks you there first, so you explore hands-free.</div></div>
       </div>
       <div class="faq-item">
         <button class="faq-q" aria-expanded="false">I'm travelling solo — is this for me?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
-        <div class="faq-a"><div class="faq-a-inner">Solo travellers are most of why Detour exists. Every buddy is identity- and student-status-verified, you see your full route before you land, you can share your live location with anyone back home, and evening detours always end in a vetted cab — never a late-night train. Solo women can ask to be matched with a female buddy, subject to availability.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Solo travellers are most of why Detour exists. Every buddy is identity-verified, you see your route before you land, you can share your live location, and evening detours always end in a vetted cab. Solo women can ask to be matched with a female buddy, subject to availability.</div></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- EMAIL CAPTURE -->
-<section class="capture" id="cheatsheet" style="padding:64px 0;">
-  <div class="wrap capture-inner">
-    <div>
-      <h3>Flying through Mumbai <em>someday?</em></h3>
-      <p>Leave your email and we'll send you our one-page layover cheat sheet — visa steps, luggage storage, and how much time you really need.</p>
+<!-- CAPTURE -->
+<section class="capture" id="cheatsheet" style="padding:72px 0;">
+  <div class="wrap">
+    <div class="capture-inner">
+      <div>
+        <h3>Flying through Mumbai <em>someday?</em></h3>
+        <p>Leave your email and we'll send you our one-page layover cheat sheet — visa steps, luggage storage, and how much time you really need.</p>
+      </div>
+      <form class="capture-form" id="capture-form" novalidate>
+        <input type="email" name="email" placeholder="you@email.com" required aria-label="Your email address">
+        <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+        <button class="btn-primary" type="submit">Send it</button>
+      </form>
+      <span class="capture-done" id="capture-done">You're on the list ✦ <a href="downloads/mumbai-layover-cheat-sheet.pdf" download>Download the cheat sheet →</a></span>
     </div>
-    <form class="capture-form" id="capture-form" novalidate>
-      <input type="email" name="email" placeholder="you@email.com" required aria-label="Your email address">
-      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
-      <button class="btn-primary" type="submit">Send it</button>
-    </form>
-    <span class="capture-done" id="capture-done">You're on the list ✦ <a href="downloads/mumbai-layover-cheat-sheet.pdf" download style="color:var(--taxi);text-decoration:underline;text-underline-offset:2px;">Download the cheat sheet →</a></span>
   </div>
 </section>
 
 <!-- FINAL CTA -->
-<section style="padding:64px 0 96px;">
+<section style="padding:48px 0 100px;">
   <div class="wrap">
     <div class="final">
-      <span class="eyebrow" style="color:var(--paper-3);justify-content:center;">Free · early access</span>
+      <span class="eyebrow" style="justify-content:center;color:var(--accent);">Free · early access</span>
       <h2>Got a few hours in Mumbai? <em>Take a detour — on us.</em></h2>
-      <p>We're matching our very first travellers right now. Join early access and explore Mumbai with a verified local student, completely free.</p>
-      <button class="btn-primary btn-trigger-booking" style="border:none;">Request a Detour
+      <p>We're matching our first travellers right now. Explore Mumbai with a verified local student, completely free.</p>
+      <button class="btn-primary btn-trigger-booking">Request a Detour
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
       <div class="trustline">Verified students · Free in early access · Made in Mumbai</div>
       <div class="app-soon">
@@ -1568,15 +931,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     <div class="foot">
       <div>
         <a class="logo" href="#top">
-          <svg width="46" height="37" viewBox="0 0 92 74"><path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="#F4EDDD" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8"/><circle cx="8" cy="60" r="4.5" fill="#F4C430"/><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/><circle cx="58" cy="33" r="5.4" fill="#F4EDDD"/></svg>
-          <div><div class="wm">Det<em>ou</em>r</div><div class="tag" style="color:rgba(244,237,221,.5)">Mumbai · BOM</div></div>
+          <svg width="46" height="37" viewBox="0 0 92 74"><path d="M8 60 C 26 60 34 56 46 50" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 8" style="color:var(--accent-2)"/><circle cx="8" cy="60" r="4.5" fill="currentColor" style="color:var(--accent-2)"/><path d="M58 60 C 50 49 43 43 43 33 A 15 15 0 1 1 73 33 C 73 43 66 49 58 60 Z" fill="#C8542A"/><circle cx="58" cy="33" r="5.4" fill="#FCF7EA"/></svg>
+          <div><div class="wm">Det<em>ou</em>r</div><div class="tag">Mumbai · BOM</div></div>
         </a>
         <p>Detour helps international travellers experience cities through verified local students. Mumbai is our first home.</p>
       </div>
       <div><h5>Detour</h5><a href="#idea">The idea</a><a href="#why">Why Detour</a><a href="#how">How it works</a><a href="#routes">Detours</a><a href="careers.html">Careers</a></div>
       <div><h5>Layover guides</h5><a href="guides/complete-mumbai-layover-guide.html">Complete guide</a><a href="guides/mumbai-layover-visa.html">Visa</a><a href="guides/8-hour-layover-mumbai.html">8-hour itinerary</a><a href="guides/12-hour-layover-mumbai.html">12-hour itinerary</a><a href="guides/is-mumbai-safe-on-a-layover.html">Is it safe?</a></div>
-      <div><h5>Trust</h5><a href="#values">How we travel</a><a href="#gallery">Gallery</a><a href="#faq">FAQ</a><a href="guides/mumbai-airport-luggage-storage.html">Luggage storage</a></div>
-      <div><h5>Connect</h5><a href="https://www.instagram.com/detour_trips/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">Instagram</a><a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a><span style="display:block;font-size:13.5px;margin-bottom:9px;color:rgba(244,237,221,.45);">iOS &amp; Android app — coming soon</span></div>
+      <div><h5>Trust</h5><a href="#why">How we travel</a><a href="#gallery">Gallery</a><a href="#faq">FAQ</a><a href="guides/mumbai-airport-luggage-storage.html">Luggage storage</a></div>
+      <div><h5>Connect</h5><a href="https://www.instagram.com/detour_trips/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">Instagram</a><a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a><span style="display:block;font-size:13.5px;margin-bottom:9px;color:var(--mute);">iOS &amp; Android app — coming soon</span></div>
     </div>
     <div class="foot-legal">
       <div>© 2026 Detour · Made in Mumbai with a lot of cutting chai.</div>
@@ -1585,104 +948,94 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   </div>
 </footer>
 
+<!-- FLOATING SECTION NAV (mobile-friendly "Jump to") -->
+<button class="secnav-fab" id="secnav-fab" aria-expanded="false" aria-controls="secnav-panel" aria-label="Jump to a section">
+  <svg class="ic-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  <svg class="ic-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  <span class="lbl">Jump to</span>
+</button>
+<div class="secnav-scrim" id="secnav-scrim"></div>
+<div class="secnav-panel" id="secnav-panel" role="dialog" aria-label="Jump to a section" aria-hidden="true">
+  <div class="secnav-title">Jump to</div>
+  <a class="secnav-link" href="#idea">The idea</a>
+  <a class="secnav-link" href="#how">How it works</a>
+  <a class="secnav-link" href="#mumbai">Mumbai</a>
+  <a class="secnav-link" href="#routes">Detours</a>
+  <a class="secnav-link" href="#why">Why Detour</a>
+  <a class="secnav-link" href="#gallery">Gallery</a>
+  <a class="secnav-link" href="#faq">FAQ</a>
+</div>
+
 <!-- BOOKING MODAL -->
 <div id="booking-modal" class="modal-overlay" aria-hidden="true" role="dialog">
-  <div class="modal-card">
+  <div class="modal-card" style="max-width:560px;max-height:90vh;overflow-y:auto;">
     <button class="modal-close" id="close-booking" aria-label="Close booking modal">&times;</button>
     <div class="modal-header">
       <span class="eyebrow">Free · early access</span>
       <h2>Be the first to take a <em>Detour.</em></h2>
-      <p style="font-size:14px;color:var(--ink-mute);margin-top:10px;line-height:1.55;">We're matching our very first travellers in Mumbai — completely free while we're in early access. Tell us about your layover and we'll build a route around it.</p>
+      <p style="font-size:14px;color:var(--mute);margin-top:10px;line-height:1.55;">Tell us about your layover and we'll build a route around it — completely free while we're in early access.</p>
     </div>
-    <!-- Submissions are emailed to admin@detourtrips.com via FormSubmit (free, no account).
-         IMPORTANT: the very first submission triggers an activation email from formsubmit.co — click it once and you're live. -->
     <form id="booking-form" novalidate>
-      <div class="form-group">
-        <label for="bf-name">Your name</label>
-        <input type="text" id="bf-name" name="name" required autocomplete="name">
-      </div>
-      <div class="form-group">
-        <label for="bf-email">Email</label>
-        <input type="email" id="bf-email" name="email" required autocomplete="email">
-      </div>
+      <div class="form-group"><label for="bf-name">Your name</label><input type="text" id="bf-name" name="name" required autocomplete="name"></div>
+      <div class="form-group"><label for="bf-email">Email</label><input type="email" id="bf-email" name="email" required autocomplete="email"></div>
       <div class="form-row">
-        <div class="form-group">
-          <label for="bf-arrive">Arriving at BOM (date &amp; time)</label>
-          <input type="text" id="bf-arrive" name="arrival" placeholder="e.g. 14 Aug, 09:30" required>
-        </div>
-        <div class="form-group">
-          <label for="bf-depart">Departing (date &amp; time)</label>
-          <input type="text" id="bf-depart" name="departure" placeholder="e.g. 14 Aug, 21:15" required>
-        </div>
+        <div class="form-group"><label for="bf-arrive">Arriving at BOM (date &amp; time)</label><input type="text" id="bf-arrive" name="arrival" placeholder="e.g. 14 Aug, 09:30" required></div>
+        <div class="form-group"><label for="bf-depart">Departing (date &amp; time)</label><input type="text" id="bf-depart" name="departure" placeholder="e.g. 14 Aug, 21:15" required></div>
       </div>
-      <div class="form-group">
-        <label for="bf-flights">Flight numbers <span style="text-transform:none;letter-spacing:0;">(optional)</span></label>
-        <input type="text" id="bf-flights" name="flights" placeholder="e.g. LH756 → LH757">
-      </div>
-      <div class="form-group">
-        <label for="bf-into">What are you into?</label>
-        <textarea id="bf-into" name="interests" rows="2" placeholder="food, history, markets, sea, photography…"></textarea>
-      </div>
+      <div class="form-group"><label for="bf-flights">Flight numbers <span style="text-transform:none;letter-spacing:0;">(optional)</span></label><input type="text" id="bf-flights" name="flights" placeholder="e.g. LH756 → LH757"></div>
+      <div class="form-group"><label for="bf-into">What are you into?</label><textarea id="bf-into" name="interests" rows="2" placeholder="food, history, markets, sea, photography…"></textarea></div>
       <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
       <button class="btn-primary btn-submit" type="submit" id="booking-submit">Send my layover
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
-      <p style="font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);text-align:center;margin-top:12px;">No spam, no account — we reply by email, usually within a day.</p>
+      <p style="font-family:var(--mono);font-size:10.5px;color:var(--mute);text-align:center;margin-top:12px;">No spam, no account — we reply by email, usually within a day.</p>
     </form>
     <div class="form-status" id="booking-success">
-      <svg class="success-icon" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="30" stroke="#3D8B5A" stroke-width="3"/><path d="M20 33l8 8 16-17" stroke="#3D8B5A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="success-icon" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="30" stroke="#35E0B6" stroke-width="3"/><path d="M20 33l8 8 16-17" stroke="#35E0B6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <h3>Got it — we're on it.</h3>
-      <p>We'll reply to your email with a buddy match and a draft route. Keep an eye on your inbox (and spam folder, just once).</p>
+      <p>We'll reply with a buddy match and a draft route. Keep an eye on your inbox (and spam folder, just once).</p>
     </div>
     <div class="form-status" id="booking-error">
       <h3>Hmm, that didn't send.</h3>
-      <p>No stress — email us directly at <a href="mailto:admin@detourtrips.com" style="color:var(--terracotta);text-decoration:underline;">admin@detourtrips.com</a> with your arrival &amp; departure times.</p>
+      <p>No stress — email us directly at <a href="mailto:admin@detourtrips.com" style="color:var(--accent);text-decoration:underline;">admin@detourtrips.com</a> with your arrival &amp; departure times.</p>
     </div>
   </div>
 </div>
 
-<!-- ROUTE TIMELINE MODAL -->
+<!-- ROUTE MODAL -->
 <div id="route-modal" class="modal-overlay" aria-hidden="true" role="dialog">
   <div class="modal-card drawer-card">
     <button class="modal-close" id="close-route" aria-label="Close route details">&times;</button>
     <div class="modal-header">
       <span id="route-modal-badge" class="route-badge">Itinerary Mood</span>
       <h2 id="route-modal-title">Route Title</h2>
-      <p id="route-modal-desc" style="font-size:14.5px; color:var(--ink-mute); margin-top:8px; line-height:1.5;">Route description goes here.</p>
+      <p id="route-modal-desc" style="font-size:14.5px;color:var(--mute);margin-top:8px;line-height:1.5;">Route description goes here.</p>
     </div>
-    <div class="timeline" id="route-timeline-container">
-      <!-- Dynamic timeline items will be injected here -->
-    </div>
-    <button class="btn-primary btn-trigger-booking" style="width:100%; justify-content:center; margin-top:20px; border:none;">Request this Detour</button>
+    <div class="timeline" id="route-timeline-container"></div>
+    <button class="btn-primary btn-trigger-booking" style="width:100%;justify-content:center;margin-top:20px;">Request this Detour</button>
   </div>
 </div>
 
 <!-- PRIVACY MODAL -->
 <div id="privacy-modal" class="modal-overlay" aria-hidden="true" role="dialog">
-  <div class="modal-card" style="max-height:80vh; overflow-y:auto;">
+  <div class="modal-card modal-scroll">
     <button class="modal-close" id="close-privacy" aria-label="Close privacy policy">&times;</button>
-    <div class="modal-header">
-      <span class="eyebrow">Trust &amp; safety</span>
-      <h2>Privacy Policy</h2>
-    </div>
-    <div style="font-size:13.5px; color:var(--ink-mute); line-height:1.6; display:flex; flex-direction:column; gap:12px;">
+    <div class="modal-header"><span class="eyebrow">Trust &amp; safety</span><h2>Privacy Policy</h2></div>
+    <div class="legal-body">
       <p>At Detour, we hold your trust and safety above all else. Here is how we handle your information:</p>
       <p><b>1. Information We Collect:</b> We only collect information that you explicitly share with us: your name, email, layover date, flight times, and preferences. We do not use trackers or share data with third parties.</p>
-      <p><b>2. How We Use It:</b> Your details are used solely to match you with a verified student buddy at the target airport. Once your detour is complete, your flight and terminal details are deleted from our active database.</p>
+      <p><b>2. How We Use It:</b> Your details are used solely to match you with a verified student buddy. Once your detour is complete, your flight and terminal details are deleted from our active database.</p>
       <p><b>3. Security:</b> Student buddies undergo strict background verification. Your contact information is only shared with your assigned buddy 24 hours prior to landing.</p>
-      <p>If you have any questions, reach out to us at <a href="mailto:admin@detourtrips.com" style="color:var(--terracotta); text-decoration:underline;">admin@detourtrips.com</a>.</p>
+      <p>Questions? Reach us at <a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a>.</p>
     </div>
   </div>
 </div>
 
 <!-- TERMS MODAL -->
 <div id="terms-modal" class="modal-overlay" aria-hidden="true" role="dialog">
-  <div class="modal-card" style="max-height:80vh; overflow-y:auto;">
+  <div class="modal-card modal-scroll">
     <button class="modal-close" id="close-terms" aria-label="Close terms of service">&times;</button>
-    <div class="modal-header">
-      <span class="eyebrow">How we operate</span>
-      <h2>Terms of Service</h2>
-    </div>
-    <div style="font-size:13.5px; color:var(--ink-mute); line-height:1.6; display:flex; flex-direction:column; gap:12px;">
+    <div class="modal-header"><span class="eyebrow">How we operate</span><h2>Terms of Service</h2></div>
+    <div class="legal-body">
       <p>Welcome to Detour! By requesting a detour, you agree to the following terms:</p>
       <p><b>1. Student Buddies:</b> Detour matches travellers with local university students. While we verify student status and run background checks, buddies are independent local guides and not professional commercial tour agencies.</p>
       <p><b>2. Fixed Pricing:</b> We guarantee clear, transparent, upfront rates. Your buddy will never take commissions, suggest forced shopping, or request unexpected cash surcharges.</p>
@@ -1692,383 +1045,150 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 </div>
 
 <script>
-  // Nav scroll behavior
   const nav=document.getElementById('nav');
   addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>20));
-  
-  // Reveal animations on scroll
+
+  // THEME TOGGLE
+  const root=document.documentElement;
+  const toggle=document.getElementById('theme-toggle');
+  toggle.addEventListener('click',()=>{
+    const next=root.getAttribute('data-theme')==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('detour-theme',next);}catch(e){}
+  });
+
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.12});
-  document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%4*60)+'ms';io.observe(el);});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%3*70)+'ms';io.observe(el);});
 
-  // Route schedule database
   const routeData = {
-    0: {
-      badge: "The postcard",
-      title: "First-time Mumbai classic",
-      desc: "Famous, iconic, cinematic — the classic South Mumbai story everyone shares back home.",
-      theme: "theme-terra",
-      timeline: [
-        { time: "14:00", title: "Arrival & Welcome", desc: "Meet your buddy right at BOM Terminal 2 arrivals area. Board an air-conditioned cab together." },
-        { time: "15:15", title: "Gateway of India & Taj Palace", desc: "Walk the historic waterfront, taking in the iconic arch and the historic Taj hotel." },
-        { time: "16:00", title: "Kala Ghoda Art Walk", desc: "Stroll through Mumbai's premier art district. Grab a cold-brew coffee or a quick bite at a local café." },
-        { time: "17:00", title: "CSMT Gothic Architecture", desc: "Marvel at the spectacular gothic facade of the historic terminal station." },
-        { time: "18:00", title: "Marine Drive Sunset", desc: "Sit on the sea wall with a cup of cutting chai as the sun sets over the Arabian Sea." },
-        { time: "19:30", title: "Airport Dropoff", desc: "Return safely to BOM Terminal 2 with a comfortable 90-minute buffer before your flight." }
-      ]
-    },
-    1: {
-      badge: "Hyper-local",
-      title: "Where Mumbaikars actually go",
-      desc: "Local life, vada pav, sea, old-new contrasts — minus the tourist crowd.",
-      theme: "theme-sea",
-      timeline: [
-        { time: "10:00", title: "Terminal T2 Pickup", desc: "Your student buddy meets you at BOM departures/arrivals and checks your buffer time." },
-        { time: "10:45", title: "Dadar Flower Market", desc: "Stroll through the mesmerizing, vibrant lanes of the city's largest wholesale flower market." },
-        { time: "11:45", title: "Shivaji Park Vada Pav", desc: "Grab a piping hot Vada Pav (Mumbai's legendary street burger) and sweet ginger cutting chai." },
-        { time: "12:30", title: "Worli Koliwada Fishing Docks", desc: "Explore the narrow pathways of a historic, colorful coastal village that predates modern Mumbai." },
-        { time: "13:30", title: "Bandra Sea Link & Fort", desc: "Drive across the spectacular Bandra-Worli Sea Link and explore the Portuguese fort ruins." },
-        { time: "15:00", title: "Return to departures", desc: "Board your cab back to T2 departures, arriving with a stress-free boarding buffer." }
-      ]
-    },
-    2: {
-      badge: "Old Bombay",
-      title: "Colonial Bombay, stuck in 1932",
-      desc: "Gothic stations, Art Deco facades, berry pulao at Britannia, chai at Kyani.",
-      theme: "theme-terra",
-      timeline: [
-        { time: "08:30", title: "BOM Airport Meetup", desc: "Buddy pickup and brief overview of the morning layover plan." },
-        { time: "09:30", title: "Irani Breakfast at Kyani", desc: "Savor a historic breakfast of Bun Maska (buttered buns) and sweet tea at a centenarian Irani cafe." },
-        { time: "10:30", title: "Ballard Estate Walk", desc: "Explore the magnificent, quiet avenues of European Edwardian architecture." },
-        { time: "11:30", title: "Britannia Berry Pulao", desc: "Taste the absolute classic Parsi Berry Pulao at one of the city's oldest restaurants." },
-        { time: "12:45", title: "Flora Fountain stroll", desc: "A brief walk past Art Deco cinemas, old libraries, and the majestic stone fountain." },
-        { time: "14:00", title: "Airport return", desc: "Cab ride back to BOM Airport Terminal 2 departures." }
-      ]
-    }
+    0:{badge:"The postcard",title:"First-time Mumbai classic",desc:"Famous, iconic, cinematic — the classic South Mumbai story everyone shares back home.",timeline:[
+      {time:"14:00",title:"Arrival & Welcome",desc:"Meet your buddy right at BOM Terminal 2 arrivals. Board an air-conditioned cab together."},
+      {time:"15:15",title:"Gateway of India & Taj Palace",desc:"Walk the historic waterfront, taking in the iconic arch and the Taj hotel."},
+      {time:"16:00",title:"Kala Ghoda Art Walk",desc:"Stroll Mumbai's premier art district. Grab a cold brew or a quick bite at a local café."},
+      {time:"17:00",title:"CSMT Gothic Architecture",desc:"Marvel at the spectacular gothic facade of the historic terminal station."},
+      {time:"18:00",title:"Marine Drive Sunset",desc:"Sit on the sea wall with cutting chai as the sun sets over the Arabian Sea."},
+      {time:"19:30",title:"Airport Dropoff",desc:"Return to BOM Terminal 2 with a comfortable 90-minute buffer before your flight."}]},
+    1:{badge:"Hyper-local",title:"Where Mumbaikars actually go",desc:"Local life, vada pav, sea, old-new contrasts — minus the tourist crowd.",timeline:[
+      {time:"10:00",title:"Terminal T2 Pickup",desc:"Your student buddy meets you at BOM and checks your buffer time."},
+      {time:"10:45",title:"Dadar Flower Market",desc:"Stroll the vibrant lanes of the city's largest wholesale flower market."},
+      {time:"11:45",title:"Shivaji Park Vada Pav",desc:"Grab a piping-hot vada pav and sweet ginger cutting chai."},
+      {time:"12:30",title:"Worli Koliwada Docks",desc:"Explore a historic, colourful coastal village that predates modern Mumbai."},
+      {time:"13:30",title:"Bandra Sea Link & Fort",desc:"Drive the spectacular Sea Link and explore the Portuguese fort ruins."},
+      {time:"15:00",title:"Return to departures",desc:"Cab back to T2 with a stress-free boarding buffer."}]},
+    2:{badge:"Old Bombay",title:"Colonial Bombay, stuck in 1932",desc:"Gothic stations, Art Deco facades, berry pulao at Britannia, chai at Kyani.",timeline:[
+      {time:"08:30",title:"BOM Airport Meetup",desc:"Buddy pickup and a quick overview of the morning plan."},
+      {time:"09:30",title:"Irani Breakfast at Kyani",desc:"Bun maska and sweet tea at a centenarian Irani café."},
+      {time:"10:30",title:"Ballard Estate Walk",desc:"Quiet avenues of European Edwardian architecture."},
+      {time:"11:30",title:"Britannia Berry Pulao",desc:"The classic Parsi berry pulao at one of the city's oldest restaurants."},
+      {time:"12:45",title:"Flora Fountain stroll",desc:"Art Deco cinemas, old libraries, and the majestic stone fountain."},
+      {time:"14:00",title:"Airport return",desc:"Cab ride back to BOM Terminal 2 departures."}]}
   };
 
-  // ---- Active-section spy (scroll-position based, never goes stale) ----
-  // Drives two sets of links independently:
-  //   • Top nav  — range based: each nav item "owns" the page span until the
-  //     next nav item, so it stays put through unlinked in-between sections
-  //     (Gallery, Values…) instead of blanking out or showing the wrong item.
-  //   • Panel    — precise: highlights the exact section you're currently in,
-  //     because the panel lists every section.
-  const topNavLinks = [...document.querySelectorAll('.nav-links a[href^="#"]')];
-  const panelLinks  = [...document.querySelectorAll('.secnav-link[href^="#"]')];
+  const navLinks=document.querySelectorAll('.nav-links a');
+  const navObserver=new IntersectionObserver((entries)=>{entries.forEach(entry=>{if(entry.isIntersecting){const id=entry.target.getAttribute('id');navLinks.forEach(link=>link.classList.toggle('active',link.getAttribute('href')===`#${id}`));}});},{threshold:.25,rootMargin:"-80px 0px -40% 0px"});
+  document.querySelectorAll('section[id]').forEach(s=>navObserver.observe(s));
 
-  const idsFor = (links) => links.map(a => a.getAttribute('href').slice(1));
-  const navIds   = idsFor(topNavLinks);              // idea, mumbai, how, routes, faq
-  const allIds   = [...new Set([...navIds, ...idsFor(panelLinks)])]; // + why, gallery, values
+  const openModal=(id)=>{const m=document.getElementById(id);if(m){m.classList.add('open');m.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';const f=m.querySelectorAll('button,[href],input,textarea');if(f.length)f[0].focus();}};
+  const closeModal=(id)=>{const m=document.getElementById(id);if(m){m.classList.remove('open');m.setAttribute('aria-hidden','true');document.body.style.overflow='';}};
+  addEventListener('keydown',(e)=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(m=>closeModal(m.id));});
+  document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',(e)=>{if(e.target===m)closeModal(m.id);}));
+  document.querySelectorAll('.btn-trigger-booking').forEach(b=>b.addEventListener('click',(e)=>{e.preventDefault();closeModal('route-modal');openModal('booking-modal');}));
 
-  // Pick the last id (in document order) whose section top sits above the line.
-  const pickCurrent = (ids, line) => {
-    let current = null;
-    ids
-      .map(id => ({ id, el: document.getElementById(id) }))
-      .filter(s => s.el)
-      .sort((a, b) => a.el.offsetTop - b.el.offsetTop)
-      .forEach(s => { if (s.el.getBoundingClientRect().top <= line) current = s.id; });
-    return current;
-  };
-
-  const setActive = (links, id) =>
-    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
-
-  let spyTick = false;
-  const updateSpy = () => {
-    spyTick = false;
-    const line = (document.getElementById('nav')?.offsetHeight || 64) + 28;
-    setActive(topNavLinks, pickCurrent(navIds, line));
-    setActive(panelLinks,  pickCurrent(allIds, line));
-  };
-  const requestSpy = () => { if (!spyTick) { spyTick = true; requestAnimationFrame(updateSpy); } };
-  addEventListener('scroll', requestSpy, { passive: true });
-  addEventListener('resize', requestSpy);
-  addEventListener('load', updateSpy);
-  updateSpy();
-
-  // ---- Floating section-nav panel (collapsible "Jump to") ----
-  const fab = document.getElementById('secnav-fab');
-  const panel = document.getElementById('secnav-panel');
-  const scrim = document.getElementById('secnav-scrim');
-  if (fab && panel && scrim) {
-    const setPanel = (open) => {
-      fab.classList.toggle('open', open);
-      panel.classList.toggle('open', open);
-      scrim.classList.toggle('show', open);
-      fab.setAttribute('aria-expanded', String(open));
-      panel.setAttribute('aria-hidden', String(!open));
-    };
-    fab.addEventListener('click', () => setPanel(!panel.classList.contains('open')));
-    scrim.addEventListener('click', () => setPanel(false));
-    panel.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setPanel(false)));
-    addEventListener('keydown', (e) => { if (e.key === 'Escape') setPanel(false); });
-
-    // Reveal the FAB once the hero is out of the way so it never covers it.
-    const toggleFab = () => fab.classList.toggle('show', scrollY > 320);
-    addEventListener('scroll', toggleFab, { passive: true });
-    toggleFab();
-  }
-
-  // Modal utility handlers
-  const openModal = (modalId) => {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-      modal.classList.add('open');
-      modal.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-      
-      // Accessibility focus trap
-      const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex="0"]');
-      if (focusable.length) focusable[0].focus();
-    }
-  };
-
-  const closeModal = (modalId) => {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-      modal.classList.remove('open');
-      modal.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
-    }
-  };
-
-  // Close modals on escape key
-  addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      document.querySelectorAll('.modal-overlay.open').forEach(modal => {
-        closeModal(modal.id);
-      });
-    }
-  });
-
-  // Close modals on clicking backdrop overlay
-  document.querySelectorAll('.modal-overlay').forEach(modal => {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal(modal.id);
-    });
-  });
-
-  // Attach triggers for Booking Modal
-  document.querySelectorAll('.btn-trigger-booking').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      closeModal('route-modal'); // Close route modal first if it is open
-      openModal('booking-modal');
-    });
-  });
-
-  // Booking form → FormSubmit (free, no backend). First-ever submission triggers
-  // a one-time activation email from formsubmit.co to admin@detourtrips.com.
-  const FORM_ENDPOINT = 'https://formsubmit.co/ajax/admin@detourtrips.com';
-  const bookingForm = document.getElementById('booking-form');
-  bookingForm?.addEventListener('submit', async (e) => {
+  const FORM_ENDPOINT='https://formsubmit.co/ajax/admin@detourtrips.com';
+  const bookingForm=document.getElementById('booking-form');
+  bookingForm?.addEventListener('submit',async(e)=>{
     e.preventDefault();
-    if (!bookingForm.reportValidity()) return;
-    const btn = document.getElementById('booking-submit');
-    btn.setAttribute('disabled', '');
-    btn.firstChild.textContent = 'Sending… ';
-    const data = Object.fromEntries(new FormData(bookingForm).entries());
-    data._subject = 'Detour request (early access)';
-    data._template = 'table';
-    try {
-      const res = await fetch(FORM_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      if (!res.ok) throw new Error('send failed');
-      bookingForm.style.display = 'none';
-      document.getElementById('booking-success').classList.add('show');
-    } catch (err) {
-      bookingForm.style.display = 'none';
-      document.getElementById('booking-error').classList.add('show');
-    }
+    if(!bookingForm.reportValidity())return;
+    const btn=document.getElementById('booking-submit');
+    btn.setAttribute('disabled','');btn.firstChild.textContent='Sending… ';
+    const data=Object.fromEntries(new FormData(bookingForm).entries());
+    data._subject='Detour request (early access)';data._template='table';
+    try{const res=await fetch(FORM_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)});
+      if(!res.ok)throw new Error('send failed');
+      bookingForm.style.display='none';document.getElementById('booking-success').classList.add('show');
+    }catch(err){bookingForm.style.display='none';document.getElementById('booking-error').classList.add('show');}
   });
 
-  // Cheat-sheet email capture → same FormSubmit inbox
-  const captureForm = document.getElementById('capture-form');
-  captureForm?.addEventListener('submit', async (e) => {
+  const captureForm=document.getElementById('capture-form');
+  captureForm?.addEventListener('submit',async(e)=>{
     e.preventDefault();
-    if (!captureForm.reportValidity()) return;
-    const data = Object.fromEntries(new FormData(captureForm).entries());
-    data._subject = 'Cheat sheet request';
-    try {
-      await fetch(FORM_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(data)
-      });
-    } catch (err) { /* fall through — still show confirmation */ }
-    captureForm.style.display = 'none';
-    document.getElementById('capture-done').style.display = 'inline';
+    if(!captureForm.reportValidity())return;
+    const data=Object.fromEntries(new FormData(captureForm).entries());data._subject='Cheat sheet request';
+    try{await fetch(FORM_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)});}catch(err){}
+    captureForm.style.display='none';document.getElementById('capture-done').style.display='inline';
   });
 
-  // Atmosphere band: play the local video if it exists, otherwise keep the Ken Burns photo
-  const bandVideo = document.getElementById('band-video');
-  const bandFallback = document.getElementById('band-fallback');
-  if (bandVideo && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    bandVideo.addEventListener('canplay', () => {
-      bandVideo.style.display = 'block';
-      if (bandFallback) bandFallback.style.display = 'none';
-      bandVideo.play().catch(() => {});
-    }, { once: true });
-    // Only give up when the LAST <source> fails (browser tries them in order)
-    const sources = bandVideo.querySelectorAll('source');
-    sources[sources.length - 1]?.addEventListener('error', () => { bandVideo.style.display = 'none'; });
-    bandVideo.load();
+  function activateVideo(videoId,fallbackId){
+    const v=document.getElementById(videoId);const fb=fallbackId?document.getElementById(fallbackId):null;
+    if(!v||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    v.addEventListener('canplay',()=>{v.style.display='block';if(fb)fb.style.display='none';v.play().catch(()=>{});},{once:true});
+    const sources=v.querySelectorAll('source');sources[sources.length-1]?.addEventListener('error',()=>{v.style.display='none';});
+    v.load();
   }
+  activateVideo('hero-video','hero-fallback');
+  activateVideo('band-video','band-fallback');
 
-  // Wiring up Route dynamic timeline drawers
-  const routeTimelineContainer = document.getElementById('route-timeline-container');
-  const routeModalBadge = document.getElementById('route-modal-badge');
-  const routeModalTitle = document.getElementById('route-modal-title');
-  const routeModalDesc = document.getElementById('route-modal-desc');
-  const routeModalCard = document.querySelector('#route-modal .modal-card');
-
-  document.querySelectorAll('.routes .route').forEach((card, index) => {
-    card.addEventListener('click', () => {
-      const data = routeData[index];
-      if (!data) return;
-
-      // Update badge, title, and desc
-      if (routeModalBadge) {
-        routeModalBadge.textContent = data.badge;
-      }
-      if (routeModalTitle) {
-        routeModalTitle.textContent = data.title;
-      }
-      if (routeModalDesc) {
-        routeModalDesc.textContent = data.desc;
-      }
-      
-      // Set theme classes
-      if (routeModalCard) {
-        routeModalCard.className = `modal-card drawer-card ${data.theme || ''}`;
-      }
-
-      // Generate dynamic timeline items
-      if (routeTimelineContainer) {
-        routeTimelineContainer.innerHTML = '';
-        data.timeline.forEach((item, idx) => {
-          let itemClass = '';
-          if (idx === 0) itemClass = 'origin';
-          else if (idx === data.timeline.length - 1) itemClass = 'destination';
-          
-          const timelineHtml = `
-            <div class="timeline-item ${itemClass}">
-              <div class="timeline-badge"></div>
-              <span class="timeline-time">${item.time}</span>
-              <h4 class="timeline-title">${item.title}</h4>
-              <p class="timeline-desc">${item.desc}</p>
-            </div>
-          `;
-          routeTimelineContainer.insertAdjacentHTML('beforeend', timelineHtml);
-        });
-      }
-
+  const rtC=document.getElementById('route-timeline-container');
+  const rB=document.getElementById('route-modal-badge'),rT=document.getElementById('route-modal-title'),rD=document.getElementById('route-modal-desc');
+  document.querySelectorAll('.ticket').forEach((card)=>{
+    card.addEventListener('click',()=>{
+      const data=routeData[card.getAttribute('data-route')];if(!data)return;
+      rB.textContent=data.badge;rT.textContent=data.title;rD.textContent=data.desc;
+      rtC.innerHTML='';
+      data.timeline.forEach((item,idx)=>{
+        let cls=idx===0?'origin':(idx===data.timeline.length-1?'destination':'');
+        rtC.insertAdjacentHTML('beforeend',`<div class="timeline-item ${cls}"><div class="timeline-badge"></div><span class="timeline-time">${item.time}</span><h4 class="timeline-title">${item.title}</h4><p class="timeline-desc">${item.desc}</p></div>`);
+      });
       openModal('route-modal');
     });
   });
 
-  // Attach triggers for close buttons
-  document.getElementById('close-booking')?.addEventListener('click', () => closeModal('booking-modal'));
-  document.getElementById('close-route')?.addEventListener('click', () => closeModal('route-modal'));
-  document.getElementById('close-privacy')?.addEventListener('click', () => closeModal('privacy-modal'));
-  document.getElementById('close-terms')?.addEventListener('click', () => closeModal('terms-modal'));
+  document.getElementById('close-booking')?.addEventListener('click',()=>closeModal('booking-modal'));
+  document.getElementById('close-route')?.addEventListener('click',()=>closeModal('route-modal'));
+  document.getElementById('close-privacy')?.addEventListener('click',()=>closeModal('privacy-modal'));
+  document.getElementById('close-terms')?.addEventListener('click',()=>closeModal('terms-modal'));
+  document.querySelector('.trigger-privacy')?.addEventListener('click',(e)=>{e.preventDefault();openModal('privacy-modal');});
+  document.querySelector('.trigger-terms')?.addEventListener('click',(e)=>{e.preventDefault();openModal('terms-modal');});
 
-  // Footer privacy & terms wiring
-  document.querySelector('.trigger-privacy')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    openModal('privacy-modal');
-  });
-  document.querySelector('.trigger-terms')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    openModal('terms-modal');
-  });
-
-  // Seven Contradictions horizontal slider interaction
-  const track = document.querySelector('.contrasts-slider-track');
-  const fill = document.getElementById('slider-progress-fill');
-  const statusText = document.querySelector('.slider-status-text');
-  const prevBtn = document.getElementById('slider-prev');
-  const nextBtn = document.getElementById('slider-next');
-
-  if (track && fill && statusText) {
-    const updateSliderUI = () => {
-      const scrollLeft = track.scrollLeft;
-      const maxScrollLeft = track.scrollWidth - track.clientWidth;
-      
-      // Calculate scroll ratio (0 to 1)
-      const ratio = maxScrollLeft > 0 ? scrollLeft / maxScrollLeft : 0;
-      
-      // Update progress bar fill position
-      const fillWidth = 20; // 20% width for indicator
-      const leftPercent = ratio * (100 - fillWidth);
-      fill.style.left = `${leftPercent}%`;
-      fill.style.width = `${fillWidth}%`;
-      
-      // Calculate active card index (0 to 6) based on centering
-      const cards = track.querySelectorAll('.contrast-card');
-      if (cards.length > 0) {
-        const cardWidth = cards[0].clientWidth + 24; // width + gap
-        const activeIndex = Math.min(6, Math.max(0, Math.round(scrollLeft / cardWidth)));
-        statusText.textContent = `0${activeIndex + 1} / 07`;
-      }
-      
-      // Disable/enable arrows
-      if (prevBtn && nextBtn) {
-        prevBtn.classList.toggle('disabled', scrollLeft <= 8);
-        nextBtn.classList.toggle('disabled', scrollLeft >= maxScrollLeft - 8);
-      }
-    };
-
-    // Listen to scroll event
-    track.addEventListener('scroll', updateSliderUI);
-    
-    // Listen to resize to adjust calculations
-    window.addEventListener('resize', updateSliderUI);
-    
-    // Set initial state
-    updateSliderUI();
-
-    // Wire up buttons
-    if (prevBtn && nextBtn) {
-      prevBtn.addEventListener('click', () => {
-        const cards = track.querySelectorAll('.contrast-card');
-        if (cards.length > 0) {
-          const cardWidth = cards[0].clientWidth + 24;
-          track.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-        }
-      });
-
-      nextBtn.addEventListener('click', () => {
-        const cards = track.querySelectorAll('.contrast-card');
-        if (cards.length > 0) {
-          const cardWidth = cards[0].clientWidth + 24;
-          track.scrollBy({ left: cardWidth, behavior: 'smooth' });
-        }
-      });
-    }
-  }
-
-  // FAQ accordion
-  document.querySelectorAll('.faq-item .faq-q').forEach(q => {
-    q.addEventListener('click', () => {
-      const item = q.closest('.faq-item');
-      const ans = item.querySelector('.faq-a');
-      const isOpen = item.classList.contains('open');
-      if (isOpen) {
-        item.classList.remove('open');
-        q.setAttribute('aria-expanded', 'false');
-        ans.style.maxHeight = null;
-      } else {
-        item.classList.add('open');
-        q.setAttribute('aria-expanded', 'true');
-        ans.style.maxHeight = ans.scrollHeight + 'px';
-      }
+  document.querySelectorAll('.faq-item .faq-q').forEach(q=>{
+    q.addEventListener('click',()=>{
+      const item=q.closest('.faq-item');const ans=item.querySelector('.faq-a');const isOpen=item.classList.contains('open');
+      if(isOpen){item.classList.remove('open');q.setAttribute('aria-expanded','false');ans.style.maxHeight=null;}
+      else{item.classList.add('open');q.setAttribute('aria-expanded','true');ans.style.maxHeight=ans.scrollHeight+'px';}
     });
   });
+</script>
+
+<!-- Floating section-nav: open/close, reveal on scroll, panel scrollspy -->
+<script>
+  (function(){
+    const fab=document.getElementById('secnav-fab');
+    const panel=document.getElementById('secnav-panel');
+    const scrim=document.getElementById('secnav-scrim');
+    if(!fab||!panel||!scrim)return;
+    const setPanel=(open)=>{
+      fab.classList.toggle('open',open);
+      panel.classList.toggle('open',open);
+      scrim.classList.toggle('show',open);
+      fab.setAttribute('aria-expanded',String(open));
+      panel.setAttribute('aria-hidden',String(!open));
+    };
+    fab.addEventListener('click',()=>setPanel(!panel.classList.contains('open')));
+    scrim.addEventListener('click',()=>setPanel(false));
+    panel.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>setPanel(false)));
+    addEventListener('keydown',(e)=>{if(e.key==='Escape')setPanel(false);});
+    // Reveal the FAB once the hero is out of the way.
+    const toggleFab=()=>fab.classList.toggle('show',scrollY>320);
+    addEventListener('scroll',toggleFab,{passive:true});
+    toggleFab();
+    // Highlight the section you're currently in.
+    const links=[...panel.querySelectorAll('.secnav-link')];
+    const spy=new IntersectionObserver((es)=>{
+      es.forEach(e=>{if(e.isIntersecting){const id=e.target.getAttribute('id');
+        links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+id));}});
+    },{threshold:.25,rootMargin:"-80px 0px -40% 0px"});
+    links.map(l=>document.getElementById(l.getAttribute('href').slice(1))).filter(Boolean).forEach(s=>spy.observe(s));
+  })();
 </script>
 </body>
 </html>
