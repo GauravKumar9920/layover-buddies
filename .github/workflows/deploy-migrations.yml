@@ -29,6 +29,11 @@ on:
         type: boolean
         default: true
 
+# Least-privilege GITHUB_TOKEN: this workflow only checks out code and talks to
+# Supabase via its own secrets — it never writes back to the repo.
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Push migrations to prod

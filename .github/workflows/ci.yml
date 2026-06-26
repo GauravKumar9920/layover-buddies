@@ -28,6 +28,12 @@ on:
   pull_request:
     branches: [main]
 
+# Least-privilege GITHUB_TOKEN: every job here only reads the repo (install,
+# typecheck, lint, test, build). No job writes to the repo, so deny everything
+# except read access to contents.
+permissions:
+  contents: read
+
 jobs:
   mobile:
     name: mobile · typecheck + lint + test
