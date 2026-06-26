@@ -6,73 +6,78 @@ A two-sided marketplace connecting international airport layover travelers with 
 
 Travelers with layovers in Mumbai get matched with verified student guides who show them the city. Guides earn income; travelers get an authentic experience in hours.
 
-## Project Structure
+## Monorepo Layout
+
+This is an **npm-workspaces monorepo** (orchestrated with Turborepo). Each app and shared library is its own package under `apps/` and `packages/`.
 
 ```
-layover-buddies/
-├── index.html              # Marketing landing page
-├── know-more.html          # Deep-dive info page for travelers & guides
-├── src/style.css           # Custom CSS + Tailwind directives
-├── tailwind.config.js      # Tailwind config
-├── vite.config.js          # Vite build config
-├── mobile/                 # React Native + Expo app
-│   ├── app/                # Expo Router screens
-│   │   ├── (auth)/         # Login, signup, forgot-password
-│   │   ├── (traveler)/     # Browse, book, trips, live map
-│   │   ├── (guide)/        # Dashboard, requests, profile, itineraries
-│   │   └── (shared)/       # Messaging
-│   ├── components/         # Reusable UI components
-│   ├── lib/api/            # Supabase API layer
-│   ├── config/             # Theme tokens + business constants
-│   └── types/              # TypeScript models
-├── supabase/               # Database schema, migrations, seed data
-├── design/                 # Brand guidelines and UI mockups
-└── docs/                   # Architecture and API docs
+detour/
+├── apps/
+│   ├── mobile/        # @detour/mobile    — React Native + Expo app (iOS, Android, web)
+│   ├── admin/         # @detour/admin     — local-only admin console (Vite + React)
+│   └── marketing/     # @detour/marketing — static marketing site → detourtrips.com
+├── packages/          # shared internal libraries (@detour/*) — see docs
+├── supabase/          # database migrations, edge functions (Deno), seed data — shared backend
+├── marketing-ops/     # marketing strategy, templates, SEO docs (non-code)
+├── design/            # brand system, design tokens, UI mockups
+├── docs/              # project, technical, business, financial & legal docs
+└── scripts/           # one-off operational SQL/utility scripts
 ```
+
+`mobile` and `admin` both talk to the **same Supabase project** (mobile via the anon key under RLS; admin via the service-role key). See [ADR-002](docs/technical/ADR-002-monorepo-workspaces.md) for why this is one repo.
+
+## Getting Started
+
+```bash
+npm install        # installs every workspace from the root (one lockfile)
+```
+
+### Run an app
+
+```bash
+npm run mobile             # Expo dev server (then press i / a / w)
+npm run mobile:ios         # Expo → iOS simulator
+npm run admin              # admin console at http://127.0.0.1:5174
+cd apps/marketing && npm run preview   # static marketing site at :8791
+```
+
+### Repo-wide tasks (via Turborepo)
+
+```bash
+npm run type-check         # tsc across workspaces
+npm run lint
+npm run test               # mobile Jest suite
+npm run test:edge          # Deno tests for supabase/functions
+npm run build              # production builds (admin bundle, etc.)
+```
+
+### Environment variables
+
+```bash
+cp apps/mobile/.env.local.example apps/mobile/.env.local
+cp apps/admin/.env.local.example  apps/admin/.env.local
+```
+
+Mobile needs `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY`; admin needs `VITE_SUPABASE_URL` / `VITE_SUPABASE_SERVICE_KEY` / `VITE_ADMIN_PASSWORD`. Full list in each app's `.env.local.example`.
 
 ## Tech Stack
 
 | Layer | Tech |
 |---|---|
-| Marketing site | Vite 5, Tailwind CSS 3, Vanilla JS |
-| Mobile app | React Native 0.76, Expo 52, Expo Router 4, TypeScript |
-| Styling | NativeWind 4 (Tailwind for React Native) |
-| Animations | React Native Reanimated 3 |
-| State | Zustand 4 |
-| Backend | Supabase (auth + Postgres + storage) |
+| Monorepo | npm workspaces + Turborepo |
+| Mobile app | React Native 0.76, Expo 52, Expo Router 4, TypeScript, NativeWind 4, Reanimated 3, Zustand 4 |
+| Admin console | Vite, React 18, React Router, Tailwind, TypeScript |
+| Marketing site | Static HTML/CSS/JS (no build) → Vercel |
+| Backend | Supabase (Postgres + Auth + Storage + Deno Edge Functions) |
 | Payments | Razorpay (integration in progress) |
 | Maps | react-native-maps, expo-location |
 
-## Running Locally
+## Documentation
 
-### Marketing Site
-```bash
-npm install
-npm run dev
-```
-
-### Mobile App (iOS Simulator)
-```bash
-npm --prefix mobile install
-npm --prefix mobile run start
-# press `i` in the Expo terminal
-```
-
-### Mobile App (Android Emulator)
-```bash
-export ANDROID_HOME=$HOME/Library/Android/sdk
-export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH
-
-npm --prefix mobile run start
-# press `a` in the Expo terminal
-```
-
-### Environment Variables
-Copy `mobile/.env.local.example` to `mobile/.env.local` and fill in:
-```
-EXPO_PUBLIC_SUPABASE_URL=
-EXPO_PUBLIC_SUPABASE_ANON_KEY=
-```
+- [docs/technical/project-structure.md](docs/technical/project-structure.md) — full layout & conventions
+- [docs/technical/ADR-001-unified-codebase.md](docs/technical/ADR-001-unified-codebase.md) — why Expo Universal
+- [docs/technical/ADR-002-monorepo-workspaces.md](docs/technical/ADR-002-monorepo-workspaces.md) — why a workspaces monorepo
+- [CLAUDE.md](CLAUDE.md) — working context for Claude Code
 
 ## License
 

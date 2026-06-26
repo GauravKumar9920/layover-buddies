@@ -1,0 +1,38 @@
+{
+  "name": "detour",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Detour — layover marketplace monorepo: mobile app, admin console, marketing site, and Supabase backend.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "test": "turbo run test",
+    "mobile": "npm run start --workspace @detour/mobile",
+    "mobile:ios": "npm run start:ios --workspace @detour/mobile",
+    "mobile:android": "npm run start:android --workspace @detour/mobile",
+    "admin": "npm run dev --workspace @detour/admin",
+    "test:edge": "deno test --allow-env --no-check supabase/functions/__tests__/"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "//overrides": "Security patches for transitive deps flagged by Dependabot, consolidated from the per-app package.json files. npm only honours `overrides` declared at the workspace root, so they MUST live here. Pinned to the first patched version; verified against Expo bundling, the mobile Jest suite, and the admin Vite build.",
+  "overrides": {
+    "tar": "6.2.1",
+    "@xmldom/xmldom": "0.8.13",
+    "fast-uri": "3.1.2",
+    "@babel/plugin-transform-modules-systemjs": "7.29.4",
+    "ws": "8.20.1",
+    "uuid": "11.1.1",
+    "postcss": "8.5.10"
+  }
+}

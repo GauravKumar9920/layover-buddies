@@ -21,7 +21,7 @@ import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient, getUserFromRequest } from '../_shared/supabaseAdmin.ts';
 import { createOrder, idempotencyKey } from '../_shared/razorpayClient.ts';
 
-const LATE_FEE_PAISE = 100_000;  // ₹1,000 — mirrors mobile/config/constants.ts
+const LATE_FEE_PAISE = 100_000;  // ₹1,000 — mirrors apps/mobile/config/constants.ts
 
 serve(async (req: Request) => {
   console.log('[create-balance-order] Request received:', req.method, req.url);

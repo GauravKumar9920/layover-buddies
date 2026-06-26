@@ -4,7 +4,7 @@
     {
       "name": "Marketing Site",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8791", "--directory", "/Users/gaurav/Desktop/mumbai-buddies/web/marketing"],
+      "runtimeArgs": ["-m", "http.server", "8791", "--directory", "apps/marketing"],
       "port": 8791
     },
     {
@@ -16,7 +16,7 @@
     {
       "name": "Signup Mockup",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "9999", "--directory", "mockup"],
+      "runtimeArgs": ["-m", "http.server", "9999", "--directory", "design/ui-mockups"],
       "port": 9999
     },
     {
@@ -32,41 +32,35 @@
       "port": 8766
     },
     {
-      "name": "Old Template Website (Vite)",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "web/old-template"],
-      "port": 5173
-    },
-    {
       "name": "Admin Panel",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "admin"],
+      "runtimeArgs": ["run", "dev", "--prefix", "apps/admin"],
       "port": 5174
     },
     {
       "name": "Expo App (Web)",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start:web", "--prefix", "mobile"],
+      "runtimeArgs": ["run", "start:web", "--prefix", "apps/mobile"],
       "port": 8081,
       "autoPort": false
     },
     {
       "name": "Detour Web Preview",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start:web", "--prefix", "mobile", "--", "--port", "8082"],
+      "runtimeArgs": ["run", "start:web", "--prefix", "apps/mobile", "--", "--port", "8082"],
       "port": 8082,
       "autoPort": false
     },
     {
       "name": "Expo App (iOS Simulator)",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start:ios", "--prefix", "mobile"],
+      "runtimeArgs": ["run", "start:ios", "--prefix", "apps/mobile"],
       "port": 8081
     },
     {
       "name": "Expo App (Android Emulator)",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start:android", "--prefix", "mobile"],
+      "runtimeArgs": ["run", "start:android", "--prefix", "apps/mobile"],
       "port": 8081
     }
   ]
