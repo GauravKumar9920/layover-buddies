@@ -1,11 +1,12 @@
 // Small formatting helpers used across the admin tables. Keeping them in one
 // place so every screen renders currency + dates identically.
+import { CURRENCY_SYMBOL } from '@detour/config';
 
 export function formatINR(amount: number | string | null | undefined): string {
   if (amount == null) return '—';
   const n = typeof amount === 'string' ? Number(amount) : amount;
   if (Number.isNaN(n)) return '—';
-  return '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  return CURRENCY_SYMBOL + n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
 
 export function formatDate(iso: string | null | undefined): string {

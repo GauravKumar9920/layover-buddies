@@ -25,6 +25,7 @@
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
   },
+  "packageManager": "npm@10.9.3",
   "//overrides": "Security patches for transitive deps flagged by Dependabot, consolidated from the per-app package.json files. npm only honours `overrides` declared at the workspace root, so they MUST live here. Pinned to the first patched version; verified against Expo bundling, the mobile Jest suite, and the admin Vite build.",
   "overrides": {
     "tar": "6.2.1",
