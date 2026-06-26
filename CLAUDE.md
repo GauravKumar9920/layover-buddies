@@ -103,7 +103,7 @@ Confirm hero/gallery/testimonial images and any video assets resolve in `apps/ma
 - Razorpay payment integration (`apps/mobile/lib/api/payments.ts` stub exists)
 - Google Maps API key wiring
 - Push notifications setup
-- Extract shared `@detour/types` / `@detour/config` packages (see ADR-002) and de-duplicate the booking state-machine logic that is currently mirrored between `apps/mobile/lib/booking/` and `supabase/functions/_shared/`
+- ✅ Extracted `@detour/config` (theme + constants) → `packages/config` (re-export shims keep `@/config/*` imports working). **Still TODO:** extract `@detour/types` — it's coupled to `BookingState` from `apps/mobile/lib/booking/stateMachine.ts`, so do it together with de-duplicating the booking state-machine logic that is mirrored between `apps/mobile/lib/booking/` and `supabase/functions/_shared/`
 
 ---
 
