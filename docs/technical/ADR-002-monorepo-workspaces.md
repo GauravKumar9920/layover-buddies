@@ -57,9 +57,10 @@ Polyrepo gives maximum isolation and per-repo access control, but at this stage 
 - Expo + workspace hoisting is the main fragility; the Metro config above mitigates it. Always validate a real Metro bundle after touching dependencies or the Metro config.
 - `apps/mobile/ios/` and `apps/mobile/android/` contain a committed native skeleton but are otherwise gitignored (pre-existing state, preserved).
 
-**Follow-up (see ADR-002 / CLAUDE.md TODO #8)**
-- Extract `@detour/types` and `@detour/config` into `packages/` and rewire imports.
-- De-duplicate the booking state-machine/snapshot logic mirrored between `apps/mobile/lib/booking/` and `supabase/functions/_shared/` into a shared package consumable by both RN and Deno.
+**Follow-up (see CLAUDE.md TODO #8)**
+- ✅ `@detour/config` (design tokens + business constants) extracted into `packages/config`. Re-export shims at `apps/mobile/config/{theme,constants}.ts` keep the app's 80 `@/config/*` imports unchanged; the package is now available for `apps/admin` and other consumers to adopt.
+- `@detour/types` **deferred**: `apps/mobile/types/index.ts` depends on `BookingState` from `apps/mobile/lib/booking/stateMachine.ts`, so it cannot be extracted without first sharing the booking state-machine logic. Do these two together.
+- De-duplicate the booking state-machine/snapshot logic mirrored between `apps/mobile/lib/booking/` and `supabase/functions/_shared/` into a shared package consumable by both RN and Deno. (The Deno edge functions also mirror a few `@detour/config` constants by hand for the same reason.)
 
 ---
 

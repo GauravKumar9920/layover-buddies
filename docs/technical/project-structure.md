@@ -12,7 +12,8 @@ detour/
 │   ├── mobile/        # @detour/mobile    — React Native + Expo 52 (iOS, Android, web)
 │   ├── admin/         # @detour/admin     — Vite + React, local-only admin console
 │   └── marketing/     # @detour/marketing — static HTML site → detourtrips.com (no build)
-├── packages/          # @detour/* shared internal libraries
+├── packages/
+│   └── config/        # @detour/config — shared design tokens (theme) + business constants
 ├── supabase/          # migrations, Deno edge functions, seed.sql — shared backend (CLI expects ./supabase)
 ├── marketing-ops/     # marketing strategy, templates, SEO docs (non-code)
 ├── design/            # brand system, design tokens, fonts, UI mockups
