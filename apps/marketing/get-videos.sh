@@ -2,7 +2,7 @@
 # Downloads the licensed Mumbai stock clip used by index.html.
 # Source: Pexels — free for commercial use, no attribution required (pexels.com/license)
 # Clip: "Mumbai's iconic BMC building at twilight" — https://www.pexels.com/video/mumbai-s-iconic-bmc-building-at-twilight-35370261/
-# Run this once from the web/marketing/ folder on your Mac:  bash get-videos.sh
+# Run this once from the apps/marketing/ folder on your Mac:  bash get-videos.sh
 set -e
 mkdir -p videos
 echo "Downloading Mumbai twilight clip from Pexels…"

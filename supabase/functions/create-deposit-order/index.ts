@@ -20,7 +20,7 @@ import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient, getUserFromRequest } from '../_shared/supabaseAdmin.ts';
 
 const RAZORPAY_API = 'https://api.razorpay.com/v1/orders';
-const DEPOSIT_PAISE = 50_000;     // ₹500 — see mobile/config/constants.ts
+const DEPOSIT_PAISE = 50_000;     // ₹500 — see apps/mobile/config/constants.ts
 
 interface RequestBody {
   booking_id: string;

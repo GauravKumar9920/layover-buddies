@@ -1,8 +1,12 @@
 name: CI
 
 # Runs on every push to main and every pull request targeting main.
-# Independent jobs run in parallel — fast feedback, and a failure in one
-# workspace doesn't mask issues in the others.
+# Independent jobs run in parallel — fast feedback, and a failure in one area
+# doesn't mask issues in the others.
+#
+# This is an npm-workspaces monorepo: a single root `npm ci` installs every
+# workspace (apps/* + packages/*) from the root package-lock.json, then each
+# job runs the relevant workspace script via `npm run <task> -w <name>`.
 #
 # What this catches:
 #   - TypeScript errors (wrong field names, missing imports, type mismatches)
@@ -15,8 +19,8 @@ name: CI
 #   - Broken admin production build; missing/invalid marketing static site
 #
 # What this does NOT catch:
-#   - Runtime errors, layout bugs, or anything you can only see by running the app.
-#     For those, see docs/technical/TESTING.md.
+#   - Runtime errors, layout bugs, or anything you can only see by running the
+#     app. For those, see docs/technical/TESTING.md.
 
 on:
   push:
@@ -25,8 +29,8 @@ on:
     branches: [main]
 
 jobs:
-  mobile-typecheck:
-    name: mobile · typecheck
+  mobile:
+    name: mobile · typecheck + lint + test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,43 +38,34 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: mobile/package-lock.json
-      - name: Install
-        run: npm --prefix mobile ci
+          cache-dependency-path: package-lock.json
+      - name: Install (workspaces)
+        run: npm ci
       - name: Type check
-        run: npm --prefix mobile run type-check
-
-  mobile-lint:
-    name: mobile · lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: mobile/package-lock.json
-      - name: Install
-        run: npm --prefix mobile ci
+        run: npm run type-check --workspace @detour/mobile
       - name: Lint
-        run: npm --prefix mobile run lint
-
-  mobile-test:
-    name: mobile · test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: mobile/package-lock.json
-      - name: Install
-        run: npm --prefix mobile ci
+        run: npm run lint --workspace @detour/mobile
       # Jest suite: booking state machine, CTA mapping, late fees, cancellation/
       # reconciliation/agreement snapshots, push-token registration.
       - name: Test
-        run: npm --prefix mobile test -- --ci
+        run: npm test --workspace @detour/mobile -- --ci
+
+  admin-build:
+    name: admin · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - name: Install (workspaces)
+        run: npm ci
+      # admin's build script runs `tsc -b && vite build` — covers type-check
+      # and the production bundle in one step.
+      - name: Build
+        run: npm run build --workspace @detour/admin
 
   edge-test:
     name: edge · test
@@ -86,45 +81,25 @@ jobs:
       - name: Test edge functions
         run: deno test --allow-env --no-check supabase/functions/__tests__/
 
-  admin-build:
-    name: admin · build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: admin/package-lock.json
-      - name: Install
-        run: npm --prefix admin ci
-      # admin's build script runs `tsc -b && vite build` — covers type-check
-      # and the production bundle in one job. Skip env vars: vite ignores
-      # missing VITE_* at build time, only fails at runtime.
-      - name: Build
-        run: npm --prefix admin run build
-
   marketing-check:
     name: marketing · check
     runs-on: ubuntu-latest
-    # The live marketing site (web/marketing/) is static HTML deployed by
-    # Vercel — there is no build step. The old root Vite site was archived to
-    # web/old-template/ and is no longer shipped, so we no longer build it.
-    # This job validates the shipped static site has its required entry pages
-    # and that they're well-formed enough to be real HTML (catches an empty
-    # file or a bad move/rename).
+    # The live marketing site (apps/marketing/) is static HTML deployed by
+    # Vercel — there is no build step. This job validates the shipped static
+    # site has its required entry pages and that they're well-formed enough to
+    # be real HTML (catches an empty file or a bad move/rename).
     steps:
       - uses: actions/checkout@v4
       - name: Validate static marketing site
         run: |
           set -euo pipefail
-          for f in web/marketing/index.html web/marketing/careers.html web/marketing/vercel.json; do
-            test -s "web/marketing/$(basename "$f")" || { echo "::error::Missing or empty $f"; exit 1; }
+          for f in apps/marketing/index.html apps/marketing/careers.html apps/marketing/vercel.json; do
+            test -s "$f" || { echo "::error::Missing or empty $f"; exit 1; }
           done
-          for f in web/marketing/index.html web/marketing/careers.html; do
+          for f in apps/marketing/index.html apps/marketing/careers.html; do
             grep -qiE '<!doctype html|<html' "$f" || { echo "::error::$f does not look like HTML"; exit 1; }
           done
-          echo "✓ web/marketing static site present and well-formed"
+          echo "✓ apps/marketing static site present and well-formed"
 
   db-migrations:
     name: db · migrations apply cleanly
@@ -133,11 +108,6 @@ jobs:
     # `supabase/migrations/` to a fresh database. If a migration has bad SQL,
     # references a column that doesn't exist, or conflicts with a previous
     # migration, this step fails loudly.
-    #
-    # NOTE: `supabase db reset --no-seed` was removed. In CI every runner
-    # starts clean, so `supabase start` already applies migrations to a brand-
-    # new DB — the reset step was redundant and caused flaky 502 errors from
-    # the container-restart health-check race that follows a reset.
     steps:
       - uses: actions/checkout@v4
       - name: Install Supabase CLI

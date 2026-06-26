@@ -1,7 +1,7 @@
 /**
  * Detour — Design Tokens v3 "Warm Editorial"
  *
- * Ported from the live marketing site (web/marketing/index.html) so the app
+ * Ported from the live marketing site (apps/marketing/index.html) so the app
  * and the brand page feel like the same hand-built Mumbai travel zine:
  * paper canvas, ink type, marigold / terracotta / sea accents, mono labels.
  *

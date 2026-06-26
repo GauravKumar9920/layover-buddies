@@ -10,13 +10,13 @@ Created 10 June 2026 · Updated after full website implementation.
   - `03-marketing-pipeline-90-days.md` — the zero-budget 90-day plan (live in the Notion tracker)
 - **previews/** — screenshots of the rebuilt site before launch, plus the Pexels photo contact sheets used to pick gallery images
 
-## What's already done on the website (`web/marketing/`)
+## What's already done on the website (`apps/marketing/`)
 
 Images compressed 67MB→4.7MB · keyword title/meta/canonical · Organization + FAQPage schema · robots.txt + sitemap.xml · founder note · visa + solo FAQ · FormSubmit request form + cheat-sheet email capture · street-price ticker · video band (streams from Pexels CDN; run `get-videos.sh` to self-host) · 4 new licensed Pexels photos · App Store / Google Play "coming soon" badges.
 
 ## Guide content cluster — LIVE as of 14 June 2026
 
-The `/guides/` SEO cluster (doc 02's #1 strategic investment) is built and deployed. Shared design system in `web/marketing/assets/site.css` + `booking.js`; each page has Article + FAQPage + BreadcrumbList JSON-LD, the homepage booking modal, and is interlinked. Branded `404.html` added. All in the sitemap; GA4 (`G-54QYM83DKF`) on every page.
+The `/guides/` SEO cluster (doc 02's #1 strategic investment) is built and deployed. Shared design system in `apps/marketing/assets/site.css` + `booking.js`; each page has Article + FAQPage + BreadcrumbList JSON-LD, the homepage booking modal, and is interlinked. Branded `404.html` added. All in the sitemap; GA4 (`G-54QYM83DKF`) on every page.
 
 - `/guides/mumbai-layover-visa` — keystone (the visa question)
 - `/guides/complete-mumbai-layover-guide` — pillar / hub

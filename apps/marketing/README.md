@@ -18,12 +18,12 @@ Faces in the "buddies" section are honest **initials** until real student photos
 ```bash
 npm i -g vercel
 vercel login
-cd web/marketing
+cd apps/marketing
 vercel --prod          # accept defaults; Framework = Other, no build command
 ```
 
 **B. Connect the GitHub repo (vercel.com/new)**
-- Import the repo → set **Root Directory = `web/marketing`**
+- Import the repo → set **Root Directory = `apps/marketing`**
 - Framework Preset = **Other**, Build Command = *(empty)*, Output Directory = *(empty / `.`)*
 - Deploy.
 

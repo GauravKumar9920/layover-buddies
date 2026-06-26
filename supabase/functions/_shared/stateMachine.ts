@@ -1,7 +1,7 @@
 // ============================================================================
 // BOOKING STATE MACHINE — Edge Function copy
 // ============================================================================
-// Verbatim port of mobile/lib/booking/stateMachine.ts so that Edge Functions
+// Verbatim port of apps/mobile/lib/booking/stateMachine.ts so that Edge Functions
 // (sign-agreement, razorpay-webhook) decide booking-status transitions using
 // the EXACT same reducer the client uses. Kept as a separate file rather than
 // imported because:
@@ -169,7 +169,7 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
   ['cancelled_no_deposit',        []],
 ]);
 
-// Legacy state forward-compat shims — must match mobile/lib/booking/stateMachine.ts.
+// Legacy state forward-compat shims — must match apps/mobile/lib/booking/stateMachine.ts.
 TRANSITIONS.set('pending',        TRANSITIONS.get('agreement_sent')!);
 TRANSITIONS.set('guide_accepted', TRANSITIONS.get('awaiting_deposits')!);
 TRANSITIONS.set('confirmed',      TRANSITIONS.get('balance_paid')!);

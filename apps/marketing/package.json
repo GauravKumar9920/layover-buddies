@@ -1,0 +1,10 @@
+{
+  "name": "@detour/marketing",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Detour marketing site — self-contained static HTML deployed to detourtrips.com via Vercel. No build step.",
+  "scripts": {
+    "build": "echo \"static site — nothing to build\"",
+    "preview": "python3 -m http.server 8791"
+  }
+}
