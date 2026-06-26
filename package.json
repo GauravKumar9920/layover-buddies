@@ -31,7 +31,7 @@
     "@xmldom/xmldom": "0.8.13",
     "fast-uri": "3.1.2",
     "@babel/plugin-transform-modules-systemjs": "7.29.4",
-    "ws": "8.20.1",
+    "ws": "8.21.0",
     "uuid": "11.1.1",
     "postcss": "8.5.10"
   }
