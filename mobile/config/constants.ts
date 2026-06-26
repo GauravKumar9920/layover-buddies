@@ -1,6 +1,6 @@
 // Business rules — never change without founder sign-off
 export const COMMISSION_RATE = 0.25; // 25% of buddy_cost only (NOT on expenses)
-// NOTE: NEXT_TASKS.md Task 7 suggests 15% — confirm with Gaurav before changing
+// NOTE: docs/project/NEXT_TASKS.md Task 7 suggests 15% — confirm with Gaurav before changing
 
 export const ESTIMATED_EXPENSES_PERCENT = 30; // 30% of buddy_cost as placeholder estimate
 export const MIN_BOOKING_NOTICE_HOURS = 4;    // can't book less than 4h before arrival

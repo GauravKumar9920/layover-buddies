@@ -45,7 +45,7 @@ All queries in `mobile/lib/api/` are aligned to the schema. `is_published` used 
 `supabase/seed.sql` has 5 guides, 15 itineraries, 6 bookings, 5 reviews, 6 messages.
 
 ### 3. ✅ End-to-End Smoke Test (DONE 2026-04-14)
-See `SMOKE_TEST_RESULTS.md`. Five bugs found and fixed:
+See `docs/project/SMOKE_TEST_RESULTS.md`. Five bugs found and fixed:
 - **Fixed:** Missing `bookings` UPDATE RLS policy (guides/travelers can now update)
 - **Fixed:** Missing `itinerary_stops` public read policy (travelers see stops)
 - **Fixed:** `payment_status` enum extended for Razorpay lifecycle values

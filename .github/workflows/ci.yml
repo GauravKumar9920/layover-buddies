@@ -16,7 +16,7 @@ name: CI
 #
 # What this does NOT catch:
 #   - Runtime errors, layout bugs, or anything you can only see by running the app.
-#     For those, see TESTING.md at the repo root.
+#     For those, see docs/technical/TESTING.md.
 
 on:
   push:
