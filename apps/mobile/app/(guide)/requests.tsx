@@ -9,7 +9,9 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BookingCardSkeleton } from '@/components/ui/Loading';
 import { fetchPendingRequests, acceptBooking, declineBooking } from '@/lib/api/bookings';
+import { expectedNetPaise } from '@/lib/api/earnings';
 import { getEffectiveRates } from '@/lib/api/platformSettings';
+import { formatPaise } from '@/lib/booking/money';
 import { layoverHoursBetween } from '@/lib/booking/timeFit';
 import { getItineraryPhoto } from '@/config/photoLibrary';
 import { supabase } from '@/lib/supabase';
@@ -225,13 +227,16 @@ export default function RequestsScreen() {
               )}
               {item.total_price > 0 && (
                 <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 16, color: theme.colors.primary, marginTop: 6 }}>
-                  ₹{(item.total_price - item.commission).toLocaleString('en-IN')}
+                  {/* Net buddy fee (platform-down + TDS), matching the Earnings
+                      screen + reconciliation — NOT total_price − commission,
+                      which would fold in the traveler's expense pot. */}
+                  {formatPaise(expectedNetPaise(item))}
                   <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textMuted }}> your payout</Text>
                 </Text>
               )}
               {item.total_price > 0 && commissionRate !== null && commissionRate > 0 && (
                 <Text style={{ fontFamily: theme.fonts.mono, fontSize: 10, color: theme.colors.textMuted, letterSpacing: 0.3, textTransform: 'uppercase' }}>
-                  After {Math.round(commissionRate * 100)}% platform fee
+                  After platform fee &amp; TDS
                 </Text>
               )}
             </View>

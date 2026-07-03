@@ -33,7 +33,7 @@ export interface GuidePayout {
   failed_reason: string | null;
 }
 
-export const PAYOUT_KIND_LABELS: Record<string, string> = {
+export const PAYOUT_KIND_LABELS: Partial<Record<PayoutKind, string>> = {
   trip_pot_release: 'Trip pot release',
   buddy_fee_final: 'Buddy fee',
   traveler_refund: 'Traveler refund',
