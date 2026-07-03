@@ -2,22 +2,26 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
-  FlatList,
   RefreshControl,
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
-  Platform,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { format } from 'date-fns';
+import Animated, {
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { GuideCard } from '@/components/guides/GuideCard';
 import { GuideCardSkeleton } from '@/components/ui/Loading';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchActiveGuides } from '@/lib/api/guides';
 import { fetchMyTravelerProfile, type TravelerProfile } from '@/lib/api/travelerProfile';
-import { rankGuides, interestOverlap, layoverHoursBetween } from '@/lib/booking/timeFit';
-import { signOut } from '@/lib/auth';
+import { rankGuides, layoverHoursBetween } from '@/lib/booking/timeFit';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { theme } from '@/config/theme';
 import { PRIMARY_CITY } from '@/config/constants';
@@ -30,7 +34,13 @@ import type { GuideProfile } from '@/types';
 // chips silently returned "No guides found" for everyone.
 const SKILL_FILTERS = ['All', 'Food', 'History', 'Culture', 'Photography', 'Hidden Gems', 'Adventure'];
 
+// Distance (px) of scroll over which the greeting block folds away, leaving
+// the search bar + filter chips pinned.
+const GREETING_COLLAPSE_RANGE = 80;
+const GREETING_HEIGHT = 56;
+
 export default function BrowseScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] ?? 'Traveler';
@@ -41,8 +51,32 @@ export default function BrowseScreen() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   // Traveler's onboarding answers — interests soft-rank the list, layover
-  // window powers the time-fit chip on each itinerary card.
+  // window powers the layover chip and per-card time-fit stamps.
   const [travelerProfile, setTravelerProfile] = useState<TravelerProfile | null>(null);
+
+  // Greeting collapses as the list scrolls; search + chips stay pinned.
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
+  const greetingStyle = useAnimatedStyle(() => {
+    const progress = interpolate(
+      scrollY.value,
+      [0, GREETING_COLLAPSE_RANGE],
+      [0, 1],
+      'clamp',
+    );
+    // Animate only opacity + translateY (not height/marginBottom): the header
+    // sits above the FlatList, so animating its layout height off the list's
+    // own scroll offset shrinks maxScroll and creates a scroll feedback loop
+    // (visible jitter on short lists). Keep the container a fixed height and
+    // just fade/lift the greeting — the house pattern used by the other
+    // collapsing headers (guide/[id], book/[guideId], itinerary/[id]).
+    return {
+      opacity: 1 - progress,
+      transform: [{ translateY: -GREETING_HEIGHT * progress }],
+    };
+  });
 
   const loadGuides = useCallback(async () => {
     try {
@@ -62,7 +96,7 @@ export default function BrowseScreen() {
     }
   }, []);
 
-  // Layover window in hours — used by GuideCard time-fit chips.
+  // Layover window in hours — powers the header chip + GuideCard time-fit stamps.
   const layoverHours = layoverHoursBetween(
     travelerProfile?.arrival_at,
     travelerProfile?.departure_at,
@@ -77,6 +111,8 @@ export default function BrowseScreen() {
     setRefreshing(true);
     loadGuides();
   }
+
+  const isFiltered = Boolean(searchQuery) || activeFilter !== 'All';
 
   const filteredGuides = guides.filter((g) => {
     const matchesSearch =
@@ -100,49 +136,46 @@ export default function BrowseScreen() {
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(14,25,41,0.12)',
       }}>
-        {/* Top row: greeting + sign out */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <View>
-            <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textMuted }}>
-              Good day, {firstName}
-            </Text>
-            <Text style={{
-              fontFamily: theme.fonts.display, fontSize: 26, color: theme.colors.text,
-              letterSpacing: -0.4, marginTop: 3,
-            }}>
-              Find your Buddy
-            </Text>
-          </View>
+        {/* Greeting — fades/lifts away on scroll. Sign-out lives on the Profile tab. */}
+        <Animated.View style={[{ height: GREETING_HEIGHT, marginBottom: 12, overflow: 'hidden' }, greetingStyle]}>
+          <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textMuted }}>
+            Good day, {firstName}
+          </Text>
+          <Text style={{
+            fontFamily: theme.fonts.display, fontSize: 26, color: theme.colors.text,
+            letterSpacing: -0.4, marginTop: 3,
+          }}>
+            Find your Buddy
+          </Text>
+        </Animated.View>
+
+        {/* Layover chip — the traveler's window at a glance; tap to edit in Profile. */}
+        {layoverHours !== null && travelerProfile?.arrival_at && (
           <TouchableOpacity
-            // Tap is a sign-out — confirm first because the icon used to be a
-            // bell and several users tapped it expecting notifications.  Glyph
-            // is now ↪ to match the action.
-            onPress={async () => {
-              const confirm = await new Promise<boolean>((resolve) => {
-                if (Platform.OS === 'web') {
-                  resolve(window.confirm('Sign out of Detour?'));
-                  return;
-                }
-                Alert.alert('Sign out?', '', [
-                  { text: 'Stay', style: 'cancel', onPress: () => resolve(false) },
-                  { text: 'Sign out', style: 'destructive', onPress: () => resolve(true) },
-                ], { onDismiss: () => resolve(false) });
-              });
-              if (confirm) signOut();
-            }}
+            onPress={() => router.push('/(traveler)/(tabs)/profile' as never)}
             accessibilityRole="button"
-            accessibilityLabel="Sign out"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityLabel="Edit your layover window in Profile"
             style={{
-              width: 40, height: 40, borderRadius: 12,
-              backgroundColor: theme.colors.primaryLight,
-              borderWidth: 1, borderColor: 'rgba(200,84,42,0.3)',
-              alignItems: 'center', justifyContent: 'center',
+              flexDirection: 'row',
+              alignItems: 'center',
+              alignSelf: 'flex-start',
+              gap: 6,
+              backgroundColor: theme.colors.surfaceMuted,
+              borderWidth: 1,
+              borderColor: theme.colors.divider,
+              borderRadius: theme.borderRadius.full,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              marginBottom: 12,
             }}
           >
-            <Text style={{ fontSize: 17, color: theme.colors.primaryDark }}>↪</Text>
+            <Text style={{ fontSize: 11 }}>⏱</Text>
+            <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 11, color: theme.colors.text, letterSpacing: 0.4, textTransform: 'uppercase' }}>
+              {Math.round(layoverHours)}h in Mumbai · {format(new Date(travelerProfile.arrival_at), 'MMM d')}
+            </Text>
+            <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textMuted }}>›</Text>
           </TouchableOpacity>
-        </View>
+        )}
 
         {/* Search bar */}
         <View style={{
@@ -200,9 +233,11 @@ export default function BrowseScreen() {
           {[1, 2, 3].map((i) => <GuideCardSkeleton key={i} />)}
         </ScrollView>
       ) : (
-        <FlatList
+        <Animated.FlatList
           data={filteredGuides}
           keyExtractor={(item) => item.id}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
           renderItem={({ item, index }) => (
             <GuideCard
               guide={item}
@@ -231,14 +266,22 @@ export default function BrowseScreen() {
             />
           }
           ListEmptyComponent={
-            <EmptyState
-              title="No guides found"
-              subtitle={
-                searchQuery || activeFilter !== 'All'
-                  ? 'Try a different search or filter.'
-                  : 'Check back soon — more student guides are joining the platform!'
-              }
-            />
+            isFiltered ? (
+              <EmptyState
+                title="No matches for that filter"
+                subtitle="Try a different search or category — every guide hides somewhere."
+                actionLabel="Clear filters"
+                onAction={() => {
+                  setSearchQuery('');
+                  setActiveFilter('All');
+                }}
+              />
+            ) : (
+              <EmptyState
+                title="No guides found"
+                subtitle="Check back soon — more student guides are joining the platform!"
+              />
+            )
           }
           showsVerticalScrollIndicator={false}
         />

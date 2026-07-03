@@ -63,6 +63,31 @@ export function SkeletonLine({
   );
 }
 
+/** Skeleton for a booking / request card row (thumbnail + text lines) */
+export function BookingCardSkeleton() {
+  return (
+    <View
+      style={{
+        backgroundColor: theme.colors.surface,
+        borderRadius: theme.borderRadius.lg,
+        borderWidth: 1,
+        borderColor: 'rgba(14,25,41,0.08)',
+        padding: 16,
+        marginBottom: 12,
+        flexDirection: 'row',
+        gap: 12,
+      }}
+    >
+      <SkeletonLine width={56} height={56} style={{ borderRadius: theme.borderRadius.md }} />
+      <View style={{ flex: 1, gap: 8, justifyContent: 'center' }}>
+        <SkeletonLine width="65%" height={16} />
+        <SkeletonLine width="45%" height={12} />
+        <SkeletonLine width="55%" height={10} />
+      </View>
+    </View>
+  );
+}
+
 /** Skeleton for a guide card */
 export function GuideCardSkeleton() {
   return (

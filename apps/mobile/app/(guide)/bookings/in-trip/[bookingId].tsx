@@ -20,10 +20,12 @@ import { Header } from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { TopUpRequestForm } from '@/components/bookings/TopUpRequestForm';
+import { SafetyBar } from '@/components/bookings/SafetyBar';
 import { useTrip } from '@/lib/hooks/useTrip';
 import { endTrip } from '@/lib/api/tripLifecycle';
 import { financialCopy } from '@/lib/copy/financial';
 import { formatPaise } from '@/lib/booking/money';
+import { supabase } from '@/lib/supabase';
 import { theme } from '@/config/theme';
 
 export default function GuideInTripScreen() {
@@ -34,7 +36,22 @@ export default function GuideInTripScreen() {
   const [ending, setEnding] = useState(false);
   const [elapsed, setElapsed] = useState('');
   const [topUpFormVisible, setTopUpFormVisible] = useState(false);
+  const [travelerName, setTravelerName] = useState('the traveler');
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Traveler name for the safety bar copy — useTrip's slim booking row
+  // doesn't join users, so fetch it once here.
+  useEffect(() => {
+    if (!booking?.traveler_id) return;
+    supabase
+      .from('users')
+      .select('full_name')
+      .eq('id', booking.traveler_id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.full_name) setTravelerName(data.full_name.split(' ')[0]);
+      });
+  }, [booking?.traveler_id]);
 
   // Navigate away when trip ends.
   useEffect(() => {
@@ -203,6 +220,13 @@ export default function GuideInTripScreen() {
           End the trip when you've said goodbye. You'll then upload payment proofs for all expenses.
         </Text>
       </ScrollView>
+
+      {/* SOS / Help / Contact — guides need the emergency path too */}
+      <SafetyBar
+        bookingId={bookingId ?? ''}
+        contactName={travelerName}
+        insets={insets}
+      />
     </View>
   );
 }
@@ -212,7 +236,8 @@ const styles = StyleSheet.create({
   centered:        { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorText:       { color: '#991B1B', fontSize: 15 },
   scroll:          { flex: 1 },
-  scrollContent:   { padding: 20, paddingBottom: 40 },
+  // Extra bottom padding so the fixed SafetyBar never covers "End trip".
+  scrollContent:   { padding: 20, paddingBottom: 120 },
 
   liveBadge: {
     flexDirection:    'row',

@@ -32,6 +32,12 @@ export interface BoardingPassRevealProps {
   timeLabel?: string;
   flightNumber?: string;
   totalLabel: string;
+  /** Stamp text thumped over the ticket. Default "Booked". */
+  stampLabel?: string;
+  /** Small eyebrow inside the ticket. Default "Request sent". */
+  eyebrowLabel?: string;
+  /** Caption under the ticket. Default "Opening your trip…". */
+  footerLabel?: string;
   onDone: () => void;
 }
 
@@ -46,7 +52,11 @@ function Stub({ label, value }: { label: string; value: string }) {
 
 export function BoardingPassReveal({
   visible, itineraryName, guideName, guideAvatar,
-  dateLabel, timeLabel, flightNumber, totalLabel, onDone,
+  dateLabel, timeLabel, flightNumber, totalLabel,
+  stampLabel = 'Booked',
+  eyebrowLabel = 'Request sent',
+  footerLabel = 'Opening your trip…',
+  onDone,
 }: BoardingPassRevealProps) {
   const scrim = useSharedValue(0);
   const ticketY = useSharedValue(48);
@@ -101,7 +111,7 @@ export function BoardingPassReveal({
           <View style={{ backgroundColor: C.surface, borderRadius: 16, borderWidth: 1.5, borderColor: C.inkLine, overflow: 'hidden' }}>
             {/* Top: route + guide */}
             <View style={{ padding: 18, position: 'relative' }}>
-              <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 0.6, textTransform: 'uppercase', color: C.primary }}>Request sent · {dateLabel}</Text>
+              <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 0.6, textTransform: 'uppercase', color: C.primary }}>{eyebrowLabel} · {dateLabel}</Text>
               <Text style={{ fontFamily: F.display, fontSize: 22, color: C.text, letterSpacing: -0.4, marginTop: 6 }} numberOfLines={2}>{itineraryName}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
                 {guideAvatar ? (
@@ -115,7 +125,7 @@ export function BoardingPassReveal({
               {/* Stamp */}
               <Animated.View style={[{ position: 'absolute', right: 12, top: 14 }, stampStyle]}>
                 <View style={{ borderWidth: 2, borderColor: C.success, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 }}>
-                  <Text style={{ fontFamily: F.monoMed, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: C.success }}>Booked</Text>
+                  <Text style={{ fontFamily: F.monoMed, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: C.success }}>{stampLabel}</Text>
                 </View>
               </Animated.View>
             </View>
@@ -137,7 +147,7 @@ export function BoardingPassReveal({
           </View>
 
           <Text style={{ fontFamily: F.mono, fontSize: 11, letterSpacing: 0.8, textTransform: 'uppercase', color: 'rgba(252,247,234,0.55)', textAlign: 'center', marginTop: 16 }}>
-            Opening your trip…
+            {footerLabel}
           </Text>
         </Animated.View>
       </Pressable>

@@ -91,7 +91,7 @@ Rewrote `apps/mobile/app/(traveler)/book/[guideId].tsx` to match spec (guide her
 - Keep web fallback working (Metro stubs `react-native-maps` on web — see `apps/mobile/metro.config.js`)
 
 ### 5. Cosmetic Alignment — Marketing Site ↔ Design System
-Verify `apps/marketing/` matches the saffron-led design system (Saffron `#F97316`, Bougainvillea Pink `#EC4899`, fonts Plus Jakarta Sans / Inter / DM Sans). The recent marketing rebuild largely addressed this; confirm against `design/brand/design-system.md`.
+✅ Superseded: both the marketing site and the app now share the v3 "Warm Editorial" system (paper `#F4EDDD`, ink `#0E1929`, terracotta `#C8542A`; Bricolage Grotesque / Plus Jakarta Sans / Instrument Serif / DM Mono). See `design/brand/detour-design-philosophy.md`; tokens in `packages/config/theme.ts`.
 
 ### 6. Marketing Site Placeholders
 Confirm no placeholder values remain in `apps/marketing/` (production booking URL, real WhatsApp/Instagram/X handles). The rebuilt site appears to use real links — verify before launch.
@@ -100,7 +100,7 @@ Confirm no placeholder values remain in `apps/marketing/` (production booking UR
 Confirm hero/gallery/testimonial images and any video assets resolve in `apps/marketing/` (no 404s).
 
 ### 8. Deferred (Do Later)
-- Razorpay payment integration (`apps/mobile/lib/api/payments.ts` stub exists)
+- Razorpay checkout is wired via `apps/mobile/lib/api/razorpayCheckout.ts` (native sheet wrapper; orders created server-side by edge functions; used by `deposits.ts`/`balance.ts`/`topUp.ts`). Remaining: production key + webhook hardening. (The legacy `lib/api/payments.ts` stub was removed.)
 - Google Maps API key wiring
 - Push notifications setup
 - ✅ Extracted `@detour/config` (theme + constants) → `packages/config` (re-export shims keep `@/config/*` imports working). **Still TODO:** extract `@detour/types` — it's coupled to `BookingState` from `apps/mobile/lib/booking/stateMachine.ts`, so do it together with de-duplicating the booking state-machine logic that is mirrored between `apps/mobile/lib/booking/` and `supabase/functions/_shared/`
@@ -119,7 +119,7 @@ detour/                          # npm-workspaces monorepo root (package.json + 
 │   │   │   ├── (guide)/         # Dashboard, requests, profile, itineraries
 │   │   │   └── (shared)/        # Messages
 │   │   ├── components/          # ui/, guides/, bookings/
-│   │   ├── lib/api/             # guides.ts, bookings.ts, payments.ts, etc.
+│   │   ├── lib/api/             # guides.ts, bookings.ts, razorpayCheckout.ts, earnings.ts, etc.
 │   │   ├── lib/booking/         # state machine + snapshots (mirrored in edge fns)
 │   │   ├── config/theme.ts      # Design tokens (colors, spacing, shadows)
 │   │   ├── config/constants.ts  # Business rules
@@ -159,18 +159,18 @@ Run: `npm install` (root) then `cp apps/admin/.env.local.example apps/admin/.env
 
 ## Design System Quick Reference
 
-**Colors (v2 "City of Dreams" — saffron-led):**
-- Primary: Mumbai Saffron `#F97316` / Dark `#EA580C`
-- Secondary: Bougainvillea Pink `#EC4899` / Dark `#BE185D`
-- Background: Warm Cream `#FFFAF5`
-- Text: Midnight Navy `#0B1229`
-- Gold (ratings): `#F59E0B` · Success: `#22C55E` · Mumbai Purple (premium): `#6C5CE7`
+**Colors (v3 "Warm Editorial" — paper/ink, shared with detourtrips.com):**
+- Canvas: Paper `#F4EDDD` / Paper Light `#FCF7EA` (cards) / Paper Deep `#EBE0C5` (insets) / hairline `#C5BA9C`
+- Text: Ink `#0E1929` / Ink Muted `#445169` / Ink Soft `#7C8597`
+- Primary CTA: Terracotta `#C8542A` / Dark `#9E3A1F` / Light tint `#F7DECC`
+- Secondary: Sea `#2D7BA9` (links/info) · Marigold `#E89F2C` (ratings/warnings)
+- Success `#3D8B5A` · Error `#C0392B` · Purple (badges) `#6C5CE7`
 
-**Fonts:** Headings — Plus Jakarta Sans · Body — Inter · Numbers/Prices — DM Sans
+**Fonts:** Display — Bricolage Grotesque · Body — Plus Jakarta Sans · Editorial pull quotes — Instrument Serif · Eyebrows/Prices — DM Mono
 
 **Animation (spring):** Button press `scale(0.96)` `damping:15, stiffness:150`; Card tap `scale(0.97)`, `translateY(-2px)`.
 
-**Key theme file:** `apps/mobile/config/theme.ts`
+**Key theme file:** `packages/config/theme.ts` (`@detour/config`; `apps/mobile/config/theme.ts` is a re-export shim). Full philosophy: `design/brand/detour-design-philosophy.md`. The older `design/brand/design-system.md` documents the superseded v2 saffron palette.
 
 ---
 

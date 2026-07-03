@@ -62,6 +62,9 @@ export interface TravelerProfile {
   name: string;
   avatar_url: string | null;
   nationality: string | null;
+  /** Onboarding interests — present only when the query embeds
+   *  traveler_profiles(interests) (e.g. the guide requests screen). */
+  interests?: string[] | null;
   phone: string | null;
   created_at: string;
 }
@@ -186,6 +189,10 @@ export interface Booking {
   payment_intent_id: string | null;
   payment_status: PaymentStatus;
   created_at: string;
+  /** Traveler's flight window (bookings.arrival_time / departure_time) —
+   *  powers layover-length chips on guide-facing screens. */
+  arrival_time?: string | null;
+  departure_time?: string | null;
   // Joined fields
   guide?: GuideProfile;
   traveler?: TravelerProfile;

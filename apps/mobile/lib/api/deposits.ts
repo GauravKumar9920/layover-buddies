@@ -19,7 +19,7 @@ import {
   openRazorpayCheckout,
   type RazorpayOrder,
   type RazorpayPaymentResult,
-} from './payments';
+} from './razorpayCheckout';
 import type { Database } from '@/types/supabase';
 
 export type Deposit = Database['public']['Tables']['deposits']['Row'];

@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge, bookingStatusLabel, bookingStatusVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
-import { AgreementCtaBlock } from '@/components/bookings/AgreementCtaBlock';
+import { TripTimeline } from '@/components/bookings/TripTimeline';
 import { fetchBookingById, cancelBooking } from '@/lib/api/bookings';
 import { supabase } from '@/lib/supabase';
 import { getItineraryPhoto } from '@/config/photoLibrary';
@@ -148,10 +148,10 @@ export default function TripDetailScreen() {
           )}
         </View>
 
-        {/* Phase 2 — Agreement & Deposit CTA */}
-        <AgreementCtaBlock
+        {/* Journey timeline — where the booking is + the one next action */}
+        <TripTimeline
           bookingId={booking.id}
-          bookingStatus={booking.status as BookingState}
+          status={booking.status as BookingState}
           viewer="traveler"
         />
 

@@ -43,7 +43,7 @@ import {
 } from '@/lib/api/deposits';
 import {
   isRazorpayCheckoutUnavailableError,
-} from '@/lib/api/payments';
+} from '@/lib/api/razorpayCheckout';
 import { confirmPayment } from '@/lib/api/confirmPayment';
 
 export default function AgreementViewerScreen() {

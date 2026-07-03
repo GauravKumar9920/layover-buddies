@@ -18,7 +18,7 @@ import {
   openRazorpayCheckout,
   type RazorpayOrder,
   type RazorpayPaymentResult,
-} from './payments';
+} from './razorpayCheckout';
 
 export interface BalanceOrder extends RazorpayOrder {
   payment_event_id: string;

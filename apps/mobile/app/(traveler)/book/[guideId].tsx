@@ -40,7 +40,8 @@ import {
 import { StarRating } from '@/components/ui/StarRating';
 import { Card } from '@/components/ui/Card';
 import { SkeletonLine } from '@/components/ui/Loading';
-import { getItineraryPhoto, getGuideHeroPhoto } from '@/config/photoLibrary';
+import { getItineraryPhoto, getGuideHeroPhoto, getGuideAvatar } from '@/config/photoLibrary';
+import { BoardingPassReveal } from '@/components/bookings/BoardingPassReveal';
 import { fetchGuideById, fetchGuideItineraries } from '@/lib/api/guides';
 import { fetchMyTravelerProfile } from '@/lib/api/travelerProfile';
 import { createBooking, calcCommission } from '@/lib/api/bookings';
@@ -504,6 +505,9 @@ export default function BookingScreen() {
   const [departureTime, setDepartureTime] = useState('');
   const [flightNumber, setFlightNumber] = useState('');
   const [numTravelers, setNumTravelers] = useState('1');
+  // Set on successful inquiry — shows the boarding-pass reveal, whose onDone
+  // navigates into the new chat thread.
+  const [revealBookingId, setRevealBookingId] = useState<string | null>(null);
   const [rates, setRates] = useState<EffectiveRates>(EARLY_ACCESS_RATES);
 
   const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
@@ -626,9 +630,10 @@ export default function BookingScreen() {
 
       hapticSuccess();
       confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 });
-      // Inquiry-first: drop the traveler straight into the chat thread so they
-      // can build the plan with the guide. Booking + payment happen later.
-      router.replace(`/(shared)/messages/${booking.id}` as never);
+      // Inquiry-first: celebrate the moment with the boarding-pass reveal,
+      // then drop the traveler straight into the chat thread so they can
+      // build the plan with the guide. Booking + payment happen later.
+      setRevealBookingId(booking.id);
     } catch (err: unknown) {
       hapticError();
       confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 });
@@ -645,6 +650,21 @@ export default function BookingScreen() {
       style={{ flex: 1, backgroundColor: theme.colors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <BoardingPassReveal
+        visible={revealBookingId !== null}
+        itineraryName={selectedItin?.name ?? selectedItin?.title ?? 'Mumbai plans'}
+        guideName={guide?.name ?? 'your guide'}
+        guideAvatar={guide ? getGuideAvatar(guide) : null}
+        dateLabel={tourStartDate ? format(parseISO(tourStartDate), 'MMM d') : 'TBD'}
+        flightNumber={flightNumber.trim() || undefined}
+        totalLabel={selectedItin && total > 0 ? `${CURRENCY_SYMBOL}${total.toLocaleString('en-IN')}` : 'In chat'}
+        stampLabel="Request sent"
+        eyebrowLabel="Inquiry"
+        footerLabel="Opening your chat…"
+        onDone={() => {
+          if (revealBookingId) router.replace(`/(shared)/messages/${revealBookingId}` as never);
+        }}
+      />
       {/* Back button */}
       <View style={{
         position: 'absolute', top: insets.top + 8, left: 16, zIndex: 50,

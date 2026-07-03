@@ -5,7 +5,7 @@ import { Stack } from 'expo-router';
  *
  * The first child is `(tabs)` which renders the 5-tab bottom navigator.
  * Every other entry is a detail screen that pushes on top of the tab
- * navigator: guide profile, booking form, trip details, payment, cancel,
+ * navigator: guide profile, booking form, trip details, cancel,
  * etc. Because they live in a Stack (not nested inside Tabs), they
  * unmount cleanly when the user navigates away — fixing the web bug
  * where previously-visited screens accumulated in the DOM and made tab
@@ -22,7 +22,6 @@ export default function TravelerLayout() {
       <Stack.Screen name="guide/[id]" />
       <Stack.Screen name="itinerary/[id]" />
       <Stack.Screen name="book/[guideId]" />
-      <Stack.Screen name="book/payment/[bookingId]" />
       <Stack.Screen name="trips/[id]" />
       <Stack.Screen name="trips/live/[id]" />
       <Stack.Screen name="trips/review/[id]" />

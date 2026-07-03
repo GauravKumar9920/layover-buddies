@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BookingCard } from '@/components/bookings/BookingCard';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Loading } from '@/components/ui/Loading';
+import { BookingCardSkeleton } from '@/components/ui/Loading';
 import { fetchTravelerBookings } from '@/lib/api/bookings';
 import { fetchUnreadCounts } from '@/lib/api/messages';
 import { supabase } from '@/lib/supabase';
@@ -57,8 +57,6 @@ export default function TripsScreen() {
   const upcoming = bookings.filter((b) => isUpcomingBookingState(b.status));
   const past = bookings.filter((b) => PAST_BOOKING_STATES.has(b.status));
 
-  if (loading) return <Loading fullScreen message="Loading your trips..." />;
-
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <LinearGradient
@@ -69,10 +67,15 @@ export default function TripsScreen() {
           My trips
         </Text>
         <Text style={{ fontFamily: theme.fonts.mono, color: 'rgba(252,247,234,0.7)', fontSize: 11, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 6 }}>
-          {bookings.length} total · {upcoming.length} upcoming
+          {loading ? 'Loading…' : `${bookings.length} total · ${upcoming.length} upcoming`}
         </Text>
       </LinearGradient>
 
+      {loading ? (
+        <View style={{ padding: 16 }}>
+          {[1, 2, 3].map((i) => <BookingCardSkeleton key={i} />)}
+        </View>
+      ) : (
       <FlatList
         data={[...upcoming, ...past]}
         keyExtractor={(item) => item.id}
@@ -106,6 +109,7 @@ export default function TripsScreen() {
         }
         showsVerticalScrollIndicator={false}
       />
+      )}
     </View>
   );
 }

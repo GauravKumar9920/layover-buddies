@@ -144,9 +144,6 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => <TabIcon icon="user" label="Profile" focused={focused} />,
         }}
       />
-      {/* Search lives in the Explore header now — keep the route reachable
-          but off the tab bar. */}
-      <Tabs.Screen name="search" options={{ href: null }} />
     </Tabs>
   );
 }

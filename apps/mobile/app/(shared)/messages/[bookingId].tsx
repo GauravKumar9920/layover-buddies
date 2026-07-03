@@ -15,11 +15,13 @@ import Feather from '@expo/vector-icons/Feather';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
+  FadeInDown,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
 import { Loading } from '@/components/ui/Loading';
+import { getGuideAvatar } from '@/config/photoLibrary';
 import { useMessages } from '@/lib/hooks/useMessages';
 import { supabase } from '@/lib/supabase';
 import { fetchBookingById } from '@/lib/api/bookings';
@@ -184,6 +186,11 @@ export default function MessagesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
+  // Only messages that arrive AFTER the screen opens get the pop-in. Reanimated
+  // `entering` fires on every mount, so without this the whole visible history
+  // animates at once on open and old bubbles replay the spring each time
+  // FlatList virtualization re-mounts them on scroll-back.
+  const mountedAtRef = useRef(Date.now());
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [booking, setBooking] = useState<Booking | null>(null);
@@ -234,8 +241,14 @@ export default function MessagesScreen() {
   const otherName = isTraveler
     ? booking?.guide?.name ?? 'Guide'
     : booking?.traveler?.name ?? 'Traveler';
+  // Guides get the same portrait fallback as their cards/profile (seeded by
+  // id + name) so the chat never shows bare initials for a face the traveler
+  // has already seen. Travelers keep the initials fallback — we don't invent
+  // faces for real customers.
   const otherAvatar = isTraveler
-    ? booking?.guide?.avatar_url ?? null
+    ? (booking
+        ? getGuideAvatar({ id: booking.guide_id, name: booking.guide?.name, avatar_url: booking.guide?.avatar_url })
+        : null)
     : booking?.traveler?.avatar_url ?? null;
 
   // Build a renderable list with day separators interleaved between messages.
@@ -315,6 +328,7 @@ export default function MessagesScreen() {
               showTime={item.showTime}
               avatarUrl={otherAvatar}
               otherName={otherName}
+              animateIn={new Date(item.message.created_at).getTime() >= mountedAtRef.current}
             />
           );
         }}
@@ -429,6 +443,7 @@ function MessageBubble({
   showTime,
   avatarUrl,
   otherName,
+  animateIn,
 }: {
   message: Message;
   isMine: boolean;
@@ -436,6 +451,9 @@ function MessageBubble({
   showTime: boolean;
   avatarUrl: string | null;
   otherName: string;
+  /** True only for messages that arrived after the screen mounted — gates the
+   *  pop-in so historical bubbles don't animate on open or on scroll re-mount. */
+  animateIn: boolean;
 }) {
   const initials = otherName
     .split(' ')
@@ -446,7 +464,13 @@ function MessageBubble({
     .toUpperCase();
 
   return (
-    <View
+    <Animated.View
+      // Pop-in matching the house spring — only for messages that arrive after
+      // the screen mounts (see animateIn), so opening a thread and scrolling
+      // back through history don't replay the spring on every bubble.
+      // Native only: Reanimated entering animations can stall mid-fade on
+      // web, leaving bubbles stuck semi-transparent.
+      entering={animateIn && Platform.OS !== 'web' ? FadeInDown.springify().damping(15).stiffness(150) : undefined}
       style={{
         flexDirection: 'row',
         alignItems: 'flex-end',
@@ -502,7 +526,7 @@ function MessageBubble({
           </Text>
         )}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
