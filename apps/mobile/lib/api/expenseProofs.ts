@@ -18,17 +18,28 @@ export interface ExpenseProof {
   created_at:            string;
 }
 
+/**
+ * Upload-ready file bytes. We hand Supabase Storage an ArrayBuffer rather than
+ * a Blob because React Native Blobs upload an empty body and fail with
+ * "Network request failed"; `contentType` is carried alongside since an
+ * ArrayBuffer has no `.type`.
+ */
+export interface ProofFile {
+  data:        ArrayBuffer;
+  contentType: string;
+}
+
 export interface UploadProofParams {
   bookingId:         string;
   category:          string;
   description?:      string;
   amountPaise:       number;
-  paymentProofBlob:  Blob;
-  billBlob?:         Blob;
+  paymentProof:      ProofFile;
+  bill?:             ProofFile;
 }
 
-function ext(blob: Blob): string {
-  const type = blob.type;
+function ext(contentType: string): string {
+  const type = contentType.toLowerCase();
   if (type.includes('jpeg') || type.includes('jpg')) return 'jpg';
   if (type.includes('png'))  return 'png';
   if (type.includes('webp')) return 'webp';
@@ -77,11 +88,14 @@ export async function uploadExpenseProof(params: UploadProofParams): Promise<Exp
   const userId = user?.user?.id;
   if (!userId) throw new Error('not_authenticated');
 
-  const proofKey = `${params.bookingId}/${uuidv4()}.${ext(params.paymentProofBlob)}`;
+  const proofKey = `${params.bookingId}/${uuidv4()}.${ext(params.paymentProof.contentType)}`;
 
   const { error: upErr } = await supabase.storage
     .from('expense-proofs')
-    .upload(proofKey, params.paymentProofBlob, { upsert: false });
+    .upload(proofKey, params.paymentProof.data, {
+      upsert: false,
+      contentType: params.paymentProof.contentType,
+    });
 
   if (upErr) throw upErr;
 
@@ -90,13 +104,16 @@ export async function uploadExpenseProof(params: UploadProofParams): Promise<Exp
     .getPublicUrl(proofKey);
 
   let billUrl: string | null = null;
-  if (params.billBlob) {
-    const billKey = `${params.bookingId}/${uuidv4()}_bill.${ext(params.billBlob)}`;
+  if (params.bill) {
+    const billKey = `${params.bookingId}/${uuidv4()}_bill.${ext(params.bill.contentType)}`;
     // Check the upload result so a silently-failed bill upload doesn't end
     // up persisting a bill_url that resolves to 404.
     const { error: billErr } = await supabase.storage
       .from('expense-proofs')
-      .upload(billKey, params.billBlob, { upsert: false });
+      .upload(billKey, params.bill.data, {
+        upsert: false,
+        contentType: params.bill.contentType,
+      });
     if (billErr) throw billErr;
     billUrl = supabase.storage.from('expense-proofs').getPublicUrl(billKey).data.publicUrl;
   }

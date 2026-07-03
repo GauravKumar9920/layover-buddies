@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useTrip } from '@/lib/hooks/useTrip';
 import { uploadExpenseProof, deleteExpenseProof } from '@/lib/api/expenseProofs';
+import type { ProofFile } from '@/lib/api/expenseProofs';
 import { submitProofs } from '@/lib/api/tripLifecycle';
 import { formatPaise } from '@/lib/booking/money';
 import { financialCopy } from '@/lib/copy/financial';
@@ -41,19 +42,23 @@ type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
 // ── Add-proof modal state ────────────────────────────────────────────────────
 interface DraftProof {
-  category:        ExpenseCategory;
-  description:     string;
-  amountRupees:    string;
-  paymentProofUri: string | null;
-  billUri:         string | null;
+  category:         ExpenseCategory;
+  description:      string;
+  amountRupees:     string;
+  paymentProofUri:  string | null;
+  paymentProofMime: string | null;
+  billUri:          string | null;
+  billMime:         string | null;
 }
 
 const EMPTY_DRAFT: DraftProof = {
-  category:        'Food',
-  description:     '',
-  amountRupees:    '',
-  paymentProofUri: null,
-  billUri:         null,
+  category:         'Food',
+  description:      '',
+  amountRupees:     '',
+  paymentProofUri:  null,
+  paymentProofMime: null,
+  billUri:          null,
+  billMime:         null,
 };
 
 export default function UploadProofsScreen() {
@@ -87,11 +92,7 @@ export default function UploadProofsScreen() {
       quality:    0.8,
     });
     if (result.canceled || !result.assets[0]) return;
-    if (kind === 'payment') {
-      setDraft(d => ({ ...d, paymentProofUri: result.assets[0].uri }));
-    } else {
-      setDraft(d => ({ ...d, billUri: result.assets[0].uri }));
-    }
+    setPickedAsset(kind, result.assets[0]);
   }
 
   async function takePhoto(kind: 'payment' | 'bill') {
@@ -102,10 +103,17 @@ export default function UploadProofsScreen() {
     }
     const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
     if (result.canceled || !result.assets[0]) return;
+    setPickedAsset(kind, result.assets[0]);
+  }
+
+  // Store the picked/captured asset's URI + mimeType so the upload can send the
+  // correct content type (the ArrayBuffer we upload has no `.type`).
+  function setPickedAsset(kind: 'payment' | 'bill', asset: ImagePicker.ImagePickerAsset) {
+    const mime = asset.mimeType ?? null;
     if (kind === 'payment') {
-      setDraft(d => ({ ...d, paymentProofUri: result.assets[0].uri }));
+      setDraft(d => ({ ...d, paymentProofUri: asset.uri, paymentProofMime: mime }));
     } else {
-      setDraft(d => ({ ...d, billUri: result.assets[0].uri }));
+      setDraft(d => ({ ...d, billUri: asset.uri, billMime: mime }));
     }
   }
 
@@ -121,10 +129,20 @@ export default function UploadProofsScreen() {
     );
   }
 
-  // ── URI → Blob ──────────────────────────────────────────────────────────────
-  async function uriToBlob(uri: string): Promise<Blob> {
+  // ── URI → upload-ready file ──────────────────────────────────────────────────
+  // Reads the file as an ArrayBuffer, not a Blob: RN Blobs upload an empty body
+  // to Supabase Storage and fail with "Network request failed".
+  async function uriToProofFile(uri: string, mime: string | null): Promise<ProofFile> {
     const resp = await fetch(uri);
-    return resp.blob();
+    const data = await resp.arrayBuffer();
+    const ext = (uri.split('?')[0].split('.').pop() ?? '').toLowerCase();
+    const contentType =
+      mime ??
+      (ext === 'png'  ? 'image/png'  :
+       ext === 'webp' ? 'image/webp' :
+       ext === 'pdf'  ? 'application/pdf' :
+       'image/jpeg');
+    return { data, contentType };
   }
 
   // ── Submit single proof ─────────────────────────────────────────────────────
@@ -142,16 +160,18 @@ export default function UploadProofsScreen() {
 
     setUploading(true);
     try {
-      const paymentBlob = await uriToBlob(draft.paymentProofUri);
-      const billBlob    = draft.billUri ? await uriToBlob(draft.billUri) : undefined;
+      const paymentProof = await uriToProofFile(draft.paymentProofUri, draft.paymentProofMime);
+      const bill         = draft.billUri
+        ? await uriToProofFile(draft.billUri, draft.billMime)
+        : undefined;
 
       await uploadExpenseProof({
         bookingId,
-        category:         draft.category,
-        description:      draft.description || undefined,
+        category:    draft.category,
+        description: draft.description || undefined,
         amountPaise,
-        paymentProofBlob: paymentBlob,
-        billBlob,
+        paymentProof,
+        bill,
       });
 
       setDraft({ ...EMPTY_DRAFT });
