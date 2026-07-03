@@ -485,6 +485,10 @@ export default function BookingScreen() {
   }>();
   // `intent=chat` → casual inquiry: no tour pre-selected, nothing required.
   const isCasual = intent === 'chat';
+  // Arrived from a specific tour's "Inquire" button → focus on that tour rather
+  // than showing the whole switchable carousel (which reads as "you haven't
+  // chosen yet"). The traveler can still reveal the full list on demand.
+  const cameFromTour = !!preselectedItinId;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
@@ -497,6 +501,9 @@ export default function BookingScreen() {
   const [inquiryNote, setInquiryNote] = useState('');
 
   const [selectedItinId, setSelectedItinId] = useState<string>(preselectedItinId ?? '');
+  // When arriving from a specific tour, hide the other tours until the traveler
+  // explicitly asks to browse them.
+  const [showAllTours, setShowAllTours] = useState(false);
   const [tourStartDate, setTourStartDate] = useState('');
   const [tourEndDate, setTourEndDate] = useState('');
   const [arrivalDate, setArrivalDate] = useState('');
@@ -741,18 +748,35 @@ export default function BookingScreen() {
         <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
           {/* ── Tour selection ─────────────────────────────────────────── */}
           <Text style={{ fontFamily: theme.fonts.display, fontSize: 19, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 4 }}>
-            {isCasual ? 'Ask about a tour' : 'Which tour?'}
+            {cameFromTour && !showAllTours
+              ? 'Your tour'
+              : isCasual ? 'Ask about a tour' : 'Which tour?'}
           </Text>
           <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary, marginBottom: 16 }}>
-            {isCasual
-              ? 'Optional — pick one to ask about, or just send a question below.'
-              : 'Tap a card to select. You can change it together with your guide.'}
+            {cameFromTour && !showAllTours
+              ? 'You can fine-tune the plan and price with your guide in chat.'
+              : isCasual
+                ? 'Optional — pick one to ask about, or just send a question below.'
+                : 'Tap a card to select. You can change it together with your guide.'}
           </Text>
         </View>
 
         {loading ? (
           <View style={{ paddingLeft: 20 }}>
             <View style={{ width: CARD_WIDTH, height: CARD_IMAGE_HEIGHT + 90, backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.lg, ...theme.shadows.sm }} />
+          </View>
+        ) : cameFromTour && !showAllTours && selectedItin ? (
+          // Focused view: just the tour they inquired about, plus a quiet way to
+          // browse the guide's other tours if they change their mind.
+          <View style={{ paddingLeft: 20 }}>
+            <ItinCard itin={selectedItin} selected onPress={() => setShowAllTours(true)} />
+            {itineraries.length > 1 && (
+              <TouchableOpacity onPress={() => setShowAllTours(true)} style={{ paddingVertical: 12 }}>
+                <Text style={{ fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.accent }}>
+                  Ask about a different tour ›
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         ) : (
           <FlatList
