@@ -942,20 +942,11 @@ export default function ItineraryDetailScreen() {
             {isFavorited ? '♥' : '♡'}
           </Text>
         </TouchableOpacity>
-        {/* "Book" was misleading — the request actually lands in chat_open
-            (a non-binding inquiry). Two clear actions: Message first, or send
-            a structured request. */}
-        <Button
-          title="Message"
-          variant="secondary"
-          size="lg"
-          onPress={() =>
-            router.push({
-              pathname: '/(traveler)/book/[guideId]',
-              params: { guideId: itinerary.guide_id, intent: 'chat' },
-            })
-          }
-        />
+        {/* Single primary action. "Inquire" lands in chat_open (a non-binding
+            inquiry) with this tour pre-selected; the traveler chats freely from
+            there. A separate "Message" button was redundant here — on a specific
+            tour it opened the same screen with nothing selected. General
+            "Message" lives on the guide profile, where no tour is in context. */}
         <View style={{ flex: 1 }}>
           <Button
             title={`Inquire · ₹${itinerary.buddy_cost_inr.toLocaleString('en-IN')}`}
