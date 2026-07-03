@@ -40,7 +40,7 @@
         {
           "@type": "Question",
           "name": "Do I need a visa to leave Mumbai airport on a layover?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes — most nationalities need an Indian visa to step outside the airport, and the easiest route is the e-Tourist visa (around US$25), applied for online before you fly. Apply at least 4–7 days ahead. If you stay inside the international transit area, no visa is needed — but then there's no detour either. We'll walk you through the process when you request a detour." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Most nationalities do — the easiest route is the e-Tourist visa (about US$25), applied for online before you fly. Allow 4–7 days. Sorted once, it never blocks you again." }
         },
         {
           "@type": "Question",
@@ -49,13 +49,13 @@
         },
         {
           "@type": "Question",
-          "name": "What do I do with my heavy luggage?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Mumbai airport has a secure left-luggage cloakroom. Your buddy meets you at arrivals and walks you there first, so you explore the city hands-free." }
+          "name": "How much does a Detour cost?",
+          "acceptedAnswer": { "@type": "Answer", "text": "While we're in early access, nothing — there's no service fee at all. You only cover your own cab, food and tickets, paid directly at honest local prices with zero markup." }
         },
         {
           "@type": "Question",
-          "name": "How much does a Detour cost?",
-          "acceptedAnswer": { "@type": "Answer", "text": "While we're in early access, Detour is completely free — there's no service fee at all. You only cover your own cab, food, and tickets, paid directly at honest local prices with zero markup." }
+          "name": "Who exactly is my buddy?",
+          "acceptedAnswer": { "@type": "Answer", "text": "A student at one of Mumbai's top colleges who joined Detour by invitation, passed identity and enrolment checks, and sat a face-to-face interview. You see their name, photo, languages and interests before you land." }
         },
         {
           "@type": "Question",
@@ -142,7 +142,7 @@ h2 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--em)
 
 /* ============ NAV ============ */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 5%;display:flex;align-items:center;justify-content:space-between;transition:all .3s ease;}
-nav.scrolled{background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--line);padding:12px 5%;}
+nav.scrolled,nav.menu-open{background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--line);padding:12px 5%;}
 .logo{display:flex;align-items:center;gap:11px;}
 .logo .wm{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.04em;color:var(--ink);line-height:1;}
 [data-theme="dark"] .logo .wm{font-weight:700;}
@@ -161,10 +161,18 @@ nav.scrolled{background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-fi
 .theme-toggle .ic-sun{display:none;}
 [data-theme="dark"] .theme-toggle .ic-sun{display:block;}
 [data-theme="dark"] .theme-toggle .ic-moon{display:none;}
-.btn-ig{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;background:var(--accent);color:#fff;padding:10px 18px;border-radius:9999px;box-shadow:var(--btn-shadow);transition:transform .18s var(--ease),box-shadow .18s ease,background .2s;}
-.btn-ig:hover{transform:translateY(-1px);box-shadow:var(--btn-shadow-h);background:var(--accent-dk);}
-.btn-ig:active{transform:translateY(2px);box-shadow:var(--btn-shadow-a);}
-@media(max-width:920px){.nav-links{display:none;}}
+.btn-nav-cta{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;background:var(--accent);color:#fff;padding:10px 18px;border-radius:9999px;border:none;box-shadow:var(--btn-shadow);transition:transform .18s var(--ease),box-shadow .18s ease,background .2s;}
+.btn-nav-cta:hover{transform:translateY(-1px);box-shadow:var(--btn-shadow-h);background:var(--accent-dk);}
+.btn-nav-cta:active{transform:translateY(2px);box-shadow:var(--btn-shadow-a);}
+.nav-burger{display:none;align-items:center;justify-content:center;width:40px;height:40px;border:var(--hairline) solid var(--line-2);background:transparent;color:var(--ink);border-radius:9999px;transition:border-color .2s,color .2s;}
+.nav-burger:hover{border-color:var(--accent);color:var(--accent);}
+.nav-burger svg{width:18px;height:18px;}
+.nav-burger .ic-x{display:none;}
+.nav-burger.open .ic-bars{display:none;}
+.nav-burger.open .ic-x{display:block;}
+nav:not(.scrolled):not(.menu-open) .nav-burger{color:#FCF7EA;border-color:rgba(252,247,234,.4);}
+@media(max-width:920px){.nav-links{display:none;}.nav-burger{display:inline-flex;}.nav-right{gap:12px;}}
+@media(max-width:600px){.btn-nav-cta{display:none;}}
 
 /* ============ BUTTONS / CHIPS ============ */
 .btn-primary{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:15px;background:var(--accent);color:#fff;padding:15px 26px;border-radius:9999px;border:none;box-shadow:var(--btn-shadow);transition:transform .18s var(--ease),box-shadow .2s ease,background .2s;}
@@ -220,14 +228,14 @@ nav.scrolled{background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-fi
 @media (prefers-reduced-motion:reduce){.hero-media img.kenburns,.route-live,.route-ping,.pin-drop,.scroll-cue .line{animation:none;}.route-ping{opacity:0;}}
 
 /* nav over hero (dark photo) */
-nav:not(.scrolled) .logo .wm{color:#FCF7EA;}
-nav:not(.scrolled) .logo .wm em{color:var(--accent-2);}
-nav:not(.scrolled) .logo .tag{color:rgba(252,247,234,.6);}
-nav:not(.scrolled) .nav-links a{color:rgba(252,247,234,.92);}
-nav:not(.scrolled) .nav-links a:hover,nav:not(.scrolled) .nav-links a.active{color:var(--accent-2);}
-nav:not(.scrolled) .nav-links a.active::after{background:var(--accent-2);}
-nav:not(.scrolled) .theme-toggle{color:#FCF7EA;border-color:rgba(252,247,234,.4);}
-nav:not(.scrolled) .theme-toggle:hover{color:var(--accent-2);border-color:var(--accent-2);}
+nav:not(.scrolled):not(.menu-open) .logo .wm{color:#FCF7EA;}
+nav:not(.scrolled):not(.menu-open) .logo .wm em{color:var(--accent-2);}
+nav:not(.scrolled):not(.menu-open) .logo .tag{color:rgba(252,247,234,.6);}
+nav:not(.scrolled):not(.menu-open) .nav-links a{color:rgba(252,247,234,.92);}
+nav:not(.scrolled):not(.menu-open) .nav-links a:hover,nav:not(.scrolled):not(.menu-open) .nav-links a.active{color:var(--accent-2);}
+nav:not(.scrolled):not(.menu-open) .nav-links a.active::after{background:var(--accent-2);}
+nav:not(.scrolled):not(.menu-open) .theme-toggle{color:#FCF7EA;border-color:rgba(252,247,234,.4);}
+nav:not(.scrolled):not(.menu-open) .theme-toggle:hover{color:var(--accent-2);border-color:var(--accent-2);}
 
 /* ============ TICKER ============ */
 .ticker-band{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-2);padding:14px 0;overflow:hidden;}
@@ -243,11 +251,13 @@ nav:not(.scrolled) .theme-toggle:hover{color:var(--accent-2);border-color:var(--
 @keyframes tickerscroll{to{transform:translateX(-50%);}}
 @media (prefers-reduced-motion:reduce){.ticker-track{animation:none;}}
 
-/* ============ MANIFESTO ============ */
-.manifesto{background:var(--bg-2);overflow:hidden;}
-.manifesto .wrap{text-align:center;position:relative;z-index:1;}
-.manifesto h2{max-width:920px;margin:18px auto 0;}
-.manifesto .lead{margin:24px auto 0;text-align:center;}
+/* ============ IDEA BAND (manifesto over photo) ============ */
+.idea-band .band{min-height:580px;}
+.idea-band .band-copy h2{color:#fff;max-width:820px;margin:14px 0 0;}
+.idea-band .band-copy h2 em{color:var(--gold);}
+.idea-band .band-lead{font-size:17px;line-height:1.6;color:rgba(252,247,234,.88);max-width:560px;margin-top:18px;}
+.idea-band .eyebrow{color:var(--accent-2);}
+.idea-band .eyebrow::before{background:var(--accent-2);}
 
 /* ============ CARD base ============ */
 .card{background:var(--panel);border:var(--card-bd);border-radius:var(--r);box-shadow:var(--shadow-card);transition:transform .25s var(--ease),border-color .25s,box-shadow .25s;}
@@ -264,6 +274,14 @@ nav:not(.scrolled) .theme-toggle:hover{color:var(--accent-2);border-color:var(--
 .how-step h3{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.02em;margin-bottom:9px;}
 [data-theme="dark"] .how-step h3{font-weight:600;}
 .how-step p{font-size:14.5px;line-height:1.6;color:var(--mute);}
+.flight-strip{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-top:26px;padding:24px 28px;border:1.5px dashed var(--accent-2);border-radius:var(--r);background:var(--accent-2-soft);}
+.flight-strip .fs-ic{flex-shrink:0;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--panel);border:var(--hairline) solid var(--accent-2);}
+.flight-strip .fs-ic svg{width:22px;height:22px;color:var(--accent-2);}
+.flight-strip h4{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.015em;margin-bottom:5px;}
+[data-theme="dark"] .flight-strip h4{font-weight:600;}
+.flight-strip p{font-size:13.5px;line-height:1.55;color:var(--mute);max-width:62ch;}
+.flight-strip .fs-body{flex:1;min-width:260px;}
+.flight-strip .fs-tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2);border:1px solid var(--accent-2);padding:6px 12px;border-radius:9999px;white-space:nowrap;}
 
 /* ============ MUMBAI MOSAIC ============ */
 .contrast-grid{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:200px;gap:16px;}
@@ -342,26 +360,39 @@ nav:not(.scrolled) .theme-toggle:hover{color:var(--accent-2);border-color:var(--
 .break-band .band-copy h3 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--gold);}
 .break-band .coord{position:absolute;top:20px;right:6%;z-index:3;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:rgba(252,247,234,.7);}
 
-/* ============ PROMISE ============ */
-.why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
-@media(max-width:900px){.why-grid{grid-template-columns:1fr;}}
-.why-card{padding:30px 28px;}
-.why-ic{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;border:1px solid var(--line-2);background:color-mix(in srgb,var(--ink) 4%,transparent);}
-[data-theme="light"] .why-ic{box-shadow:3px 3px 0 var(--ink);}
-.why-ic svg{width:24px;height:24px;color:var(--accent-2);}
-.why-card.coral .why-ic svg{color:var(--accent);}
-.why-card.coral .why-ic{border-color:color-mix(in srgb,var(--accent) 35%,transparent);background:var(--accent-soft);}
-.why-card.gold .why-ic svg{color:var(--gold);}
-.why-card h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.02em;margin-bottom:9px;}
-[data-theme="dark"] .why-card h3{font-weight:600;}
-.why-card p{font-size:14px;line-height:1.6;color:var(--mute);}
+/* ============ SAFETY ============ */
+.safety-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:64px;align-items:start;}
+@media(max-width:900px){.safety-grid{grid-template-columns:1fr;gap:36px;}}
+.safety-head{position:sticky;top:110px;}
+@media(max-width:900px){.safety-head{position:static;}}
+.safety-principles{margin-top:30px;border:1.5px dashed var(--line-2);border-radius:16px;padding:20px 22px;}
+.safety-principles .sp-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:12px;}
+.safety-principles .sp{display:flex;align-items:baseline;gap:10px;font-size:14px;font-weight:600;color:var(--ink-2);padding:6px 0;}
+.safety-principles .sp em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--em);}
+.safety-principles .sp::before{content:'✓';font-family:var(--mono);font-size:12px;color:var(--accent-2);}
+.safety-list{list-style:none;}
+.safety-list li{display:flex;gap:18px;padding:20px 0;border-bottom:1.5px dashed var(--line);}
+.safety-list li:first-child{padding-top:4px;}
+.safety-list li:last-child{border-bottom:none;padding-bottom:0;}
+.safety-ic{flex-shrink:0;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:var(--hairline) solid var(--line-2);background:var(--panel);}
+[data-theme="light"] .safety-ic{box-shadow:2.5px 2.5px 0 var(--ink);}
+[data-theme="dark"] .safety-ic{background:linear-gradient(180deg,var(--panel),var(--bg-2));}
+.safety-ic svg{width:20px;height:20px;color:var(--accent);}
+.safety-list li:nth-child(even) .safety-ic svg{color:var(--accent-2);}
+.safety-list h3{font-family:var(--display);font-weight:700;font-size:17.5px;letter-spacing:-.015em;margin-bottom:6px;}
+[data-theme="dark"] .safety-list h3{font-weight:600;}
+.safety-list p{font-size:14px;line-height:1.6;color:var(--mute);}
 
-/* ============ GALLERY ============ */
-.gallery-grid{columns:3 280px;column-gap:16px;}
-.gallery-grid .g-item{break-inside:avoid;margin-bottom:16px;position:relative;border:var(--hairline) solid var(--line-2);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card);}
-.gallery-grid img{width:100%;display:block;transition:transform .6s var(--ease);}
-.gallery-grid .g-item:hover img{transform:scale(1.05);}
-@media(max-width:600px){.gallery-grid{columns:2 150px;}}
+/* ============ PRACTICAL (before you fly) ============ */
+.prac-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:26px;}
+@media(max-width:900px){.prac-grid{grid-template-columns:1fr;}}
+.prac-card{display:flex;flex-direction:column;padding:30px 28px;color:inherit;}
+.prac-card .mono-tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2);display:block;margin-bottom:12px;}
+.prac-card h3{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.02em;margin-bottom:10px;}
+[data-theme="dark"] .prac-card h3{font-weight:600;}
+.prac-card p{font-size:14px;line-height:1.6;color:var(--mute);margin-bottom:18px;}
+.prac-card .go{margin-top:auto;display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--accent);}
+.prac-card:hover .go{text-decoration:underline;text-underline-offset:4px;}
 
 /* ============ FOUNDER ============ */
 .founder{background:var(--bg-2);}
@@ -496,28 +527,41 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
 .legal-body b{color:var(--ink-2);}
 .legal-body a{color:var(--accent);text-decoration:underline;}
 
-/* ============ FLOATING SECTION NAV ============ */
-.secnav-fab{position:fixed;right:24px;bottom:24px;z-index:150;display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.04em;background:var(--accent);color:#fff;border:none;padding:13px 18px;border-radius:9999px;box-shadow:var(--btn-shadow);cursor:pointer;opacity:0;visibility:hidden;transform:translateY(12px);transition:opacity .3s var(--ease),transform .25s var(--ease),background .2s,box-shadow .2s;}
-.secnav-fab.show{opacity:1;visibility:visible;transform:none;}
-.secnav-fab:hover{background:var(--accent-dk);box-shadow:var(--btn-shadow-h);}
-.secnav-fab:active{transform:translateY(2px);box-shadow:var(--btn-shadow-a);}
-.secnav-fab svg{width:15px;height:15px;}
-.secnav-fab .ic-close{display:none;}
-.secnav-fab.open .ic-open{display:none;}
-.secnav-fab.open .ic-close{display:block;}
-.secnav-scrim{position:fixed;inset:0;z-index:149;background:rgba(8,14,16,.4);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease;}
-.secnav-scrim.show{opacity:1;visibility:visible;}
-.secnav-panel{position:fixed;right:24px;bottom:84px;z-index:151;width:236px;background:var(--panel);border:var(--hairline) solid var(--line-2);border-radius:18px;box-shadow:var(--shadow-card);padding:12px;opacity:0;visibility:hidden;transform:translateY(12px) scale(.97);transform-origin:bottom right;transition:opacity .25s var(--ease),transform .25s var(--ease),visibility .25s;}
-[data-theme="dark"] .secnav-panel{background:linear-gradient(180deg,var(--panel-2),var(--bg-2));}
-.secnav-panel.open{opacity:1;visibility:visible;transform:none;}
-.secnav-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);padding:4px 10px 10px;}
-.secnav-link{display:block;font-size:14px;font-weight:600;color:var(--ink-2);padding:9px 11px;border-radius:11px;transition:background .15s,color .15s;}
-.secnav-link:hover{background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--accent);}
-.secnav-link.active{color:var(--accent);background:var(--accent-soft);}
-[data-theme="dark"] .secnav-link.active{color:#FFCBB8;}
-@media(max-width:600px){.secnav-fab{right:16px;bottom:16px;padding:12px 15px;}.secnav-panel{right:16px;bottom:74px;width:212px;}}
-@media print{.secnav-fab,.secnav-panel,.secnav-scrim{display:none !important;}}
-@media (prefers-reduced-motion:reduce){.secnav-fab,.secnav-panel{transition:opacity .2s ease,visibility .2s ease;}}
+/* ============ SCROLL PROGRESS ============ */
+.scroll-progress{position:fixed;top:0;left:0;height:2.5px;width:0;z-index:160;background:linear-gradient(90deg,var(--accent),var(--accent-2));pointer-events:none;transition:opacity .3s ease;}
+
+/* ============ ROUTE RAIL (left-edge section map) ============ */
+.route-rail{position:fixed;left:26px;right:auto;top:50%;bottom:auto;transform:translateY(-50%);z-index:90;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:20px;padding:6px 0;background:none;border:none;opacity:0;visibility:hidden;transition:opacity .4s var(--ease),visibility .4s;}
+.route-rail.show{opacity:1;visibility:visible;}
+.route-rail::before{content:'';position:absolute;top:10px;bottom:10px;left:4.5px;width:0;border-left:1.5px dashed var(--line);z-index:-1;}
+.rail-stop{display:flex;align-items:center;gap:12px;}
+.rail-stop .dot{flex-shrink:0;width:10px;height:10px;border-radius:50%;background:var(--bg);border:1.5px solid var(--line-2);transition:background .25s,border-color .25s,transform .25s var(--ease);}
+[data-theme="dark"] .rail-stop .dot{border-color:var(--mute);}
+.rail-stop .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);background:var(--panel);border:1px solid var(--line);padding:4px 10px;border-radius:9999px;white-space:nowrap;opacity:0;transform:translateX(-6px);transition:opacity .25s var(--ease),transform .25s var(--ease);}
+[data-theme="dark"] .rail-stop .lbl{background:var(--panel-2);}
+.route-rail:hover .rail-stop .lbl{opacity:1;transform:none;}
+.rail-stop.active .lbl{opacity:1;transform:none;color:var(--accent);border-color:var(--accent);}
+.rail-stop.passed .dot{background:var(--accent-2);border-color:var(--accent-2);}
+.rail-stop.active .dot{background:var(--accent);border-color:var(--accent);transform:scale(1.35);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent);}
+.rail-stop:hover .dot{border-color:var(--accent);}
+@media(max-width:1099px){.route-rail{display:none;}}
+@media(min-width:1100px) and (max-width:1439px){.rail-stop.active .lbl{opacity:0;transform:translateX(-6px);}.route-rail:hover .rail-stop .lbl,.route-rail:hover .rail-stop.active .lbl{opacity:1;transform:none;}}
+@media print{.route-rail,.scroll-progress{display:none !important;}}
+
+/* ============ MOBILE MENU ============ */
+.mobile-menu{position:fixed;inset:0;z-index:99;background:var(--bg);display:flex;flex-direction:column;padding:96px 7% 34px;overflow-y:auto;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s var(--ease),transform .3s var(--ease),visibility .3s;}
+[data-theme="dark"] .mobile-menu{background:linear-gradient(180deg,var(--bg-2),var(--bg));}
+.mobile-menu.open{opacity:1;visibility:visible;transform:none;}
+.mm-title{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin-bottom:10px;}
+.mm-link{display:flex;align-items:baseline;gap:16px;font-family:var(--display);font-weight:700;font-size:clamp(24px,5.4vh,32px);letter-spacing:-.03em;color:var(--ink);padding:11px 0;border-bottom:1.5px dashed var(--line);}
+[data-theme="dark"] .mm-link{font-weight:600;}
+.mm-link .idx{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.1em;color:var(--accent);}
+.mm-link:active{color:var(--accent);}
+.mm-meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin:22px 0;}
+.mm-meta a{font-size:14px;font-weight:600;color:var(--mute);}
+.mm-meta a:hover{color:var(--accent);}
+.mobile-menu .btn-primary{margin-top:auto;justify-content:center;width:100%;}
+@media (prefers-reduced-motion:reduce){.route-rail,.mobile-menu{transition:opacity .2s ease,visibility .2s ease;}}
 </style>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-54QYM83DKF"></script>
 <script>
@@ -550,21 +594,42 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
   <div class="nav-right">
     <div class="nav-links">
       <a href="#how">How it works</a>
-      <a href="#mumbai">Mumbai</a>
-      <a href="#routes">Detours</a>
-      <a href="guides/index.html">Guides</a>
+      <a href="#routes">Sample detours</a>
+      <a href="#safety">Safety</a>
+      <a href="guides/index.html">Layover guides</a>
       <a href="#faq">FAQ</a>
     </div>
     <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light or dark mode">
       <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
     </button>
-    <a class="btn-ig" href="https://www.instagram.com/detour_trips/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-      Follow
-    </a>
+    <button class="btn-nav-cta btn-trigger-booking">Request a Detour</button>
+    <button class="nav-burger" id="nav-burger" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+      <svg class="ic-bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <svg class="ic-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
   </div>
 </nav>
+
+<!-- MOBILE MENU (full-screen sheet under the header) -->
+<div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+  <div class="mm-title">Flight plan</div>
+  <a class="mm-link" href="#idea"><span class="idx">01</span>The idea</a>
+  <a class="mm-link" href="#mumbai"><span class="idx">02</span>Mumbai</a>
+  <a class="mm-link" href="#how"><span class="idx">03</span>How it works</a>
+  <a class="mm-link" href="#routes"><span class="idx">04</span>Sample detours</a>
+  <a class="mm-link" href="#safety"><span class="idx">05</span>Safety</a>
+  <a class="mm-link" href="#practical"><span class="idx">06</span>Before you fly</a>
+  <a class="mm-link" href="#faq"><span class="idx">07</span>FAQ</a>
+  <div class="mm-meta">
+    <a href="guides/index.html">Layover guides</a>
+    <a href="careers.html">Careers</a>
+    <a href="https://www.instagram.com/detour_trips/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">Instagram</a>
+    <a href="mailto:admin@detourtrips.com">Email us</a>
+  </div>
+  <button class="btn-primary btn-trigger-booking">Request a Detour
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+</div>
 
 <!-- HERO -->
 <section class="hero" id="top">
@@ -627,19 +692,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
   </div>
 </div>
 
-<!-- MANIFESTO -->
-<section class="manifesto" id="idea">
-  <div class="mesh" style="width:420px;height:420px;background:rgba(53,224,182,.22);top:-120px;left:-60px;"></div>
-  <div class="mesh" style="width:380px;height:380px;background:rgba(255,106,61,.18);bottom:-120px;right:-40px;"></div>
-  <div class="wrap">
-    <span class="eyebrow" style="justify-content:center;">The idea</span>
-    <h2>A layover is dead time. A <em>detour</em> is a story you didn't expect to bring home.</h2>
-    <p class="lead">A local student walks out of arrivals with you — and the city stops being intimidating about four minutes later.</p>
-  </div>
-</section>
-
-<!-- BAND -->
-<section class="break-band">
+<!-- THE IDEA (manifesto over the skyline band) -->
+<section class="break-band idea-band" id="idea">
   <div class="band">
     <img src="images/hero-skyline-main.jpg" alt="Mumbai skyline at dusk, seen between flights" loading="lazy" class="kenburns" id="band-fallback" />
     <video id="band-video" autoplay muted loop playsinline preload="metadata" poster="images/hero-skyline-main.jpg" style="display:none;">
@@ -651,8 +705,29 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
       <circle cx="120" cy="150" r="6" fill="currentColor" stroke="#0C1719" stroke-width="1.5" style="color:var(--accent-2)"/>
     </svg>
     <div class="band-copy">
-      <div class="step">The city, between flights</div>
-      <h3>Six hours is enough to <em>fall a little in love.</em></h3>
+      <span class="eyebrow">The idea</span>
+      <h2>A layover is dead time. A <em>detour</em> is a story you didn't expect to bring home.</h2>
+      <p class="band-lead">A local student walks out of arrivals with you — and the city stops being intimidating about four minutes later.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MUMBAI -->
+<section id="mumbai" style="background:var(--bg-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Why Mumbai first</span>
+      <h2>Not one city — <em>seven contradictions</em> on one peninsula.</h2>
+      <p class="lead">Every block is a different city. That's why it stays in your head long after the flight.</p>
+    </div>
+    <div class="contrast-grid">
+      <div class="ct tall wide reveal"><img src="images/gallery-sealink.jpg" alt="Sea and skyline" loading="lazy"><div class="ct-body"><span class="num">01 · Geography</span><h3>Sea <em>&amp;</em> skyline</h3><p>The Marine Drive crescent meeting the glass towers of the Worli Sea Link.</p></div></div>
+      <div class="ct tall reveal"><img src="images/gallery-local-train.jpg" alt="Chaos and calm" loading="lazy"><div class="ct-body"><span class="num">02 · Tempo</span><h3>Chaos <em>&amp;</em> calm</h3><p>A rush-hour local at CSMT — then Banganga Tank, quiet enough to hear the temple bells.</p></div></div>
+      <div class="ct half reveal"><img src="images/hero-skyline-side.jpg" alt="Old and new" loading="lazy"><div class="ct-body"><span class="num">03 · Time</span><h3>Old <em>&amp;</em> new</h3><p>Wooden Portuguese cottages in Khotachiwadi, in the shadow of BKC's high-rises.</p></div></div>
+      <div class="ct half reveal"><img src="images/gallery-chai.jpg" alt="Street and lounges" loading="lazy"><div class="ct-body"><span class="num">04 · Plate</span><h3>Street <em>&amp;</em> lounges</h3><p>Midnight street food on Mohammed Ali Road; speakeasy lounges in Bandra.</p></div></div>
+      <div class="ct reveal"><img src="images/gallery-csmt.jpg" alt="Gothic and docks" loading="lazy"><div class="ct-body"><span class="num">05 · Stone</span><h3>Gothic <em>&amp;</em> docks</h3><p>Victorian stone at CSMT, then the salt-crusted Sassoon Docks.</p></div></div>
+      <div class="ct reveal"><img src="images/gallery-bazaar.jpg" alt="Grit and gold" loading="lazy"><div class="ct-body"><span class="num">06 · Spirit</span><h3>Grit <em>&amp;</em> gold</h3><p>A mango sold like a business deal at Crawford; Malabar Hill's mansions behind the banyans.</p></div></div>
+      <div class="ct reveal"><img src="images/gallery-temple.jpg" alt="Stars and shrines" loading="lazy"><div class="ct-body"><span class="num">07 · Culture</span><h3>Stars <em>&amp;</em> shrines</h3><p>Bollywood marquees in Bandra; the causeway to Haji Ali, out in the sea.</p></div></div>
     </div>
   </div>
 </section>
@@ -685,25 +760,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
         <p>Meet at arrivals, stash heavy bags in the airport cloakroom, and head out. You're back at BOM with a comfortable buffer.</p>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- MUMBAI -->
-<section id="mumbai" style="background:var(--bg-2);">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">Why Mumbai first</span>
-      <h2>Not one city — <em>seven contradictions</em> on one peninsula.</h2>
-      <p class="lead">Every block is a different city. That's why it stays in your head long after the flight.</p>
-    </div>
-    <div class="contrast-grid">
-      <div class="ct tall wide reveal"><img src="images/gallery-sealink.jpg" alt="Sea and skyline" loading="lazy"><div class="ct-body"><span class="num">01 · Geography</span><h3>Sea <em>&amp;</em> skyline</h3><p>The Marine Drive crescent meeting the glass towers of the Worli Sea Link.</p></div></div>
-      <div class="ct tall reveal"><img src="images/gallery-local-train.jpg" alt="Chaos and calm" loading="lazy"><div class="ct-body"><span class="num">02 · Tempo</span><h3>Chaos <em>&amp;</em> calm</h3><p>A rush-hour local at CSMT — then Banganga Tank, quiet enough to hear the temple bells.</p></div></div>
-      <div class="ct half reveal"><img src="images/hero-skyline-side.jpg" alt="Old and new" loading="lazy"><div class="ct-body"><span class="num">03 · Time</span><h3>Old <em>&amp;</em> new</h3><p>Wooden Portuguese cottages in Khotachiwadi, in the shadow of BKC's high-rises.</p></div></div>
-      <div class="ct half reveal"><img src="images/gallery-chai.jpg" alt="Street and lounges" loading="lazy"><div class="ct-body"><span class="num">04 · Plate</span><h3>Street <em>&amp;</em> lounges</h3><p>Midnight street food on Mohammed Ali Road; speakeasy lounges in Bandra.</p></div></div>
-      <div class="ct reveal"><img src="images/gallery-csmt.jpg" alt="Gothic and docks" loading="lazy"><div class="ct-body"><span class="num">05 · Stone</span><h3>Gothic <em>&amp;</em> docks</h3><p>Victorian stone at CSMT, then the salt-crusted Sassoon Docks.</p></div></div>
-      <div class="ct reveal"><img src="images/gallery-bazaar.jpg" alt="Grit and gold" loading="lazy"><div class="ct-body"><span class="num">06 · Spirit</span><h3>Grit <em>&amp;</em> gold</h3><p>A mango sold like a business deal at Crawford; Malabar Hill's mansions behind the banyans.</p></div></div>
-      <div class="ct reveal"><img src="images/gallery-temple.jpg" alt="Stars and shrines" loading="lazy"><div class="ct-body"><span class="num">07 · Culture</span><h3>Stars <em>&amp;</em> shrines</h3><p>Bollywood marquees in Bandra; the causeway to Haji Ali, out in the sea.</p></div></div>
+    <div class="flight-strip reveal">
+      <div class="fs-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></div>
+      <div class="fs-body">
+        <h4>We watch your flight, not just the clock.</h4>
+        <p>If your inbound runs late, your buddy already knows before you've cleared the aisle. The route reshapes around the hours you actually have — and the buffer before your departure is never negotiable.</p>
+      </div>
+      <span class="fs-tag">Live flight tracking</span>
     </div>
   </div>
 </section>
@@ -783,67 +846,96 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
   </div>
 </section>
 
-<!-- PROMISE -->
-<section id="why" style="background:var(--bg-2);">
+<!-- SAFETY -->
+<section id="safety" style="background:var(--bg-2);">
   <div class="wrap">
-    <div class="section-head">
-      <span class="eyebrow">Why Detour</span>
-      <h2>Someone who <em>lives here</em> — and holds a line on how.</h2>
-      <p class="lead">Skip the tourist traps and the airport-taxi anxiety. A local who knows the city, on a schedule built around your flight.</p>
-    </div>
-    <div class="why-grid">
-      <div class="card why-card coral reveal">
-        <div class="why-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1 2.5 3 6 3s6-2 6-3v-5"/></svg></div>
-        <h3>Local &amp; vetted</h3>
-        <p>A verified student from one of Mumbai's top colleges — fluent in English and in the city's shortcuts, food, and stories.</p>
+    <div class="safety-grid">
+      <div class="safety-head">
+        <span class="eyebrow">Safety</span>
+        <h2>Built to pass <em>the mum test.</em></h2>
+        <p class="lead">Leaving an airport in a new country with someone you've never met should feel like the safest thing you do all trip. Here's everything that makes that true.</p>
+        <div class="safety-principles">
+          <div class="sp-title">And how we travel</div>
+          <div class="sp">Honest prices — you pay what a <em>local</em> pays, zero markup.</div>
+          <div class="sp">Dignity, not spectacle — never camera-pointing <em>tours.</em></div>
+          <div class="sp">The city's terms — etiquette handled, so you never <em>guess.</em></div>
+        </div>
       </div>
-      <div class="card why-card reveal">
-        <div class="why-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
-        <h3>Flight-safe by design</h3>
-        <p>Every route is built around your departure, with live traffic buffers — so you're always back at BOM with time to spare.</p>
-      </div>
-      <div class="card why-card gold reveal">
-        <div class="why-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M3 9V7a2 2 0 0 1 2-2h11"/><path d="M16 13h.01"/></svg></div>
-        <h3>Honest prices</h3>
-        <p>You pay what a local pays — zero markup. Your buddy flags anything overpriced before you reach for your wallet.</p>
-      </div>
-      <div class="card why-card coral reveal">
-        <div class="why-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg></div>
-        <h3>Dignity, not spectacle</h3>
-        <p>Working neighbourhoods are visited with community-run guides, focused on craft and enterprise — never camera-pointing tours.</p>
-      </div>
-      <div class="card why-card reveal">
-        <div class="why-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17l1.5-5h9L18 17M7.5 12l1-3h7l1 3"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></div>
-        <h3>Safe transport</h3>
-        <p>Known venues, planned rides. Every evening detour ends in a vetted cab — never a late-night local train.</p>
-      </div>
-      <div class="card why-card gold reveal">
-        <div class="why-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M16 8l-2 6-6 2 2-6 6-2Z"/></svg></div>
-        <h3>The city's terms</h3>
-        <p>Prayer times, market days, dress at sacred sites, photo etiquette — your buddy knows, so you never have to guess.</p>
-      </div>
+      <ul class="safety-list">
+        <li class="reveal">
+          <div class="safety-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1 2.5 3 6 3s6-2 6-3v-5"/></svg></div>
+          <div><h3>Verified, then interviewed</h3>
+          <p>Every buddy is a student at one of Mumbai's top colleges, passes government-ID and enrolment checks, and sits a face-to-face interview. There are no open signups — students join by invitation only.</p></div>
+        </li>
+        <li class="reveal">
+          <div class="safety-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div><h3>Your route, shared live</h3>
+          <p>You see your full plan — stops, timings, your buddy's profile — before you land, and you can share your live location with anyone back home for the whole detour.</p></div>
+        </li>
+        <li class="reveal">
+          <div class="safety-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <div><h3>Never out of reach</h3>
+          <p>A direct line to the Detour team runs through every trip, and we track each live detour from start to airport drop-off. If anything feels off, one message ends it.</p></div>
+        </li>
+        <li class="reveal">
+          <div class="safety-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4.5"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg></div>
+          <div><h3>A female buddy, if you prefer</h3>
+          <p>Solo women can ask to be matched with a female student, subject to availability — just say so when you request your detour.</p></div>
+        </li>
+        <li class="reveal">
+          <div class="safety-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17l1.5-5h9L18 17M7.5 12l1-3h7l1 3"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></div>
+          <div><h3>Vetted rides only</h3>
+          <p>Known venues and planned transport. Every evening detour ends in a vetted cab back to the terminal — never a late-night local train.</p></div>
+        </li>
+        <li class="reveal">
+          <div class="safety-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+          <div><h3>The buffer is sacred</h3>
+          <p>Routes are built backwards from your departure with live traffic data. Whatever gets squeezed, it's never the time you need to make your flight.</p></div>
+        </li>
+      </ul>
     </div>
   </div>
 </section>
 
-<!-- GALLERY -->
-<section id="gallery">
+<!-- PRACTICAL: BEFORE YOU FLY -->
+<section id="practical">
   <div class="wrap">
     <div class="section-head">
-      <span class="eyebrow">The city, unfiltered</span>
-      <h2>Mumbai, as seen by the people who <em>live it.</em></h2>
-      <p class="lead">The streets, plates, and corners a buddy will actually walk you through.</p>
+      <span class="eyebrow">Before you fly</span>
+      <h2>Leaving the airport is <em>easier than it sounds.</em></h2>
+      <p class="lead">Three things to sort before you land — each takes minutes when you know the trick. We wrote the guides so you don't have to dig.</p>
     </div>
-    <div class="gallery-grid">
-      <div class="g-item reveal"><img src="https://images.pexels.com/photos/17433337/pexels-photo-17433337.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Vada pav with green chilli, Mumbai's street classic" loading="lazy"></div>
-      <div class="g-item reveal"><img src="images/hero-gateway-night.jpg" alt="Gateway of India after dark" loading="lazy"></div>
-      <div class="g-item reveal"><img src="images/package-real-mumbai.jpg" alt="The real, everyday Mumbai" loading="lazy"></div>
-      <div class="g-item reveal"><img src="images/step-streets.jpg" alt="Mumbai streets up close" loading="lazy"></div>
-      <div class="g-item reveal"><img src="images/gallery-university.jpg" alt="Students on a Mumbai college campus" loading="lazy"></div>
-      <div class="g-item reveal"><img src="images/package-deep-dive.jpg" alt="A deeper wander through the city" loading="lazy"></div>
-      <div class="g-item reveal"><img src="images/step-airport.jpg" alt="Mumbai airport, where the detour begins" loading="lazy"></div>
-      <div class="g-item reveal"><img src="images/package-quick-escape.jpg" alt="A quick layover escape" loading="lazy"></div>
-      <div class="g-item reveal"><img src="https://images.pexels.com/photos/10906000/pexels-photo-10906000.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Marine Drive skyline silhouetted at sunset" loading="lazy"></div>
+    <div class="prac-grid">
+      <a class="card prac-card reveal" href="guides/mumbai-layover-visa.html">
+        <span class="mono-tag">Do this first</span>
+        <h3>The visa</h3>
+        <p>Most nationalities need one to step outside. The e-Tourist visa is about US$25, applied for online — allow 4–7 days before you fly, and it never blocks you again.</p>
+        <span class="go">Read the visa guide <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+      </a>
+      <a class="card prac-card reveal" href="guides/8-hour-layover-mumbai.html">
+        <span class="mono-tag">The time math</span>
+        <h3>Your real window</h3>
+        <p>Take your layover, subtract 3–4 hours for immigration, the drives and the buffer. What's left is city time — and from about 6 hours, a detour is worth it.</p>
+        <span class="go">See the 8-hour plan <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+      </a>
+      <a class="card prac-card reveal" href="guides/mumbai-airport-luggage-storage.html">
+        <span class="mono-tag">Solved at BOM</span>
+        <h3>Your bags</h3>
+        <p>The airport cloakroom stores heavy luggage by the hour. Your buddy walks you there first, so you explore the city hands-free.</p>
+        <span class="go">Luggage storage guide <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+      </a>
+    </div>
+    <div class="capture-inner reveal">
+      <div>
+        <h3>Or take the lot, <em>on one page.</em></h3>
+        <p>Leave your email and we'll send the one-page layover cheat sheet — visa steps, luggage storage, and how much time you really need.</p>
+      </div>
+      <form class="capture-form" id="capture-form" novalidate>
+        <input type="email" name="email" placeholder="you@email.com" required aria-label="Your email address">
+        <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+        <button class="btn-primary" type="submit">Send it</button>
+      </form>
+      <span class="capture-done" id="capture-done">You're on the list ✦ <a href="downloads/mumbai-layover-cheat-sheet.pdf" download>Download the cheat sheet →</a></span>
     </div>
   </div>
 </section>
@@ -869,16 +961,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
     </div>
     <div class="faq-list">
       <div class="faq-item">
-        <button class="faq-q" aria-expanded="false">Do I need a visa to leave the airport?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
-        <div class="faq-a"><div class="faq-a-inner">Most nationalities do — the easiest is the e-Tourist visa (around US$25, applied for online, allow 4–7 days). When you request a detour we send you the exact steps for your nationality.</div></div>
-      </div>
-      <div class="faq-item">
         <button class="faq-q" aria-expanded="false">What if my flight is delayed?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
         <div class="faq-a"><div class="faq-a-inner">We track your flight in real time, so your buddy simply waits or reshapes the plan. You only ever spend the hours you actually have.</div></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" aria-expanded="false">What about my heavy luggage?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
-        <div class="faq-a"><div class="faq-a-inner">BOM has a secure left-luggage cloakroom. Your buddy walks you there first, so you explore hands-free.</div></div>
+        <button class="faq-q" aria-expanded="false">How much does a Detour cost?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">While we're in early access, nothing — there's no service fee at all. You only cover your own cab, food and tickets, paid directly at honest local prices.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">Who exactly is my buddy?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">A student at one of Mumbai's top colleges who joined Detour by invitation, passed identity and enrolment checks, and sat a face-to-face interview with us. You'll see their name, photo, languages and interests before you land — and we match on what you're into, not just who's free.</div></div>
       </div>
       <div class="faq-item">
         <button class="faq-q" aria-expanded="false">I'm travelling solo — is this for me?<span class="faq-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
@@ -888,31 +980,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
   </div>
 </section>
 
-<!-- CAPTURE -->
-<section class="capture" id="cheatsheet" style="padding:72px 0;">
-  <div class="wrap">
-    <div class="capture-inner">
-      <div>
-        <h3>Flying through Mumbai <em>someday?</em></h3>
-        <p>Leave your email and we'll send you our one-page layover cheat sheet — visa steps, luggage storage, and how much time you really need.</p>
-      </div>
-      <form class="capture-form" id="capture-form" novalidate>
-        <input type="email" name="email" placeholder="you@email.com" required aria-label="Your email address">
-        <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
-        <button class="btn-primary" type="submit">Send it</button>
-      </form>
-      <span class="capture-done" id="capture-done">You're on the list ✦ <a href="downloads/mumbai-layover-cheat-sheet.pdf" download>Download the cheat sheet →</a></span>
-    </div>
-  </div>
-</section>
-
 <!-- FINAL CTA -->
-<section style="padding:48px 0 100px;">
+<section id="board" style="padding:48px 0 100px;">
   <div class="wrap">
     <div class="final">
       <span class="eyebrow" style="justify-content:center;color:var(--accent);">Free · early access</span>
       <h2>Got a few hours in Mumbai? <em>Take a detour — on us.</em></h2>
-      <p>We're matching our first travellers right now. Explore Mumbai with a verified local student, completely free.</p>
+      <p>We're matching our first travellers right now. Explore Mumbai with a verified local student — our service is free, you just cover your own food and rides at local prices.</p>
       <button class="btn-primary btn-trigger-booking">Request a Detour
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
       <div class="trustline">Verified students · Free in early access · Made in Mumbai</div>
@@ -936,9 +1010,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
         </a>
         <p>Detour helps international travellers experience cities through verified local students. Mumbai is our first home.</p>
       </div>
-      <div><h5>Detour</h5><a href="#idea">The idea</a><a href="#why">Why Detour</a><a href="#how">How it works</a><a href="#routes">Detours</a><a href="careers.html">Careers</a></div>
+      <div><h5>Detour</h5><a href="#idea">The idea</a><a href="#how">How it works</a><a href="#routes">Detours</a><a href="#safety">Safety</a><a href="careers.html">Careers</a></div>
       <div><h5>Layover guides</h5><a href="guides/complete-mumbai-layover-guide.html">Complete guide</a><a href="guides/mumbai-layover-visa.html">Visa</a><a href="guides/8-hour-layover-mumbai.html">8-hour itinerary</a><a href="guides/12-hour-layover-mumbai.html">12-hour itinerary</a><a href="guides/is-mumbai-safe-on-a-layover.html">Is it safe?</a></div>
-      <div><h5>Trust</h5><a href="#why">How we travel</a><a href="#gallery">Gallery</a><a href="#faq">FAQ</a><a href="guides/mumbai-airport-luggage-storage.html">Luggage storage</a></div>
+      <div><h5>Trust</h5><a href="#safety">How we keep you safe</a><a href="#practical">Before you fly</a><a href="#faq">FAQ</a><a href="guides/mumbai-airport-luggage-storage.html">Luggage storage</a></div>
       <div><h5>Connect</h5><a href="https://www.instagram.com/detour_trips/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">Instagram</a><a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a><span style="display:block;font-size:13.5px;margin-bottom:9px;color:var(--mute);">iOS &amp; Android app — coming soon</span></div>
     </div>
     <div class="foot-legal">
@@ -948,23 +1022,18 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
   </div>
 </footer>
 
-<!-- FLOATING SECTION NAV (mobile-friendly "Jump to") -->
-<button class="secnav-fab" id="secnav-fab" aria-expanded="false" aria-controls="secnav-panel" aria-label="Jump to a section">
-  <svg class="ic-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-  <svg class="ic-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-  <span class="lbl">Jump to</span>
-</button>
-<div class="secnav-scrim" id="secnav-scrim"></div>
-<div class="secnav-panel" id="secnav-panel" role="dialog" aria-label="Jump to a section" aria-hidden="true">
-  <div class="secnav-title">Jump to</div>
-  <a class="secnav-link" href="#idea">The idea</a>
-  <a class="secnav-link" href="#how">How it works</a>
-  <a class="secnav-link" href="#mumbai">Mumbai</a>
-  <a class="secnav-link" href="#routes">Detours</a>
-  <a class="secnav-link" href="#why">Why Detour</a>
-  <a class="secnav-link" href="#gallery">Gallery</a>
-  <a class="secnav-link" href="#faq">FAQ</a>
-</div>
+<!-- SCROLL PROGRESS + ROUTE RAIL (left-edge section map, desktop) -->
+<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+<nav class="route-rail" id="route-rail" aria-label="On this page">
+  <a class="rail-stop" href="#idea"><span class="dot"></span><span class="lbl">The idea</span></a>
+  <a class="rail-stop" href="#mumbai"><span class="dot"></span><span class="lbl">Mumbai</span></a>
+  <a class="rail-stop" href="#how"><span class="dot"></span><span class="lbl">How it works</span></a>
+  <a class="rail-stop" href="#routes"><span class="dot"></span><span class="lbl">Sample detours</span></a>
+  <a class="rail-stop" href="#safety"><span class="dot"></span><span class="lbl">Safety</span></a>
+  <a class="rail-stop" href="#practical"><span class="dot"></span><span class="lbl">Before you fly</span></a>
+  <a class="rail-stop" href="#faq"><span class="dot"></span><span class="lbl">FAQ</span></a>
+  <a class="rail-stop" href="#board"><span class="dot"></span><span class="lbl">Hop on</span></a>
+</nav>
 
 <!-- BOOKING MODAL -->
 <div id="booking-modal" class="modal-overlay" aria-hidden="true" role="dialog">
@@ -1022,7 +1091,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
     <div class="modal-header"><span class="eyebrow">Trust &amp; safety</span><h2>Privacy Policy</h2></div>
     <div class="legal-body">
       <p>At Detour, we hold your trust and safety above all else. Here is how we handle your information:</p>
-      <p><b>1. Information We Collect:</b> We only collect information that you explicitly share with us: your name, email, layover date, flight times, and preferences. We do not use trackers or share data with third parties.</p>
+      <p><b>1. Information We Collect:</b> We collect what you explicitly share with us — your name, email, layover dates, flight times, and preferences — plus standard, anonymised website analytics (Google Analytics). Form submissions are delivered to us by our form provider. We never sell your data or share it for advertising.</p>
       <p><b>2. How We Use It:</b> Your details are used solely to match you with a verified student buddy. Once your detour is complete, your flight and terminal details are deleted from our active database.</p>
       <p><b>3. Security:</b> Student buddies undergo strict background verification. Your contact information is only shared with your assigned buddy 24 hours prior to landing.</p>
       <p>Questions? Reach us at <a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a>.</p>
@@ -1037,7 +1106,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
     <div class="modal-header"><span class="eyebrow">How we operate</span><h2>Terms of Service</h2></div>
     <div class="legal-body">
       <p>Welcome to Detour! By requesting a detour, you agree to the following terms:</p>
-      <p><b>1. Student Buddies:</b> Detour matches travellers with local university students. While we verify student status and run background checks, buddies are independent local guides and not professional commercial tour agencies.</p>
+      <p><b>1. Student Buddies:</b> Detour matches travellers with local university students. We verify each buddy's government ID and college enrolment and interview them in person, but buddies are independent local guides, not professional commercial tour agencies.</p>
       <p><b>2. Fixed Pricing:</b> We guarantee clear, transparent, upfront rates. Your buddy will never take commissions, suggest forced shopping, or request unexpected cash surcharges.</p>
       <p><b>3. Safety &amp; Buffer Guarantee:</b> Buddies are trained to design routes that keep you inside the airport buffer time. Detour is not liable for delayed flights or missed departures due to external traffic anomalies, but we prioritize getting you back safely and on time.</p>
     </div>
@@ -1084,9 +1153,20 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
       {time:"14:00",title:"Airport return",desc:"Cab ride back to BOM Terminal 2 departures."}]}
   };
 
-  const navLinks=document.querySelectorAll('.nav-links a');
-  const navObserver=new IntersectionObserver((entries)=>{entries.forEach(entry=>{if(entry.isIntersecting){const id=entry.target.getAttribute('id');navLinks.forEach(link=>link.classList.toggle('active',link.getAttribute('href')===`#${id}`));}});},{threshold:.25,rootMargin:"-80px 0px -40% 0px"});
-  document.querySelectorAll('section[id]').forEach(s=>navObserver.observe(s));
+  // Unified scrollspy: drives header links + the route rail together.
+  const navLinks=[...document.querySelectorAll('.nav-links a[href^="#"]')];
+  const railStops=[...document.querySelectorAll('.route-rail .rail-stop')];
+  const setActiveSection=(id)=>{
+    navLinks.forEach(link=>link.classList.toggle('active',link.getAttribute('href')===`#${id}`));
+    const idx=railStops.findIndex(s=>s.getAttribute('href')===`#${id}`);
+    if(idx===-1)return; // sections without a rail stop (hero, founder) keep the last rail state
+    railStops.forEach((s,i)=>{
+      s.classList.toggle('active',i===idx);
+      s.classList.toggle('passed',i<idx);
+    });
+  };
+  const spy=new IntersectionObserver((entries)=>{entries.forEach(entry=>{if(entry.isIntersecting)setActiveSection(entry.target.getAttribute('id'));});},{threshold:.2,rootMargin:"-80px 0px -45% 0px"});
+  document.querySelectorAll('section[id]').forEach(s=>spy.observe(s));
 
   const openModal=(id)=>{const m=document.getElementById(id);if(m){m.classList.add('open');m.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';const f=m.querySelectorAll('button,[href],input,textarea');if(f.length)f[0].focus();}};
   const closeModal=(id)=>{const m=document.getElementById(id);if(m){m.classList.remove('open');m.setAttribute('aria-hidden','true');document.body.style.overflow='';}};
@@ -1159,35 +1239,43 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
   });
 </script>
 
-<!-- Floating section-nav: open/close, reveal on scroll, panel scrollspy -->
+<!-- Route rail reveal, scroll progress, mobile menu -->
 <script>
   (function(){
-    const fab=document.getElementById('secnav-fab');
-    const panel=document.getElementById('secnav-panel');
-    const scrim=document.getElementById('secnav-scrim');
-    if(!fab||!panel||!scrim)return;
-    const setPanel=(open)=>{
-      fab.classList.toggle('open',open);
-      panel.classList.toggle('open',open);
-      scrim.classList.toggle('show',open);
-      fab.setAttribute('aria-expanded',String(open));
-      panel.setAttribute('aria-hidden',String(!open));
+    // Scroll progress line (all widths).
+    const prog=document.getElementById('scroll-progress');
+    let ticking=false;
+    const paint=()=>{
+      const max=document.documentElement.scrollHeight-innerHeight;
+      prog.style.width=(max>0?Math.min(100,(scrollY/max)*100):0)+'%';
+      ticking=false;
     };
-    fab.addEventListener('click',()=>setPanel(!panel.classList.contains('open')));
-    scrim.addEventListener('click',()=>setPanel(false));
-    panel.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>setPanel(false)));
-    addEventListener('keydown',(e)=>{if(e.key==='Escape')setPanel(false);});
-    // Reveal the FAB once the hero is out of the way.
-    const toggleFab=()=>fab.classList.toggle('show',scrollY>320);
-    addEventListener('scroll',toggleFab,{passive:true});
-    toggleFab();
-    // Highlight the section you're currently in.
-    const links=[...panel.querySelectorAll('.secnav-link')];
-    const spy=new IntersectionObserver((es)=>{
-      es.forEach(e=>{if(e.isIntersecting){const id=e.target.getAttribute('id');
-        links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+id));}});
-    },{threshold:.25,rootMargin:"-80px 0px -40% 0px"});
-    links.map(l=>document.getElementById(l.getAttribute('href').slice(1))).filter(Boolean).forEach(s=>spy.observe(s));
+    addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(paint);}},{passive:true});
+    paint();
+
+    // Route rail fades in once the hero is out of the way.
+    const rail=document.getElementById('route-rail');
+    const toggleRail=()=>rail.classList.toggle('show',scrollY>innerHeight*.55);
+    addEventListener('scroll',toggleRail,{passive:true});
+    toggleRail();
+
+    // Mobile menu (burger).
+    const burger=document.getElementById('nav-burger');
+    const menu=document.getElementById('mobile-menu');
+    const navBar=document.getElementById('nav');
+    const setMenu=(open)=>{
+      burger.classList.toggle('open',open);
+      menu.classList.toggle('open',open);
+      navBar.classList.toggle('menu-open',open);
+      burger.setAttribute('aria-expanded',String(open));
+      burger.setAttribute('aria-label',open?'Close menu':'Open menu');
+      menu.setAttribute('aria-hidden',String(!open));
+      if(open){document.body.style.overflow='hidden';}
+      else if(!document.querySelector('.modal-overlay.open')){document.body.style.overflow='';}
+    };
+    burger.addEventListener('click',()=>setMenu(!menu.classList.contains('open')));
+    menu.querySelectorAll('a,.btn-trigger-booking').forEach(el=>el.addEventListener('click',()=>setMenu(false)));
+    addEventListener('keydown',(e)=>{if(e.key==='Escape'&&menu.classList.contains('open'))setMenu(false);});
   })();
 </script>
 </body>
