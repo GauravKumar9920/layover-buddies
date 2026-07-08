@@ -78,6 +78,12 @@ REVOKE ALL ON blocked_users FROM anon;
 GRANT SELECT, INSERT ON reports TO authenticated;
 GRANT SELECT, INSERT, DELETE ON blocked_users TO authenticated;
 
+-- service_role (the admin console) bypasses RLS but Postgres privilege GRANTs
+-- are a separate layer — without these, admin triage (list + update status)
+-- fails with permission errors despite the bypass.
+GRANT SELECT, UPDATE ON reports TO service_role;
+GRANT SELECT ON blocked_users TO service_role;
+
 -- ── Message block guard ──────────────────────────────────────────────────────
 -- Stop a blocked pair from messaging in either direction. SECURITY DEFINER so it
 -- can see blocks the CALLER can't (RLS only exposes a user's own blocks, so a

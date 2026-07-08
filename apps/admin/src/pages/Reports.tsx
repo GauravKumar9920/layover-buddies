@@ -40,6 +40,18 @@ export default function ReportsPage() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<StatusFilter>('open');
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [openCount, setOpenCount] = useState(0);
+
+  // Independent of `rows`/`filter` — rows is scoped to whatever view the user
+  // has selected, so deriving the "open" count from it made the subtitle wrong
+  // whenever the user was looking at e.g. the "actioned" filter.
+  const loadOpenCount = async () => {
+    const { count, error } = await supabase
+      .from('reports')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['open', 'reviewing']);
+    if (!error) setOpenCount(count ?? 0);
+  };
 
   const load = async (f: StatusFilter) => {
     setLoading(true);
@@ -69,6 +81,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     void load(filter);
+    void loadOpenCount();
   }, [filter]);
 
   async function updateStatus(row: ReportRow, next: ReportStatus) {
@@ -82,6 +95,7 @@ export default function ReportsPage() {
       setRows((prev) =>
         prev.map((r) => (r.id === row.id ? { ...r, ...(patch as Partial<ReportRow>) } : r)),
       );
+      void loadOpenCount();
     }
     setBusyId(null);
   }
@@ -196,8 +210,6 @@ export default function ReportsPage() {
       {label}
     </button>
   );
-
-  const openCount = rows.filter((r) => r.status === 'open' || r.status === 'reviewing').length;
 
   return (
     <div className="pb-10">

@@ -40,14 +40,22 @@ BEGIN
   END IF;
 
   -- Fire-and-forget POST. The Edge fn loads trip context and delivers to ops.
-  PERFORM net.http_post(
-    url     := v_supabase_url || '/functions/v1/sos-alert',
-    headers := jsonb_build_object(
-                 'Content-Type',  'application/json',
-                 'Authorization', 'Bearer ' || v_service_key
-               ),
-    body    := jsonb_build_object('sos_alert_id', NEW.id)
-  );
+  -- Guarded: if pg_net itself throws (malformed url/headers, extension not
+  -- loaded, runtime error), this AFTER INSERT trigger must not abort the SOS
+  -- insert transaction — same "never block the alert" rule as the config-gap
+  -- checks above.
+  BEGIN
+    PERFORM net.http_post(
+      url     := v_supabase_url || '/functions/v1/sos-alert',
+      headers := jsonb_build_object(
+                   'Content-Type',  'application/json',
+                   'Authorization', 'Bearer ' || v_service_key
+                 ),
+      body    := jsonb_build_object('sos_alert_id', NEW.id)
+    );
+  EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'notify_sos_alert: net.http_post failed for sos_alert %: %', NEW.id, SQLERRM;
+  END;
 
   RETURN NEW;
 END;
