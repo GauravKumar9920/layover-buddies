@@ -20,6 +20,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { Loading } from '@/components/ui/Loading';
+import { ReportBlockMenu } from '@/components/moderation/ReportBlockMenu';
 import { useMessages } from '@/lib/hooks/useMessages';
 import { supabase } from '@/lib/supabase';
 import { fetchBookingById } from '@/lib/api/bookings';
@@ -43,12 +44,14 @@ function ConversationHeader({
   subtitle,
   insetsTop,
   onBack,
+  onOverflow,
 }: {
   name: string;
   avatarUrl: string | null;
   subtitle?: string;
   insetsTop: number;
   onBack: () => void;
+  onOverflow?: () => void;
 }) {
   const initials = name
     .split(' ')
@@ -99,6 +102,18 @@ function ConversationHeader({
             </Text>
           ) : null}
         </View>
+
+        {onOverflow ? (
+          <TouchableOpacity
+            onPress={onOverflow}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={`Safety options for ${name}`}
+            style={{ paddingHorizontal: 6 }}
+          >
+            <Feather name="more-vertical" size={20} color={theme.colors.text} />
+          </TouchableOpacity>
+        ) : null}
       </View>
     </View>
   );
@@ -189,6 +204,7 @@ export default function MessagesScreen() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [inputText, setInputText] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const { messages, loading, sending, error, send, reload } = useMessages(bookingId ?? '');
 
@@ -237,6 +253,7 @@ export default function MessagesScreen() {
   const otherAvatar = isTraveler
     ? booking?.guide?.avatar_url ?? null
     : booking?.traveler?.avatar_url ?? null;
+  const otherUserId = isTraveler ? booking?.guide_id ?? null : booking?.traveler_id ?? null;
 
   // Build a renderable list with day separators interleaved between messages.
   // Memoised so that typing in the input (which triggers re-renders) doesn't
@@ -293,7 +310,21 @@ export default function MessagesScreen() {
           // still flat. Route to the inbox of whichever role the user is.
           safeBack(router, isTraveler ? '/(traveler)/(tabs)/messages' : '/(guide)/messages')
         }
+        onOverflow={otherUserId ? () => setMenuOpen(true) : undefined}
       />
+
+      {otherUserId && (
+        <ReportBlockMenu
+          visible={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          targetUserId={otherUserId}
+          targetName={otherName}
+          bookingId={booking?.id ?? null}
+          onBlocked={() =>
+            safeBack(router, isTraveler ? '/(traveler)/(tabs)/messages' : '/(guide)/messages')
+          }
+        />
+      )}
 
       <FlatList
         ref={flatListRef}

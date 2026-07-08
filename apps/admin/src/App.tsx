@@ -7,6 +7,7 @@ import UsersPage from '@/pages/Users';
 import BookingsPage from '@/pages/Bookings';
 import RevenuePage from '@/pages/Revenue';
 import SosPage from '@/pages/SOS';
+import ReportsPage from '@/pages/Reports';
 import CancellationsPage from '@/pages/Cancellations';
 import PayoutsPage from '@/pages/Payouts';
 import SettingsPage from '@/pages/Settings';
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/bookings" element={<BookingsPage />} />
         <Route path="/revenue" element={<RevenuePage />} />
         <Route path="/sos" element={<SosPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
         <Route path="/cancellations" element={<CancellationsPage />} />
         <Route path="/payouts" element={<PayoutsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
