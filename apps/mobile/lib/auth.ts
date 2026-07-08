@@ -1,3 +1,4 @@
+import * as Linking from 'expo-linking';
 import { supabase } from './supabase';
 import { invalidateOwnPushTokenOnLogout } from './push/registerPushToken';
 
@@ -60,7 +61,25 @@ export async function signOut() {
 }
 
 export async function resetPassword(email: string) {
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  // The reset email must deep-link back into the app so the recovery session
+  // can be established and the user routed to the set-new-password screen.
+  // `Linking.createURL('reset-password')` resolves to the right scheme in every
+  // environment: `detour://reset-password` in a standalone/dev build, and the
+  // `exp://…/--/reset-password` proxy URL under Expo Go. The resulting URL must
+  // be in the Supabase Auth "Redirect URLs" allow-list for production.
+  const redirectTo = Linking.createURL('reset-password');
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) throw error;
+}
+
+/**
+ * Set a new password for the currently-authenticated user. During the reset
+ * flow the "current user" is the short-lived recovery session established from
+ * the emailed link (see lib/auth/recoveryLink.ts). Requires an active session —
+ * throws otherwise (e.g. an expired/consumed recovery link).
+ */
+export async function updatePassword(newPassword: string) {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) throw error;
 }
 

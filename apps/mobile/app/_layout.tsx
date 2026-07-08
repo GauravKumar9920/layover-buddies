@@ -24,6 +24,8 @@ import { InstrumentSerif_400Regular } from '@expo-google-fonts/instrument-serif'
 import { useAuth } from '@/lib/hooks/useAuth';
 import { Loading } from '@/components/ui/Loading';
 import { useFavoritesStore } from '@/lib/stores/favorites';
+import { usePasswordRecovery } from '@/lib/stores/passwordRecovery';
+import { setupPasswordRecoveryLink } from '@/lib/auth/recoveryLink';
 import { setupAndroidNotificationChannels } from '@/lib/push/notificationChannels';
 import { setupNotificationTapRouting } from '@/lib/push/notificationHandler';
 
@@ -62,6 +64,7 @@ function RootLayoutNav() {
   const router = useRouter();
   const hydrateFavorites = useFavoritesStore((s) => s.hydrate);
   const resetFavorites = useFavoritesStore((s) => s.reset);
+  const recoveringPassword = usePasswordRecovery((s) => s.recovering);
 
   // Keep the favorites cache in sync with the signed-in user. We re-run on
   // sign-in (new user id) and reset on sign-out so a shared device can't
@@ -83,12 +86,32 @@ function RootLayoutNav() {
     return () => { subscription.remove(); };
   }, [router]);
 
+  // Password-reset deep links (detour://reset-password). Establishes the
+  // recovery session and routes to the set-new-password screen.
+  useEffect(() => {
+    const subscription = setupPasswordRecoveryLink(router);
+    return () => { subscription.remove(); };
+  }, [router]);
+
   useEffect(() => {
     if (loading) return;
 
     // Design-preview gallery — bypass auth redirects so the Warm Editorial
     // screens render without a signed-in session. (Dev/review only.)
     if (__DEV__ && (segments[0] as string) === 'design-preview') return;
+
+    // Password recovery in progress: pin the user on the reset-password screen
+    // regardless of session state. The recovery link establishes a REAL
+    // session, which would otherwise trip the role-based redirects below and
+    // bounce the user into the app before they've set a new password.
+    if (recoveringPassword) {
+      const onResetScreen =
+        segments[0] === '(auth)' && (segments as string[])[1] === 'reset-password';
+      if (!onResetScreen) {
+        router.replace('/(auth)/reset-password');
+      }
+      return;
+    }
 
     // Keep ANY signed-in user on the traveler-facing guide profile route
     // (/(traveler)/guide/[id]). Travelers can already reach it; the point of
@@ -123,7 +146,7 @@ function RootLayoutNav() {
         router.replace('/(traveler)/(tabs)' as never);
       }
     }
-  }, [session, role, loading, needsOnboarding, segments]);
+  }, [session, role, loading, needsOnboarding, segments, recoveringPassword]);
 
   if (loading) {
     return <Loading fullScreen message="Loading your account..." />;
