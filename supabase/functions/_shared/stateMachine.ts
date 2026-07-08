@@ -116,11 +116,16 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
     { event: 'cancel',                 next: 'cancelled_pre_signing' },
   ]],
   ['deposits_held', []],
+  // Platform/system cancellations route to cancelled_force_majeure (full
+  // refunds, no party penalised) — must match apps/mobile/lib/booking/stateMachine.ts.
   ['awaiting_balance', [
     { event: 'balance_captured',   next: 'balance_paid' },
     { event: 't_minus_72_reached', next: 'late_fee_due' },
     { event: 'cancel', guard: (e) => e.kind === 'cancel' && e.actor === 'traveler', next: 'cancelled_traveler_voluntary' },
     { event: 'cancel', guard: (e) => e.kind === 'cancel' && e.actor === 'buddy',    next: 'cancelled_buddy' },
+    { event: 'cancel',
+      guard: (e) => e.kind === 'cancel' && (e.actor === 'platform' || e.actor === 'system'),
+      next:  'cancelled_force_majeure' },
     { event: 'force_majeure_verified', next: 'cancelled_force_majeure' },
   ]],
   ['late_fee_due', [
@@ -128,20 +133,27 @@ const TRANSITIONS = new Map<BookingState, TransitionRule[]>([
     { event: 't_minus_12_reached', next: 'cancelled_no_pay' },
     { event: 'cancel', guard: (e) => e.kind === 'cancel' && e.actor === 'traveler', next: 'cancelled_traveler_voluntary' },
     { event: 'cancel', guard: (e) => e.kind === 'cancel' && e.actor === 'buddy',    next: 'cancelled_buddy' },
+    { event: 'cancel',
+      guard: (e) => e.kind === 'cancel' && (e.actor === 'platform' || e.actor === 'system'),
+      next:  'cancelled_force_majeure' },
     { event: 'force_majeure_verified', next: 'cancelled_force_majeure' },
   ]],
   ['balance_paid', [
     { event: 't_minus_12_reached', next: 'trip_ready' },
     { event: 'cancel', guard: (e) => e.kind === 'cancel' && e.actor === 'traveler', next: 'cancelled_traveler_voluntary' },
     { event: 'cancel', guard: (e) => e.kind === 'cancel' && e.actor === 'buddy',    next: 'cancelled_buddy' },
+    { event: 'cancel',
+      guard: (e) => e.kind === 'cancel' && (e.actor === 'platform' || e.actor === 'system'),
+      next:  'cancelled_force_majeure' },
     { event: 'force_majeure_verified', next: 'cancelled_force_majeure' },
   ]],
   ['trip_ready', [
     { event: 'qr_scanned', next: 'in_progress' },
-    { event: 'cancel', guard: (e) => e.kind === 'cancel' && e.actor === 'buddy', next: 'cancelled_buddy' },
+    { event: 'cancel', guard: (e) => e.kind === 'cancel' && e.actor === 'buddy',    next: 'cancelled_buddy' },
+    { event: 'cancel', guard: (e) => e.kind === 'cancel' && e.actor === 'traveler', next: 'cancelled_traveler_voluntary' },
     { event: 'cancel',
-      guard: (e) => e.kind === 'cancel' && (e.actor === 'traveler' || e.actor === 'platform' || e.actor === 'system'),
-      next:  'cancelled_traveler_voluntary' },
+      guard: (e) => e.kind === 'cancel' && (e.actor === 'platform' || e.actor === 'system'),
+      next:  'cancelled_force_majeure' },
     { event: 'force_majeure_verified', next: 'cancelled_force_majeure' },
   ]],
   ['in_progress', [

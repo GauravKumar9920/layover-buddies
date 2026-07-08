@@ -176,6 +176,33 @@ describe('force_majeure — ops adjudicates a force-majeure event', () => {
   });
 });
 
+// ─── Platform/system voluntary cancels → force-majeure economics ───────────
+// Regression pin: these used to fall into the traveler-voluntary tiers, which
+// penalised the traveler (deposit voucher/forfeiture) for a platform decision.
+
+describe('voluntary cancel by platform/system actor', () => {
+  it.each(['platform', 'system'] as const)(
+    '%s actor → force_majeure tier, full refunds, even <24h before trip',
+    (actor) => {
+      const r = computeCancellationResolution(baseInputs({
+        trigger: 'voluntary',
+        triggerActor: actor,
+        hoursUntilTrip: 5, // would be lt_24h (voucher tier) if traveler-attributed
+        balancePaid: true,
+        lateFeePaise: 100_000,
+      }));
+      expect(r.tier).toBe('force_majeure');
+      expect(r.next_booking_status).toBe('cancelled_force_majeure');
+      expect(r.traveler_deposit).toEqual({ fate: 'refunded', amount_paise: 50_000 });
+      expect(r.buddy_deposit).toEqual({ fate: 'refunded', amount_paise: 50_000 });
+      expect(r.itinerary_buffer.fate).toBe('refunded');
+      expect(r.buddy_fee.fate).toBe('refunded');
+      expect(r.late_fee.fate).toBe('waived');
+      expect(r.buddy_ban).toBe(false);
+    },
+  );
+});
+
 // ─── Tier: pre_signing (deposit window expired) ─────────────────────────────
 
 describe('pre_signing — deposit window expired before deposits collected', () => {

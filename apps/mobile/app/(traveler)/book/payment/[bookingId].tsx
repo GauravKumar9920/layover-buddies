@@ -14,7 +14,7 @@ import { Header } from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
-import { fetchBookingById, cancelBooking } from '@/lib/api/bookings';
+import { fetchBookingById, cancelBookingPreSigning } from '@/lib/api/bookings';
 import { safeBack } from '@/lib/navigation';
 import {
   assertRazorpayCheckoutAvailable,
@@ -421,7 +421,7 @@ export default function PaymentScreen() {
             try {
               // Actually update the DB — previous version only routed away,
               // leaving the chat_open booking orphaned in My Trips & Inbox.
-              await cancelBooking(booking.id);
+              await cancelBookingPreSigning(booking.id);
               safeBack(router, '/(traveler)/(tabs)/trips');
             } catch (err) {
               const msg = err instanceof Error ? err.message : 'Please try again.';
