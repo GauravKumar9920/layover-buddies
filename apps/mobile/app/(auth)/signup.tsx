@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Platform, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Platform, Alert, Linking } from 'react-native';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { signUp } from '@/lib/auth';
 import type { UserRole } from '@/types';
 import { isSupabaseConfigured } from '@/lib/supabase';
+import { LEGAL } from '@/config/constants';
 import { theme } from '@/config/theme';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { Input } from '@/components/ui/Input';
@@ -150,7 +151,21 @@ export default function SignUpScreen() {
       </View>
 
       <Text style={{ fontFamily: theme.fonts.body, color: theme.colors.textMuted, fontSize: 11, textAlign: 'center', marginTop: 14, lineHeight: 17 }}>
-        By joining you agree to our Terms of Service & Privacy Policy.
+        By joining you agree to our{' '}
+        <Text
+          style={{ color: theme.colors.primary, textDecorationLine: 'underline' }}
+          onPress={() => Linking.openURL(LEGAL.termsUrl).catch(() => {})}
+        >
+          Terms of Service
+        </Text>
+        {' & '}
+        <Text
+          style={{ color: theme.colors.primary, textDecorationLine: 'underline' }}
+          onPress={() => Linking.openURL(LEGAL.privacyUrl).catch(() => {})}
+        >
+          Privacy Policy
+        </Text>
+        .
       </Text>
     </AuthShell>
   );
