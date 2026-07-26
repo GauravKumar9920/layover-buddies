@@ -38,7 +38,6 @@ export async function triggerSos(input: TriggerSosInput): Promise<SosAlert> {
       triggered_by: user.id,
       latitude: input.latitude,
       longitude: input.longitude,
-      status: 'triggered',
     })
     .select('*')
     .single();

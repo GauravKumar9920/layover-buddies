@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StarRating } from '@/components/ui/StarRating';
 import { Loading } from '@/components/ui/Loading';
+import { AccountActions } from '@/components/settings/AccountActions';
 import { supabase } from '@/lib/supabase';
 import { updateGuideProfile, normalizePromptArray } from '@/lib/api/guides';
 import { signOut } from '@/lib/auth';
@@ -532,6 +533,9 @@ export default function GuideProfileScreen() {
           variant="danger"
           style={{ marginTop: 24 }}
         />
+
+        {/* Legal links + account deletion (Apple 5.1.1(v) / store requirements) */}
+        <AccountActions />
       </ScrollView>
     </View>
   );

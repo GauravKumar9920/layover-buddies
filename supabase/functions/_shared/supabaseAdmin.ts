@@ -42,11 +42,21 @@ export interface CallerIdentity {
   userId: string;
 }
 
+export interface CallerLookupOptions {
+  /** The deletion endpoint must stay retryable after the durable DB gate is set. */
+  allowDeletionPending?: boolean;
+}
+
 /**
  * Decode the caller's bearer token and return their auth.uid().
- * Returns null if the header is missing, malformed, or the token is invalid.
+ * Returns null if the header/token is invalid or the public account has been
+ * disabled for deletion. Privileged functions must not trust a still-live
+ * access JWT after the deletion workflow begins.
  */
-export async function getUserFromRequest(req: Request): Promise<CallerIdentity | null> {
+export async function getUserFromRequest(
+  req: Request,
+  options: CallerLookupOptions = {},
+): Promise<CallerIdentity | null> {
   const authHeader = req.headers.get('authorization') ?? req.headers.get('Authorization');
   if (!authHeader) return null;
 
@@ -56,5 +66,19 @@ export async function getUserFromRequest(req: Request): Promise<CallerIdentity |
   const token = match[1];
   const { data, error } = await anonClient().auth.getUser(token);
   if (error || !data?.user) return null;
+
+  const { data: publicUser, error: profileError } = await adminClient()
+    .from('users')
+    .select('deletion_pending_at, deleted_at')
+    .eq('id', data.user.id)
+    .maybeSingle();
+  if (profileError || !publicUser) return null;
+  if (
+    !options.allowDeletionPending
+    && (publicUser.deletion_pending_at || publicUser.deleted_at)
+  ) {
+    return null;
+  }
+
   return { userId: data.user.id };
 }

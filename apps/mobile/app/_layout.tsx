@@ -24,6 +24,8 @@ import { InstrumentSerif_400Regular } from '@expo-google-fonts/instrument-serif'
 import { useAuth } from '@/lib/hooks/useAuth';
 import { Loading } from '@/components/ui/Loading';
 import { useFavoritesStore } from '@/lib/stores/favorites';
+import { usePasswordRecovery } from '@/lib/stores/passwordRecovery';
+import { setupPasswordRecoveryLink } from '@/lib/auth/recoveryLink';
 import { setupAndroidNotificationChannels } from '@/lib/push/notificationChannels';
 import { setupNotificationTapRouting } from '@/lib/push/notificationHandler';
 
@@ -62,6 +64,9 @@ function RootLayoutNav() {
   const router = useRouter();
   const hydrateFavorites = useFavoritesStore((s) => s.hydrate);
   const resetFavorites = useFavoritesStore((s) => s.reset);
+  const passwordRecoveryStatus = usePasswordRecovery((s) => s.status);
+  const passwordRecoveryHydrated = usePasswordRecovery((s) => s.hydrated);
+  const hydratePasswordRecovery = usePasswordRecovery((s) => s.hydrate);
 
   // Keep the favorites cache in sync with the signed-in user. We re-run on
   // sign-in (new user id) and reset on sign-out so a shared device can't
@@ -83,12 +88,44 @@ function RootLayoutNav() {
     return () => { subscription.remove(); };
   }, [router]);
 
+  // Check the durable recovery marker before role-based routing. A recovery
+  // session is persisted by Supabase, so its navigation intent must survive
+  // the same cold restart.
   useEffect(() => {
-    if (loading) return;
+    void hydratePasswordRecovery();
+  }, [hydratePasswordRecovery]);
+
+  // Password-reset deep links (detour://reset-password). Establishes the
+  // recovery session and routes to the set-new-password screen.
+  useEffect(() => {
+    const subscription = setupPasswordRecoveryLink(router);
+    return () => { subscription.remove(); };
+  }, [router]);
+
+  useEffect(() => {
+    if (loading || !passwordRecoveryHydrated) return;
 
     // Design-preview gallery — bypass auth redirects so the Warm Editorial
     // screens render without a signed-in session. (Dev/review only.)
     if (__DEV__ && (segments[0] as string) === 'design-preview') return;
+
+    // While the deep link is being exchanged, pause all role-based routing.
+    // Navigating to the form here would race getSession() on a warm app and
+    // briefly render a false "expired link" state.
+    if (passwordRecoveryStatus === 'establishing') {
+      return;
+    }
+
+    // Once the recovery session exists, pin the user on the reset-password
+    // screen until they set a password or explicitly leave the flow.
+    if (passwordRecoveryStatus === 'ready') {
+      const onResetScreen =
+        segments[0] === '(auth)' && (segments as string[])[1] === 'reset-password';
+      if (!onResetScreen) {
+        router.replace('/(auth)/reset-password');
+      }
+      return;
+    }
 
     // Keep ANY signed-in user on the traveler-facing guide profile route
     // (/(traveler)/guide/[id]). Travelers can already reach it; the point of
@@ -123,9 +160,18 @@ function RootLayoutNav() {
         router.replace('/(traveler)/(tabs)' as never);
       }
     }
-  }, [session, role, loading, needsOnboarding, segments]);
+  }, [
+    session,
+    role,
+    loading,
+    needsOnboarding,
+    segments,
+    passwordRecoveryStatus,
+    passwordRecoveryHydrated,
+    router,
+  ]);
 
-  if (loading) {
+  if (loading || !passwordRecoveryHydrated) {
     return <Loading fullScreen message="Loading your account..." />;
   }
 

@@ -18,6 +18,8 @@ const KINDS = [
   'proofs_overdue',
   'rating_link',
   'top_up_request',
+  'sos_alert',
+  'sos_triggered',
 ];
 
 // ── Title ──────────────────────────────────────────────────────────────────
@@ -93,6 +95,19 @@ Deno.test('pushBodyFor: unknown kind falls back to generic body', () => {
   assertEquals(body, 'You have a new notification.');
 });
 
+Deno.test('pushBodyFor: sos_alert names the triggerer when known', () => {
+  const body = pushBodyFor('sos_alert', { triggered_by_name: 'Aarav' });
+  assertStringIncludes(body, 'Aarav');
+  assertStringIncludes(body, 'SOS');
+});
+
+Deno.test('pushBodyFor: sos_alert without a name still reads sensibly', () => {
+  const body = pushBodyFor('sos_triggered', {});
+  assert(body.length > 0);
+  assert(!body.includes('undefined'));
+  assertStringIncludes(body, 'SOS');
+});
+
 // ── Deep link ──────────────────────────────────────────────────────────────
 
 Deno.test('deepLinkFor: balance reminder routes to /trips/balance', () => {
@@ -137,4 +152,9 @@ Deno.test('deepLinkFor: returns empty string when bookingId missing', () => {
 
 Deno.test('deepLinkFor: unknown kind falls back to /trips/<id>', () => {
   assertEquals(deepLinkFor('mystery_kind', 'b4'), '/trips/b4');
+});
+
+Deno.test('deepLinkFor: sos kinds route to the live trip screen', () => {
+  assertEquals(deepLinkFor('sos_alert', 'b5'), '/trips/live/b5');
+  assertEquals(deepLinkFor('sos_triggered', 'b5'), '/trips/live/b5');
 });

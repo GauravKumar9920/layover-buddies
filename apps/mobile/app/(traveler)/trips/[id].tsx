@@ -10,12 +10,22 @@ import { Badge, bookingStatusLabel, bookingStatusVariant } from '@/components/ui
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
 import { AgreementCtaBlock } from '@/components/bookings/AgreementCtaBlock';
-import { fetchBookingById, cancelBooking } from '@/lib/api/bookings';
+import { fetchBookingById, cancelBookingPreSigning, declineBooking } from '@/lib/api/bookings';
 import { supabase } from '@/lib/supabase';
 import { getItineraryPhoto } from '@/config/photoLibrary';
 import { theme } from '@/config/theme';
 import { canTransition, isActiveBookingState, type BookingState } from '@/lib/booking/stateMachine';
 import type { Booking } from '@/types';
+
+// States where no money is held yet — a direct cancelled_pre_signing write
+// is legal (and is the only status write the DB transition trigger permits
+// for cancellation). From awaiting_deposits onwards, cancellation must go
+// through the cancel-booking edge function so the refund resolution is
+// computed — the cancel screen previews it and calls that function.
+const PRE_SIGNING_STATES = new Set([
+  'chat_open', 'agreement_drafting', 'agreement_sent',
+  'agreement_signed_traveler', 'agreement_signed_buddy', 'pending',
+]);
 
 export default function TripDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -67,15 +77,24 @@ export default function TripDetailScreen() {
   }
 
   async function handleCancel() {
+    if (!booking) return;
+
+    if (!PRE_SIGNING_STATES.has(booking.status)) {
+      router.push({
+        pathname: '/(traveler)/trips/cancel/[bookingId]',
+        params: { bookingId: booking.id },
+      });
+      return;
+    }
+
     Alert.alert('Cancel Booking', 'Are you sure you want to cancel this booking?', [
       { text: 'Keep It', style: 'cancel' },
       {
         text: 'Cancel Booking',
         style: 'destructive',
         onPress: async () => {
-          if (!id) return;
           try {
-            await cancelBooking(id);
+            await (isGuide ? declineBooking(booking.id) : cancelBookingPreSigning(booking.id));
             router.back();
           } catch (err: unknown) {
             Alert.alert('Unable to cancel', err instanceof Error ? err.message : 'Please try again.');
