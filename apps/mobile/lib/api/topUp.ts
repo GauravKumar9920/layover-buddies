@@ -6,7 +6,7 @@
 // ============================================================================
 
 import { supabase } from '../supabase';
-import { openRazorpayCheckout, type RazorpayOrder, type RazorpayPaymentResult } from './payments';
+import { openRazorpayCheckout, type RazorpayOrder, type RazorpayPaymentResult } from './razorpayCheckout';
 import { env } from '@/config/env';
 import type { TopUpRequest } from '../hooks/useTrip';
 

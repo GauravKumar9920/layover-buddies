@@ -300,6 +300,7 @@ export async function searchGuides(query: string): Promise<GuideProfile[]> {
         guide.name,
         guide.bio ?? '',
         guide.university ?? '',
+        guide.hometown ?? '',
         ...guide.languages,
         ...guide.categories,
       ].some((value) => value.toLowerCase().includes(term)),

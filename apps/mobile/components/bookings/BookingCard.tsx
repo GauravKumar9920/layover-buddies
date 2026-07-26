@@ -1,7 +1,9 @@
 import { View, Text } from 'react-native';
 import { format } from 'date-fns';
+import { Image } from 'expo-image';
 import { Card } from '@/components/ui/Card';
 import { Badge, bookingStatusLabel, bookingStatusVariant } from '@/components/ui/Badge';
+import { getItineraryPhoto } from '@/config/photoLibrary';
 import { theme } from '@/config/theme';
 import type { Booking } from '@/types';
 
@@ -23,9 +25,26 @@ export function BookingCard({ booking, onPress, showGuide = true, showTraveler =
     ? 'Date TBD'
     : format(startDate, 'EEE, MMM d, yyyy');
 
+  const itineraryPhoto = booking.itinerary ? getItineraryPhoto(booking.itinerary) : null;
+
   return (
     <Card onPress={onPress} style={{ marginBottom: 12 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        {itineraryPhoto && (
+          <Image
+            source={{ uri: itineraryPhoto }}
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: theme.borderRadius.md,
+              marginRight: 12,
+              borderWidth: 1,
+              borderColor: 'rgba(14,25,41,0.12)',
+            }}
+            contentFit="cover"
+            transition={250}
+          />
+        )}
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={{ fontFamily: theme.fonts.displaySemi, fontSize: 16, color: theme.colors.text }}>
@@ -60,9 +79,11 @@ export function BookingCard({ booking, onPress, showGuide = true, showTraveler =
             label={bookingStatusLabel(booking.status)}
             variant={bookingStatusVariant(booking.status)}
           />
-          <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 16, color: theme.colors.primary }}>
-            ₹{booking.total_price.toLocaleString('en-IN')}
-          </Text>
+          {booking.total_price > 0 && (
+            <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 16, color: theme.colors.primary }}>
+              ₹{booking.total_price.toLocaleString('en-IN')}
+            </Text>
+          )}
         </View>
       </View>
 

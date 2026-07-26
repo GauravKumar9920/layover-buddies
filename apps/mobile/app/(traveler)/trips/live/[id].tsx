@@ -363,7 +363,7 @@ export default function LiveTourScreen() {
       <SafetyBar
         bookingId={id ?? ''}
         insets={insets}
-        guideName={booking?.guide?.name ?? 'your buddy'}
+        contactName={booking?.guide?.name ?? 'your buddy'}
         fallbackCoords={guideLocation ?? DEFAULT_MUMBAI_COORDS}
       />
     </View>

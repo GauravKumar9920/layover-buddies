@@ -40,7 +40,8 @@ import {
 import { StarRating } from '@/components/ui/StarRating';
 import { Card } from '@/components/ui/Card';
 import { SkeletonLine } from '@/components/ui/Loading';
-import { getItineraryPhoto, getGuideHeroPhoto } from '@/config/photoLibrary';
+import { getItineraryPhoto, getGuideHeroPhoto, getGuideAvatar } from '@/config/photoLibrary';
+import { BoardingPassReveal } from '@/components/bookings/BoardingPassReveal';
 import { fetchGuideById, fetchGuideItineraries } from '@/lib/api/guides';
 import { fetchMyTravelerProfile } from '@/lib/api/travelerProfile';
 import { createBooking, calcCommission } from '@/lib/api/bookings';
@@ -484,6 +485,10 @@ export default function BookingScreen() {
   }>();
   // `intent=chat` → casual inquiry: no tour pre-selected, nothing required.
   const isCasual = intent === 'chat';
+  // Arrived from a specific tour's "Inquire" button → focus on that tour rather
+  // than showing the whole switchable carousel (which reads as "you haven't
+  // chosen yet"). The traveler can still reveal the full list on demand.
+  const cameFromTour = !!preselectedItinId;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
@@ -496,6 +501,9 @@ export default function BookingScreen() {
   const [inquiryNote, setInquiryNote] = useState('');
 
   const [selectedItinId, setSelectedItinId] = useState<string>(preselectedItinId ?? '');
+  // When arriving from a specific tour, hide the other tours until the traveler
+  // explicitly asks to browse them.
+  const [showAllTours, setShowAllTours] = useState(false);
   const [tourStartDate, setTourStartDate] = useState('');
   const [tourEndDate, setTourEndDate] = useState('');
   const [arrivalDate, setArrivalDate] = useState('');
@@ -504,6 +512,9 @@ export default function BookingScreen() {
   const [departureTime, setDepartureTime] = useState('');
   const [flightNumber, setFlightNumber] = useState('');
   const [numTravelers, setNumTravelers] = useState('1');
+  // Set on successful inquiry — shows the boarding-pass reveal, whose onDone
+  // navigates into the new chat thread.
+  const [revealBookingId, setRevealBookingId] = useState<string | null>(null);
   const [rates, setRates] = useState<EffectiveRates>(EARLY_ACCESS_RATES);
 
   const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
@@ -626,9 +637,10 @@ export default function BookingScreen() {
 
       hapticSuccess();
       confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 });
-      // Inquiry-first: drop the traveler straight into the chat thread so they
-      // can build the plan with the guide. Booking + payment happen later.
-      router.replace(`/(shared)/messages/${booking.id}` as never);
+      // Inquiry-first: celebrate the moment with the boarding-pass reveal,
+      // then drop the traveler straight into the chat thread so they can
+      // build the plan with the guide. Booking + payment happen later.
+      setRevealBookingId(booking.id);
     } catch (err: unknown) {
       hapticError();
       confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 });
@@ -645,6 +657,21 @@ export default function BookingScreen() {
       style={{ flex: 1, backgroundColor: theme.colors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <BoardingPassReveal
+        visible={revealBookingId !== null}
+        itineraryName={selectedItin?.name ?? selectedItin?.title ?? 'Mumbai plans'}
+        guideName={guide?.name ?? 'your guide'}
+        guideAvatar={guide ? getGuideAvatar(guide) : null}
+        dateLabel={tourStartDate ? format(parseISO(tourStartDate), 'MMM d') : 'TBD'}
+        flightNumber={flightNumber.trim() || undefined}
+        totalLabel={selectedItin && total > 0 ? `${CURRENCY_SYMBOL}${total.toLocaleString('en-IN')}` : 'In chat'}
+        stampLabel="Request sent"
+        eyebrowLabel="Inquiry"
+        footerLabel="Opening your chat…"
+        onDone={() => {
+          if (revealBookingId) router.replace(`/(shared)/messages/${revealBookingId}` as never);
+        }}
+      />
       {/* Back button */}
       <View style={{
         position: 'absolute', top: insets.top + 8, left: 16, zIndex: 50,
@@ -721,18 +748,35 @@ export default function BookingScreen() {
         <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
           {/* ── Tour selection ─────────────────────────────────────────── */}
           <Text style={{ fontFamily: theme.fonts.display, fontSize: 19, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 4 }}>
-            {isCasual ? 'Ask about a tour' : 'Which tour?'}
+            {cameFromTour && !showAllTours
+              ? 'Your tour'
+              : isCasual ? 'Ask about a tour' : 'Which tour?'}
           </Text>
           <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary, marginBottom: 16 }}>
-            {isCasual
-              ? 'Optional — pick one to ask about, or just send a question below.'
-              : 'Tap a card to select. You can change it together with your guide.'}
+            {cameFromTour && !showAllTours
+              ? 'You can fine-tune the plan and price with your guide in chat.'
+              : isCasual
+                ? 'Optional — pick one to ask about, or just send a question below.'
+                : 'Tap a card to select. You can change it together with your guide.'}
           </Text>
         </View>
 
         {loading ? (
           <View style={{ paddingLeft: 20 }}>
             <View style={{ width: CARD_WIDTH, height: CARD_IMAGE_HEIGHT + 90, backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.lg, ...theme.shadows.sm }} />
+          </View>
+        ) : cameFromTour && !showAllTours && selectedItin ? (
+          // Focused view: just the tour they inquired about, plus a quiet way to
+          // browse the guide's other tours if they change their mind.
+          <View style={{ paddingLeft: 20 }}>
+            <ItinCard itin={selectedItin} selected onPress={() => setShowAllTours(true)} />
+            {itineraries.length > 1 && (
+              <TouchableOpacity onPress={() => setShowAllTours(true)} style={{ paddingVertical: 12 }}>
+                <Text style={{ fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.accent }}>
+                  Ask about a different tour ›
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         ) : (
           <FlatList

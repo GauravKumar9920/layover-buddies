@@ -1,25 +1,14 @@
 // ============================================================================
-// PAYMENTS — legacy booking-flow checkout (pre-Phase-2)
+// RAZORPAY CHECKOUT — shared native-sheet wrapper
 // ============================================================================
-// This module powers `mobile/app/(traveler)/book/payment/[bookingId].tsx`,
-// the legacy single-shot "pay full booking total now" path that advances
-// bookings.status to 'confirmed' on capture (see line 149 below).
-//
-// PHASE 2 NOTE: Deposits do NOT route through `recordPaymentResult`. They go
-// through `mobile/lib/api/deposits.ts → createDepositOrder → Razorpay → the
-// `razorpay-webhook` Edge Function. The webhook is the source of truth for
-// deposit capture; the mobile client only displays a "Confirming…" spinner
-// after the checkout sheet closes.
-//
-// Phase 3 will retire this legacy flow in favour of separate deposit/balance
-// checkout screens.
+// The one place that touches the react-native-razorpay module. Used by every
+// payment flow (deposits.ts, balance.ts, topUp.ts). Orders themselves are
+// always created server-side by Edge Functions; this module only opens the
+// checkout sheet and classifies availability errors (web / Expo Go have no
+// native module — callers show a friendly fallback instead of crashing).
 // ============================================================================
 
-import { supabase } from '../supabase';
-import { env } from '@/config/env';
 import { Platform } from 'react-native';
-import { PAYMENT_STATUS } from '@/config/constants';
-import type { PaymentStatus } from '@/types';
 
 export interface RazorpayOrder {
   order_id: string;
@@ -88,39 +77,6 @@ export function isRazorpayCheckoutUnavailableError(error: unknown): boolean {
 }
 
 /**
- * Calls the Supabase Edge Function to create a Razorpay order.
- * The Razorpay secret never leaves the Edge Function.
- */
-export async function createRazorpayOrder(
-  bookingId: string,
-  amountInr: number,
-): Promise<RazorpayOrder> {
-  if (!env.RAZORPAY_KEY_ID) {
-    throw new Error('Razorpay is not configured. Set EXPO_PUBLIC_RAZORPAY_KEY_ID.');
-  }
-
-  const { data, error } = await supabase.functions.invoke('create-booking-payment', {
-    body: { booking_id: bookingId, amount_inr: amountInr },
-  });
-
-  if (error) throw new Error(`Payment initialization failed: ${error.message}`);
-
-  const payload = data as Record<string, unknown>;
-  if (!payload?.order_id) {
-    throw new Error(
-      (payload?.error as string) ?? 'Payment service returned an invalid response.',
-    );
-  }
-
-  return {
-    order_id: payload.order_id as string,
-    amount_paise: payload.amount_paise as number,
-    currency: (payload.currency as string) ?? 'INR',
-    key_id: (payload.key_id as string) ?? env.RAZORPAY_KEY_ID,
-  };
-}
-
-/**
  * Opens the Razorpay native checkout sheet.
  * Resolves with payment IDs on success, rejects on cancel/failure.
  */
@@ -143,34 +99,9 @@ export async function openRazorpayCheckout(params: {
       name: params.travelerName ?? '',
       email: params.travelerEmail ?? '',
     },
-    theme: { color: '#F97316' },
+    // Warm Editorial terracotta — keeps the checkout sheet on-brand (the old
+    // value was the retired v2 saffron).
+    theme: { color: '#C8542A' },
     modal: { backdropclose: false },
   }) as Promise<RazorpayPaymentResult>;
-}
-
-/** Updates booking's payment fields after a successful or failed payment. */
-export async function recordPaymentResult(
-  bookingId: string,
-  result: {
-    paymentId: string | null;
-    orderId: string;
-    status: PaymentStatus;
-  },
-): Promise<void> {
-  const updates: Record<string, unknown> = {
-    payment_id: result.paymentId,
-    payment_status: result.status,
-  };
-
-  // Advance booking status on capture
-  if (result.status === PAYMENT_STATUS.CAPTURED) {
-    updates.status = 'confirmed';
-  }
-
-  const { error } = await supabase
-    .from('bookings')
-    .update(updates)
-    .eq('id', bookingId);
-
-  if (error) throw error;
 }

@@ -9,7 +9,12 @@ import { Platform } from 'react-native';
 import { supabase } from './supabase';
 
 interface UploadImageParams {
-  blob: Blob;
+  /**
+   * Image bytes to upload. Web hands us a Blob/File; native hands us an
+   * ArrayBuffer (RN Blobs upload an empty body and fail with "Network request
+   * failed"). Supabase Storage accepts either.
+   */
+  blob: Blob | ArrayBuffer;
   /** Storage bucket name, e.g. 'itinerary-photos' or 'avatars' */
   bucket: string;
   /** Storage path inside the bucket, e.g. `${userId}/${Date.now()}.jpg` */

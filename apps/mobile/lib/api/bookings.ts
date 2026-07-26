@@ -11,6 +11,7 @@ interface RawUserJoin {
 
 interface RawTravelerProfileJoin {
   nationality: string | null;
+  interests?: string[] | null;
 }
 
 interface RawTravelerJoin extends RawUserJoin {
@@ -50,6 +51,7 @@ interface RawBookingRow {
   itinerary_id: string | null;
   arrival_flight_number: string | null;
   arrival_time: string | null;
+  departure_time?: string | null;
   tour_start_time: string | null;
   tour_end_time: string | null;
   num_travelers: number | null;
@@ -192,6 +194,7 @@ function normalizeTravelerUser(row?: RawTravelerJoin): Booking['traveler'] {
     name: row.full_name ?? 'Traveler',
     avatar_url: row.avatar_url ?? null,
     nationality: profile?.nationality ?? null,
+    interests: profile?.interests ?? null,
     phone: null,
     created_at: new Date().toISOString(),
   };
@@ -219,6 +222,8 @@ function normalizeBooking(row: RawBookingRow): Booking {
     payment_intent_id: row.payment_id,
     payment_status: normalizePaymentStatus(row.payment_status),
     created_at: row.created_at,
+    arrival_time: row.arrival_time ?? null,
+    departure_time: row.departure_time ?? null,
     guide: normalizeGuideUser(row.guide),
     traveler: normalizeTravelerUser(row.traveler),
     itinerary: normalizeItinerary(row.itinerary),
@@ -340,7 +345,7 @@ export async function fetchPendingRequests(guideId: string): Promise<Booking[]> 
   // still shows up on the guide's requests dashboard.
   const { data, error } = await supabase
     .from('bookings')
-    .select('*, traveler:users!traveler_id(id, full_name, avatar_url, traveler_profile:traveler_profiles(nationality)), itinerary:itineraries(*)')
+    .select('*, traveler:users!traveler_id(id, full_name, avatar_url, traveler_profile:traveler_profiles(nationality, interests)), itinerary:itineraries(*)')
     .eq('guide_id', guideId)
     .in('status', ['chat_open', 'agreement_sent'])
     .order('created_at', { ascending: false });

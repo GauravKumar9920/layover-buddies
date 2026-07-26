@@ -18,11 +18,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Header } from '@/components/ui/Header';
 import { Card } from '@/components/ui/Card';
+import { BoardingPassReveal } from '@/components/bookings/BoardingPassReveal';
 import { formatPaise } from '@/lib/booking/money';
 import { createBalanceOrder, openBalanceCheckout } from '@/lib/api/balance';
 import { confirmPayment } from '@/lib/api/confirmPayment';
 import { supabase } from '@/lib/supabase';
 import { financialCopy } from '@/lib/copy/financial';
+import { formatMumbaiShortDate, formatMumbaiTime } from '@/lib/dateTime';
 import { theme } from '@/config/theme';
 import { LATE_FEE_PAISE } from '@/config/constants';
 import type { BookingState } from '@/lib/booking/stateMachine';
@@ -36,10 +38,21 @@ interface AgreementSnapshot {
   trip_starts_at:          string;
 }
 
+// PostgREST may embed to-one FK joins as a single object or a 1-element
+// array depending on the relationship metadata — accept both.
+type MaybeArray<T> = T | T[] | null | undefined;
+
+function firstOf<T>(value: MaybeArray<T>): T | null {
+  if (!value) return null;
+  return Array.isArray(value) ? (value[0] ?? null) : value;
+}
+
 interface BookingSnapshot {
   status:         BookingState;
   late_fee_paise: number;
   traveler_id:    string;
+  itinerary?:     MaybeArray<{ title: string | null }>;
+  guide?:         MaybeArray<{ full_name: string | null }>;
 }
 
 export default function BalancePaymentScreen() {
@@ -52,6 +65,8 @@ export default function BalancePaymentScreen() {
   const [loading,   setLoading]   = useState(true);
   const [paying,    setPaying]    = useState(false);
   const [error,     setError]     = useState<string | null>(null);
+  // Balance captured → celebrate before moving on to the QR screen.
+  const [showConfirmedReveal, setShowConfirmedReveal] = useState(false);
 
   // ── Load data ─────────────────────────────────────────────────────────────
   const load = useCallback(async () => {
@@ -62,7 +77,7 @@ export default function BalancePaymentScreen() {
       const [{ data: b }, { data: a }] = await Promise.all([
         supabase
           .from('bookings')
-          .select('status, late_fee_paise, traveler_id')
+          .select('status, late_fee_paise, traveler_id, itinerary:itineraries(title), guide:users!guide_id(full_name)')
           .eq('id', bookingId)
           .single(),
         supabase
@@ -74,7 +89,7 @@ export default function BalancePaymentScreen() {
           .single(),
       ]);
 
-      setBooking(b as BookingSnapshot);
+      setBooking(b as unknown as BookingSnapshot);
       setAgreement(a as AgreementSnapshot);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load');
@@ -97,10 +112,8 @@ export default function BalancePaymentScreen() {
         (payload) => {
           const newStatus = payload.new?.status as BookingState;
           if (newStatus === 'balance_paid' || newStatus === 'trip_ready') {
-            router.replace({
-              pathname: '/(traveler)/trips/qr/[bookingId]',
-              params:   { bookingId },
-            } as never);
+            // Boarding-pass moment — onDone advances to the QR screen.
+            setShowConfirmedReveal(true);
           }
         },
       )
@@ -182,6 +195,24 @@ export default function BalancePaymentScreen() {
   return (
     <View style={[styles.root, { paddingBottom: insets.bottom }]}>
       <Header title="Pay trip balance" showBack />
+
+      <BoardingPassReveal
+        visible={showConfirmedReveal}
+        itineraryName={firstOf(booking.itinerary)?.title ?? 'Your Mumbai day'}
+        guideName={firstOf(booking.guide)?.full_name ?? 'your buddy'}
+        dateLabel={formatMumbaiShortDate(agreement.trip_starts_at)}
+        timeLabel={formatMumbaiTime(agreement.trip_starts_at)}
+        totalLabel={formatPaise(total)}
+        stampLabel="Trip confirmed"
+        eyebrowLabel="Balance paid"
+        footerLabel="Fetching your QR pass…"
+        onDone={() => {
+          router.replace({
+            pathname: '/(traveler)/trips/qr/[bookingId]',
+            params:   { bookingId },
+          } as never);
+        }}
+      />
 
       <ScrollView
         style={styles.scroll}

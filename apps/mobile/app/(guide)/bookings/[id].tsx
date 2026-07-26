@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge, bookingStatusLabel, bookingStatusVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
-import { AgreementCtaBlock } from '@/components/bookings/AgreementCtaBlock';
+import { TripTimeline } from '@/components/bookings/TripTimeline';
 import { fetchBookingById } from '@/lib/api/bookings';
 import { theme } from '@/config/theme';
 import type { BookingState } from '@/lib/booking/stateMachine';
@@ -118,10 +118,10 @@ export default function GuideBookingDetailScreen() {
           </View>
         </Card>
 
-        {/* Phase 2 — Agreement & Deposit CTA */}
-        <AgreementCtaBlock
+        {/* Journey timeline — mirrors the traveler's view with buddy CTAs */}
+        <TripTimeline
           bookingId={booking.id}
-          bookingStatus={booking.status as BookingState}
+          status={booking.status as BookingState}
           viewer="buddy"
         />
 

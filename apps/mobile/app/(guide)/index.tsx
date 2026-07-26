@@ -19,10 +19,16 @@ import { fetchUnreadCounts } from '@/lib/api/messages';
 import { supabase } from '@/lib/supabase';
 import { theme } from '@/config/theme';
 import { getItineraryPhoto } from '@/config/photoLibrary';
-import { BOOKING_STATUS } from '@/config/constants';
+import {
+  isActiveBookingState,
+  isUpcomingBookingState,
+} from '@/lib/booking/stateMachine';
+import { getBookingCta } from '@/lib/booking/cta';
+import { expectedNetPaise } from '@/lib/api/earnings';
 import type { Booking } from '@/types';
+import type { BookingState } from '@/lib/booking/stateMachine';
 
-function StatCard({ value, label, delay }: { value: string; label: string; delay: number }) {
+function StatCard({ value, label, delay, onPress }: { value: string; label: string; delay: number; onPress?: () => void }) {
   // Slide-up entrance via translateY only — never gate visibility on opacity,
   // so a stalled animation can't leave the stats invisible.
   const translateY = useSharedValue(14);
@@ -36,13 +42,18 @@ function StatCard({ value, label, delay }: { value: string; label: string; delay
 
   return (
     <Animated.View style={[{ flex: 1 }, animStyle]}>
-      <Card style={{ alignItems: 'center', padding: 16 }} framed elevation="none">
+      <Card style={{ alignItems: 'center', padding: 16 }} framed elevation="none" onPress={onPress}>
         <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 26, color: theme.colors.primary, letterSpacing: -0.5 }}>
           {value}
         </Text>
         <Text style={{ fontFamily: theme.fonts.mono, fontSize: 9.5, color: theme.colors.textSecondary, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 6, textAlign: 'center' }}>
           {label}
         </Text>
+        {onPress && (
+          <Text style={{ fontFamily: theme.fonts.mono, fontSize: 9, color: theme.colors.textMuted, marginTop: 4 }}>
+            View →
+          </Text>
+        )}
       </Card>
     </Animated.View>
   );
@@ -75,9 +86,9 @@ export default function GuideDashboardScreen() {
 
     const data = await fetchGuideBookings(user.id);
     setBookings(data);
-    const activeIds = data
-      .filter((b) => ['guide_accepted', 'confirmed', 'in_progress'].includes(b.status))
-      .map((b) => b.id);
+    // Any non-terminal booking can carry unread messages, not just the three
+    // legacy states — same fix as the traveler trips list (review 2026-05-14).
+    const activeIds = data.filter((b) => isActiveBookingState(b.status)).map((b) => b.id);
     if (activeIds.length > 0) {
       const counts = await fetchUnreadCounts(activeIds);
       setUnreadCounts(counts);
@@ -95,12 +106,35 @@ export default function GuideDashboardScreen() {
 
   if (loading) return <Loading fullScreen />;
 
-  const pending = bookings.filter((b) => b.status === BOOKING_STATUS.PENDING);
-  const upcoming = bookings.filter((b) =>
-    b.status === BOOKING_STATUS.GUIDE_ACCEPTED || b.status === BOOKING_STATUS.CONFIRMED,
+  // Partition on the Phase 1+ lifecycle instead of the legacy three-state
+  // whitelist, which left the dashboard empty for every modern booking
+  // (chat_open, agreement_*, awaiting_*, balance_paid, trip_ready…).
+  // Only chat_open is a genuine new request: legacy 'pending' maps to the
+  // Agreement stage post-migration (like agreement_sent) and is not fetched by
+  // the Requests screen, so counting it here would dead-end into an empty list.
+  const REQUEST_STATES: BookingState[] = ['chat_open'];
+  const pending = bookings.filter((b) => REQUEST_STATES.includes(b.status));
+  const upcoming = bookings.filter(
+    (b) => isUpcomingBookingState(b.status) && !REQUEST_STATES.includes(b.status),
   );
-  const completed = bookings.filter((b) => b.status === BOOKING_STATUS.COMPLETED);
-  const totalEarnings = completed.reduce((sum, b) => sum + (b.total_price - b.commission), 0);
+  const completed = bookings.filter((b) => b.status === 'completed' || b.status === 'rated');
+  // Net buddy fee (platform-down + TDS), in rupees — NOT total_price − commission,
+  // which would wrongly count the traveler's expense pot as guide income.
+  const totalEarnings = completed.reduce((sum, b) => sum + expectedNetPaise(b) / 100, 0);
+  // "Action needed" — every booking whose buddy CTA is an enabled *action*
+  // (draft agreement, sign, pay deposit, scan QR, upload proofs…). Driven
+  // entirely by cta.ts so this list stays in lock-step with the lifecycle;
+  // primary/warning variants are the "you must act" ones — success/info are
+  // confirmations, not chores.
+  const actionNeeded = bookings
+    .map((b) => ({ booking: b, cta: getBookingCta(b.status, 'buddy') }))
+    .filter(({ booking: b, cta }) =>
+      isActiveBookingState(b.status)
+      && Boolean(cta.label)
+      && !cta.disabled
+      && cta.route !== null
+      && (cta.variant === 'primary' || cta.variant === 'warning'),
+    );
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -174,9 +208,55 @@ export default function GuideDashboardScreen() {
         {/* Stats */}
         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
           <StatCard value={String(completed.length)} label="Tours Done" delay={0} />
-          <StatCard value={`₹${(totalEarnings / 1000).toFixed(1)}k`} label="Earned" delay={100} />
+          <StatCard
+            value={`₹${(totalEarnings / 1000).toFixed(1)}k`}
+            label="Earned"
+            delay={100}
+            onPress={() => router.push('/(guide)/earnings' as never)}
+          />
           <StatCard value={String(pending.length)} label="Pending" delay={200} />
         </View>
+
+        {/* Action needed — the one next step per booking, straight from cta.ts */}
+        {actionNeeded.length > 0 && (
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ fontFamily: theme.fonts.display, fontSize: 20, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 12 }}>
+              Action needed
+            </Text>
+            {actionNeeded.slice(0, 4).map(({ booking: b, cta }) => (
+              <Card
+                key={b.id}
+                onPress={() => router.push(`/(guide)/bookings/${b.id}` as never)}
+                style={{ marginBottom: 10, padding: 14 }}
+              >
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontFamily: theme.fonts.bodySemi, fontSize: 14, color: theme.colors.text }}>
+                      {b.traveler?.name ?? 'Traveler'}
+                    </Text>
+                    <Text style={{ fontFamily: theme.fonts.mono, fontSize: 10.5, color: theme.colors.textMuted, letterSpacing: 0.3, textTransform: 'uppercase', marginTop: 3 }}>
+                      {b.itinerary?.name ?? 'Tour'}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      backgroundColor: theme.colors.primaryLight,
+                      borderWidth: 1,
+                      borderColor: 'rgba(200,84,42,0.3)',
+                      borderRadius: theme.borderRadius.full,
+                      paddingHorizontal: 10,
+                      paddingVertical: 5,
+                    }}
+                  >
+                    <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 10, color: theme.colors.primaryDark, letterSpacing: 0.4, textTransform: 'uppercase' }}>
+                      {cta.label}
+                    </Text>
+                  </View>
+                </View>
+              </Card>
+            ))}
+          </View>
+        )}
 
         {/* Upcoming Tours */}
         {upcoming.length > 0 && (

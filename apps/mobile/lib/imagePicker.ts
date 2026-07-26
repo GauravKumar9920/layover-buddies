@@ -17,8 +17,14 @@ import * as ImagePicker from 'expo-image-picker';
 export interface PickedImage {
   /** file:// URI on native; blob: URL on web (revoke after use) */
   uri: string;
-  /** Ready to pass directly to Supabase Storage upload */
-  blob: Blob;
+  /**
+   * Upload-ready image bytes, ready to pass directly to Supabase Storage.
+   * Native: an ArrayBuffer read via `fetch(uri).arrayBuffer()`. React Native's
+   *   Blob streams an empty body to Storage and fails with "Network request
+   *   failed", so we hand Storage raw bytes instead.
+   * Web: the picked File (which is a Blob) — uploads fine as-is.
+   */
+  blob: Blob | ArrayBuffer;
   mimeType: string;
   /** Suggested file name with extension */
   fileName: string;
@@ -55,9 +61,10 @@ export async function pickImage(opts: PickOptions = {}): Promise<PickedImage | n
   const asset = result.assets[0];
   const uri = asset.uri;
 
-  // Fetch the file as a Blob so callers have a uniform upload interface.
+  // Read the file as an ArrayBuffer (not a Blob): RN's Blob uploads an empty
+  // body to Supabase Storage and fails with "Network request failed".
   const response = await fetch(uri);
-  const blob = await response.blob();
+  const blob = await response.arrayBuffer();
 
   const ext = uri.split('.').pop() ?? 'jpg';
   const mimeType = asset.mimeType ?? `image/${ext}`;
@@ -96,8 +103,9 @@ export async function pickImages(opts: { quality?: number; limit?: number } = {}
 
   return Promise.all(
     result.assets.map(async (asset) => {
+      // ArrayBuffer, not Blob — see pickImage() for why RN Blobs fail to upload.
       const response = await fetch(asset.uri);
-      const blob = await response.blob();
+      const blob = await response.arrayBuffer();
       const ext = asset.uri.split('.').pop() ?? 'jpg';
       return {
         uri: asset.uri,

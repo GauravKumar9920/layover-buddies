@@ -144,8 +144,8 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => <TabIcon icon="user" label="Profile" focused={focused} />,
         }}
       />
-      {/* Search lives in the Explore header now — keep the route reachable
-          but off the tab bar. */}
+      {/* Inline Explore search is the fast path; keep the richer dedicated
+          search route available for existing links without adding a sixth tab. */}
       <Tabs.Screen name="search" options={{ href: null }} />
     </Tabs>
   );

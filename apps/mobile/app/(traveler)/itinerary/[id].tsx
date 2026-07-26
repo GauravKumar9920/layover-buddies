@@ -942,9 +942,8 @@ export default function ItineraryDetailScreen() {
             {isFavorited ? '♥' : '♡'}
           </Text>
         </TouchableOpacity>
-        {/* "Book" was misleading — the request actually lands in chat_open
-            (a non-binding inquiry). Two clear actions: Message first, or send
-            a structured request. */}
+        {/* Keep both intents explicit: Message starts a general conversation;
+            Inquire carries this itinerary into the non-binding request flow. */}
         <Button
           title="Message"
           variant="secondary"

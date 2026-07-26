@@ -20,7 +20,12 @@ export default function SearchScreen() {
   const [hasSearched, setHasSearched] = useState(false);
 
   const heroPhoto =
-    getItineraryPhoto({ id: 'traveler-search-hero', city: 'Mumbai', category: 'culture', name: 'Search Hero' }) ??
+    getItineraryPhoto({
+      id: 'traveler-search-hero',
+      city: 'Mumbai',
+      category: 'culture',
+      name: 'Search Hero',
+    }) ??
     'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1200&q=80';
 
   async function handleSearch(text: string) {
@@ -30,11 +35,11 @@ export default function SearchScreen() {
       setHasSearched(false);
       return;
     }
+
     setLoading(true);
     setHasSearched(true);
     try {
-      const data = await searchGuides(text.trim());
-      setResults(data);
+      setResults(await searchGuides(text.trim()));
     } finally {
       setLoading(false);
     }
@@ -63,23 +68,44 @@ export default function SearchScreen() {
         <View
           style={{
             position: 'absolute',
-            top: 0, left: 0, right: 0, bottom: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             backgroundColor: 'rgba(14,25,41,0.46)',
             justifyContent: 'flex-end',
             paddingHorizontal: 14,
             paddingVertical: 12,
           }}
         >
-          <Text style={{ fontFamily: theme.fonts.display, color: '#FCF7EA', fontSize: 18, letterSpacing: -0.3 }}>Find a local by vibe, not just name</Text>
-          <Text style={{ fontFamily: theme.fonts.mono, color: 'rgba(252,247,234,0.85)', fontSize: 10.5, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 5 }}>
-            Try: street food · art walks · architecture
+          <Text
+            style={{
+              fontFamily: theme.fonts.display,
+              color: '#FCF7EA',
+              fontSize: 18,
+              letterSpacing: -0.3,
+            }}
+          >
+            Find a local by vibe, not just name
+          </Text>
+          <Text
+            style={{
+              fontFamily: theme.fonts.mono,
+              color: 'rgba(252,247,234,0.85)',
+              fontSize: 10.5,
+              letterSpacing: 0.4,
+              textTransform: 'uppercase',
+              marginTop: 5,
+            }}
+          >
+            Try: street food · Marathi · architecture
           </Text>
         </View>
       </View>
 
       <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
         <Input
-          placeholder="Search by name..."
+          placeholder="Name, university, language, interest…"
           value={query}
           onChangeText={handleSearch}
           autoCapitalize="none"
@@ -98,12 +124,12 @@ export default function SearchScreen() {
             hasSearched ? (
               <EmptyState
                 title="No guides found"
-                subtitle={`No guides match "${query}". Try a different name.`}
+                subtitle={`No guides match "${query}". Try a name, university, language, or interest.`}
               />
             ) : (
               <EmptyState
                 title="Search for a guide"
-                subtitle="Type a name to find your perfect Mumbai buddy"
+                subtitle="Search names, universities, languages, and the experiences guides love."
               />
             )
           }
