@@ -53,7 +53,7 @@ export function SafetyBar({ bookingId, guideName, insets, fallbackCoords }: Safe
 
     const ok = await confirmAsync(
       'Send SOS alert?',
-      `This immediately notifies the Detour ops team with your location and this trip's details.\n\nFor a life-threatening emergency also call 112 (India national emergency).`,
+      `This records an emergency alert with your location and immediately attempts to page the Detour ops team.\n\nFor a life-threatening emergency also call 112 (India national emergency).`,
       { confirmLabel: 'Send SOS', destructive: true },
     );
     if (!ok) return;
@@ -66,7 +66,7 @@ export function SafetyBar({ bookingId, guideName, insets, fallbackCoords }: Safe
         setSentAt(existing.triggered_at);
         notify(
           'SOS already active',
-          'Your alert is with the ops team. They have your location — stay where you are if it is safe to do so.',
+          'Your alert is recorded. Call 112 for a life-threatening emergency, and stay where you are if it is safe to do so.',
         );
         return;
       }
@@ -75,8 +75,8 @@ export function SafetyBar({ bookingId, guideName, insets, fallbackCoords }: Safe
       const alert = await triggerSos({ bookingId, ...coords });
       setSentAt(alert.triggered_at);
       notify(
-        'SOS sent',
-        `The Detour ops team has been alerted with your location. If you can, also message or call ${guideName}. For a life-threatening emergency call 112.`,
+        'SOS recorded',
+        `Your alert and location were recorded, and Detour is attempting to page the ops team. If you can, also message or call ${guideName}. For a life-threatening emergency call 112.`,
       );
     } catch (err) {
       notify(
@@ -110,7 +110,7 @@ export function SafetyBar({ bookingId, guideName, insets, fallbackCoords }: Safe
         disabled={sending}
         accessibilityRole="button"
         accessibilityLabel="Send SOS alert"
-        accessibilityHint="Notifies the Detour operations team with your location. For a life-threatening emergency call 112."
+        accessibilityHint="Records an alert and attempts to page Detour operations with your location. For a life-threatening emergency call 112."
         style={{
           flex: 1.4, paddingVertical: 12, borderRadius: 12,
           backgroundColor: theme.colors.error,

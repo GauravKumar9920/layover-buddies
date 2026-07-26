@@ -14,17 +14,25 @@
 
 import { create } from 'zustand';
 
+export type PasswordRecoveryStatus = 'idle' | 'establishing' | 'ready';
+
 type PasswordRecoveryState = {
-  /** True from the moment a recovery link is opened until the password is set/cancelled. */
-  recovering: boolean;
-  /** Called by the deep-link handler once a recovery session is established. */
+  /**
+   * establishing: a valid-looking link is being exchanged for a session.
+   * ready: the session exists and the reset form may be shown.
+   */
+  status: PasswordRecoveryStatus;
+  /** Called as soon as a recovery link starts being processed. */
   begin: () => void;
+  /** Called only after setSession/exchangeCodeForSession succeeds. */
+  markReady: () => void;
   /** Called after the password is updated, or when the user backs out. */
   finish: () => void;
 };
 
 export const usePasswordRecovery = create<PasswordRecoveryState>((set) => ({
-  recovering: false,
-  begin: () => set({ recovering: true }),
-  finish: () => set({ recovering: false }),
+  status: 'idle',
+  begin: () => set({ status: 'establishing' }),
+  markReady: () => set({ status: 'ready' }),
+  finish: () => set({ status: 'idle' }),
 }));

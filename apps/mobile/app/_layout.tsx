@@ -64,7 +64,7 @@ function RootLayoutNav() {
   const router = useRouter();
   const hydrateFavorites = useFavoritesStore((s) => s.hydrate);
   const resetFavorites = useFavoritesStore((s) => s.reset);
-  const recoveringPassword = usePasswordRecovery((s) => s.recovering);
+  const passwordRecoveryStatus = usePasswordRecovery((s) => s.status);
 
   // Keep the favorites cache in sync with the signed-in user. We re-run on
   // sign-in (new user id) and reset on sign-out so a shared device can't
@@ -100,11 +100,16 @@ function RootLayoutNav() {
     // screens render without a signed-in session. (Dev/review only.)
     if (__DEV__ && (segments[0] as string) === 'design-preview') return;
 
-    // Password recovery in progress: pin the user on the reset-password screen
-    // regardless of session state. The recovery link establishes a REAL
-    // session, which would otherwise trip the role-based redirects below and
-    // bounce the user into the app before they've set a new password.
-    if (recoveringPassword) {
+    // While the deep link is being exchanged, pause all role-based routing.
+    // Navigating to the form here would race getSession() on a warm app and
+    // briefly render a false "expired link" state.
+    if (passwordRecoveryStatus === 'establishing') {
+      return;
+    }
+
+    // Once the recovery session exists, pin the user on the reset-password
+    // screen until they set a password or explicitly leave the flow.
+    if (passwordRecoveryStatus === 'ready') {
       const onResetScreen =
         segments[0] === '(auth)' && (segments as string[])[1] === 'reset-password';
       if (!onResetScreen) {
@@ -146,7 +151,7 @@ function RootLayoutNav() {
         router.replace('/(traveler)/(tabs)' as never);
       }
     }
-  }, [session, role, loading, needsOnboarding, segments, recoveringPassword]);
+  }, [session, role, loading, needsOnboarding, segments, passwordRecoveryStatus]);
 
   if (loading) {
     return <Loading fullScreen message="Loading your account..." />;

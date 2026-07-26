@@ -53,6 +53,39 @@ export interface SosDeliveryResult {
   skipped?: string;
 }
 
+export type SosDispatchStatus = 'delivered' | 'partial' | 'failed' | 'unconfigured';
+
+export interface SosDispatchSummary {
+  status: SosDispatchStatus;
+  channels: string[];
+  error: string | null;
+}
+
+/**
+ * Fold a delivery attempt into the durable row state. Existing successful
+ * channels are retained so retries can skip them and never page twice.
+ */
+export function summarizeSosDelivery(
+  existingChannels: string[],
+  result: SosDeliveryResult,
+): SosDispatchSummary {
+  const channels = [...new Set([...existingChannels, ...result.delivered])].sort();
+
+  if (result.failed.length > 0) {
+    return {
+      status: channels.length > 0 ? 'partial' : 'failed',
+      channels,
+      error: result.failed.map((f) => `${f.channel}:${f.reason}`).join('; '),
+    };
+  }
+
+  if (result.skipped && channels.length === 0) {
+    return { status: 'unconfigured', channels, error: result.skipped };
+  }
+
+  return { status: 'delivered', channels, error: null };
+}
+
 export function mapsLink(lat: number, lng: number): string {
   return `https://www.google.com/maps?q=${lat},${lng}`;
 }

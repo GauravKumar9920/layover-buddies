@@ -37,12 +37,20 @@ export function ReportBlockMenu({
     onClose();
   }
 
+  function closeAfterSuccess() {
+    // Success handlers run while `busy` is still true, so the guarded `close`
+    // function intentionally refuses them. Clear busy and close explicitly.
+    setBusy(false);
+    setMode('menu');
+    onClose();
+  }
+
   async function submitReport(reason: ReportReason) {
     setBusy(true);
     try {
       await reportUser({ reportedUserId: targetUserId, bookingId, reason });
       notify('Report submitted', `Thanks — our team will review your report about ${targetName}. In an emergency, call 112.`);
-      close();
+      closeAfterSuccess();
     } catch (err) {
       notify('Could not submit report', err instanceof Error ? err.message : 'Please try again.');
     } finally {
@@ -53,7 +61,7 @@ export function ReportBlockMenu({
   async function handleBlock() {
     const ok = await confirmAsync(
       `Block ${targetName}?`,
-      `They won’t be able to message you, and you won’t be able to message them. You can unblock later from your chats.`,
+      `They won’t be able to message you, and you won’t be able to message them. Contact support if you need to reverse this later.`,
       { confirmLabel: 'Block', destructive: true },
     );
     if (!ok) return;
@@ -61,7 +69,7 @@ export function ReportBlockMenu({
     try {
       await blockUser(targetUserId);
       notify('Blocked', `${targetName} has been blocked.`);
-      close();
+      closeAfterSuccess();
       onBlocked?.();
     } catch (err) {
       notify('Could not block', err instanceof Error ? err.message : 'Please try again.');

@@ -26,9 +26,9 @@ async function handleUrl(url: string | null, router: Router): Promise<void> {
 
   const { accessToken, refreshToken, code, errorDescription } = credentialsFromParams(params);
 
-  // Flag recovery BEFORE we touch the session, so the SIGNED_IN event that
-  // setSession/exchangeCodeForSession emits can't race the root navigator into
-  // the app before we've pinned it to the reset screen.
+  // Enter an establishing phase BEFORE touching the session. The root router
+  // pauses role-based redirects during this phase, but does not show the reset
+  // form until the session exchange has actually succeeded.
   usePasswordRecovery.getState().begin();
 
   try {
@@ -48,6 +48,7 @@ async function handleUrl(url: string | null, router: Router): Promise<void> {
       // A recovery-looking link with no credentials at all — treat as expired.
       throw new Error('This reset link is missing its security token.');
     }
+    usePasswordRecovery.getState().markReady();
     router.replace('/(auth)/reset-password');
   } catch (err) {
     usePasswordRecovery.getState().finish();

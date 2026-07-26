@@ -4,10 +4,11 @@
 // The caller deletes THEIR OWN account. We:
 //   1. Refuse if they have a booking still in flight (money/logistics pending,
 //      or an open dispute) — they must finish or cancel it first.
-//   2. Anonymize personal data in public tables. bookings reference users with
-//      ON DELETE RESTRICT and carry financial/tax records, so the row is
-//      scrubbed-in-place rather than hard-deleted (disclosed to the user).
-//   3. Delete the auth login so the account can never be signed into again.
+//   2. Delete user-owned profile/media objects from Storage.
+//   3. Atomically anonymize personal data in public tables. bookings reference
+//      users and carry financial/tax records, so the identity row is retained
+//      as a tombstone while profile/location/free-text data is scrubbed.
+//   4. Delete the auth login so the account can never be signed into again.
 //
 // Order matters: scrub PII FIRST (the GDPR-critical step), THEN revoke the
 // login. If the login deletion fails the caller can safely retry — every step
@@ -20,83 +21,100 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient, getUserFromRequest } from '../_shared/supabaseAdmin.ts';
 
-// Booking states in which deletion is SAFE — the trip is over or never started
-// and no money is in flight. Anything else blocks deletion.
-const TERMINAL_STATES = new Set<string>([
-  'completed',
-  'rated',
-  'cancelled',
-  'cancelled_no_pay',
-  'cancelled_traveler_voluntary',
-  'cancelled_buddy',
-  'cancelled_force_majeure',
-  'cancelled_pre_signing',
-  'cancelled_no_deposit',
-]);
+async function removeStoragePrefix(
+  db: ReturnType<typeof adminClient>,
+  bucket: string,
+  prefix: string,
+): Promise<string | null> {
+  // Always list from offset zero because each successful removal shrinks the
+  // prefix. This also handles more than the Storage API's 100-object page.
+  while (true) {
+    const { data, error } = await db.storage.from(bucket).list(prefix, { limit: 100 });
+    if (error) return `${bucket}/${prefix}: ${error.message}`;
+
+    const paths = (data ?? [])
+      .filter((entry) => entry.name && entry.id)
+      .map((entry) => `${prefix}/${entry.name}`);
+    if (paths.length === 0) return null;
+
+    const { error: removeError } = await db.storage.from(bucket).remove(paths);
+    if (removeError) return `${bucket}/${prefix}: ${removeError.message}`;
+  }
+}
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST')    return errorResponse('method_not_allowed', 405);
 
-  const caller = await getUserFromRequest(req);
+  const caller = await getUserFromRequest(req, { allowDeletionPending: true });
   if (!caller) return errorResponse('unauthorized', 401);
   const uid = caller.userId;
 
   const db = adminClient();
 
-  // 1. Block if any booking (as traveler OR guide) is still in flight.
-  const { data: activeBookings, error: bookingErr } = await db
-    .from('bookings')
-    .select('id, status')
-    .or(`traveler_id.eq.${uid},guide_id.eq.${uid}`);
-  if (bookingErr) return errorResponse(`booking_lookup_failed: ${bookingErr.message}`, 500);
-
-  const inFlight = (activeBookings ?? []).filter((b) => !TERMINAL_STATES.has(b.status));
-  if (inFlight.length > 0) {
+  // 1. Atomically lock bookings, verify all trip/payment work is settled, and
+  // set the durable deletion gate before touching cross-service resources.
+  const { error: prepareError } = await db.rpc('prepare_account_deletion_tx', {
+    p_user_id: uid,
+  });
+  if (prepareError?.message.includes('active_bookings')) {
     return errorResponse('active_bookings', 409, {
       message:
         'You have a trip in progress. Please complete or cancel it before deleting your account.',
-      active_count: inFlight.length,
     });
   }
+  if (prepareError?.message.includes('financial_settlement_pending')) {
+    return errorResponse('financial_settlement_pending', 409, {
+      message:
+        'A payment, refund, or payout is still settling. Please try again after it finishes or contact support.',
+    });
+  }
+  if (prepareError) {
+    return errorResponse(`deletion_prepare_failed: ${prepareError.message}`, 500);
+  }
 
-  // 2. Anonymize PII. email is NOT NULL + UNIQUE + format-checked, so we write a
-  // unique, valid tombstone rather than nulling it.
-  const tombstoneEmail = `deleted+${uid}@deleted.detourtrips.com`;
-  const { error: userErr } = await db
-    .from('users')
-    .update({
-      email: tombstoneEmail,
-      full_name: 'Deleted account',
-      phone: null,
-      avatar_url: null,
-    })
-    .eq('id', uid);
-  if (userErr) return errorResponse(`anonymize_failed: ${userErr.message}`, 500);
+  // 2. Remove identity/profile uploads. All current app-owned profile media
+  // paths are namespaced by user id; expense proofs are retained with the
+  // corresponding financial records.
+  const storagePrefixes: Array<[string, string]> = [
+    ['itinerary-photos', uid],
+    ['itinerary-photos', `gallery/${uid}`],
+    ['itinerary-photos', `stops/${uid}`],
+  ];
+  for (const [bucket, prefix] of storagePrefixes) {
+    const storageError = await removeStoragePrefix(db, bucket, prefix);
+    if (storageError) {
+      return errorResponse(`storage_cleanup_failed: ${storageError}`, 500);
+    }
+  }
 
-  // Best-effort scrubs of the extended-profile PII. A failure here shouldn't
-  // strand the deletion — the identity row (above) is already anonymized.
-  await db
-    .from('traveler_profiles')
-    .update({
-      nationality: null,
-      emergency_contact_name: null,
-      emergency_contact_phone: null,
-      gender: null,
-    })
-    .eq('user_id', uid);
+  // Avatars live at avatars/<uid>.<ext>, so the shared directory needs a
+  // filtered pass rather than a broad prefix deletion.
+  const { data: avatarEntries, error: avatarListError } =
+    await db.storage.from('avatars').list('avatars', { limit: 100, search: uid });
+  if (avatarListError) {
+    return errorResponse(`storage_cleanup_failed: avatars: ${avatarListError.message}`, 500);
+  }
+  const avatarPaths = (avatarEntries ?? [])
+    .filter((entry) => entry.id && entry.name.startsWith(`${uid}.`))
+    .map((entry) => `avatars/${entry.name}`);
+  if (avatarPaths.length > 0) {
+    const { error: avatarRemoveError } = await db.storage.from('avatars').remove(avatarPaths);
+    if (avatarRemoveError) {
+      return errorResponse(`storage_cleanup_failed: avatars: ${avatarRemoveError.message}`, 500);
+    }
+  }
 
-  await db
-    .from('guide_profiles')
-    .update({ is_active: false, bio: null, video_intro_url: null })
-    .eq('user_id', uid);
+  // 3. Scrub every database surface in one transaction. The RPC is
+  // service-role-only and derives the tombstone from the authenticated uid.
+  const { error: anonymizeError } = await db.rpc('anonymize_user_data_tx', {
+    p_user_id: uid,
+  });
+  if (anonymizeError) {
+    return errorResponse(`anonymize_failed: ${anonymizeError.message}`, 500);
+  }
 
-  await db
-    .from('user_push_tokens')
-    .update({ is_valid: false, invalidated_at: new Date().toISOString(), invalidated_reason: 'account_deleted' })
-    .eq('user_id', uid);
-
-  // 3. Revoke the login. After this the account cannot be signed into again.
+  // 4. Revoke the login. After this the account cannot be signed into again.
   const { error: authErr } = await db.auth.admin.deleteUser(uid);
   if (authErr) {
     return errorResponse('account_deletion_incomplete', 500, {

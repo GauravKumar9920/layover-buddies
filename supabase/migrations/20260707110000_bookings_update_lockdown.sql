@@ -72,14 +72,19 @@ BEGIN
     RAISE EXCEPTION 'booking_parties_immutable';
   END IF;
 
-  -- Non-status writes (e.g. cancelled_by alone) pass through; RLS and the
-  -- column grants already scope them.
+  -- `cancelled_by` is meaningful only as part of a permitted cancellation.
+  -- Never let a participant rewrite attribution on an otherwise unchanged
+  -- booking.
   IF NEW.status IS NOT DISTINCT FROM OLD.status THEN
+    IF NEW.cancelled_by IS DISTINCT FROM OLD.cancelled_by THEN
+      RAISE EXCEPTION 'cancelled_by_requires_cancellation';
+    END IF;
     RETURN NEW;
   END IF;
 
   -- Guide accepts an inquiry / sends the agreement.
   IF v_uid = OLD.guide_id
+     AND NEW.cancelled_by IS NOT DISTINCT FROM OLD.cancelled_by
      AND ((OLD.status = 'chat_open'          AND NEW.status = 'agreement_drafting')
        OR (OLD.status = 'agreement_drafting' AND NEW.status = 'agreement_sent')) THEN
     RETURN NEW;
@@ -91,7 +96,11 @@ BEGIN
      AND OLD.status IN ('chat_open', 'agreement_drafting', 'agreement_sent',
                         'agreement_signed_traveler', 'agreement_signed_buddy',
                         'pending')
-     AND NEW.status = 'cancelled_pre_signing' THEN
+     AND NEW.status = 'cancelled_pre_signing'
+     AND NEW.cancelled_by = (CASE
+       WHEN v_uid = OLD.guide_id THEN 'guide'
+       ELSE 'traveler'
+     END) THEN
     RETURN NEW;
   END IF;
 

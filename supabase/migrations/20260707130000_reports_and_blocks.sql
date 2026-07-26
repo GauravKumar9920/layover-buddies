@@ -61,7 +61,21 @@ ALTER TABLE blocked_users  ENABLE ROW LEVEL SECURITY;
 -- triage happens in the admin console via the service role, which bypasses RLS.
 DROP POLICY IF EXISTS "Users can file reports" ON reports;
 CREATE POLICY "Users can file reports" ON reports
-  FOR INSERT WITH CHECK (auth.uid() = reporter_id);
+  FOR INSERT WITH CHECK (
+    auth.uid() = reporter_id
+    AND reported_user_id <> auth.uid()
+    AND booking_id IS NOT NULL
+    AND EXISTS (
+      SELECT 1
+        FROM bookings b
+       WHERE b.id = booking_id
+         AND (
+           (b.traveler_id = auth.uid() AND b.guide_id = reported_user_id)
+           OR
+           (b.guide_id = auth.uid() AND b.traveler_id = reported_user_id)
+         )
+    )
+  );
 
 DROP POLICY IF EXISTS "Users can read own filed reports" ON reports;
 CREATE POLICY "Users can read own filed reports" ON reports
@@ -75,7 +89,9 @@ CREATE POLICY "Users manage own blocks" ON blocked_users
 -- Column grants: authenticated users may write only the columns they own.
 REVOKE ALL ON reports FROM anon;
 REVOKE ALL ON blocked_users FROM anon;
-GRANT SELECT, INSERT ON reports TO authenticated;
+REVOKE ALL ON reports FROM authenticated;
+GRANT INSERT (reporter_id, reported_user_id, booking_id, reason, details)
+  ON reports TO authenticated;
 GRANT SELECT, INSERT, DELETE ON blocked_users TO authenticated;
 
 -- service_role (the admin console) bypasses RLS but Postgres privilege GRANTs

@@ -21,6 +21,7 @@ import { timingSafeEqual } from '../_shared/razorpaySignature.ts';
 import {
   deliverSosAlert,
   sosConfigFromEnv,
+  summarizeSosDelivery,
   type SosContext,
 } from '../_shared/sosAlert.ts';
 
@@ -46,10 +47,50 @@ serve(async (req: Request) => {
   // 1. The alert itself.
   const { data: alert, error: alertErr } = await db
     .from('sos_alerts')
-    .select('id, booking_id, triggered_by, latitude, longitude, triggered_at, status')
+    .select(
+      'id, booking_id, triggered_by, latitude, longitude, triggered_at, status, dispatch_status, dispatch_attempts, dispatch_last_attempt_at, dispatch_channels',
+    )
     .eq('id', sosAlertId)
     .single();
   if (alertErr || !alert) return errorResponse(`sos_alert_not_found: ${alertErr?.message ?? ''}`, 404);
+
+  if (alert.dispatch_status === 'delivered') {
+    return jsonResponse({
+      ok: true,
+      already_delivered: true,
+      delivered: alert.dispatch_channels ?? [],
+      failed: [],
+    });
+  }
+
+  if (
+    alert.dispatch_status === 'dispatching'
+    && alert.dispatch_last_attempt_at
+    && Date.now() - new Date(alert.dispatch_last_attempt_at).getTime() < 5 * 60 * 1000
+  ) {
+    return jsonResponse({ ok: true, already_in_progress: true });
+  }
+
+  // Atomically claim the attempt. Concurrent trigger/cron invocations both
+  // read the same attempt count, but only one conditional update can win.
+  const attempt = Number(alert.dispatch_attempts ?? 0) + 1;
+  const attemptStartedAt = new Date().toISOString();
+  const { data: claim, error: claimError } = await db
+    .from('sos_alerts')
+    .update({
+      dispatch_status: 'dispatching',
+      dispatch_attempts: attempt,
+      dispatch_last_attempt_at: attemptStartedAt,
+    })
+    .eq('id', sosAlertId)
+    .eq('dispatch_attempts', alert.dispatch_attempts ?? 0)
+    .neq('dispatch_status', 'delivered')
+    .select('id')
+    .maybeSingle();
+  if (claimError) return errorResponse(`sos_claim_failed: ${claimError.message}`, 500);
+  if (!claim) {
+    return jsonResponse({ ok: true, already_in_progress: true });
+  }
 
   // 2. Trip + participants.
   const { data: booking } = await db
@@ -100,8 +141,30 @@ serve(async (req: Request) => {
     startDate: booking?.tour_start_time ?? null,
   };
 
+  const existingChannels = (alert.dispatch_channels ?? []) as string[];
   const config = sosConfigFromEnv(Deno.env);
+  // Never resend a channel that succeeded on an earlier partial attempt.
+  if (existingChannels.includes('webhook')) config.webhookUrl = undefined;
+  if (existingChannels.includes('email')) {
+    config.resendApiKey = undefined;
+    config.alertEmail = undefined;
+  }
   const result = await deliverSosAlert({ ctx, config, fetchFn: fetch });
+  const summary = summarizeSosDelivery(existingChannels, result);
+
+  const { error: stateError } = await db
+    .from('sos_alerts')
+    .update({
+      dispatch_status: summary.status,
+      dispatch_channels: summary.channels,
+      dispatch_last_error: summary.error,
+      delivered_at: summary.status === 'delivered' ? new Date().toISOString() : null,
+    })
+    .eq('id', sosAlertId)
+    .eq('dispatch_attempts', attempt);
+  if (stateError) {
+    return errorResponse(`sos_delivery_state_failed: ${stateError.message}`, 500);
+  }
 
   // Log so the delivery outcome is visible in Edge function logs even though
   // this runs fire-and-forget from the trigger.
@@ -113,5 +176,5 @@ serve(async (req: Request) => {
     console.log(`[sos-alert] ${sosAlertId}: delivered via ${result.delivered.join(', ')}`);
   }
 
-  return jsonResponse({ ok: true, ...result });
+  return jsonResponse({ ok: true, ...result, dispatch_status: summary.status });
 });

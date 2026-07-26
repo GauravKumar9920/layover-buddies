@@ -13,6 +13,7 @@ import {
   deliverSosAlert,
   mapsLink,
   sosConfigFromEnv,
+  summarizeSosDelivery,
   type SosContext,
 } from '../_shared/sosAlert.ts';
 
@@ -149,6 +150,37 @@ Deno.test('deliverSosAlert: a thrown fetch is captured, not propagated', async (
   assertEquals(result.delivered, []);
   assertEquals(result.failed[0].channel, 'webhook');
   assertStringIncludes(result.failed[0].reason, 'network down');
+});
+
+// ── Durable retry state ──────────────────────────────────────────────────────
+
+Deno.test('summarizeSosDelivery retains successful channels across a partial retry', () => {
+  const summary = summarizeSosDelivery(
+    ['webhook'],
+    { delivered: [], failed: [{ channel: 'email', reason: 'http_500' }] },
+  );
+  assertEquals(summary.status, 'partial');
+  assertEquals(summary.channels, ['webhook']);
+  assertStringIncludes(summary.error ?? '', 'email:http_500');
+});
+
+Deno.test('summarizeSosDelivery distinguishes unconfigured from delivered', () => {
+  assertEquals(
+    summarizeSosDelivery([], {
+      delivered: [],
+      failed: [],
+      skipped: 'no_channel_configured',
+    }).status,
+    'unconfigured',
+  );
+  assertEquals(
+    summarizeSosDelivery(['email'], {
+      delivered: [],
+      failed: [],
+      skipped: 'no_channel_configured',
+    }).status,
+    'delivered',
+  );
 });
 
 // ── Config from env ──────────────────────────────────────────────────────────
