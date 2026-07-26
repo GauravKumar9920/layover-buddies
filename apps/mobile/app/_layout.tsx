@@ -65,6 +65,8 @@ function RootLayoutNav() {
   const hydrateFavorites = useFavoritesStore((s) => s.hydrate);
   const resetFavorites = useFavoritesStore((s) => s.reset);
   const passwordRecoveryStatus = usePasswordRecovery((s) => s.status);
+  const passwordRecoveryHydrated = usePasswordRecovery((s) => s.hydrated);
+  const hydratePasswordRecovery = usePasswordRecovery((s) => s.hydrate);
 
   // Keep the favorites cache in sync with the signed-in user. We re-run on
   // sign-in (new user id) and reset on sign-out so a shared device can't
@@ -86,6 +88,13 @@ function RootLayoutNav() {
     return () => { subscription.remove(); };
   }, [router]);
 
+  // Check the durable recovery marker before role-based routing. A recovery
+  // session is persisted by Supabase, so its navigation intent must survive
+  // the same cold restart.
+  useEffect(() => {
+    void hydratePasswordRecovery();
+  }, [hydratePasswordRecovery]);
+
   // Password-reset deep links (detour://reset-password). Establishes the
   // recovery session and routes to the set-new-password screen.
   useEffect(() => {
@@ -94,7 +103,7 @@ function RootLayoutNav() {
   }, [router]);
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || !passwordRecoveryHydrated) return;
 
     // Design-preview gallery — bypass auth redirects so the Warm Editorial
     // screens render without a signed-in session. (Dev/review only.)
@@ -151,9 +160,18 @@ function RootLayoutNav() {
         router.replace('/(traveler)/(tabs)' as never);
       }
     }
-  }, [session, role, loading, needsOnboarding, segments, passwordRecoveryStatus]);
+  }, [
+    session,
+    role,
+    loading,
+    needsOnboarding,
+    segments,
+    passwordRecoveryStatus,
+    passwordRecoveryHydrated,
+    router,
+  ]);
 
-  if (loading) {
+  if (loading || !passwordRecoveryHydrated) {
     return <Loading fullScreen message="Loading your account..." />;
   }
 

@@ -9,7 +9,6 @@
 -- surface to exactly what the app legitimately does client-side:
 --
 --   * guide accepts an inquiry:        chat_open           → agreement_drafting
---   * guide sends the agreement:       agreement_drafting  → agreement_sent
 --   * either party cancels pre-signing: chat_open/agreement_*/pending
 --                                                          → cancelled_pre_signing
 --
@@ -82,11 +81,13 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  -- Guide accepts an inquiry / sends the agreement.
+  -- Guide accepts an inquiry. Sending the agreement must use
+  -- send_agreement_tx so agreement status, canonical money/timing snapshots,
+  -- and booking status commit atomically.
   IF v_uid = OLD.guide_id
      AND NEW.cancelled_by IS NOT DISTINCT FROM OLD.cancelled_by
-     AND ((OLD.status = 'chat_open'          AND NEW.status = 'agreement_drafting')
-       OR (OLD.status = 'agreement_drafting' AND NEW.status = 'agreement_sent')) THEN
+     AND OLD.status = 'chat_open'
+     AND NEW.status = 'agreement_drafting' THEN
     RETURN NEW;
   END IF;
 

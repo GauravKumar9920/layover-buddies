@@ -299,6 +299,8 @@ DECLARE
   provider_text text;
   provider_value auth_provider;
   derived_name text;
+  metadata_role text;
+  has_guide_profile boolean;
   inferred_role user_role;
 BEGIN
   IF EXISTS (
@@ -325,15 +327,22 @@ BEGIN
     ELSE 'email'::auth_provider
   END;
 
-  inferred_role := CASE
-    WHEN EXISTS (
-      SELECT 1
-        FROM public.guide_profiles gp
-       WHERE gp.user_id = source_user.id
-         AND gp.is_active = true
-    ) THEN 'guide'::user_role
-    ELSE 'traveler'::user_role
-  END;
+  metadata_role := NULLIF(BTRIM(source_user.raw_user_meta_data->>'role'), '');
+
+  SELECT EXISTS (
+    SELECT 1
+      FROM public.guide_profiles gp
+     WHERE gp.user_id = source_user.id
+  ) INTO has_guide_profile;
+
+  -- Preserve the guide-aware signup behavior introduced in
+  -- 20260429000000_guide_profile_auto_create.sql. This replacement adds only
+  -- the deletion gate; it must not downgrade fresh guide signups to travelers.
+  IF metadata_role = 'guide' OR has_guide_profile THEN
+    inferred_role := 'guide'::user_role;
+  ELSE
+    inferred_role := 'traveler'::user_role;
+  END IF;
 
   derived_name := COALESCE(
     NULLIF(BTRIM(source_user.raw_user_meta_data->>'full_name'), ''),
@@ -360,7 +369,11 @@ BEGIN
         is_verified = public.users.is_verified OR EXCLUDED.is_verified,
         updated_at = now();
 
-  IF inferred_role = 'traveler' THEN
+  IF inferred_role = 'guide' THEN
+    INSERT INTO public.guide_profiles (user_id, is_active)
+    VALUES (source_user.id, true)
+    ON CONFLICT (user_id) DO NOTHING;
+  ELSE
     INSERT INTO public.traveler_profiles (user_id)
     VALUES (source_user.id)
     ON CONFLICT (user_id) DO NOTHING;

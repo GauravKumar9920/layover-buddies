@@ -18,6 +18,17 @@ ALTER TABLE public.sos_alerts
   ADD COLUMN IF NOT EXISTS dispatch_channels text[] NOT NULL DEFAULT ARRAY[]::text[],
   ADD COLUMN IF NOT EXISTS delivered_at timestamptz;
 
+-- Dispatch and resolution fields are server-owned. A participant may create
+-- the emergency fact and location only; allowing whole-row INSERT would let a
+-- raw client claim an alert was already resolved/delivered and suppress paging.
+REVOKE INSERT, UPDATE, DELETE ON public.sos_alerts FROM anon, authenticated;
+GRANT INSERT (
+  booking_id,
+  triggered_by,
+  latitude,
+  longitude
+) ON public.sos_alerts TO authenticated;
+
 CREATE INDEX IF NOT EXISTS idx_sos_alerts_dispatch_retry
   ON public.sos_alerts(dispatch_status, dispatch_last_attempt_at)
   WHERE dispatch_status <> 'delivered';

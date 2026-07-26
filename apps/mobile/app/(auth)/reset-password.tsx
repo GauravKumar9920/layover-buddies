@@ -52,7 +52,7 @@ export default function ResetPasswordScreen() {
       // Clear the recovery flag LAST so the root navigator only re-routes once
       // the new password is committed; it then sends the (still signed-in) user
       // into the app automatically.
-      finishRecovery();
+      await finishRecovery();
       Alert.alert('Password updated', 'Your password has been changed. You’re all set.');
     } catch (err: unknown) {
       hapticError();
@@ -65,7 +65,7 @@ export default function ResetPasswordScreen() {
   async function backToSignIn() {
     // Abandon the recovery session cleanly so the user isn't left in a
     // half-authenticated state, then return to the login screen.
-    finishRecovery();
+    await finishRecovery();
     await signOut().catch(() => { /* best-effort */ });
     router.replace('/(auth)/login');
   }
@@ -112,7 +112,11 @@ export default function ResetPasswordScreen() {
           </Text>
           <Button
             title="Request a new link"
-            onPress={() => { finishRecovery(); router.replace('/(auth)/forgot-password'); }}
+            onPress={() => {
+              void finishRecovery().finally(() => {
+                router.replace('/(auth)/forgot-password');
+              });
+            }}
             size="lg"
           />
         </>

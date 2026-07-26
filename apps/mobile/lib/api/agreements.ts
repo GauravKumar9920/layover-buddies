@@ -170,7 +170,7 @@ export class SendAgreementError extends Error {
 /**
  * Finalise the draft and send it to the traveler. Computes the canonical
  * snapshot, validates inputs, writes the snapshot fields, transitions the
- * booking from `agreement_drafting` (or `chat_open`) to `agreement_sent`.
+ * booking from `agreement_drafting` to `agreement_sent`.
  */
 export async function sendAgreement(agreementId: string): Promise<Agreement> {
   // ── Read agreement + booking + line items ────────────────────────────────

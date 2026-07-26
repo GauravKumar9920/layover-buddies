@@ -29,7 +29,7 @@ async function handleUrl(url: string | null, router: Router): Promise<void> {
   // Enter an establishing phase BEFORE touching the session. The root router
   // pauses role-based redirects during this phase, but does not show the reset
   // form until the session exchange has actually succeeded.
-  usePasswordRecovery.getState().begin();
+  await usePasswordRecovery.getState().begin();
 
   try {
     if (errorDescription) {
@@ -48,10 +48,10 @@ async function handleUrl(url: string | null, router: Router): Promise<void> {
       // A recovery-looking link with no credentials at all — treat as expired.
       throw new Error('This reset link is missing its security token.');
     }
-    usePasswordRecovery.getState().markReady();
+    await usePasswordRecovery.getState().markReady();
     router.replace('/(auth)/reset-password');
   } catch (err) {
-    usePasswordRecovery.getState().finish();
+    await usePasswordRecovery.getState().finish().catch(() => {});
     notify(
       'Reset link expired',
       `${err instanceof Error ? err.message : 'This reset link is no longer valid.'}\n\nRequest a new password reset link to continue.`,

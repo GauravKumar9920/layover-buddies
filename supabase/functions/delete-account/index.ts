@@ -21,25 +21,65 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient, getUserFromRequest } from '../_shared/supabaseAdmin.ts';
 
-async function removeStoragePrefix(
+type StorageEntry = {
+  id?: string | null;
+  name: string;
+};
+
+async function collectStoragePaths(
   db: ReturnType<typeof adminClient>,
   bucket: string,
   prefix: string,
+  matches: (entry: StorageEntry) => boolean,
+  paths: string[],
 ): Promise<string | null> {
-  // Always list from offset zero because each successful removal shrinks the
-  // prefix. This also handles more than the Storage API's 100-object page.
+  let offset = 0;
+
   while (true) {
-    const { data, error } = await db.storage.from(bucket).list(prefix, { limit: 100 });
+    const { data, error } = await db.storage
+      .from(bucket)
+      .list(prefix, { limit: 100, offset });
     if (error) return `${bucket}/${prefix}: ${error.message}`;
 
-    const paths = (data ?? [])
-      .filter((entry) => entry.name && entry.id)
-      .map((entry) => `${prefix}/${entry.name}`);
-    if (paths.length === 0) return null;
+    const entries = (data ?? []) as StorageEntry[];
+    for (const entry of entries) {
+      if (!entry.name) continue;
+      const entryPath = prefix ? `${prefix}/${entry.name}` : entry.name;
+      if (entry.id) {
+        if (matches(entry)) paths.push(entryPath);
+      } else {
+        const nestedError = await collectStoragePaths(
+          db,
+          bucket,
+          entryPath,
+          matches,
+          paths,
+        );
+        if (nestedError) return nestedError;
+      }
+    }
 
-    const { error: removeError } = await db.storage.from(bucket).remove(paths);
-    if (removeError) return `${bucket}/${prefix}: ${removeError.message}`;
+    if (entries.length < 100) return null;
+    offset += entries.length;
   }
+}
+
+async function removeStorageMatches(
+  db: ReturnType<typeof adminClient>,
+  bucket: string,
+  prefix: string,
+  matches: (entry: StorageEntry) => boolean,
+): Promise<string | null> {
+  const paths: string[] = [];
+  const listError = await collectStoragePaths(db, bucket, prefix, matches, paths);
+  if (listError) return listError;
+
+  for (let offset = 0; offset < paths.length; offset += 100) {
+    const { error } = await db.storage.from(bucket).remove(paths.slice(offset, offset + 100));
+    if (error) return `${bucket}/${prefix}: ${error.message}`;
+  }
+
+  return null;
 }
 
 serve(async (req: Request) => {
@@ -82,27 +122,23 @@ serve(async (req: Request) => {
     ['itinerary-photos', `stops/${uid}`],
   ];
   for (const [bucket, prefix] of storagePrefixes) {
-    const storageError = await removeStoragePrefix(db, bucket, prefix);
+    const storageError = await removeStorageMatches(db, bucket, prefix, () => true);
     if (storageError) {
       return errorResponse(`storage_cleanup_failed: ${storageError}`, 500);
     }
   }
 
-  // Avatars live at avatars/<uid>.<ext>, so the shared directory needs a
-  // filtered pass rather than a broad prefix deletion.
-  const { data: avatarEntries, error: avatarListError } =
-    await db.storage.from('avatars').list('avatars', { limit: 100, search: uid });
-  if (avatarListError) {
-    return errorResponse(`storage_cleanup_failed: avatars: ${avatarListError.message}`, 500);
-  }
-  const avatarPaths = (avatarEntries ?? [])
-    .filter((entry) => entry.id && entry.name.startsWith(`${uid}.`))
-    .map((entry) => `avatars/${entry.name}`);
-  if (avatarPaths.length > 0) {
-    const { error: avatarRemoveError } = await db.storage.from('avatars').remove(avatarPaths);
-    if (avatarRemoveError) {
-      return errorResponse(`storage_cleanup_failed: avatars: ${avatarRemoveError.message}`, 500);
-    }
+  // Older policies allowed matching avatar filenames inside deeper folders.
+  // Walk the whole avatars namespace so account deletion cleans those legacy
+  // objects too; current policies now permit only avatars/<uid>.<ext>.
+  const avatarError = await removeStorageMatches(
+    db,
+    'avatars',
+    'avatars',
+    (entry) => entry.name.startsWith(`${uid}.`),
+  );
+  if (avatarError) {
+    return errorResponse(`storage_cleanup_failed: ${avatarError}`, 500);
   }
 
   // 3. Scrub every database surface in one transaction. The RPC is
