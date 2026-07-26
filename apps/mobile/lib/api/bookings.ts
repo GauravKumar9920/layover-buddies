@@ -375,46 +375,21 @@ export async function declineBooking(bookingId: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function cancelBooking(bookingId: string): Promise<void> {
+/**
+ * Traveler cancels an inquiry before both signatures land (no money held).
+ * Writes cancelled_pre_signing directly — the DB transition trigger permits
+ * exactly this move for booking parties. Once deposits exist the cancellation
+ * must go through the cancel-booking edge function (lib/api/cancellation.ts),
+ * which computes the refund resolution; direct status writes are rejected
+ * server-side.
+ */
+export async function cancelBookingPreSigning(bookingId: string): Promise<void> {
   const { error } = await supabase
     .from('bookings')
-    .update({ status: BOOKING_STATUS.CANCELLED, cancelled_by: 'traveler' })
+    .update({ status: BOOKING_STATUS.CANCELLED_PRE_SIGNING, cancelled_by: 'traveler' })
     .eq('id', bookingId);
 
   if (error) throw error;
-}
-
-interface BookingPaymentUpdate {
-  paymentIntentId?: string | null;
-  paymentStatus?: PaymentStatus;
-  status?: BookingStatus;
-}
-
-export async function updateBookingPayment(
-  bookingId: string,
-  updates: BookingPaymentUpdate,
-): Promise<Booking> {
-  const payload: Record<string, unknown> = {};
-
-  if (updates.paymentIntentId !== undefined) {
-    payload.payment_id = updates.paymentIntentId;
-  }
-  if (updates.paymentStatus) {
-    payload.payment_status = updates.paymentStatus;
-  }
-  if (updates.status) {
-    payload.status = updates.status;
-  }
-
-  const { data, error } = await supabase
-    .from('bookings')
-    .update(payload)
-    .eq('id', bookingId)
-    .select('*')
-    .single();
-
-  if (error) throw error;
-  return normalizeBooking(data as RawBookingRow);
 }
 
 export async function fetchBookingById(bookingId: string): Promise<Booking | null> {

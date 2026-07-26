@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { format } from 'date-fns';
 import Animated, {
   interpolate,
   useAnimatedScrollHandler,
@@ -22,6 +21,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchActiveGuides } from '@/lib/api/guides';
 import { fetchMyTravelerProfile, type TravelerProfile } from '@/lib/api/travelerProfile';
 import { rankGuides, layoverHoursBetween } from '@/lib/booking/timeFit';
+import { formatMumbaiShortDate } from '@/lib/dateTime';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { theme } from '@/config/theme';
 import { PRIMARY_CITY } from '@/config/constants';
@@ -115,10 +115,17 @@ export default function BrowseScreen() {
   const isFiltered = Boolean(searchQuery) || activeFilter !== 'All';
 
   const filteredGuides = guides.filter((g) => {
+    const term = searchQuery.trim().toLowerCase();
     const matchesSearch =
-      !searchQuery ||
-      g.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      g.bio?.toLowerCase().includes(searchQuery.toLowerCase());
+      !term ||
+      [
+        g.name,
+        g.bio ?? '',
+        g.university ?? '',
+        g.hometown ?? '',
+        ...(g.languages ?? []),
+        ...(g.categories ?? []),
+      ].some((value) => value.toLowerCase().includes(term));
     const matchesFilter =
       activeFilter === 'All' ||
       g.categories?.some((c) => c.toLowerCase().includes(activeFilter.toLowerCase()));
@@ -171,7 +178,7 @@ export default function BrowseScreen() {
           >
             <Text style={{ fontSize: 11 }}>⏱</Text>
             <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 11, color: theme.colors.text, letterSpacing: 0.4, textTransform: 'uppercase' }}>
-              {Math.round(layoverHours)}h in Mumbai · {format(new Date(travelerProfile.arrival_at), 'MMM d')}
+              {Math.round(layoverHours)}h in Mumbai · {formatMumbaiShortDate(travelerProfile.arrival_at)}
             </Text>
             <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textMuted }}>›</Text>
           </TouchableOpacity>

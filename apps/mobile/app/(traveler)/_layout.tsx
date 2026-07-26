@@ -22,6 +22,8 @@ export default function TravelerLayout() {
       <Stack.Screen name="guide/[id]" />
       <Stack.Screen name="itinerary/[id]" />
       <Stack.Screen name="book/[guideId]" />
+      {/* Compatibility redirect for pre-agreement payment deep links. */}
+      <Stack.Screen name="book/payment/[bookingId]" />
       <Stack.Screen name="trips/[id]" />
       <Stack.Screen name="trips/live/[id]" />
       <Stack.Screen name="trips/review/[id]" />

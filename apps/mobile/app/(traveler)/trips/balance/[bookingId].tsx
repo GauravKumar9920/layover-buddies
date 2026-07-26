@@ -16,7 +16,6 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { format } from 'date-fns';
 import { Header } from '@/components/ui/Header';
 import { Card } from '@/components/ui/Card';
 import { BoardingPassReveal } from '@/components/bookings/BoardingPassReveal';
@@ -25,6 +24,7 @@ import { createBalanceOrder, openBalanceCheckout } from '@/lib/api/balance';
 import { confirmPayment } from '@/lib/api/confirmPayment';
 import { supabase } from '@/lib/supabase';
 import { financialCopy } from '@/lib/copy/financial';
+import { formatMumbaiShortDate, formatMumbaiTime } from '@/lib/dateTime';
 import { theme } from '@/config/theme';
 import { LATE_FEE_PAISE } from '@/config/constants';
 import type { BookingState } from '@/lib/booking/stateMachine';
@@ -200,9 +200,9 @@ export default function BalancePaymentScreen() {
         visible={showConfirmedReveal}
         itineraryName={firstOf(booking.itinerary)?.title ?? 'Your Mumbai day'}
         guideName={firstOf(booking.guide)?.full_name ?? 'your buddy'}
-        dateLabel={format(new Date(agreement.trip_starts_at), 'MMM d')}
-        timeLabel={format(new Date(agreement.trip_starts_at), 'h:mm a')}
-        totalLabel={formatPaise(agreement.traveler_subtotal_paise + agreement.traveler_gst_paise)}
+        dateLabel={formatMumbaiShortDate(agreement.trip_starts_at)}
+        timeLabel={formatMumbaiTime(agreement.trip_starts_at)}
+        totalLabel={formatPaise(total)}
         stampLabel="Trip confirmed"
         eyebrowLabel="Balance paid"
         footerLabel="Fetching your QR pass…"

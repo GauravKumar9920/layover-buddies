@@ -60,6 +60,9 @@ export function pushTitleFor(kind: string): string {
       return 'How was your trip?';
     case 'top_up_request':
       return 'Buddy needs more buffer';
+    case 'sos_alert':
+    case 'sos_triggered':
+      return '🚨 SOS alert';
     default:
       return 'Detour';
   }
@@ -98,6 +101,11 @@ export function pushBodyFor(kind: string, payload: NotificationPayload | null | 
         ? `${purpose} — ${RUPEE}${amt}. Tap to approve or decline.`
         : `${purpose}. Tap to approve or decline.`;
     }
+    case 'sos_alert':
+    case 'sos_triggered': {
+      const who = typeof p['triggered_by_name'] === 'string' ? (p['triggered_by_name'] as string) : 'A traveler';
+      return `${who} triggered an SOS. Tap to open the trip and their location.`;
+    }
     default:
       return 'You have a new notification.';
   }
@@ -129,6 +137,9 @@ export function deepLinkFor(kind: string, bookingId: string | null | undefined):
       return `/bookings/upload-proofs/${bookingId}`;
     case 'no_pay_cancelled':
       return `/trips/cancellation-receipt/${bookingId}`;
+    case 'sos_alert':
+    case 'sos_triggered':
+      return `/trips/live/${bookingId}`;
     default:
       return `/trips/${bookingId}`;
   }

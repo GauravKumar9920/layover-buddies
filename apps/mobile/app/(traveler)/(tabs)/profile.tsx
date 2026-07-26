@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
+import { AccountActions } from '@/components/settings/AccountActions';
 import { pickImage } from '@/lib/imagePicker';
 import { uploadImage } from '@/lib/imageUpload';
 import { supabase } from '@/lib/supabase';
@@ -402,6 +403,9 @@ export default function TravelerProfileScreen() {
           variant="danger"
           style={{ marginTop: 24 }}
         />
+
+        {/* Legal links + account deletion (Apple 5.1.1(v) / store requirements) */}
+        <AccountActions />
       </ScrollView>
     </View>
   );
