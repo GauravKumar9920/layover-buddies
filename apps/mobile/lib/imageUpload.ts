@@ -5,8 +5,8 @@
  * existed in create.tsx, [id].tsx, and profile.tsx.
  */
 
-import { Platform } from 'react-native';
-import { supabase } from './supabase';
+import { Platform } from "react-native";
+import { supabase } from "./supabase";
 
 interface UploadImageParams {
   /**
@@ -43,20 +43,22 @@ export async function uploadImage({
   contentType,
   blobUri,
 }: UploadImageParams): Promise<UploadResult> {
-  const { error } = await supabase.storage
-    .from(bucket)
-    .upload(path, blob, { upsert: true, contentType });
+  try {
+    const { error } = await supabase.storage
+      .from(bucket)
+      .upload(path, blob, { upsert: true, contentType });
 
-  if (error) {
-    throw new Error(error.message);
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return { publicUrl: data.publicUrl };
+  } finally {
+    // The picker owns no later use for this temporary URL. Revoke on both
+    // success and failure so repeated failed uploads cannot leak browser memory.
+    if (Platform.OS === "web" && blobUri && blobUri.startsWith("blob:")) {
+      URL.revokeObjectURL(blobUri);
+    }
   }
-
-  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-
-  // Clean up the object URL on web to prevent memory leaks.
-  if (Platform.OS === 'web' && blobUri && blobUri.startsWith('blob:')) {
-    URL.revokeObjectURL(blobUri);
-  }
-
-  return { publicUrl: data.publicUrl };
 }

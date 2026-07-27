@@ -1,5 +1,5 @@
-import type { BOOKING_STATUS, PAYMENT_STATUS } from '@/config/constants';
-import type { BookingState } from '@/lib/booking/stateMachine';
+import type { BOOKING_STATUS, PAYMENT_STATUS } from "@/config/constants";
+import type { BookingState } from "@/lib/booking/stateMachine";
 
 // ─── Auth ───────────────────────────────────────────────────────────────────
 
@@ -14,7 +14,7 @@ export interface User {
   email: string;
   full_name: string | null;
   phone?: string | null;
-  role?: 'traveler' | 'guide' | 'admin' | null;
+  role?: "traveler" | "guide" | "admin" | null;
   avatar_url?: string | null;
   is_verified?: boolean | null;
   created_at: string;
@@ -35,18 +35,26 @@ export interface User {
  *     didn't exist — verify when touching schema.
  */
 export interface GuideProfile {
+  /** Database primary key for guide_profiles. `id` stays aligned to users.id
+   *  because bookings and itineraries reference the guide user. */
+  profile_id: string;
   id: string;
   user_id: string;
   name: string;
   bio: string | null;
   avatar_url: string | null;
   portfolio_image_url?: string | null;
-  /** Guide-uploaded walk photos — feeds the hero gallery + masonry journal. */
+  /** @deprecated Legacy unordered gallery. New writes use profile_photos. */
   gallery_urls?: string[];
+  /** Explicitly placed profile media. Tour and stop media live on itineraries. */
+  profile_photos: GuideProfilePhoto[];
   university?: string | null;
   avg_rating: number;
   total_reviews: number;
+  total_trips: number;
   is_active: boolean;
+  profile_status: "draft" | "published";
+  profile_completed_at: string | null;
   languages: string[];
   hometown: string | null;
   categories: string[];
@@ -54,6 +62,21 @@ export interface GuideProfile {
   // Editorial-zine profile fields (migration 20260420160000)
   prompts?: GuidePrompt[];
   pull_quote?: string | null;
+}
+
+export type GuideProfilePhotoRole = "cover" | "story" | "gallery";
+
+export interface GuideProfilePhoto {
+  id: string;
+  guide_profile_id: string;
+  role: GuideProfilePhotoRole;
+  storage_bucket: string | null;
+  storage_path: string | null;
+  url: string;
+  caption: string | null;
+  position: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface TravelerProfile {
@@ -65,8 +88,24 @@ export interface TravelerProfile {
   /** Onboarding interests — present only when the query embeds
    *  traveler_profiles(interests) (e.g. the guide requests screen). */
   interests?: string[] | null;
+  /** Guide-readable planning context shared once a booking exists. */
+  about_me?: string | null;
+  travel_pace?: "relaxed" | "balanced" | "packed" | null;
+  dietary_preferences?: string[] | null;
+  accessibility_notes?: string | null;
   phone: string | null;
   created_at: string;
+}
+
+/**
+ * Private trip-day details. This must never be folded into TravelerProfile:
+ * RLS exposes it to the assigned Buddy only while a booking is trip_ready or
+ * in_progress, and the booking API fetches it separately after checking state.
+ */
+export interface TravelerSafetyDetails {
+  gender: "female" | "male" | "non_binary" | "prefer_not_to_say" | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
 }
 
 // ─── Itineraries ─────────────────────────────────────────────────────────────
@@ -91,9 +130,9 @@ export interface ItineraryStop {
  * legacy rows and the fallback `buildMockStory()` still emit it.
  */
 export type StoryBlock =
-  | { kind: 'paragraph'; text: string }
-  | { kind: 'quote'; text: string; author?: string }
-  | { kind: 'highlight'; emoji: string; title: string; body: string };
+  | { kind: "paragraph"; text: string }
+  | { kind: "quote"; text: string; author?: string }
+  | { kind: "highlight"; emoji: string; title: string; body: string };
 
 /**
  * Hinge-style prompt — one of the 3 Q/A cards a guide fills in per tour.
@@ -144,12 +183,14 @@ export interface Itinerary {
 
 // ─── Bookings ─────────────────────────────────────────────────────────────────
 
-export type BookingStatus = typeof BOOKING_STATUS[keyof typeof BOOKING_STATUS];
+export type BookingStatus =
+  (typeof BOOKING_STATUS)[keyof typeof BOOKING_STATUS];
 // Alias so consumers can use either name — BookingState is the comprehensive
 // 25-value union from stateMachine.ts; BookingStatus is the legacy 7-value
 // subset from BOOKING_STATUS constants.
 export type { BookingState };
-export type PaymentStatus = typeof PAYMENT_STATUS[keyof typeof PAYMENT_STATUS];
+export type PaymentStatus =
+  (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS];
 
 export interface Booking {
   id: string;
@@ -196,6 +237,8 @@ export interface Booking {
   // Joined fields
   guide?: GuideProfile;
   traveler?: TravelerProfile;
+  /** Present only for the assigned guide on a trip_ready/in_progress booking. */
+  traveler_safety?: TravelerSafetyDetails | null;
   itinerary?: Itinerary;
 }
 
@@ -262,4 +305,4 @@ export interface LoadingState {
   error: string | null;
 }
 
-export type UserRole = 'traveler' | 'guide';
+export type UserRole = "traveler" | "guide";

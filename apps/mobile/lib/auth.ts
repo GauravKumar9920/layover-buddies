@@ -1,13 +1,13 @@
-import * as Linking from 'expo-linking';
-import { supabase } from './supabase';
-import { invalidateOwnPushTokenOnLogout } from './push/registerPushToken';
+import * as Linking from "expo-linking";
+import { supabase } from "./supabase";
+import { invalidateOwnPushTokenOnLogout } from "./push/registerPushToken";
 
 async function syncCurrentAuthUser(): Promise<void> {
-  const { error } = await supabase.rpc('sync_current_auth_user');
+  const { error } = await supabase.rpc("sync_current_auth_user");
 
   if (error) {
     // Keep auth state deterministic if database provisioning cannot run.
-    await supabase.auth.signOut({ scope: 'local' }).catch(() => {
+    await supabase.auth.signOut({ scope: "local" }).catch(() => {
       // Ignore cleanup errors.
     });
     throw new Error(
@@ -16,7 +16,12 @@ async function syncCurrentAuthUser(): Promise<void> {
   }
 }
 
-export async function signUp(email: string, password: string, name: string, role: 'traveler' | 'guide' = 'traveler') {
+export async function signUp(
+  email: string,
+  password: string,
+  name: string,
+  role: "traveler" | "guide" = "traveler",
+) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -37,7 +42,10 @@ export async function signUp(email: string, password: string, name: string, role
 }
 
 export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
   if (error) throw error;
 
   if (data.user) {
@@ -54,7 +62,9 @@ export async function signOut() {
   // user_push_tokens row stays `is_valid=true` until the server next sees
   // a delivery failure. Best-effort: swallow errors so a logout that fails
   // to reach the DB doesn't block the user from signing out.
-  await invalidateOwnPushTokenOnLogout().catch(() => { /* best-effort */ });
+  await invalidateOwnPushTokenOnLogout().catch(() => {
+    /* best-effort */
+  });
 
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
@@ -67,8 +77,10 @@ export async function resetPassword(email: string) {
   // environment: `detour://reset-password` in a standalone/dev build, and the
   // `exp://…/--/reset-password` proxy URL under Expo Go. The resulting URL must
   // be in the Supabase Auth "Redirect URLs" allow-list for production.
-  const redirectTo = Linking.createURL('reset-password');
-  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  const redirectTo = Linking.createURL("reset-password");
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
   if (error) throw error;
 }
 
@@ -85,21 +97,26 @@ export async function updatePassword(newPassword: string) {
 
 /**
  * Determine if the logged-in user is a guide or traveler.
- * Priority: active guide_profiles row → user_metadata.role → default traveler.
+ * Publication and inquiry availability do not change account role, so any
+ * owner-visible guide_profiles row identifies a guide.
  */
-export async function getUserRole(userId: string): Promise<'guide' | 'traveler'> {
+export async function getUserRole(
+  userId: string,
+): Promise<"guide" | "traveler"> {
   const { data } = await supabase
-    .from('guide_profiles')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('is_active', true)
+    .from("guide_profiles")
+    .select("id")
+    .eq("user_id", userId)
     .maybeSingle();
 
-  if (data) return 'guide';
+  if (data) return "guide";
 
   // New guide signups don't have a guide_profile yet — check their signup intent.
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user?.id === userId && user.user_metadata?.role === 'guide') return 'guide';
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user?.id === userId && user.user_metadata?.role === "guide")
+    return "guide";
 
-  return 'traveler';
+  return "traveler";
 }

@@ -1,37 +1,43 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Dimensions,
   FlatList,
-  ScrollView,
   Platform,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   interpolate,
   Extrapolate,
-} from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StarRating } from '@/components/ui/StarRating';
-import { Button } from '@/components/ui/Button';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { fetchGuideById, fetchGuideItineraries, fetchGuideReviews } from '@/lib/api/guides';
-import { safeBack } from '@/lib/navigation';
-import { theme } from '@/config/theme';
-import { getGuideHeroPhoto, getGuideAvatar, getGuideGallery, getItineraryPhoto } from '@/config/photoLibrary';
-import { format } from 'date-fns';
-import type { GuideProfile, GuidePrompt, Itinerary, Review } from '@/types';
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { StarRating } from "@/components/ui/StarRating";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import {
+  fetchGuideById,
+  fetchGuideItineraries,
+  fetchGuideReviews,
+} from "@/lib/api/guides";
+import { safeBack } from "@/lib/navigation";
+import { theme } from "@/config/theme";
+import {
+  getGuideHeroPhoto,
+  getGuideAvatar,
+  getGuideStoryPhoto,
+  getGuideJournalPhotos,
+  getItineraryPhoto,
+} from "@/config/photoLibrary";
+import { format } from "date-fns";
+import type { GuideProfile, GuidePrompt, Itinerary, Review } from "@/types";
 
 /**
  * Guide Profile — Editorial Zine
@@ -42,25 +48,20 @@ import type { GuideProfile, GuidePrompt, Itinerary, Review } from '@/types';
  * better — be creative." This treats the guide's profile like a magazine
  * feature rather than a dating profile or a social feed:
  *
- *   1. Full-bleed hero portrait with "Issue N°NN" cue (like Kinfolk).
- *   2. Serif italic pull-quote — the guide's voice, high up.
+ *   1. Explicitly assigned full-bleed cover with "Issue N°NN" cue (like Kinfolk).
+ *   2. Optional serif pull-quote using only the guide's saved words and story photo.
  *   3. Travel-metadata stats row (walks led · rating · languages · trips).
- *   4. 3 guide-level prompts (Q/A cards) sourced from `guide_profiles.prompts`
- *      — mirrors the Hinge detail-page prompts but scoped to the guide.
+ *   4. Saved guide-level prompts as text-only Q/A cards.
  *   5. "Walks I lead" horizontal strip of tours → taps through to Hinge detail.
- *   6. Photo journal — 3-column masonry-ish grid from recent tour galleries.
- *   7. Reviews rendered as blockquotes.
+ *   6. Explicitly assigned, ordered profile-journal photos.
+ *   7. Reviews rendered with the reviewer's real avatar or initials.
  *
  * Data:
  *   • guide_profiles.prompts / pull_quote (migration 20260420160000)
- *   • itineraries.gallery_urls (migration 20260420120000) for the photo journal
- *
- * Missing fields fall back to procedurally-generated content keyed off
- * the guide's name + university + hometown so the page looks complete
- * while guides are backfilling real content.
+ *   • guide_profile_photos for cover, story, and profile journal placements
+ *   • itinerary_stops.image_url only for the itinerary timeline it belongs to
  */
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_HEIGHT = 520;
 const PHOTO_JOURNAL_OUTER = 20;
 
@@ -77,35 +78,6 @@ function issueNumberFor(guideId: string): number {
   return 12 + (Math.abs(hash) % 88);
 }
 
-function buildFallbackPrompts(guide: GuideProfile): GuidePrompt[] {
-  const first = guide.name.split(' ')[0];
-  const home = guide.hometown ?? 'Mumbai';
-  const uni = guide.university ?? 'college';
-  return [
-    {
-      question: 'Three things about me',
-      answer: `I'm ${first}, I study at ${uni}, and I've been walking ${home} for long enough to know the best chai stall from the second-best.`,
-    },
-    {
-      question: 'Hosting travelers has taught me...',
-      answer: `That most people come expecting "Mumbai" and leave remembering one specific 15-minute conversation at a juice stall. I try to make that happen on purpose.`,
-    },
-    {
-      question: 'You should skip my walk if...',
-      answer: `You want a strict schedule, an air-conditioned van, or photos of the same four monuments every guidebook shows. I go off-script. That's the point.`,
-    },
-  ];
-}
-
-function buildFallbackPullQuote(guide: GuideProfile): string {
-  const first = guide.name.split(' ')[0];
-  const home = guide.hometown ?? 'this city';
-  return `The best part of ${home} isn't on anyone's checklist — it's in the pause between two streets. I show you those.`.replace(
-    /\bI\b/,
-    `${first[0] === 'I' ? 'I' : 'I'}`, // no-op — kept so the linter doesn't complain about unused first
-  );
-}
-
 export default function GuideDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -115,7 +87,6 @@ export default function GuideDetailScreen() {
   const [itineraries, setItineraries] = useState<Itinerary[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [heroIndex, setHeroIndex] = useState(0);
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler((e) => {
@@ -134,13 +105,23 @@ export default function GuideDetailScreen() {
         ),
       },
       {
-        scale: interpolate(scrollY.value, [-HERO_HEIGHT, 0], [1.3, 1], Extrapolate.CLAMP),
+        scale: interpolate(
+          scrollY.value,
+          [-HERO_HEIGHT, 0],
+          [1.3, 1],
+          Extrapolate.CLAMP,
+        ),
       },
     ],
   }));
 
   const heroOverlayStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY.value, [0, HERO_HEIGHT * 0.8], [1, 0], Extrapolate.CLAMP),
+    opacity: interpolate(
+      scrollY.value,
+      [0, HERO_HEIGHT * 0.8],
+      [1, 0],
+      Extrapolate.CLAMP,
+    ),
   }));
 
   const backBgStyle = useAnimatedStyle(() => ({
@@ -164,60 +145,53 @@ export default function GuideDetailScreen() {
     setReviews([]);
 
     const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Slow connection — please retry')), 12_000),
+      setTimeout(
+        () => reject(new Error("Slow connection — please retry")),
+        12_000,
+      ),
     );
 
     Promise.race([
-      Promise.all([fetchGuideById(id), fetchGuideItineraries(id), fetchGuideReviews(id)]),
+      Promise.all([
+        fetchGuideById(id),
+        fetchGuideItineraries(id),
+        fetchGuideReviews(id),
+      ]),
       timeout,
     ])
       .then((result) => {
         if (cancelled) return;
-        const [g, it, rv] = result as [GuideProfile | null, Itinerary[], Review[]];
+        const [g, it, rv] = result as [
+          GuideProfile | null,
+          Itinerary[],
+          Review[],
+        ];
         setGuide(g);
         setItineraries(it);
         setReviews(rv);
       })
       .catch((err) => {
         if (cancelled) return;
-        const msg = err instanceof Error ? err.message : 'Failed to load guide';
-        if (Platform.OS === 'web') console.warn('[guide profile]', msg);
-        else Alert.alert('Hmm', msg);
+        const msg = err instanceof Error ? err.message : "Failed to load guide";
+        if (Platform.OS === "web") console.warn("[guide profile]", msg);
+        else Alert.alert("Hmm", msg);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
-
-  // Photo journal — pull from every itinerary's gallery then pad with cover
-  // images, capped at 9 so the grid never feels overwhelming.
-  const journalPhotos = useMemo<string[]>(() => {
-    const pool: string[] = [];
-    itineraries.forEach((i) => {
-      if (Array.isArray(i.gallery_urls)) pool.push(...i.gallery_urls);
-      if (i.cover_image_url) pool.push(i.cover_image_url);
-      (i.stops ?? []).forEach((s) => {
-        if (s.image_url) pool.push(s.image_url);
-      });
-    });
-    // dedupe, preserving order
-    const seen = new Set<string>();
-    return pool.filter((u) => {
-      if (seen.has(u)) return false;
-      seen.add(u);
-      return true;
-    }).slice(0, 9);
-  }, [itineraries]);
 
   if (loading) {
     return (
       <View
         style={{
           flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
+          alignItems: "center",
+          justifyContent: "center",
           backgroundColor: theme.colors.background,
         }}
       >
@@ -230,66 +204,50 @@ export default function GuideDetailScreen() {
     return <EmptyState title="Guide not found" style={{ flex: 1 }} />;
   }
 
-  // Two distinct images: the full-bleed editorial scene (Mumbai/walks),
-  // and the guide's actual portrait (circular avatar above the name).
+  // Each profile surface has one explicit media source. Missing media renders
+  // as a designed empty state rather than borrowing another section's image.
   const heroPhoto = getGuideHeroPhoto(guide);
   const avatarUrl = getGuideAvatar(guide);
+  const storyPhoto = getGuideStoryPhoto(guide);
+  const journal = getGuideJournalPhotos(guide);
   const initials = guide.name
-    .split(' ')
+    .split(" ")
     .map((p) => p[0])
     .filter(Boolean)
     .slice(0, 2)
-    .join('')
+    .join("")
     .toUpperCase();
   const issueN = issueNumberFor(guide.id);
 
-  // Real prompts win; fall back to fabricated ones keyed off the guide.
-  const prompts: GuidePrompt[] =
-    guide.prompts && guide.prompts.length > 0
-      ? guide.prompts.slice(0, 3)
-      : buildFallbackPrompts(guide);
-
-  const pullQuote = guide.pull_quote ?? buildFallbackPullQuote(guide);
+  // Never speak for a guide. Incomplete editorial sections simply stay hidden.
+  const prompts: GuidePrompt[] = (guide.prompts ?? [])
+    .filter((prompt) => prompt.question.trim() && prompt.answer.trim())
+    .slice(0, 3);
+  const pullQuote = guide.pull_quote?.trim() || null;
 
   const lowestPrice =
     itineraries.length > 0
       ? Math.min(...itineraries.map((i) => i.buddy_cost_inr))
       : null;
 
-  // ① Hero gallery — real hero first, then a couple of curated "walk" scenes
-  // so the hero becomes swipeable instead of a single still.
-  const heroGallery = getGuideGallery(guide, 3, [heroPhoto, avatarUrl]);
-  const heroImages: string[] = (heroPhoto ? [heroPhoto, ...heroGallery] : heroGallery).slice(0, 4);
-
-  // ② Photo behind the interview pull-quote.
-  const quotePhoto = getGuideGallery(guide, 1, [heroPhoto, avatarUrl, ...heroImages])[0] ?? heroPhoto;
-
-  // ③ One photo per prompt card (alternating side).
-  const promptPhotos = getGuideGallery(guide, prompts.length, [heroPhoto, avatarUrl]);
-
-  // ④ "A day with X" — derive a visual timeline from the first tour's stops
-  // when available, otherwise a friendly fabricated day keyed off the guide.
-  const dayGallery = getGuideGallery(guide, 3, [heroPhoto, avatarUrl, quotePhoto]);
-  const realStops = (itineraries[0]?.stops ?? []).filter((s) => s?.location);
-  const daySteps: { time: string; title: string; caption: string; photo: string }[] =
-    realStops.length >= 2
-      ? realStops.slice(0, 4).map((s, i) => ({
-          time: ['9:00', '11:00', '13:00', '15:00'][i] ?? '',
-          title: s.location,
-          caption: s.description?.slice(0, 80) ?? 'A stop on the walk.',
-          photo: s.image_url ?? dayGallery[i % dayGallery.length],
-        }))
-      : [
-          { time: '9:00', title: 'Morning chai', caption: `Where ${guide.name.split(' ')[0]} starts — before the crowds.`, photo: dayGallery[0] },
-          { time: '11:00', title: 'Street-food crawl', caption: 'The stalls only locals queue at.', photo: dayGallery[1] },
-          { time: '13:00', title: 'Hidden lanes', caption: 'The pause-between-two-streets moments.', photo: dayGallery[2] },
-        ];
-
-  // ⑤ Masonry journal — real galleries win; otherwise fill with curated scenes.
-  const journalFallback = getGuideGallery(guide, 6, [heroPhoto, avatarUrl]);
-  const journal = journalPhotos.length > 0 ? journalPhotos : journalFallback;
-  const journalCols: [string[], string[]] = [[], []];
-  journal.forEach((u, i) => journalCols[i % 2].push(u));
+  // A timeline is shown only when a real itinerary has enough persisted stops.
+  // Stop order/duration/photo all come from that itinerary; nothing is invented.
+  const timelineItinerary = itineraries.find(
+    (itinerary) =>
+      (itinerary.stops ?? []).filter((stop) => stop.location.trim()).length >=
+      2,
+  );
+  const daySteps = (timelineItinerary?.stops ?? [])
+    .filter((stop) => stop.location.trim())
+    .sort((a, b) => a.order - b.order)
+    .slice(0, 4)
+    .map((stop) => ({
+      order: stop.order,
+      title: stop.location,
+      caption: stop.description?.trim() || null,
+      durationMinutes: stop.estimated_duration_minutes,
+      photo: stop.image_url ?? null,
+    }));
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -298,7 +256,7 @@ export default function GuideDetailScreen() {
         style={[
           backBgStyle,
           {
-            position: 'absolute',
+            position: "absolute",
             top: insets.top + 8,
             left: 16,
             zIndex: 50,
@@ -307,11 +265,13 @@ export default function GuideDetailScreen() {
         ]}
       >
         <TouchableOpacity
-          onPress={() => safeBack(router, '/(traveler)/')}
+          onPress={() => safeBack(router, "/(traveler)/")}
           style={{ padding: 10 }}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={{ color: '#FFFFFF', fontSize: 22, lineHeight: 22 }}>‹</Text>
+          <Text style={{ color: "#FFFFFF", fontSize: 22, lineHeight: 22 }}>
+            ‹
+          </Text>
         </TouchableOpacity>
       </Animated.View>
 
@@ -319,99 +279,93 @@ export default function GuideDetailScreen() {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 160 }}
+        contentContainerStyle={{
+          paddingBottom:
+            guide.is_active && itineraries.length > 0
+              ? 160
+              : insets.bottom + 40,
+        }}
       >
         {/* ── Editorial hero ──────────────────────────────── */}
-        <View style={{ height: HERO_HEIGHT, overflow: 'hidden', backgroundColor: theme.colors.text }}>
-          <Animated.View style={[{ width: '100%', height: HERO_HEIGHT + 120 }, heroStyle]}>
-            {heroImages.length > 0 ? (
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                // Only update the dots when a page settles — avoids a setState
-                // on every scroll frame while swiping this heavy screen.
-                onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) =>
-                  setHeroIndex(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH))
-                }
-                style={{ width: '100%', height: '100%' }}
-              >
-                {heroImages.map((uri) => (
-                  <Image
-                    key={uri}
-                    source={{ uri }}
-                    contentFit="cover"
-                    style={{ width: SCREEN_WIDTH, height: '100%' }}
-                    transition={300}
-                  />
-                ))}
-              </ScrollView>
+        <View
+          style={{
+            height: HERO_HEIGHT,
+            overflow: "hidden",
+            backgroundColor: theme.colors.text,
+          }}
+        >
+          <Animated.View
+            style={[{ width: "100%", height: HERO_HEIGHT + 120 }, heroStyle]}
+          >
+            {heroPhoto ? (
+              <Image
+                source={{ uri: heroPhoto }}
+                contentFit="cover"
+                style={{ width: "100%", height: "100%" }}
+                transition={300}
+              />
             ) : (
               <LinearGradient
                 colors={theme.gradients.hero}
-                style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                <Text style={{ fontFamily: theme.fonts.serif, fontSize: 56, color: '#FCF7EA' }}>Mumbai</Text>
+                <Text
+                  style={{
+                    fontFamily: theme.fonts.serif,
+                    fontSize: 48,
+                    color: "#FCF7EA",
+                  }}
+                >
+                  {guide.hometown ?? "Mumbai"}
+                </Text>
               </LinearGradient>
             )}
           </Animated.View>
 
           {/* Darkening gradient bottom half */}
           <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.85)']}
+            colors={["transparent", "rgba(0,0,0,0.3)", "rgba(0,0,0,0.85)"]}
             start={{ x: 0.5, y: 0.15 }}
             end={{ x: 0.5, y: 1 }}
-            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: HERO_HEIGHT * 0.75 }}
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: HERO_HEIGHT * 0.75,
+            }}
           />
-
-          {/* Hero gallery page dots */}
-          {heroImages.length > 1 && (
-            <Animated.View
-              style={[
-                heroOverlayStyle,
-                { position: 'absolute', top: insets.top + 22, left: 20, flexDirection: 'row', gap: 6 },
-              ]}
-            >
-              {heroImages.map((_, i) => (
-                <View
-                  key={i}
-                  style={{
-                    width: i === heroIndex ? 22 : 7,
-                    height: 3,
-                    borderRadius: 2,
-                    backgroundColor: i === heroIndex ? '#FFFFFF' : 'rgba(255,255,255,0.45)',
-                  }}
-                />
-              ))}
-            </Animated.View>
-          )}
 
           {/* Top-left zine cue */}
           <Animated.View
             style={[
               heroOverlayStyle,
               {
-                position: 'absolute',
+                position: "absolute",
                 top: insets.top + 20,
                 right: 20,
-                alignItems: 'flex-end',
+                alignItems: "flex-end",
               },
             ]}
           >
             <Text
               style={{
                 fontFamily: theme.fonts.monoMed,
-                color: 'rgba(252,247,234,0.85)',
+                color: "rgba(252,247,234,0.85)",
                 fontSize: 10,
                 letterSpacing: 2.5,
               }}
             >
-              DETOUR · {guide.hometown?.toUpperCase() ?? 'MUMBAI'}
+              DETOUR · {guide.hometown?.toUpperCase() ?? "MUMBAI"}
             </Text>
             <Text
               style={{
                 fontFamily: theme.fonts.mono,
-                color: 'rgba(252,247,234,0.6)',
+                color: "rgba(252,247,234,0.6)",
                 fontSize: 10,
                 letterSpacing: 2,
                 marginTop: 3,
@@ -426,7 +380,7 @@ export default function GuideDetailScreen() {
             style={[
               heroOverlayStyle,
               {
-                position: 'absolute',
+                position: "absolute",
                 bottom: 32,
                 left: 20,
                 right: 20,
@@ -441,11 +395,11 @@ export default function GuideDetailScreen() {
                 borderRadius: 38,
                 marginBottom: 14,
                 borderWidth: 3,
-                borderColor: 'rgba(255,255,255,0.85)',
+                borderColor: "rgba(255,255,255,0.85)",
                 backgroundColor: theme.colors.primary,
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
                 // Use theme shadow preset — includes elevation for Android
                 ...theme.shadows.md,
               }}
@@ -454,19 +408,19 @@ export default function GuideDetailScreen() {
                 <Image
                   source={{ uri: avatarUrl }}
                   contentFit="cover"
-                  style={{ width: '100%', height: '100%' }}
+                  style={{ width: "100%", height: "100%" }}
                   transition={250}
                 />
               ) : (
                 <Text
                   style={{
                     fontFamily: theme.fonts.display,
-                    color: '#FCF7EA',
+                    color: "#FCF7EA",
                     fontSize: 28,
                     letterSpacing: -0.5,
                   }}
                 >
-                  {initials || '?'}
+                  {initials || "?"}
                 </Text>
               )}
             </View>
@@ -474,10 +428,10 @@ export default function GuideDetailScreen() {
             <Text
               style={{
                 fontFamily: theme.fonts.monoMed,
-                color: 'rgba(252,247,234,0.78)',
+                color: "rgba(252,247,234,0.78)",
                 fontSize: 11,
                 letterSpacing: 2,
-                textTransform: 'uppercase',
+                textTransform: "uppercase",
                 marginBottom: 10,
               }}
             >
@@ -487,7 +441,7 @@ export default function GuideDetailScreen() {
               style={{
                 fontFamily: theme.fonts.displayX,
                 fontSize: 44,
-                color: '#FCF7EA',
+                color: "#FCF7EA",
                 letterSpacing: -1.2,
                 lineHeight: 48,
               }}
@@ -498,13 +452,13 @@ export default function GuideDetailScreen() {
               <Text
                 style={{
                   fontFamily: theme.fonts.serif,
-                  color: 'rgba(252,247,234,0.88)',
+                  color: "rgba(252,247,234,0.88)",
                   fontSize: 17,
                   marginTop: 8,
                 }}
               >
                 {guide.university}
-                {guide.hometown ? ` · ${guide.hometown}` : ''}
+                {guide.hometown ? ` · ${guide.hometown}` : ""}
               </Text>
             )}
           </Animated.View>
@@ -520,51 +474,142 @@ export default function GuideDetailScreen() {
             paddingTop: 32,
           }}
         >
-          {/* ② Pull quote over a darkened photo — editorial spread */}
-          <View style={{ position: 'relative', height: 300, overflow: 'hidden' }}>
-            {quotePhoto && (
-              <Image
-                source={{ uri: quotePhoto }}
-                contentFit="cover"
-                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as object}
-                transition={300}
-              />
-            )}
-            <LinearGradient
-              colors={['rgba(14,25,41,0.86)', 'rgba(14,25,41,0.45)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as object}
-            />
-            <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24 }}>
-              <Text style={{ ...theme.typography.eyebrow, color: theme.colors.gold, marginBottom: 12 }}>
-                The interview
+          {!guide.is_active && (
+            <View
+              accessibilityRole="summary"
+              style={{
+                marginHorizontal: 20,
+                marginBottom: 4,
+                padding: 16,
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: theme.colors.warning,
+                backgroundColor: theme.colors.surface,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: theme.fonts.monoMed,
+                  fontSize: 10.5,
+                  color: theme.colors.primaryDark,
+                  letterSpacing: 1.2,
+                  textTransform: "uppercase",
+                }}
+              >
+                Inquiries paused
               </Text>
               <Text
                 style={{
-                  fontFamily: theme.fonts.serif,
-                  fontSize: 30,
-                  lineHeight: 36,
-                  color: '#FCF7EA',
-                  letterSpacing: -0.2,
+                  fontFamily: theme.fonts.displaySemi,
+                  fontSize: 17,
+                  lineHeight: 22,
+                  color: theme.colors.text,
+                  marginTop: 5,
                 }}
               >
-                “{pullQuote}”
+                {`${guide.name.split(" ")[0]} isn't accepting new requests right now.`}
               </Text>
               <Text
                 style={{
-                  fontFamily: theme.fonts.mono,
-                  fontSize: 11,
-                  color: 'rgba(252,247,234,0.7)',
-                  marginTop: 14,
-                  letterSpacing: 0.6,
-                  textTransform: 'uppercase',
+                  fontFamily: theme.fonts.body,
+                  fontSize: 13,
+                  lineHeight: 19,
+                  color: theme.colors.textSecondary,
+                  marginTop: 4,
                 }}
               >
-                — {guide.name.split(' ')[0]}, in their own words
+                You can still explore their profile, photos, and published
+                walks.
               </Text>
             </View>
-          </View>
+          )}
+
+          {/* Optional saved quote — never generate first-person copy for a guide. */}
+          {pullQuote && (
+            <View
+              style={{
+                position: "relative",
+                minHeight: 260,
+                overflow: "hidden",
+              }}
+            >
+              {storyPhoto && (
+                <Image
+                  source={{ uri: storyPhoto }}
+                  contentFit="cover"
+                  style={
+                    {
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                    } as object
+                  }
+                  transition={300}
+                />
+              )}
+              <LinearGradient
+                colors={
+                  storyPhoto
+                    ? ["rgba(14,25,41,0.86)", "rgba(14,25,41,0.45)"]
+                    : [theme.colors.text, theme.colors.primaryDark]
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={
+                  {
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                  } as object
+                }
+              />
+              <View
+                style={{
+                  minHeight: 260,
+                  justifyContent: "center",
+                  paddingHorizontal: 24,
+                  paddingVertical: 32,
+                }}
+              >
+                <Text
+                  style={{
+                    ...theme.typography.eyebrow,
+                    color: theme.colors.gold,
+                    marginBottom: 12,
+                  }}
+                >
+                  The interview
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: theme.fonts.serif,
+                    fontSize: 30,
+                    lineHeight: 36,
+                    color: "#FCF7EA",
+                    letterSpacing: -0.2,
+                  }}
+                >
+                  “{pullQuote}”
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: theme.fonts.mono,
+                    fontSize: 11,
+                    color: "rgba(252,247,234,0.7)",
+                    marginTop: 14,
+                    letterSpacing: 0.6,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  — {guide.name.split(" ")[0]}, in their own words
+                </Text>
+              </View>
+            </View>
+          )}
 
           {/* ── Travel-metadata stats row ──────────────────── */}
           <View
@@ -576,38 +621,39 @@ export default function GuideDetailScreen() {
               borderWidth: 1,
               borderColor: theme.colors.divider,
               backgroundColor: theme.colors.surface,
-              flexDirection: 'row',
-              justifyContent: 'space-between',
+              flexDirection: "row",
+              justifyContent: "space-between",
             }}
           >
             <MetaStat
               label="Walks led"
-              value={String(reviews.length || itineraries.length || '—')}
+              value={guide.total_trips > 0 ? String(guide.total_trips) : "—"}
             />
             <MetaDivider />
             <MetaStat
               label="Rating"
-              value={guide.avg_rating > 0 ? guide.avg_rating.toFixed(1) : 'New'}
+              value={guide.avg_rating > 0 ? guide.avg_rating.toFixed(1) : "New"}
               accessory={<StarRating rating={guide.avg_rating} size={10} />}
             />
             <MetaDivider />
             <MetaStat
               label="Languages"
-              value={String(guide.languages?.length || 1)}
+              value={
+                guide.languages.length > 0
+                  ? String(guide.languages.length)
+                  : "—"
+              }
             />
             <MetaDivider />
-            <MetaStat
-              label="Tours"
-              value={String(itineraries.length)}
-            />
+            <MetaStat label="Tours" value={String(itineraries.length)} />
           </View>
 
           {/* Languages quick row */}
           {guide.languages && guide.languages.length > 0 && (
             <View
               style={{
-                flexDirection: 'row',
-                flexWrap: 'wrap',
+                flexDirection: "row",
+                flexWrap: "wrap",
                 gap: 6,
                 paddingHorizontal: 24,
                 marginTop: 14,
@@ -643,7 +689,11 @@ export default function GuideDetailScreen() {
             <View style={{ marginTop: 30, paddingHorizontal: 24 }}>
               <Text
                 style={{
-                  fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
+                  fontFamily: theme.fonts.mono,
+                  fontSize: 11,
+                  color: theme.colors.primary,
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
                 }}
               >
                 On the record
@@ -662,114 +712,189 @@ export default function GuideDetailScreen() {
             </View>
           ) : null}
 
-          {/* ── Three things about me — guide-level prompts ── */}
-          <View style={{ marginTop: 36, paddingHorizontal: 24 }}>
-            <Text
-              style={{
-                fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
-              }}
-            >
-              Three things about me
-            </Text>
-            <View style={{ marginTop: 16, gap: 14 }}>
-              {prompts.map((prompt, idx) => (
-                <GuidePromptCard
-                  key={idx}
-                  prompt={prompt}
-                  index={idx + 1}
-                  photo={promptPhotos[idx]}
-                  flip={idx % 2 === 1}
-                />
-              ))}
-            </View>
-          </View>
-
-          {/* ④ A day with X — visual photo timeline ─────────── */}
-          <View style={{ marginTop: 40, paddingHorizontal: 24 }}>
-            <Text
-              style={{
-                fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
-              }}
-            >
-              A day with {guide.name.split(' ')[0]}
-            </Text>
-            <Text
-              style={{
-                fontFamily: theme.fonts.display, fontSize: 22, color: theme.colors.text, marginTop: 4, letterSpacing: -0.4,
-              }}
-            >
-              How a walk actually flows
-            </Text>
-
-            <View style={{ marginTop: 16, position: 'relative' }}>
-              {/* vertical rail */}
-              <View
+          {/* Saved guide-level prompts are text-only and never borrow photos. */}
+          {prompts.length > 0 && (
+            <View style={{ marginTop: 36, paddingHorizontal: 24 }}>
+              <Text
                 style={{
-                  position: 'absolute', left: 7, top: 10, bottom: 10, width: 2,
-                  backgroundColor: theme.colors.divider,
+                  fontFamily: theme.fonts.mono,
+                  fontSize: 11,
+                  color: theme.colors.primary,
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
                 }}
-              />
-              {daySteps.map((s, i) => (
-                <View key={i} style={{ flexDirection: 'row', gap: 14, marginBottom: 14 }}>
-                  <View style={{ width: 16, alignItems: 'center', paddingTop: 8 }}>
+              >
+                Three things about me
+              </Text>
+              <View style={{ marginTop: 16, gap: 14 }}>
+                {prompts.map((prompt, idx) => (
+                  <GuidePromptCard
+                    key={`${prompt.question}-${idx}`}
+                    prompt={prompt}
+                    index={idx + 1}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* A real itinerary timeline; hide the section when there are fewer
+              than two persisted stops rather than fabricating a day. */}
+          {daySteps.length >= 2 && (
+            <View style={{ marginTop: 40, paddingHorizontal: 24 }}>
+              <Text
+                style={{
+                  fontFamily: theme.fonts.mono,
+                  fontSize: 11,
+                  color: theme.colors.primary,
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
+                }}
+              >
+                A walk with {guide.name.split(" ")[0]}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: theme.fonts.display,
+                  fontSize: 22,
+                  color: theme.colors.text,
+                  marginTop: 4,
+                  letterSpacing: -0.4,
+                }}
+              >
+                {timelineItinerary?.name ?? "How the walk flows"}
+              </Text>
+
+              <View style={{ marginTop: 16, position: "relative" }}>
+                <View
+                  style={{
+                    position: "absolute",
+                    left: 7,
+                    top: 10,
+                    bottom: 10,
+                    width: 2,
+                    backgroundColor: theme.colors.divider,
+                  }}
+                />
+                {daySteps.map((step) => (
+                  <View
+                    key={`${timelineItinerary?.id}-${step.order}`}
+                    style={{ flexDirection: "row", gap: 14, marginBottom: 14 }}
+                  >
+                    <View
+                      style={{ width: 16, alignItems: "center", paddingTop: 8 }}
+                    >
+                      <View
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 5,
+                          backgroundColor: theme.colors.primary,
+                          borderWidth: 2,
+                          borderColor: theme.colors.background,
+                        }}
+                      />
+                    </View>
                     <View
                       style={{
-                        width: 10, height: 10, borderRadius: 5,
-                        backgroundColor: theme.colors.primary,
-                        borderWidth: 2, borderColor: theme.colors.background,
+                        flex: 1,
+                        backgroundColor: theme.colors.surface,
+                        borderWidth: 1,
+                        borderColor: theme.colors.divider,
+                        borderRadius: 14,
+                        overflow: "hidden",
                       }}
-                    />
-                  </View>
-                  <View
-                    style={{
-                      flex: 1,
-                      backgroundColor: theme.colors.surface,
-                      borderWidth: 1, borderColor: theme.colors.divider,
-                      borderRadius: 14, overflow: 'hidden',
-                    }}
-                  >
-                    {s.photo && (
-                      <Image
-                        source={{ uri: s.photo }}
-                        contentFit="cover"
-                        transition={250}
-                        style={{ width: '100%', height: 128 }}
-                      />
-                    )}
-                    <View style={{ padding: 12 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        {!!s.time && (
-                          <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 11, color: theme.colors.primary }}>
-                            {s.time}
+                    >
+                      {step.photo && (
+                        <Image
+                          source={{ uri: step.photo }}
+                          contentFit="cover"
+                          transition={250}
+                          style={{ width: "100%", height: 128 }}
+                        />
+                      )}
+                      <View style={{ padding: 12 }}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 8,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: theme.fonts.monoMed,
+                              fontSize: 11,
+                              color: theme.colors.primary,
+                            }}
+                          >
+                            Stop {step.order}
+                          </Text>
+                          <Text
+                            style={{
+                              fontFamily: theme.fonts.displaySemi,
+                              fontSize: 15,
+                              color: theme.colors.text,
+                              flex: 1,
+                            }}
+                            numberOfLines={1}
+                          >
+                            {step.title}
+                          </Text>
+                          {step.durationMinutes > 0 && (
+                            <Text
+                              style={{
+                                fontFamily: theme.fonts.mono,
+                                fontSize: 10,
+                                color: theme.colors.textMuted,
+                              }}
+                            >
+                              {step.durationMinutes} min
+                            </Text>
+                          )}
+                        </View>
+                        {step.caption && (
+                          <Text
+                            style={{
+                              fontFamily: theme.fonts.body,
+                              fontSize: 13,
+                              color: theme.colors.textSecondary,
+                              marginTop: 3,
+                              lineHeight: 18,
+                            }}
+                          >
+                            {step.caption}
                           </Text>
                         )}
-                        <Text style={{ fontFamily: theme.fonts.displaySemi, fontSize: 15, color: theme.colors.text }} numberOfLines={1}>
-                          {s.title}
-                        </Text>
                       </View>
-                      <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary, marginTop: 3, lineHeight: 18 }}>
-                        {s.caption}
-                      </Text>
                     </View>
                   </View>
-                </View>
-              ))}
+                ))}
+              </View>
             </View>
-          </View>
+          )}
 
           {/* ── Walks I lead (horizontal strip) ─────────────── */}
           <View style={{ marginTop: 40 }}>
             <View style={{ paddingHorizontal: 24 }}>
               <Text
                 style={{
-                  fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
+                  fontFamily: theme.fonts.mono,
+                  fontSize: 11,
+                  color: theme.colors.primary,
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
                 }}
               >
                 Walks I lead
               </Text>
               <Text
                 style={{
-                  fontFamily: theme.fonts.display, fontSize: 22, color: theme.colors.text, marginTop: 4, letterSpacing: -0.4,
+                  fontFamily: theme.fonts.display,
+                  fontSize: 22,
+                  color: theme.colors.text,
+                  marginTop: 4,
+                  letterSpacing: -0.4,
                 }}
               >
                 Tap any to read the full story
@@ -802,7 +927,10 @@ export default function GuideDetailScreen() {
                   <WalkCard
                     itinerary={item}
                     onPress={() =>
-                      router.push({ pathname: '/(traveler)/itinerary/[id]', params: { id: item.id } })
+                      router.push({
+                        pathname: "/(traveler)/itinerary/[id]",
+                        params: { id: item.id },
+                      })
                     }
                   />
                 )}
@@ -810,42 +938,70 @@ export default function GuideDetailScreen() {
             )}
           </View>
 
-          {/* ⑤ Photo journal — 2-col masonry ───────────────── */}
+          {/* Explicit profile journal — never populated from tour or stop media. */}
           {journal.length > 0 && (
-            <View style={{ marginTop: 36, paddingHorizontal: PHOTO_JOURNAL_OUTER }}>
+            <View
+              style={{ marginTop: 36, paddingHorizontal: PHOTO_JOURNAL_OUTER }}
+            >
               <Text
                 style={{
-                  fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
+                  fontFamily: theme.fonts.mono,
+                  fontSize: 11,
+                  color: theme.colors.primary,
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
                 }}
               >
                 Photo journal
               </Text>
               <Text
                 style={{
-                  fontFamily: theme.fonts.display, fontSize: 22, color: theme.colors.text, marginTop: 4, letterSpacing: -0.4,
+                  fontFamily: theme.fonts.display,
+                  fontSize: 22,
+                  color: theme.colors.text,
+                  marginTop: 4,
+                  letterSpacing: -0.4,
                   marginBottom: 14,
                 }}
               >
                 From the last few walks
               </Text>
 
-              <View style={{ flexDirection: 'row', gap: 6 }}>
-                {journalCols.map((col, ci) => (
-                  <View key={ci} style={{ flex: 1, gap: 6 }}>
-                    {col.map((uri, ri) => (
-                      <Image
-                        key={`${uri}-${ri}`}
-                        source={{ uri }}
-                        contentFit="cover"
-                        transition={250}
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                {journal.map((photo, index) => (
+                  <View
+                    key={photo.id}
+                    style={{
+                      width: "49%",
+                      overflow: "hidden",
+                      borderRadius: 10,
+                      backgroundColor: theme.colors.surface,
+                    }}
+                  >
+                    <Image
+                      source={{ uri: photo.url }}
+                      contentFit="cover"
+                      transition={250}
+                      style={{
+                        width: "100%",
+                        height: index % 3 === 0 ? 200 : 154,
+                        backgroundColor: theme.colors.surfaceMuted,
+                      }}
+                    />
+                    {photo.caption ? (
+                      <Text
                         style={{
-                          width: '100%',
-                          height: (ci + ri) % 2 === 0 ? 200 : 138,
-                          borderRadius: 10,
-                          backgroundColor: theme.colors.surface,
+                          fontFamily: theme.fonts.body,
+                          fontSize: 11,
+                          lineHeight: 15,
+                          color: theme.colors.textSecondary,
+                          paddingHorizontal: 9,
+                          paddingVertical: 8,
                         }}
-                      />
-                    ))}
+                      >
+                        {photo.caption}
+                      </Text>
+                    ) : null}
                   </View>
                 ))}
               </View>
@@ -853,35 +1009,50 @@ export default function GuideDetailScreen() {
           )}
 
           {/* ── Reviews as pull-quotes ──────────────────────── */}
-          <View style={{ marginTop: 40, paddingHorizontal: 24, marginBottom: 40 }}>
+          <View
+            style={{ marginTop: 40, paddingHorizontal: 24, marginBottom: 40 }}
+          >
             <Text
               style={{
-                fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.primary, letterSpacing: 1.5, textTransform: 'uppercase',
+                fontFamily: theme.fonts.mono,
+                fontSize: 11,
+                color: theme.colors.primary,
+                letterSpacing: 1.5,
+                textTransform: "uppercase",
               }}
             >
               What travelers said
             </Text>
             {reviews.length === 0 ? (
               <Text
-                style={{ color: theme.colors.textMuted, fontSize: 14, marginTop: 10 }}
+                style={{
+                  color: theme.colors.textMuted,
+                  fontSize: 14,
+                  marginTop: 10,
+                }}
               >
                 No reviews yet — be the first.
               </Text>
             ) : (
               <View style={{ marginTop: 14, gap: 14 }}>
                 {reviews.slice(0, 5).map((review) => {
-                  const reviewer = review.reviewer as { name?: string; id?: string; avatar_url?: string } | undefined;
-                  const rName = reviewer?.name ?? 'A traveler';
-                  // Prefer the traveler's real avatar; else a stable fallback
-                  // seeded by their user id (not the review id) + name.
-                  const rAvatar = reviewer?.avatar_url
-                    || getGuideAvatar({ id: reviewer?.id ?? review.id, name: rName });
-                  const rPhoto = getGuideGallery({ id: review.id, name: rName }, 1, [rAvatar])[0];
+                  const reviewer = review.reviewer as
+                    | { name?: string; id?: string; avatar_url?: string }
+                    | undefined;
+                  const rName = reviewer?.name ?? "A traveler";
+                  const rAvatar = reviewer?.avatar_url ?? null;
+                  const reviewerInitials = rName
+                    .split(" ")
+                    .map((part) => part[0])
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase();
                   return (
                     <View
                       key={review.id}
                       style={{
-                        flexDirection: 'row',
+                        flexDirection: "row",
                         gap: 14,
                         backgroundColor: theme.colors.surface,
                         borderWidth: 1,
@@ -890,33 +1061,70 @@ export default function GuideDetailScreen() {
                         padding: 14,
                       }}
                     >
-                      {rPhoto && (
+                      {rAvatar ? (
                         <Image
-                          source={{ uri: rPhoto }}
+                          source={{ uri: rAvatar }}
                           contentFit="cover"
                           transition={250}
-                          style={{ width: 76, height: 76, borderRadius: 12, backgroundColor: theme.colors.surfaceMuted }}
+                          style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 21,
+                            backgroundColor: theme.colors.surfaceMuted,
+                          }}
                         />
+                      ) : (
+                        <View
+                          style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 21,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: theme.colors.primaryLight,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: theme.fonts.bodyBold,
+                              fontSize: 13,
+                              color: theme.colors.primary,
+                            }}
+                          >
+                            {reviewerInitials || "T"}
+                          </Text>
+                        </View>
                       )}
                       <View style={{ flex: 1 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                          {rAvatar && (
-                            <Image
-                              source={{ uri: rAvatar }}
-                              contentFit="cover"
-                              style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: theme.colors.surfaceMuted }}
-                            />
-                          )}
-                          <Text style={{ fontFamily: theme.fonts.bodySemi, fontSize: 13, color: theme.colors.text, flex: 1 }} numberOfLines={1}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 8,
+                            marginBottom: 6,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: theme.fonts.bodySemi,
+                              fontSize: 13,
+                              color: theme.colors.text,
+                              flex: 1,
+                            }}
+                            numberOfLines={1}
+                          >
                             {rName}
                           </Text>
                           <Text
                             style={{
-                              fontFamily: theme.fonts.mono, fontSize: 9.5, color: theme.colors.textMuted,
-                              letterSpacing: 0.4, textTransform: 'uppercase',
+                              fontFamily: theme.fonts.mono,
+                              fontSize: 9.5,
+                              color: theme.colors.textMuted,
+                              letterSpacing: 0.4,
+                              textTransform: "uppercase",
                             }}
                           >
-                            {format(new Date(review.created_at), 'MMM yyyy')}
+                            {format(new Date(review.created_at), "MMM yyyy")}
                           </Text>
                         </View>
                         <StarRating rating={review.rating} size={12} />
@@ -943,29 +1151,45 @@ export default function GuideDetailScreen() {
         </View>
       </Animated.ScrollView>
 
-      {/* Sticky book button — only once the guide has tours published */}
-      {itineraries.length > 0 && (
+      {/* Inquiry-first actions are available only while this published guide is
+          actively accepting new requests. Paused profiles remain viewable. */}
+      {guide.is_active && itineraries.length > 0 && (
         <View
           style={{
-            position: 'absolute',
+            position: "absolute",
             bottom: 0,
             left: 0,
             right: 0,
-            backgroundColor: 'rgba(244,237,221,0.97)',
+            backgroundColor: "rgba(244,237,221,0.97)",
             borderTopWidth: 1,
-            borderTopColor: 'rgba(14,25,41,0.12)',
+            borderTopColor: "rgba(14,25,41,0.12)",
             paddingHorizontal: 20,
             paddingTop: 12,
             paddingBottom: insets.bottom + 12,
           }}
         >
           {/* One clean action row: price · Message (chat) · Walk with X (book) */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             {lowestPrice && (
               <View>
-                <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textMuted }}>From</Text>
-                <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 20, color: theme.colors.text, letterSpacing: -0.5, marginTop: 1 }}>
-                  ₹{lowestPrice.toLocaleString('en-IN')}
+                <Text
+                  style={{
+                    ...theme.typography.eyebrow,
+                    color: theme.colors.textMuted,
+                  }}
+                >
+                  From
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: theme.fonts.monoMed,
+                    fontSize: 20,
+                    color: theme.colors.text,
+                    letterSpacing: -0.5,
+                    marginTop: 1,
+                  }}
+                >
+                  ₹{lowestPrice.toLocaleString("en-IN")}
                 </Text>
               </View>
             )}
@@ -977,18 +1201,18 @@ export default function GuideDetailScreen() {
               size="lg"
               onPress={() =>
                 router.push({
-                  pathname: '/(traveler)/book/[guideId]',
-                  params: { guideId: guide.id, intent: 'chat' },
+                  pathname: "/(traveler)/book/[guideId]",
+                  params: { guideId: guide.id, intent: "chat" },
                 })
               }
             />
             <View style={{ flex: 1 }}>
               <Button
-                title={`Plan with ${guide.name.split(' ')[0]}`}
+                title={`Plan with ${guide.name.split(" ")[0]}`}
                 size="lg"
                 onPress={() =>
                   router.push({
-                    pathname: '/(traveler)/book/[guideId]',
+                    pathname: "/(traveler)/book/[guideId]",
                     params: { guideId: guide.id },
                   })
                 }
@@ -1015,9 +1239,14 @@ function MetaStat({
   accessory?: React.ReactNode;
 }) {
   return (
-    <View style={{ alignItems: 'center', flex: 1 }}>
+    <View style={{ alignItems: "center", flex: 1 }}>
       <Text
-        style={{ fontFamily: theme.fonts.monoMed, fontSize: 22, color: theme.colors.text, letterSpacing: -0.5 }}
+        style={{
+          fontFamily: theme.fonts.monoMed,
+          fontSize: 22,
+          color: theme.colors.text,
+          letterSpacing: -0.5,
+        }}
       >
         {value}
       </Text>
@@ -1028,7 +1257,7 @@ function MetaStat({
           fontSize: 9.5,
           color: theme.colors.textMuted,
           letterSpacing: 0.8,
-          textTransform: 'uppercase',
+          textTransform: "uppercase",
           marginTop: 5,
         }}
       >
@@ -1041,7 +1270,11 @@ function MetaStat({
 function MetaDivider() {
   return (
     <View
-      style={{ width: 1, backgroundColor: theme.colors.divider, marginHorizontal: 4 }}
+      style={{
+        width: 1,
+        backgroundColor: theme.colors.divider,
+        marginHorizontal: 4,
+      }}
     />
   );
 }
@@ -1049,46 +1282,45 @@ function MetaDivider() {
 function GuidePromptCard({
   prompt,
   index,
-  photo,
-  flip,
 }: {
   prompt: GuidePrompt;
   index: number;
-  photo?: string;
-  flip?: boolean;
 }) {
   return (
     <View
       style={{
-        flexDirection: flip ? 'row-reverse' : 'row',
         borderRadius: 16,
-        overflow: 'hidden',
         backgroundColor: theme.colors.surface,
         borderWidth: 1,
         borderColor: theme.colors.divider,
       }}
     >
-      {photo ? (
-        <Image
-          source={{ uri: photo }}
-          contentFit="cover"
-          transition={250}
-          style={{ width: 116, alignSelf: 'stretch', backgroundColor: theme.colors.surfaceMuted }}
-        />
-      ) : null}
-      <View style={{ flex: 1, padding: 16 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 9 }}>
+      <View style={{ padding: 16 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 9,
+          }}
+        >
           <View
             style={{
               width: 22,
               height: 22,
               borderRadius: 11,
               backgroundColor: theme.colors.primaryLight,
-              alignItems: 'center',
-              justifyContent: 'center',
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 11, color: theme.colors.primary }}>
+            <Text
+              style={{
+                fontFamily: theme.fonts.monoMed,
+                fontSize: 11,
+                color: theme.colors.primary,
+              }}
+            >
               {index}
             </Text>
           </View>
@@ -1098,7 +1330,7 @@ function GuidePromptCard({
               fontSize: 10,
               color: theme.colors.textMuted,
               letterSpacing: 0.4,
-              textTransform: 'uppercase',
+              textTransform: "uppercase",
               flex: 1,
             }}
           >
@@ -1121,7 +1353,13 @@ function GuidePromptCard({
   );
 }
 
-function WalkCard({ itinerary, onPress }: { itinerary: Itinerary; onPress: () => void }) {
+function WalkCard({
+  itinerary,
+  onPress,
+}: {
+  itinerary: Itinerary;
+  onPress: () => void;
+}) {
   const photo =
     itinerary.cover_image_url ??
     (itinerary.gallery_urls && itinerary.gallery_urls[0]) ??
@@ -1133,7 +1371,7 @@ function WalkCard({ itinerary, onPress }: { itinerary: Itinerary; onPress: () =>
       style={{
         width: 240,
         borderRadius: 18,
-        overflow: 'hidden',
+        overflow: "hidden",
         backgroundColor: theme.colors.surface,
         borderWidth: 1,
         borderColor: theme.colors.divider,
@@ -1145,39 +1383,73 @@ function WalkCard({ itinerary, onPress }: { itinerary: Itinerary; onPress: () =>
           <Image
             source={{ uri: photo }}
             contentFit="cover"
-            style={{ width: '100%', height: '100%' }}
+            style={{ width: "100%", height: "100%" }}
           />
         ) : (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontFamily: theme.fonts.serif, fontSize: 24, color: theme.colors.textMuted }}>Mumbai</Text>
+          <View
+            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+          >
+            <Text
+              style={{
+                fontFamily: theme.fonts.serif,
+                fontSize: 24,
+                color: theme.colors.textMuted,
+              }}
+            >
+              Mumbai
+            </Text>
           </View>
         )}
       </View>
       <View style={{ padding: 14 }}>
         <Text
-          style={{ fontFamily: theme.fonts.displaySemi, fontSize: 15, color: theme.colors.text }}
+          style={{
+            fontFamily: theme.fonts.displaySemi,
+            fontSize: 15,
+            color: theme.colors.text,
+          }}
           numberOfLines={1}
         >
-          {itinerary.name ?? itinerary.title ?? 'City Tour'}
+          {itinerary.name ?? itinerary.title ?? "City Tour"}
         </Text>
         <Text
-          style={{ fontFamily: theme.fonts.mono, fontSize: 10.5, color: theme.colors.textMuted, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 5 }}
+          style={{
+            fontFamily: theme.fonts.mono,
+            fontSize: 10.5,
+            color: theme.colors.textMuted,
+            letterSpacing: 0.4,
+            textTransform: "uppercase",
+            marginTop: 5,
+          }}
           numberOfLines={1}
         >
-          {itinerary.estimated_duration_hours}h · {(itinerary.stops ?? []).length} stops
+          {itinerary.estimated_duration_hours}h ·{" "}
+          {(itinerary.stops ?? []).length} stops
         </Text>
         <View
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
             marginTop: 10,
           }}
         >
-          <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 16, color: theme.colors.primary }}>
-            ₹{itinerary.buddy_cost_inr.toLocaleString('en-IN')}
+          <Text
+            style={{
+              fontFamily: theme.fonts.monoMed,
+              fontSize: 16,
+              color: theme.colors.primary,
+            }}
+          >
+            ₹{itinerary.buddy_cost_inr.toLocaleString("en-IN")}
           </Text>
-          <Text style={{ fontFamily: theme.fonts.bodyBold, fontSize: 12, color: theme.colors.primary }}>
+          <Text
+            style={{
+              fontFamily: theme.fonts.bodyBold,
+              fontSize: 12,
+              color: theme.colors.primary,
+            }}
+          >
             Read →
           </Text>
         </View>
