@@ -11,8 +11,8 @@
  * to replicate them, which is out of scope for MVP.
  */
 
-import { Platform } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { Platform } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 
 export interface PickedImage {
   /** file:// URI on native; blob: URL on web (revoke after use) */
@@ -42,10 +42,12 @@ interface PickOptions {
  * Open the image library and return a PickedImage, or null if the user
  * cancelled. Throws on unexpected errors.
  */
-export async function pickImage(opts: PickOptions = {}): Promise<PickedImage | null> {
+export async function pickImage(
+  opts: PickOptions = {},
+): Promise<PickedImage | null> {
   const { aspect = [1, 1], quality = 0.8, allowsEditing = true } = opts;
 
-  if (Platform.OS === 'web') {
+  if (Platform.OS === "web") {
     return pickImageWeb();
   }
 
@@ -54,6 +56,8 @@ export async function pickImage(opts: PickOptions = {}): Promise<PickedImage | n
     allowsEditing,
     aspect,
     quality,
+    preferredAssetRepresentationMode:
+      ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
   });
 
   if (result.canceled || !result.assets[0]) return null;
@@ -66,7 +70,7 @@ export async function pickImage(opts: PickOptions = {}): Promise<PickedImage | n
   const response = await fetch(uri);
   const blob = await response.arrayBuffer();
 
-  const ext = uri.split('.').pop() ?? 'jpg';
+  const ext = uri.split(".").pop() ?? "jpg";
   const mimeType = asset.mimeType ?? `image/${ext}`;
   const fileName = `photo_${Date.now()}.${ext}`;
 
@@ -85,18 +89,25 @@ export async function pickImage(opts: PickOptions = {}): Promise<PickedImage | n
  * image, or an empty array if cancelled. Used by the guide photo gallery.
  * Note: native multi-select disables per-image cropping (expo limitation).
  */
-export async function pickImages(opts: { quality?: number; limit?: number } = {}): Promise<PickedImage[]> {
+export async function pickImages(
+  opts: { quality?: number; limit?: number } = {},
+): Promise<PickedImage[]> {
   const { quality = 0.8, limit = 10 } = opts;
 
-  if (Platform.OS === 'web') {
-    return pickImagesWeb();
+  if (Platform.OS === "web") {
+    return pickImagesWeb(limit);
   }
 
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
     allowsMultipleSelection: true,
+    // iOS otherwise does not guarantee that result.assets matches the order
+    // the guide tapped. Journal order is authored content, so preserve it.
+    orderedSelection: true,
     selectionLimit: limit,
     quality,
+    preferredAssetRepresentationMode:
+      ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
   });
 
   if (result.canceled || result.assets.length === 0) return [];
@@ -106,12 +117,14 @@ export async function pickImages(opts: { quality?: number; limit?: number } = {}
       // ArrayBuffer, not Blob — see pickImage() for why RN Blobs fail to upload.
       const response = await fetch(asset.uri);
       const blob = await response.arrayBuffer();
-      const ext = asset.uri.split('.').pop() ?? 'jpg';
+      const ext = asset.uri.split(".").pop() ?? "jpg";
       return {
         uri: asset.uri,
         blob,
         mimeType: asset.mimeType ?? `image/${ext}`,
-        fileName: asset.fileName ?? `photo_${Date.now()}_${Math.round((asset.width ?? 0))}.${ext}`,
+        fileName:
+          asset.fileName ??
+          `photo_${Date.now()}_${Math.round(asset.width ?? 0)}.${ext}`,
         width: asset.width ?? 0,
         height: asset.height ?? 0,
       };
@@ -120,21 +133,24 @@ export async function pickImages(opts: { quality?: number; limit?: number } = {}
 }
 
 /** Web-only multi-select via <input type="file" multiple>. */
-function pickImagesWeb(): Promise<PickedImage[]> {
+function pickImagesWeb(limit: number): Promise<PickedImage[]> {
   return new Promise((resolve) => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
     input.multiple = true;
-    input.addEventListener('cancel', () => resolve([]));
-    input.addEventListener('change', () => {
-      const files = Array.from(input.files ?? []);
-      if (files.length === 0) { resolve([]); return; }
+    input.addEventListener("cancel", () => resolve([]));
+    input.addEventListener("change", () => {
+      const files = Array.from(input.files ?? []).slice(0, limit);
+      if (files.length === 0) {
+        resolve([]);
+        return;
+      }
       resolve(
         files.map((file) => ({
           uri: URL.createObjectURL(file),
           blob: file,
-          mimeType: file.type || 'image/jpeg',
+          mimeType: file.type || "image/jpeg",
           fileName: file.name || `photo_${Date.now()}.jpg`,
           width: 0,
           height: 0,
@@ -150,14 +166,14 @@ function pickImagesWeb(): Promise<PickedImage[]> {
 /** Web-only: use a hidden <input type="file"> to open the OS file picker. */
 function pickImageWeb(): Promise<PickedImage | null> {
   return new Promise((resolve, reject) => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
 
     // Resolve to null if the picker is dismissed without a selection.
-    input.addEventListener('cancel', () => resolve(null));
+    input.addEventListener("cancel", () => resolve(null));
 
-    input.addEventListener('change', () => {
+    input.addEventListener("change", () => {
       const file = input.files?.[0];
       if (!file) {
         resolve(null);
@@ -165,7 +181,7 @@ function pickImageWeb(): Promise<PickedImage | null> {
       }
 
       const uri = URL.createObjectURL(file);
-      const mimeType = file.type || 'image/jpeg';
+      const mimeType = file.type || "image/jpeg";
       const fileName = file.name || `photo_${Date.now()}.jpg`;
 
       // Read image dimensions via an off-DOM <img>.
@@ -175,7 +191,7 @@ function pickImageWeb(): Promise<PickedImage | null> {
       img.onload = () => {
         resolve({
           uri,
-          blob: file,          // File extends Blob — no copy needed
+          blob: file, // File extends Blob — no copy needed
           mimeType,
           fileName,
           width: img.naturalWidth,

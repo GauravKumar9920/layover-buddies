@@ -1,120 +1,268 @@
 // ============================================================================
-// TRAVELER PROFILE — onboarding fields (nationality, layover, interests)
+// TRAVELER PROFILE — identity/preferences + active layover + private safety
 // ============================================================================
-// Used by the post-signup onboarding screen and read by Explore + booking
-// flows so they can show time-fit badges and rank guides by interest overlap.
+// The UI consumes one aggregate, but persistence deliberately keeps three
+// domains separate:
+//   traveler_profiles       stable preferences
+//   traveler_layovers       the current/repeatable visit
+//   traveler_safety_profiles private emergency information
 // ============================================================================
 
-import { supabase } from '../supabase';
+import { supabase } from "../supabase";
+
+export interface TravelerLayover {
+  id: string;
+  traveler_id: string;
+  airport_code: string;
+  arrival_at: string;
+  departure_at: string;
+  flight_in: string | null;
+  flight_out: string | null;
+  group_size: number;
+  status: "active" | "archived";
+}
 
 export interface TravelerProfile {
-  user_id:                   string;
-  nationality:               string | null;
-  gender:                    string | null;   // 'female' | 'male' | 'non_binary' | 'prefer_not_to_say'
-  preferred_language:        string | null;
-  emergency_contact_name:    string | null;
-  emergency_contact_phone:   string | null;
-  arrival_at:                string | null;   // ISO timestamp
-  departure_at:              string | null;
-  flight_in:                 string | null;
-  flight_out:                string | null;
-  interests:                 string[];
-  onboarded_at:              string | null;
+  user_id: string;
+  nationality: string | null;
+  preferred_language: string | null;
+  interests: string[];
+  about_me: string | null;
+  travel_pace: "relaxed" | "balanced" | "packed" | null;
+  dietary_preferences: string[];
+  accessibility_notes: string | null;
+  onboarding_version: number;
+  setup_completed_at: string | null;
+  onboarded_at: string | null;
+
+  // Active-layover projection kept flat for existing Explore/booking callers.
+  active_layover_id: string | null;
+  airport_code: string | null;
+  arrival_at: string | null;
+  departure_at: string | null;
+  flight_in: string | null;
+  flight_out: string | null;
+  group_size: number;
+
+  // Private safety projection. RLS permits owner reads and active-trip Buddy reads.
+  gender: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
 }
 
 export interface OnboardingPayload {
-  nationality:   string;
-  gender?:       string | null;
-  arrival_at:    string;
-  departure_at:  string;
-  flight_in?:    string | null;
-  flight_out?:   string | null;
-  interests:     string[];
+  nationality: string;
+  gender?: string | null;
+  arrival_at: string;
+  departure_at: string;
+  flight_in?: string | null;
+  flight_out?: string | null;
+  interests: string[];
 }
 
-/** Fetch the signed-in traveler's profile row. Returns null if no row exists
- *  yet — the auth-sync trigger creates skeleton rows on signup but a brand
- *  new user landing on root may briefly see null until that fires. */
+export interface NextLayoverPayload {
+  arrival_at: string;
+  departure_at: string;
+  flight_in?: string | null;
+  flight_out?: string | null;
+  group_size: number;
+  airport_code?: string;
+}
+
+function normalizeStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function aggregateTravelerProfile(
+  userId: string,
+  profile: Record<string, unknown> | null,
+  layover: Record<string, unknown> | null,
+  safety: Record<string, unknown> | null,
+): TravelerProfile | null {
+  if (!profile && !layover && !safety) return null;
+
+  const pace = profile?.travel_pace;
+  return {
+    user_id: userId,
+    nationality:
+      typeof profile?.nationality === "string" ? profile.nationality : null,
+    preferred_language:
+      typeof profile?.preferred_language === "string"
+        ? profile.preferred_language
+        : null,
+    interests: normalizeStringArray(profile?.interests),
+    about_me: typeof profile?.about_me === "string" ? profile.about_me : null,
+    travel_pace:
+      pace === "relaxed" || pace === "balanced" || pace === "packed"
+        ? pace
+        : null,
+    dietary_preferences: normalizeStringArray(profile?.dietary_preferences),
+    accessibility_notes:
+      typeof profile?.accessibility_notes === "string"
+        ? profile.accessibility_notes
+        : null,
+    onboarding_version: Number(profile?.onboarding_version ?? 1),
+    setup_completed_at:
+      typeof profile?.setup_completed_at === "string"
+        ? profile.setup_completed_at
+        : null,
+    onboarded_at:
+      typeof profile?.onboarded_at === "string" ? profile.onboarded_at : null,
+
+    active_layover_id: typeof layover?.id === "string" ? layover.id : null,
+    airport_code:
+      typeof layover?.airport_code === "string" ? layover.airport_code : null,
+    arrival_at:
+      typeof layover?.arrival_at === "string" ? layover.arrival_at : null,
+    departure_at:
+      typeof layover?.departure_at === "string" ? layover.departure_at : null,
+    flight_in:
+      typeof layover?.flight_in === "string" ? layover.flight_in : null,
+    flight_out:
+      typeof layover?.flight_out === "string" ? layover.flight_out : null,
+    group_size: Number(layover?.group_size ?? 1),
+
+    gender: typeof safety?.gender === "string" ? safety.gender : null,
+    emergency_contact_name:
+      typeof safety?.emergency_contact_name === "string"
+        ? safety.emergency_contact_name
+        : null,
+    emergency_contact_phone:
+      typeof safety?.emergency_contact_phone === "string"
+        ? safety.emergency_contact_phone
+        : null,
+  };
+}
+
+/** Fetch the signed-in traveler's full builder state. */
 export async function fetchMyTravelerProfile(): Promise<TravelerProfile | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return null;
-  const { data, error } = await supabase
-    .from('traveler_profiles')
-    .select('*')
-    .eq('user_id', user.id)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as TravelerProfile | null) ?? null;
+
+  const [profileResult, layoverResult, safetyResult] = await Promise.all([
+    supabase
+      .from("traveler_profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("traveler_layovers")
+      .select("*")
+      .eq("traveler_id", user.id)
+      .eq("status", "active")
+      .maybeSingle(),
+    supabase
+      .from("traveler_safety_profiles")
+      .select("*")
+      .eq("traveler_id", user.id)
+      .maybeSingle(),
+  ]);
+
+  if (profileResult.error) throw profileResult.error;
+  if (layoverResult.error) throw layoverResult.error;
+  if (safetyResult.error) throw safetyResult.error;
+
+  return aggregateTravelerProfile(
+    user.id,
+    profileResult.data as Record<string, unknown> | null,
+    layoverResult.data as Record<string, unknown> | null,
+    safetyResult.data as Record<string, unknown> | null,
+  );
 }
 
-/** Persist all onboarding answers in one round-trip and mark the user as
- *  onboarded so the root layout stops force-routing them here. */
-export async function completeOnboarding(payload: OnboardingPayload): Promise<TravelerProfile> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+/** Persist onboarding by domain and mark the stable profile as complete. */
+export async function completeOnboarding(
+  payload: OnboardingPayload,
+): Promise<TravelerProfile> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
 
-  // Upsert so we don't fail if the trigger hasn't yet created the row.
-  const { data, error } = await supabase
-    .from('traveler_profiles')
-    .upsert(
-      {
-        user_id:      user.id,
-        nationality:  payload.nationality,
-        gender:       payload.gender ?? null,
-        arrival_at:   payload.arrival_at,
-        departure_at: payload.departure_at,
-        flight_in:    payload.flight_in ?? null,
-        flight_out:   payload.flight_out ?? null,
-        interests:    payload.interests,
-        onboarded_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id' },
-    )
-    .select('*')
-    .single();
-
+  const { error } = await supabase.rpc("complete_traveler_onboarding_tx", {
+    p_nationality: payload.nationality,
+    p_gender: payload.gender ?? null,
+    p_arrival_at: payload.arrival_at,
+    p_departure_at: payload.departure_at,
+    p_flight_in: payload.flight_in ?? null,
+    p_flight_out: payload.flight_out ?? null,
+    p_interests: payload.interests,
+  });
   if (error) throw error;
-  return data as TravelerProfile;
+
+  const saved = await fetchMyTravelerProfile();
+  if (!saved) throw new Error("Traveler profile was not created.");
+  return saved;
 }
 
-/** Fields the traveler can edit from their Profile tab. `full_name` and
- *  `avatar_url` live on the `users` table; everything else on
- *  `traveler_profiles`. Pass only what changed. */
+/** Fields editable from the structured Profile builder. */
 export interface TravelerProfilePatch {
   full_name?: string;
   avatar_url?: string;
+
   nationality?: string | null;
-  gender?: string | null;
   preferred_language?: string | null;
+  interests?: string[];
+  about_me?: string | null;
+  travel_pace?: "relaxed" | "balanced" | "packed" | null;
+  dietary_preferences?: string[];
+  accessibility_notes?: string | null;
+
+  arrival_at?: string;
+  departure_at?: string;
+  flight_in?: string | null;
+  flight_out?: string | null;
+  airport_code?: string;
+  group_size?: number;
+
+  gender?: string | null;
   emergency_contact_name?: string | null;
   emergency_contact_phone?: string | null;
-  interests?: string[];
 }
 
-/** Persist a partial edit to the signed-in traveler's profile. Splits writes
- *  across `users` (name/avatar) and `traveler_profiles` (everything else),
- *  mirroring how `updateGuideProfile` handles the same split. */
-export async function updateMyTravelerProfile(patch: TravelerProfilePatch): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+/** Persist a partial edit, split along the model's privacy/lifecycle boundaries. */
+export async function updateMyTravelerProfile(
+  patch: TravelerProfilePatch,
+): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
 
-  const { full_name, avatar_url, ...profileFields } = patch;
+  const serializablePatch = Object.fromEntries(
+    Object.entries(patch).filter(([, value]) => value !== undefined),
+  );
+  const { error } = await supabase.rpc("save_my_traveler_profile_tx", {
+    p_patch: serializablePatch,
+  });
+  if (error) throw error;
+}
 
-  // users table — name + avatar
-  if (full_name !== undefined || avatar_url !== undefined) {
-    const userUpdates: Record<string, unknown> = {};
-    if (full_name !== undefined) userUpdates.full_name = full_name;
-    if (avatar_url !== undefined) userUpdates.avatar_url = avatar_url;
-    const { error } = await supabase.from('users').update(userUpdates).eq('id', user.id);
-    if (error) throw error;
+/**
+ * Archive the current active layover and create the traveler's next one.
+ * The server transaction keeps historical trips intact and guarantees that
+ * the traveler has at most one active layover.
+ */
+export async function createMyNextLayover(
+  payload: NextLayoverPayload,
+): Promise<TravelerProfile> {
+  const { error } = await supabase.rpc("create_my_next_layover", {
+    p_arrival_at: payload.arrival_at,
+    p_departure_at: payload.departure_at,
+    p_flight_in: payload.flight_in ?? null,
+    p_flight_out: payload.flight_out ?? null,
+    p_group_size: payload.group_size,
+    p_airport_code: payload.airport_code ?? "BOM",
+  });
+  if (error) throw error;
+
+  const saved = await fetchMyTravelerProfile();
+  if (!saved?.active_layover_id) {
+    throw new Error("Your new layover could not be loaded.");
   }
-
-  // traveler_profiles — onboarding/contact fields. Upsert so a missing row
-  // (trigger hasn't fired) doesn't fail the save.
-  if (Object.keys(profileFields).length > 0) {
-    const { error } = await supabase
-      .from('traveler_profiles')
-      .upsert({ user_id: user.id, ...profileFields }, { onConflict: 'user_id' });
-    if (error) throw error;
-  }
+  return saved;
 }

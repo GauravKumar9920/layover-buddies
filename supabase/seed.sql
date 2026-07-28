@@ -30,38 +30,41 @@ INSERT INTO auth.users (
 -- Guides
 ('aaaaaaaa-0000-4000-a000-000000000001', 'authenticated', 'authenticated',
  'aarav.patil@vjti.ac.in',     crypt('Test1234!', gen_salt('bf')),
- now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{"full_name":"Aarav Patil","role":"guide"}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
  '', '', '', ''),
 ('aaaaaaaa-0000-4000-a000-000000000002', 'authenticated', 'authenticated',
  'priya.sharma@iitb.ac.in',    crypt('Test1234!', gen_salt('bf')),
- now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{"full_name":"Priya Sharma","role":"guide"}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
  '', '', '', ''),
 ('aaaaaaaa-0000-4000-a000-000000000003', 'authenticated', 'authenticated',
  'rohan.dsouza@xaviers.edu',   crypt('Test1234!', gen_salt('bf')),
- now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{"full_name":"Rohan D''Souza","role":"guide"}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
  '', '', '', ''),
 ('aaaaaaaa-0000-4000-a000-000000000004', 'authenticated', 'authenticated',
  'sneha.mehta@nmims.edu',      crypt('Test1234!', gen_salt('bf')),
- now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{"full_name":"Sneha Mehta","role":"guide"}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
  '', '', '', ''),
 ('aaaaaaaa-0000-4000-a000-000000000005', 'authenticated', 'authenticated',
  'kabir.joshi@mithibai.ac.in', crypt('Test1234!', gen_salt('bf')),
- now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{"full_name":"Kabir Joshi","role":"guide"}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
  '', '', '', ''),
 -- Travelers
 ('aaaaaaaa-0000-4000-a000-000000000011', 'authenticated', 'authenticated',
  'emma.wilson@gmail.com',      crypt('Test1234!', gen_salt('bf')),
- now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{"full_name":"Emma Wilson","role":"traveler"}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
  '', '', '', ''),
 ('aaaaaaaa-0000-4000-a000-000000000012', 'authenticated', 'authenticated',
  'james.tanaka@outlook.com',   crypt('Test1234!', gen_salt('bf')),
- now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{"full_name":"James Tanaka","role":"traveler"}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
  '', '', '', ''),
 ('aaaaaaaa-0000-4000-a000-000000000013', 'authenticated', 'authenticated',
  'sofia.mueller@proton.me',    crypt('Test1234!', gen_salt('bf')),
- now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{"full_name":"Sofia Mueller","role":"traveler"}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
  '', '', '', '')
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  raw_app_meta_data = EXCLUDED.raw_app_meta_data,
+  raw_user_meta_data = EXCLUDED.raw_user_meta_data,
+  updated_at = now();
 
 -- Auth identities (required so the email+password flow resolves the user)
 INSERT INTO auth.identities (
@@ -120,6 +123,24 @@ ON CONFLICT (id) DO UPDATE SET
   is_verified  = EXCLUDED.is_verified,
   auth_provider = EXCLUDED.auth_provider;
 
+-- Keep re-runs compatible with older seeds whose auth metadata omitted role.
+-- A user owns exactly one role-specific profile.
+DELETE FROM traveler_profiles
+WHERE user_id IN (
+  'aaaaaaaa-0000-4000-a000-000000000001',
+  'aaaaaaaa-0000-4000-a000-000000000002',
+  'aaaaaaaa-0000-4000-a000-000000000003',
+  'aaaaaaaa-0000-4000-a000-000000000004',
+  'aaaaaaaa-0000-4000-a000-000000000005'
+);
+
+DELETE FROM guide_profiles
+WHERE user_id IN (
+  'aaaaaaaa-0000-4000-a000-000000000011',
+  'aaaaaaaa-0000-4000-a000-000000000012',
+  'aaaaaaaa-0000-4000-a000-000000000013'
+);
+
 
 -- ============================================================================
 -- 2. GUIDE PROFILES
@@ -129,7 +150,8 @@ INSERT INTO guide_profiles (
   id, user_id, university, year_of_study, course, bio,
   languages, skills,
   aadhaar_verified, college_verified, interview_passed, police_verified,
-  avg_rating, total_reviews, total_trips, response_time_minutes, is_active
+  avg_rating, total_reviews, total_trips, response_time_minutes, is_active,
+  profile_status, profile_completed_at
 ) VALUES
 (
   'bbbbbbbb-0000-4000-a000-000000000001',
@@ -139,7 +161,7 @@ INSERT INTO guide_profiles (
   '[{"language": "English", "proficiency": "fluent"}, {"language": "Hindi", "proficiency": "native"}, {"language": "Marathi", "proficiency": "native"}]'::jsonb,
   '[{"name": "Foodie", "emoji": "🍜"}, {"name": "History Buff", "emoji": "📚"}, {"name": "Street Smart", "emoji": "🏙️"}]'::jsonb,
   TRUE, TRUE, TRUE, TRUE,
-  4.80, 3, 5, 8, TRUE
+  4.80, 3, 5, 8, TRUE, 'published', now()
 ),
 (
   'bbbbbbbb-0000-4000-a000-000000000002',
@@ -149,7 +171,7 @@ INSERT INTO guide_profiles (
   '[{"language": "English", "proficiency": "fluent"}, {"language": "Hindi", "proficiency": "native"}, {"language": "Gujarati", "proficiency": "conversational"}]'::jsonb,
   '[{"name": "Architecture", "emoji": "🏛️"}, {"name": "Photography", "emoji": "📸"}, {"name": "Tech Nerd", "emoji": "💻"}]'::jsonb,
   TRUE, TRUE, TRUE, FALSE,
-  4.60, 2, 3, 12, TRUE
+  4.60, 2, 3, 12, TRUE, 'published', now()
 ),
 (
   'bbbbbbbb-0000-4000-a000-000000000003',
@@ -159,7 +181,7 @@ INSERT INTO guide_profiles (
   '[{"language": "English", "proficiency": "native"}, {"language": "Hindi", "proficiency": "fluent"}, {"language": "Konkani", "proficiency": "conversational"}, {"language": "Portuguese", "proficiency": "basic"}]'::jsonb,
   '[{"name": "Culture", "emoji": "🎭"}, {"name": "Nightlife", "emoji": "🌙"}, {"name": "Storyteller", "emoji": "📖"}]'::jsonb,
   TRUE, TRUE, TRUE, TRUE,
-  4.90, 2, 4, 5, TRUE
+  4.90, 2, 4, 5, TRUE, 'published', now()
 ),
 (
   'bbbbbbbb-0000-4000-a000-000000000004',
@@ -169,7 +191,7 @@ INSERT INTO guide_profiles (
   '[{"language": "English", "proficiency": "native"}, {"language": "Hindi", "proficiency": "fluent"}, {"language": "Sindhi", "proficiency": "conversational"}]'::jsonb,
   '[{"name": "Business", "emoji": "💼"}, {"name": "Photography", "emoji": "📸"}, {"name": "Shopping", "emoji": "🛍️"}]'::jsonb,
   TRUE, TRUE, TRUE, FALSE,
-  4.50, 1, 2, 15, TRUE
+  4.50, 1, 2, 15, TRUE, 'published', now()
 ),
 (
   'bbbbbbbb-0000-4000-a000-000000000005',
@@ -179,7 +201,83 @@ INSERT INTO guide_profiles (
   '[{"language": "English", "proficiency": "fluent"}, {"language": "Hindi", "proficiency": "native"}, {"language": "Marathi", "proficiency": "fluent"}]'::jsonb,
   '[{"name": "Adventure", "emoji": "🧗"}, {"name": "Foodie", "emoji": "🍜"}, {"name": "Hidden Gems", "emoji": "💎"}]'::jsonb,
   TRUE, TRUE, FALSE, FALSE,
-  0, 0, 0, 0, TRUE
+  0, 0, 0, 0, TRUE, 'published', now()
+) ON CONFLICT (user_id) DO UPDATE SET
+  university = EXCLUDED.university,
+  year_of_study = EXCLUDED.year_of_study,
+  course = EXCLUDED.course,
+  bio = EXCLUDED.bio,
+  languages = EXCLUDED.languages,
+  skills = EXCLUDED.skills,
+  aadhaar_verified = EXCLUDED.aadhaar_verified,
+  college_verified = EXCLUDED.college_verified,
+  interview_passed = EXCLUDED.interview_passed,
+  police_verified = EXCLUDED.police_verified,
+  avg_rating = EXCLUDED.avg_rating,
+  total_reviews = EXCLUDED.total_reviews,
+  total_trips = EXCLUDED.total_trips,
+  response_time_minutes = EXCLUDED.response_time_minutes;
+
+-- Explicit profile-media placements for Aarav. Each URL has one job; these are
+-- intentionally not itinerary or stop images.
+INSERT INTO guide_profile_photos (
+  id, guide_profile_id, role, url, caption, position
+)
+SELECT
+  media.id,
+  guide.id,
+  media.role,
+  media.url,
+  media.caption,
+  media.position
+FROM guide_profiles AS guide
+CROSS JOIN (
+  VALUES
+    (
+      'eeeeeeee-0000-4000-a000-000000000001'::uuid,
+      'cover'::text,
+      'https://images.unsplash.com/photo-1529253355930-ddbe423a2ac7?auto=format&fit=crop&w=1200&q=85'::text,
+      NULL::text,
+      0::smallint
+    ),
+    (
+      'eeeeeeee-0000-4000-a000-000000000002'::uuid,
+      'story'::text,
+      'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1200&q=85'::text,
+      NULL::text,
+      0::smallint
+    ),
+    (
+      'eeeeeeee-0000-4000-a000-000000000003'::uuid,
+      'gallery'::text,
+      'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?auto=format&fit=crop&w=1000&q=85'::text,
+      'South Mumbai before the streets fill up.'::text,
+      0::smallint
+    ),
+    (
+      'eeeeeeee-0000-4000-a000-000000000004'::uuid,
+      'gallery'::text,
+      'https://images.unsplash.com/photo-1586500036706-41963de24d8b?auto=format&fit=crop&w=1000&q=85'::text,
+      'A market detour worth slowing down for.'::text,
+      1::smallint
+    )
+) AS media(id, role, url, caption, position)
+WHERE guide.user_id = 'aaaaaaaa-0000-4000-a000-000000000001'
+ON CONFLICT DO NOTHING;
+
+-- The production insert trigger correctly forces every new guide into draft.
+-- These five rows are explicit demo fixtures that replace the pre-migration
+-- browseable catalogue, so grandfather them only after their inserts complete.
+UPDATE guide_profiles
+SET profile_status = 'published',
+    profile_completed_at = COALESCE(profile_completed_at, now()),
+    is_active = TRUE
+WHERE user_id IN (
+  'aaaaaaaa-0000-4000-a000-000000000001',
+  'aaaaaaaa-0000-4000-a000-000000000002',
+  'aaaaaaaa-0000-4000-a000-000000000003',
+  'aaaaaaaa-0000-4000-a000-000000000004',
+  'aaaaaaaa-0000-4000-a000-000000000005'
 );
 
 
@@ -187,17 +285,46 @@ INSERT INTO guide_profiles (
 -- 3. TRAVELER PROFILES
 -- ============================================================================
 
--- The auth trigger inserts skeleton traveler_profiles rows for every user
--- (it can't know role yet when auth.users fires).  Upsert to fill in real fields.
-INSERT INTO traveler_profiles (id, user_id, nationality, preferred_language, emergency_contact_name, emergency_contact_phone) VALUES
-('cccccccc-0000-4000-a000-000000000011', 'aaaaaaaa-0000-4000-a000-000000000011', 'United States',  'English', 'Mark Wilson',    '+14155559876'),
-('cccccccc-0000-4000-a000-000000000012', 'aaaaaaaa-0000-4000-a000-000000000012', 'Japan',          'English', 'Yuki Tanaka',    '+81901239876'),
-('cccccccc-0000-4000-a000-000000000013', 'aaaaaaaa-0000-4000-a000-000000000013', 'Germany',        'English', 'Klaus Mueller',   '+491769876543')
+-- Auth sync creates skeleton traveler_profiles only for traveler accounts.
+-- Upsert the demo travelers to fill in their structured profile fields.
+INSERT INTO traveler_profiles (
+  id, user_id, nationality, preferred_language, interests, about_me,
+  travel_pace, dietary_preferences, onboarded_at, setup_completed_at,
+  onboarding_version
+) VALUES
+('cccccccc-0000-4000-a000-000000000011', 'aaaaaaaa-0000-4000-a000-000000000011', 'United States', 'English', ARRAY['food','history'], 'First time in Mumbai. I love local food and stories more than checklist sightseeing.', 'balanced', ARRAY['vegetarian'], now(), now(), 2),
+('cccccccc-0000-4000-a000-000000000012', 'aaaaaaaa-0000-4000-a000-000000000012', 'Japan', 'English', ARRAY['photography','architecture'], 'I travel with a small camera and like unhurried neighbourhood walks.', 'relaxed', ARRAY[]::text[], now(), now(), 2),
+('cccccccc-0000-4000-a000-000000000013', 'aaaaaaaa-0000-4000-a000-000000000013', 'Germany', 'English', ARRAY['culture','hidden gems'], 'Curious about everyday city life and contemporary art.', 'packed', ARRAY['vegan'], now(), now(), 2)
 ON CONFLICT (user_id) DO UPDATE SET
   nationality              = EXCLUDED.nationality,
   preferred_language       = EXCLUDED.preferred_language,
-  emergency_contact_name   = EXCLUDED.emergency_contact_name,
-  emergency_contact_phone  = EXCLUDED.emergency_contact_phone;
+  interests                = EXCLUDED.interests,
+  about_me                 = EXCLUDED.about_me,
+  travel_pace              = EXCLUDED.travel_pace,
+  dietary_preferences      = EXCLUDED.dietary_preferences,
+  onboarded_at             = EXCLUDED.onboarded_at,
+  setup_completed_at       = EXCLUDED.setup_completed_at,
+  onboarding_version       = EXCLUDED.onboarding_version;
+
+INSERT INTO traveler_safety_profiles (
+  traveler_id, gender, emergency_contact_name, emergency_contact_phone
+) VALUES
+('aaaaaaaa-0000-4000-a000-000000000011', 'female', 'Mark Wilson',  '+14155559876'),
+('aaaaaaaa-0000-4000-a000-000000000012', 'male',   'Yuki Tanaka',   '+81901239876'),
+('aaaaaaaa-0000-4000-a000-000000000013', 'female', 'Klaus Mueller', '+491769876543')
+ON CONFLICT (traveler_id) DO UPDATE SET
+  gender = EXCLUDED.gender,
+  emergency_contact_name = EXCLUDED.emergency_contact_name,
+  emergency_contact_phone = EXCLUDED.emergency_contact_phone;
+
+INSERT INTO traveler_layovers (
+  traveler_id, airport_code, arrival_at, departure_at, flight_in, flight_out,
+  group_size, status
+) VALUES
+('aaaaaaaa-0000-4000-a000-000000000011', 'BOM', now() + interval '10 days', now() + interval '10 days 10 hours', 'AI102', 'AI101', 1, 'active'),
+('aaaaaaaa-0000-4000-a000-000000000012', 'BOM', now() + interval '15 days', now() + interval '15 days 9 hours',  'JL50',  'JL49',  2, 'active'),
+('aaaaaaaa-0000-4000-a000-000000000013', 'BOM', now() + interval '20 days', now() + interval '20 days 12 hours', 'LH756', 'LH757', 1, 'active')
+ON CONFLICT DO NOTHING;
 
 
 -- ============================================================================
