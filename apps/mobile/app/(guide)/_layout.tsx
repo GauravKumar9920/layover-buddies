@@ -84,7 +84,6 @@ export default function GuideLayout() {
       <Tabs.Screen name="bookings/in-trip/[bookingId]" options={{ href: null }} />
       <Tabs.Screen name="bookings/upload-proofs/[bookingId]" options={{ href: null }} />
       <Tabs.Screen name="bookings/receipt/[bookingId]" options={{ href: null }} />
-      <Tabs.Screen name="profile/payout-vpa" options={{ href: null }} />
     </Tabs>
   );
 }

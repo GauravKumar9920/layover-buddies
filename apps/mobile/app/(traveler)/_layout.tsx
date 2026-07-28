@@ -19,6 +19,7 @@ export default function TravelerLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="onboarding" />
+      <Stack.Screen name="profile/edit" />
       <Stack.Screen name="guide/[id]" />
       <Stack.Screen name="itinerary/[id]" />
       <Stack.Screen name="book/[guideId]" />
