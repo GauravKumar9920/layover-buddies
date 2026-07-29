@@ -444,21 +444,26 @@ export async function fetchGuideBookings(guideId: string): Promise<Booking[]> {
 export async function fetchPendingRequests(
   guideId: string,
 ): Promise<Booking[]> {
-  // Phase 1: bookings start at chat_open, not pending. All existing `pending`
-  // rows were migrated to `agreement_sent` by migration 20260503110100. Query
-  // both so any row that survived the migration or was created by an old client
-  // still shows up on the guide's requests dashboard.
+  // A request is actionable only while the inquiry is still open. Once an
+  // agreement has been sent it belongs in the booking lifecycle, not the guide's
+  // new-request inbox.
   const { data, error } = await supabase
     .from("bookings")
     .select(
       "*, traveler:users!traveler_id(id, full_name, avatar_url, traveler_profile:traveler_profiles(nationality, interests, about_me, travel_pace, dietary_preferences, accessibility_notes)), itinerary:itineraries(*)",
     )
     .eq("guide_id", guideId)
-    .in("status", ["chat_open", "agreement_sent"])
+    .eq("status", "chat_open")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return (data as RawBookingRow[] | null)?.map(normalizeBooking) ?? [];
+  // Keep the function's contract strict even if a mock, stale PostgREST cache,
+  // or future query refactor returns a broader row set.
+  return (
+    (data as RawBookingRow[] | null)
+      ?.filter((row) => row.status === "chat_open")
+      .map(normalizeBooking) ?? []
+  );
 }
 
 export async function acceptBooking(bookingId: string): Promise<void> {

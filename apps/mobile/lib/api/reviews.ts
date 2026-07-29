@@ -26,8 +26,7 @@ export async function submitReview(req: CreateReviewRequest): Promise<void> {
   const user = (await supabase.auth.getUser()).data.user;
   if (!user) throw new Error('Not authenticated');
 
-  // Insert review
-  const { error: reviewErr } = await supabase.from('reviews').insert({
+  const { error } = await supabase.from('reviews').insert({
     booking_id: req.booking_id,
     reviewer_id: user.id,
     reviewee_id: req.reviewee_id,
@@ -35,21 +34,9 @@ export async function submitReview(req: CreateReviewRequest): Promise<void> {
     comment: req.comment ?? null,
   });
 
-  if (reviewErr) throw reviewErr;
-
-  // Recalculate guide's avg_rating
-  const { data: reviews, error: avgErr } = await supabase
-    .from('reviews')
-    .select('overall_rating')
-    .eq('reviewee_id', req.reviewee_id);
-
-  if (!avgErr && reviews && reviews.length > 0) {
-    const avg = reviews.reduce((sum, r) => sum + r.overall_rating, 0) / reviews.length;
-    await supabase
-      .from('guide_profiles')
-      .update({ avg_rating: avg, total_reviews: reviews.length })
-      .eq('user_id', req.reviewee_id);
-  }
+  // Database trigger `maintain_guide_review_state` owns both denormalized guide
+  // rating metrics and the completed → rated booking transition atomically.
+  if (error) throw error;
 }
 
 export async function fetchReviewsForGuide(guideId: string): Promise<Review[]> {
