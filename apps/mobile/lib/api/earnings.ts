@@ -11,11 +11,11 @@
 
 import { supabase } from '../supabase';
 import { fetchGuideBookings } from './bookings';
-import { rupeesToPaise } from '../booking/money';
 import { stageForState } from '../booking/tripStages';
-import { PLATFORM_FEE_DOWN_RATE, TDS_RATE } from '@/config/constants';
-import type { Booking } from '@/types';
+import { expectedNetPaise } from '@/lib/booking/earnings';
 import type { Database } from '@/types/supabase';
+
+export { expectedNetPaise } from '@/lib/booking/earnings';
 
 export type PayoutKind = Database['public']['Enums']['payout_kind'];
 export type PayoutDispatchStatus = Database['public']['Enums']['payout_dispatch_status'];
@@ -42,30 +42,6 @@ export const PAYOUT_KIND_LABELS: Partial<Record<PayoutKind, string>> = {
 
 export function payoutKindLabel(kind: PayoutKind): string {
   return PAYOUT_KIND_LABELS[kind] ?? kind.replace(/_/g, ' ');
-}
-
-/**
- * A guide's expected net earning from one booking, in paise — mirrors
- * `compute_reconciliation_tx` (12.5% platform-down, then 1% TDS) on the
- * BUDDY FEE only.
- *
- * Critically this is based on `buddy_cost`, NOT `total_price − commission`:
- * `total_price` also bundles `estimated_expenses` (the traveler's trip pot),
- * which is never guide income — any unused portion is refunded to the traveler
- * (see the `traveler_refund` dispatch in 20260512100200_reconciliation_function).
- *
- * Early-access bookings carry `commission` 0, meaning every platform charge was
- * zeroed at booking time (platform-down + TDS included), so the guide keeps the
- * full buddy fee. This is an estimate — the source of truth is `paidOutPaise`
- * (actual `payout_dispatches.net_paise`), which also folds in the ±deposit/buffer
- * terms we can't know from the booking row alone.
- */
-export function expectedNetPaise(booking: Pick<Booking, 'buddy_cost' | 'commission'>): number {
-  const buddyFeePaise = rupeesToPaise(booking.buddy_cost);
-  // commission (platform_fee) 0 ⇒ early access ⇒ no platform-down / TDS applied.
-  if (booking.commission <= 0) return buddyFeePaise;
-  const afterPlatform = Math.floor(buddyFeePaise * (1 - PLATFORM_FEE_DOWN_RATE));
-  return afterPlatform - Math.round(afterPlatform * TDS_RATE);
 }
 
 export async function fetchGuidePayouts(guideUserId: string): Promise<GuidePayout[]> {
