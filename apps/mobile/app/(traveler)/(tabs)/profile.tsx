@@ -13,6 +13,7 @@ import { INTEREST_OPTIONS } from "@/config/profileOptions";
 import { theme } from "@/config/theme";
 import { fetchMyTravelerProfile } from "@/lib/api/travelerProfile";
 import { signOut } from "@/lib/auth";
+import { formatMumbaiShortDate } from "@/lib/dateTime";
 import { supabase } from "@/lib/supabase";
 
 type TravelerSummary = {
@@ -363,11 +364,7 @@ export default function TravelerProfileHubScreen() {
 function compactDate(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "Date not set";
-  return new Intl.DateTimeFormat("en", {
-    day: "numeric",
-    month: "short",
-    timeZone: "Asia/Kolkata",
-  }).format(date);
+  return formatMumbaiShortDate(date);
 }
 
 function ProfileRow({

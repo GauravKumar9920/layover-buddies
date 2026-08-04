@@ -231,6 +231,20 @@ export default function ReviewScreen() {
     );
   }
 
+  // ── Already reviewed ──────────────────────────────────────────────────────
+  // A successful traveler review atomically advances completed → rated in the
+  // database. Check the durable review before the completed-state gate so a
+  // revisit shows the submitted review instead of "Tour not yet completed."
+  if (existingReview) {
+    return (
+      <AlreadyReviewedView
+        existing={existingReview}
+        guideName={booking.guide?.name ?? 'your guide'}
+        tripId={id ?? ''}
+      />
+    );
+  }
+
   // ── Guard: booking must be completed ─────────────────────────────────────
   if (booking.status !== 'completed') {
     return (
@@ -246,17 +260,6 @@ export default function ReviewScreen() {
           <Button title="Go Back" onPress={() => router.back()} style={{ marginTop: 24 }} variant="secondary" />
         </View>
       </View>
-    );
-  }
-
-  // ── Already reviewed ──────────────────────────────────────────────────────
-  if (existingReview) {
-    return (
-      <AlreadyReviewedView
-        existing={existingReview}
-        guideName={booking.guide?.name ?? 'your guide'}
-        tripId={id ?? ''}
-      />
     );
   }
 

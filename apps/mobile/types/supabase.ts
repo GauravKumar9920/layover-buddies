@@ -1772,6 +1772,24 @@ export type Database = {
           late_fee_paise: number
         }[]
       }
+      get_my_guide_dashboard_summary: {
+        Args: never
+        Returns: {
+          active_tours_count: number
+          average_rating: number
+          completed_trips_count: number
+          is_active: boolean
+          is_published: boolean
+          open_inquiries_count: number
+          paid_earnings_current_month_paise: number
+          paid_earnings_paise: number
+          profile_completion_percent: number
+          profile_missing_fields: string[]
+          profile_status: string
+          review_count: number
+          upcoming_trips_count: number
+        }[]
+      }
       get_my_role: { Args: never; Returns: string }
       handle_new_auth_user_sync: {
         Args: { target_user_id: string }
@@ -2115,4 +2133,3 @@ export const Constants = {
     },
   },
 } as const
-
