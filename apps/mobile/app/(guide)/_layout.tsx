@@ -8,14 +8,14 @@ type FeatherName = React.ComponentProps<typeof Feather>['name'];
 function TabIcon({ icon, label, focused }: { icon: FeatherName; label: string; focused: boolean }) {
   return (
     <View style={{ alignItems: 'center', gap: 4, width: 64 }}>
-      <Feather name={icon} size={21} color={focused ? theme.colors.primary : theme.colors.textMuted} />
+      <Feather name={icon} size={21} color={focused ? theme.colors.primaryDark : theme.colors.textSecondary} />
       <Text
         style={{
           fontFamily: focused ? theme.fonts.monoMed : theme.fonts.mono,
           fontSize: 9,
           letterSpacing: 0.4,
           textTransform: 'uppercase',
-          color: focused ? theme.colors.primary : theme.colors.textMuted,
+          color: focused ? theme.colors.primaryDark : theme.colors.textSecondary,
         }}
       >
         {label}
@@ -43,7 +43,7 @@ export default function GuideLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon icon="grid" label="Dashboard" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="grid" label="Home" focused={focused} />,
         }}
       />
       <Tabs.Screen

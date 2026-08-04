@@ -17,6 +17,8 @@ import { TripTimeline } from "@/components/bookings/TripTimeline";
 import { TravelerBuddyBrief } from "@/components/bookings/TravelerBuddyBrief";
 import { GENDER_OPTIONS } from "@/config/profileOptions";
 import { fetchGuideBookingById } from "@/lib/api/bookings";
+import { expectedNetPaise } from "@/lib/api/earnings";
+import { formatPaise, rupeesToPaise } from "@/lib/booking/money";
 import { theme } from "@/config/theme";
 import type { BookingState } from "@/lib/booking/stateMachine";
 import type { Booking } from "@/types";
@@ -76,7 +78,7 @@ export default function GuideBookingDetailScreen() {
 
   const itinerary = booking.itinerary;
   const traveler = booking.traveler;
-  const payout = booking.total_price - booking.commission;
+  const expectedPayoutPaise = expectedNetPaise(booking);
   const showTripDaySafety =
     booking.status === "trip_ready" || booking.status === "in_progress";
   const safety = booking.traveler_safety;
@@ -469,7 +471,7 @@ export default function GuideBookingDetailScreen() {
                 color: theme.colors.textSecondary,
               }}
             >
-              Booking total
+              Buddy fee
             </Text>
             <Text
               style={{
@@ -478,31 +480,22 @@ export default function GuideBookingDetailScreen() {
                 color: theme.colors.text,
               }}
             >
-              ₹{booking.total_price.toLocaleString("en-IN")}
+              {formatPaise(rupeesToPaise(booking.buddy_cost))}
             </Text>
           </View>
-          <View
-            style={{ flexDirection: "row", justifyContent: "space-between" }}
+          <Text
+            style={{
+              fontFamily: theme.fonts.body,
+              fontSize: 12,
+              lineHeight: 17,
+              color: theme.colors.textMuted,
+              marginTop: 4,
+              marginBottom: 6,
+            }}
           >
-            <Text
-              style={{
-                fontFamily: theme.fonts.body,
-                fontSize: 14,
-                color: theme.colors.textSecondary,
-              }}
-            >
-              Platform fee
-            </Text>
-            <Text
-              style={{
-                fontFamily: theme.fonts.mono,
-                fontSize: 14,
-                color: theme.colors.textSecondary,
-              }}
-            >
-              −₹{booking.commission.toLocaleString("en-IN")}
-            </Text>
-          </View>
+            The traveler&apos;s expense pot is held separately and is not part
+            of your earnings.
+          </Text>
           <View
             style={{
               flexDirection: "row",
@@ -518,7 +511,7 @@ export default function GuideBookingDetailScreen() {
                 color: theme.colors.primary,
               }}
             >
-              Your payout
+              Expected net payout
             </Text>
             <Text
               style={{
@@ -527,9 +520,22 @@ export default function GuideBookingDetailScreen() {
                 color: theme.colors.primary,
               }}
             >
-              ₹{payout.toLocaleString("en-IN")}
+              {formatPaise(expectedPayoutPaise)}
             </Text>
           </View>
+          <Text
+            style={{
+              fontFamily: theme.fonts.body,
+              fontSize: 11,
+              lineHeight: 16,
+              color: theme.colors.textMuted,
+              marginTop: 5,
+            }}
+          >
+            {booking.commission <= 0
+              ? "Early access: no platform fee or TDS."
+              : "After the platform fee and TDS. Final payout is confirmed during reconciliation."}
+          </Text>
         </Card>
       </ScrollView>
 
