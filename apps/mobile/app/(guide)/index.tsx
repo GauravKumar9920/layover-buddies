@@ -572,7 +572,7 @@ export default function GuideDashboardScreen() {
         <SectionHeading
           eyebrow="Quick actions"
           title="Keep the momentum"
-          detail="The three places guides use most."
+          detail="The places guides use most."
         />
         <View style={styles.quickActions}>
           <QuickAction
@@ -588,6 +588,15 @@ export default function GuideDashboardScreen() {
             color={theme.colors.accent}
             tint={theme.colors.accentLight}
             onPress={() => router.push("/(guide)/profile" as never)}
+          />
+          {/* Entry point for the business-performance screen. The cockpit above
+              carries live counters; insights carries the trend behind them. */}
+          <QuickAction
+            icon="trending-up"
+            label="Business insights"
+            color={theme.colors.gold}
+            tint="#FBEACB"
+            onPress={() => router.push("/(guide)/insights" as never)}
           />
           <QuickAction
             icon="eye"
@@ -1917,10 +1926,14 @@ const styles = StyleSheet.create({
   },
   quickActions: {
     flexDirection: "row",
+    // Four tiles in one row would squeeze each label to ~50pt of content
+    // width, so they wrap into a 2x2 grid instead.
+    flexWrap: "wrap",
     gap: 9,
   },
   quickAction: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: "47%",
     minHeight: 124,
     borderRadius: theme.borderRadius.lg,
     borderWidth: 1,
