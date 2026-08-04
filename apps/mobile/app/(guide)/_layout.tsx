@@ -74,6 +74,8 @@ export default function GuideLayout() {
       <Tabs.Screen name="itineraries/[id]" options={{ href: null }} />
       {/* Earnings — reached from the dashboard "Earned" stat card */}
       <Tabs.Screen name="earnings" options={{ href: null }} />
+      {/* Business performance — reached from the dashboard momentum card. */}
+      <Tabs.Screen name="insights" options={{ href: null }} />
       <Tabs.Screen name="bookings/[id]" options={{ href: null }} />
       {/* Phase 2 — buddy-side agreement drafting screen, reachable via router.push */}
       <Tabs.Screen name="bookings/agreement-draft/[bookingId]" options={{ href: null }} />
@@ -84,7 +86,6 @@ export default function GuideLayout() {
       <Tabs.Screen name="bookings/in-trip/[bookingId]" options={{ href: null }} />
       <Tabs.Screen name="bookings/upload-proofs/[bookingId]" options={{ href: null }} />
       <Tabs.Screen name="bookings/receipt/[bookingId]" options={{ href: null }} />
-      <Tabs.Screen name="profile/payout-vpa" options={{ href: null }} />
     </Tabs>
   );
 }

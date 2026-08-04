@@ -10,6 +10,7 @@ import {
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import Feather from "@expo/vector-icons/Feather";
+import { useNavigation, usePreventRemove } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/ui/Header";
 import { Input } from "@/components/ui/Input";
@@ -22,7 +23,6 @@ import {
   ProfileCompletionCard,
   ProfileSection,
 } from "@/components/profile/ProfileBuilder";
-import { AccountActions } from "@/components/settings/AccountActions";
 import { pickImage, pickImages, type PickedImage } from "@/lib/imagePicker";
 import { uploadImage } from "@/lib/imageUpload";
 import {
@@ -39,7 +39,6 @@ import {
   updateGuideProfile,
 } from "@/lib/api/guides";
 import { supabase } from "@/lib/supabase";
-import { signOut } from "@/lib/auth";
 import { theme } from "@/config/theme";
 import type {
   GuideProfile,
@@ -150,9 +149,10 @@ function uniquePhotoName(
   return `${role}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`;
 }
 
-export default function GuideProfileScreen() {
+export default function GuideProfileEditScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const navigation = useNavigation();
   const [profile, setProfile] = useState<GuideProfile | null>(null);
   const [profilePhotos, setProfilePhotos] = useState<GuideProfilePhoto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -160,6 +160,7 @@ export default function GuideProfileScreen() {
   const [statusBusy, setStatusBusy] = useState(false);
   const [photoBusy, setPhotoBusy] = useState<PhotoBusy>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
 
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
@@ -168,6 +169,24 @@ export default function GuideProfileScreen() {
   const [hometown, setHometown] = useState("");
   const [pullQuote, setPullQuote] = useState("");
   const [prompts, setPrompts] = useState<GuidePrompt[]>(DEFAULT_PROMPTS);
+
+  usePreventRemove(dirty && !saving && !statusBusy, ({ data }) => {
+    Alert.alert(
+      "Discard profile changes?",
+      "Your unsaved text, captions, and photo order will be lost.",
+      [
+        { text: "Keep editing", style: "cancel" },
+        {
+          text: "Discard",
+          style: "destructive",
+          onPress: () => {
+            setDirty(false);
+            requestAnimationFrame(() => navigation.dispatch(data.action));
+          },
+        },
+      ],
+    );
+  });
 
   useEffect(() => {
     void loadProfile();
@@ -268,6 +287,7 @@ export default function GuideProfileScreen() {
       setHometown(data.hometown ?? "");
       setPullQuote(data.pull_quote ?? "");
       setPrompts(mergeSavedPromptAnswers(existingPrompts as GuidePrompt[]));
+      setDirty(false);
     } catch (err: unknown) {
       setLoadError(
         err instanceof Error ? err.message : "Failed to load your profile.",
@@ -278,6 +298,7 @@ export default function GuideProfileScreen() {
   }
 
   function updatePromptAnswer(index: number, answer: string) {
+    setDirty(true);
     setPrompts((previous) =>
       previous.map((prompt, promptIndex) =>
         promptIndex === index ? { ...prompt, answer } : prompt,
@@ -513,6 +534,7 @@ export default function GuideProfileScreen() {
   }
 
   function updateGalleryCaption(photoId: string, caption: string) {
+    setDirty(true);
     setProfilePhotos((previous) =>
       previous.map((photo) =>
         photo.id === photoId ? { ...photo, caption } : photo,
@@ -521,6 +543,7 @@ export default function GuideProfileScreen() {
   }
 
   function moveGalleryPhoto(photoId: string, direction: -1 | 1) {
+    setDirty(true);
     setProfilePhotos((previous) => {
       const fixed = previous.filter((photo) => photo.role !== "gallery");
       const gallery = previous
@@ -619,6 +642,7 @@ export default function GuideProfileScreen() {
           ? `This profile still needs ${result.missing.join(", ")}, so inquiries were paused while you finish it.`
           : "Your profile builder changes are saved.",
       );
+      setDirty(false);
     } catch (err: unknown) {
       Alert.alert(
         "Error",
@@ -673,6 +697,7 @@ export default function GuideProfileScreen() {
     setStatusBusy(true);
     try {
       await persistBuilder();
+      setDirty(false);
       if (nextStatus === "published") {
         const result = await publishGuideProfile();
         if (!result.published) {
@@ -740,10 +765,6 @@ export default function GuideProfileScreen() {
     }
   }
 
-  async function handleSignOut() {
-    await signOut();
-  }
-
   if (loading) return <Loading fullScreen />;
 
   return (
@@ -754,7 +775,11 @@ export default function GuideProfileScreen() {
         paddingTop: insets.top,
       }}
     >
-      <Header title="Profile Builder" />
+      <Header
+        title="Edit guide profile"
+        showBack
+        backFallback="/(guide)/profile"
+      />
       <ScrollView
         contentContainerStyle={{
           padding: 20,
@@ -853,20 +878,29 @@ export default function GuideProfileScreen() {
           <Input
             label="Full name"
             value={name}
-            onChangeText={setName}
+            onChangeText={(value) => {
+              setDirty(true);
+              setName(value);
+            }}
             autoCapitalize="words"
           />
           <Input
             label="University"
             value={university}
-            onChangeText={setUniversity}
+            onChangeText={(value) => {
+              setDirty(true);
+              setUniversity(value);
+            }}
             placeholder="e.g. IIT Bombay"
             autoCapitalize="words"
           />
           <Input
             label="Hometown"
             value={hometown}
-            onChangeText={setHometown}
+            onChangeText={(value) => {
+              setDirty(true);
+              setHometown(value);
+            }}
             placeholder="e.g. Mumbai"
             hint="Shown alongside your university on the public profile."
             autoCapitalize="words"
@@ -874,7 +908,10 @@ export default function GuideProfileScreen() {
           <Input
             label="Languages"
             value={languages}
-            onChangeText={setLanguages}
+            onChangeText={(value) => {
+              setDirty(true);
+              setLanguages(value);
+            }}
             placeholder="English, Hindi, Marathi"
             hint="Separate languages with commas."
           />
@@ -890,7 +927,10 @@ export default function GuideProfileScreen() {
           <Input
             label="Bio"
             value={bio}
-            onChangeText={setBio}
+            onChangeText={(value) => {
+              setDirty(true);
+              setBio(value);
+            }}
             placeholder="What makes time with you different?"
             multiline
             numberOfLines={4}
@@ -898,7 +938,10 @@ export default function GuideProfileScreen() {
           <Input
             label="Headline quote"
             value={pullQuote}
-            onChangeText={setPullQuote}
+            onChangeText={(value) => {
+              setDirty(true);
+              setPullQuote(value);
+            }}
             placeholder="The best part of Mumbai isn't on anyone's checklist…"
             multiline
             numberOfLines={3}
@@ -1173,13 +1216,6 @@ export default function GuideProfileScreen() {
           </Card>
         ) : null}
 
-        <Button
-          title="Sign out"
-          onPress={() => void handleSignOut()}
-          variant="danger"
-          style={{ marginTop: 24 }}
-        />
-        <AccountActions />
       </ScrollView>
     </View>
   );

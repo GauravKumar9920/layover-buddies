@@ -106,15 +106,15 @@ ON CONFLICT DO NOTHING;
 -- trigger leaves blank.
 INSERT INTO users (id, email, phone, full_name, role, avatar_url, is_verified, auth_provider) VALUES
 -- Guides
-('aaaaaaaa-0000-4000-a000-000000000001', 'aarav.patil@vjti.ac.in',       '+919876543201', 'Aarav Patil',     'guide',    NULL, TRUE,  'email'),
-('aaaaaaaa-0000-4000-a000-000000000002', 'priya.sharma@iitb.ac.in',      '+919876543202', 'Priya Sharma',    'guide',    NULL, TRUE,  'google'),
-('aaaaaaaa-0000-4000-a000-000000000003', 'rohan.dsouza@xaviers.edu',     '+919876543203', 'Rohan D''Souza',  'guide',    NULL, TRUE,  'email'),
-('aaaaaaaa-0000-4000-a000-000000000004', 'sneha.mehta@nmims.edu',        '+919876543204', 'Sneha Mehta',     'guide',    NULL, TRUE,  'google'),
-('aaaaaaaa-0000-4000-a000-000000000005', 'kabir.joshi@mithibai.ac.in',   '+919876543205', 'Kabir Joshi',     'guide',    NULL, FALSE, 'email'),
+('aaaaaaaa-0000-4000-a000-000000000001', 'aarav.patil@vjti.ac.in',       '+919876543201', 'Aarav Patil',     'guide',    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=480&h=480&q=85', TRUE,  'email'),
+('aaaaaaaa-0000-4000-a000-000000000002', 'priya.sharma@iitb.ac.in',      '+919876543202', 'Priya Sharma',    'guide',    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=480&h=480&q=85', TRUE,  'google'),
+('aaaaaaaa-0000-4000-a000-000000000003', 'rohan.dsouza@xaviers.edu',     '+919876543203', 'Rohan D''Souza',  'guide',    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=480&h=480&q=85', TRUE,  'email'),
+('aaaaaaaa-0000-4000-a000-000000000004', 'sneha.mehta@nmims.edu',        '+919876543204', 'Sneha Mehta',     'guide',    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=480&h=480&q=85', TRUE,  'google'),
+('aaaaaaaa-0000-4000-a000-000000000005', 'kabir.joshi@mithibai.ac.in',   '+919876543205', 'Kabir Joshi',     'guide',    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=480&h=480&q=85', FALSE, 'email'),
 -- Travelers
-('aaaaaaaa-0000-4000-a000-000000000011', 'emma.wilson@gmail.com',        '+14155551234',  'Emma Wilson',     'traveler', NULL, TRUE,  'google'),
-('aaaaaaaa-0000-4000-a000-000000000012', 'james.tanaka@outlook.com',     '+81901234567',  'James Tanaka',    'traveler', NULL, TRUE,  'email'),
-('aaaaaaaa-0000-4000-a000-000000000013', 'sofia.mueller@proton.me',      '+491761234567', 'Sofia Mueller',   'traveler', NULL, TRUE,  'apple')
+('aaaaaaaa-0000-4000-a000-000000000011', 'emma.wilson@gmail.com',        '+14155551234',  'Emma Wilson',     'traveler', 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=480&h=480&q=85', TRUE,  'google'),
+('aaaaaaaa-0000-4000-a000-000000000012', 'james.tanaka@outlook.com',     '+81901234567',  'James Tanaka',    'traveler', 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?auto=format&fit=crop&w=480&h=480&q=85', TRUE,  'email'),
+('aaaaaaaa-0000-4000-a000-000000000013', 'sofia.mueller@proton.me',      '+491761234567', 'Sofia Mueller',   'traveler', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=480&h=480&q=85', TRUE,  'apple')
 ON CONFLICT (id) DO UPDATE SET
   phone        = EXCLUDED.phone,
   full_name    = EXCLUDED.full_name,
@@ -218,8 +218,8 @@ INSERT INTO guide_profiles (
   total_trips = EXCLUDED.total_trips,
   response_time_minutes = EXCLUDED.response_time_minutes;
 
--- Explicit profile-media placements for Aarav. Each URL has one job; these are
--- intentionally not itinerary or stop images.
+-- Explicit profile-media placements for every demo guide. Each URL has one
+-- job; these are intentionally not itinerary or stop images.
 INSERT INTO guide_profile_photos (
   id, guide_profile_id, role, url, caption, position
 )
@@ -263,6 +263,39 @@ CROSS JOIN (
     )
 ) AS media(id, role, url, caption, position)
 WHERE guide.user_id = 'aaaaaaaa-0000-4000-a000-000000000001'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO guide_profile_photos (
+  id, guide_profile_id, role, url, caption, position
+)
+SELECT
+  media.id,
+  guide.id,
+  media.role,
+  media.url,
+  media.caption,
+  media.position
+FROM guide_profiles AS guide
+JOIN (
+  VALUES
+    ('aaaaaaaa-0000-4000-a000-000000000002'::uuid, 'f2000000-0000-4000-a000-000000000001'::uuid, 'cover'::text,   'https://images.unsplash.com/photo-1576502200916-3808e07386a5?auto=format&fit=crop&w=1200&q=85'::text, NULL::text, 0::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000002'::uuid, 'f2000000-0000-4000-a000-000000000002'::uuid, 'story'::text,   'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=1200&q=85'::text, NULL::text, 0::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000002'::uuid, 'f2000000-0000-4000-a000-000000000003'::uuid, 'gallery'::text, 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?auto=format&fit=crop&w=1000&q=85'::text, 'Finding the geometry in Mumbai''s old facades.'::text, 0::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000002'::uuid, 'f2000000-0000-4000-a000-000000000004'::uuid, 'gallery'::text, 'https://images.unsplash.com/photo-1611270629569-8b357cb88da9?auto=format&fit=crop&w=1000&q=85'::text, 'An unhurried afternoon around the city.'::text, 1::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000003'::uuid, 'f3000000-0000-4000-a000-000000000001'::uuid, 'cover'::text,   'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?auto=format&fit=crop&w=1200&q=85'::text, NULL::text, 0::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000003'::uuid, 'f3000000-0000-4000-a000-000000000002'::uuid, 'story'::text,   'https://images.unsplash.com/photo-1586500036706-41963de24d8b?auto=format&fit=crop&w=1200&q=85'::text, NULL::text, 0::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000003'::uuid, 'f3000000-0000-4000-a000-000000000003'::uuid, 'gallery'::text, 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1000&q=85'::text, 'The stories hidden between Colaba''s landmarks.'::text, 0::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000003'::uuid, 'f3000000-0000-4000-a000-000000000004'::uuid, 'gallery'::text, 'https://images.unsplash.com/photo-1595658658481-d53d3f999875?auto=format&fit=crop&w=1000&q=85'::text, 'Bandra after the evening light changes.'::text, 1::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000004'::uuid, 'f4000000-0000-4000-a000-000000000001'::uuid, 'cover'::text,   'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=1200&q=85'::text, NULL::text, 0::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000004'::uuid, 'f4000000-0000-4000-a000-000000000002'::uuid, 'story'::text,   'https://images.unsplash.com/photo-1576502200916-3808e07386a5?auto=format&fit=crop&w=1200&q=85'::text, NULL::text, 0::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000004'::uuid, 'f4000000-0000-4000-a000-000000000003'::uuid, 'gallery'::text, 'https://images.unsplash.com/photo-1529253355930-ddbe423a2ac7?auto=format&fit=crop&w=1000&q=85'::text, 'Following the city from heritage to hustle.'::text, 0::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000004'::uuid, 'f4000000-0000-4000-a000-000000000004'::uuid, 'gallery'::text, 'https://images.unsplash.com/photo-1586500036706-41963de24d8b?auto=format&fit=crop&w=1000&q=85'::text, 'A camera-ready pause in South Mumbai.'::text, 1::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000005'::uuid, 'f5000000-0000-4000-a000-000000000001'::uuid, 'cover'::text,   'https://images.unsplash.com/photo-1595658658481-d53d3f999875?auto=format&fit=crop&w=1200&q=85'::text, NULL::text, 0::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000005'::uuid, 'f5000000-0000-4000-a000-000000000002'::uuid, 'story'::text,   'https://images.unsplash.com/photo-1611270629569-8b357cb88da9?auto=format&fit=crop&w=1200&q=85'::text, NULL::text, 0::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000005'::uuid, 'f5000000-0000-4000-a000-000000000003'::uuid, 'gallery'::text, 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1000&q=85'::text, 'A sunset route away from the usual checklist.'::text, 0::smallint),
+    ('aaaaaaaa-0000-4000-a000-000000000005'::uuid, 'f5000000-0000-4000-a000-000000000004'::uuid, 'gallery'::text, 'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?auto=format&fit=crop&w=1000&q=85'::text, 'Small streets, strong chai, no rush.'::text, 1::smallint)
+) AS media(user_id, id, role, url, caption, position)
+  ON guide.user_id = media.user_id
 ON CONFLICT DO NOTHING;
 
 -- The production insert trigger correctly forces every new guide into draft.
