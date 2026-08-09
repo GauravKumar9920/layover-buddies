@@ -79,7 +79,7 @@ CREATE TYPE notification_type AS ENUM (
 -- This is the core identity table. Every person in the system has a user record.
 -- Authentication is handled by Supabase Auth, but we store extended info here.
 CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- Email and phone are used for communication and verification
   email VARCHAR(255) UNIQUE NOT NULL,
@@ -120,7 +120,7 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
 -- Guides are the local college students offering tours.
 -- This table contains their professional profile, verification status, and stats.
 CREATE TABLE guide_profiles (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
 
   -- Education details
@@ -189,7 +189,7 @@ CREATE TRIGGER update_guide_profiles_updated_at BEFORE UPDATE ON guide_profiles
 -- ============================================================================
 -- Travelers are international tourists looking for local guides.
 CREATE TABLE traveler_profiles (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
 
   -- Travel info
@@ -212,7 +212,7 @@ CREATE INDEX idx_traveler_profiles_user_id ON traveler_profiles(user_id);
 -- Each guide can create multiple tour itineraries (e.g., "Street Food Tour", "Heritage Walk").
 -- Travelers browse and book these itineraries.
 CREATE TABLE itineraries (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   guide_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
   -- Basic info
@@ -259,7 +259,7 @@ CREATE TRIGGER update_itineraries_updated_at BEFORE UPDATE ON itineraries
 -- ============================================================================
 -- An itinerary has multiple stops (e.g., "Street Market" -> "Local Eatery" -> "Photography Spot").
 CREATE TABLE itinerary_stops (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   itinerary_id UUID NOT NULL REFERENCES itineraries(id) ON DELETE CASCADE,
 
   -- Order matters (which stop comes first, second, etc.)
@@ -297,7 +297,7 @@ CREATE INDEX idx_itinerary_stops_stop_order ON itinerary_stops(itinerary_id, sto
 -- A booking represents a traveler hiring a guide for a specific arrival.
 -- This is where money, trust, and safety come together.
 CREATE TABLE bookings (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   traveler_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
   guide_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
   itinerary_id UUID REFERENCES itineraries(id) ON DELETE SET NULL, -- Null if custom request
@@ -357,7 +357,7 @@ CREATE TRIGGER update_bookings_updated_at BEFORE UPDATE ON bookings
 -- When a traveler searches, we show 3 guide matches. Traveler can send requests.
 -- Guides have 24 hours to respond (before request expires).
 CREATE TABLE match_requests (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   traveler_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   guide_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
@@ -391,7 +391,7 @@ CREATE INDEX idx_match_requests_expires_at ON match_requests(expires_at);
 -- Guide logs expenses as they happen (lunch cost, Uber fare, museum entry, etc.).
 -- Used to split costs with traveler and track actual vs. estimated.
 CREATE TABLE expenses (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
 
   -- What was this expense for?
@@ -420,7 +420,7 @@ CREATE INDEX idx_expenses_category ON expenses(category);
 -- ============================================================================
 -- After a tour completes, both traveler and guide can review each other.
 CREATE TABLE reviews (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id UUID NOT NULL UNIQUE REFERENCES bookings(id) ON DELETE CASCADE,
 
   -- Who wrote the review? Who are they reviewing?
@@ -453,7 +453,7 @@ CREATE INDEX idx_reviews_booking_id ON reviews(booking_id);
 -- Synced from FlightAware API via Supabase Edge Function (polled every 15 min).
 -- Used to notify guides of delays and coordinate meet times.
 CREATE TABLE flight_tracking (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
 
   -- Flight info
@@ -484,7 +484,7 @@ CREATE INDEX idx_flight_tracking_status ON flight_tracking(status);
 -- This table has high volume — consider partitioning or setting a TTL in future.
 -- (Note: For MVP, can simplify or use Supabase Realtime instead of polling this table)
 CREATE TABLE location_tracking (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
 
@@ -505,7 +505,7 @@ CREATE INDEX idx_location_tracking_recorded_at ON location_tracking(recorded_at 
 -- ============================================================================
 -- Successful guides get invite codes to recruit new guides (referral program).
 CREATE TABLE invite_codes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code VARCHAR(20) UNIQUE NOT NULL, -- E.g., "GUIDE123"
 
   -- Who earned this code?
@@ -531,7 +531,7 @@ CREATE INDEX idx_invite_codes_is_used ON invite_codes(is_used);
 -- Simple messaging system tied to bookings.
 -- For MVP, this is basic. Can add threads, files, etc. later.
 CREATE TABLE messages (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
 
   -- Who sent this message?
@@ -556,7 +556,7 @@ CREATE INDEX idx_messages_created_at ON messages(created_at DESC);
 -- ============================================================================
 -- Tracks when guides request payouts and when money is transferred.
 CREATE TABLE payouts (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   guide_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
   -- How much are we paying out?
@@ -585,7 +585,7 @@ CREATE INDEX idx_payouts_status ON payouts(status);
 -- ============================================================================
 -- Tracks all notifications sent to users.
 CREATE TABLE notifications (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
   -- What type of notification?
@@ -615,7 +615,7 @@ CREATE INDEX idx_notifications_is_read ON notifications(is_read);
 -- ============================================================================
 -- If traveler or guide feels unsafe, they can trigger an SOS.
 CREATE TABLE sos_alerts (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
 
   -- Who triggered the SOS?
