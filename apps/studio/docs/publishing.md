@@ -46,7 +46,9 @@ In Sanity Manage → API → Webhooks, add a webhook with:
 - Filter: `_type in ["guide", "landingPage"]`.
 - Projection: `{_id, _type, "slug": slug.current, path, _rev, _updatedAt}`.
 - Drafts: disabled.
-- HTTP header: an `Idempotency-Key` unique to the Sanity delivery.
+- Delivery ID: Sanity's native `sanity-webhook-id` header is used for
+  idempotency. A custom `Idempotency-Key` header remains supported for manual
+  replay tooling.
 - Secret: the same dedicated `SANITY_WEBHOOK_SECRET` configured on Supabase.
 
 Do not point Sanity directly at Vercel. The Edge relay verifies Sanity's

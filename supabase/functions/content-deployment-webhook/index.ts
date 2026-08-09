@@ -37,7 +37,10 @@ async function record(db: any, input: {
 }
 
 function eventId(req: Request): string | null {
-  const value = req.headers.get('idempotency-key')?.trim();
+  const value = (
+    req.headers.get('idempotency-key')
+    ?? req.headers.get('sanity-webhook-id')
+  )?.trim();
   return value && value.length >= 8 && value.length <= 256 && /^[A-Za-z0-9._:-]+$/.test(value) ? value : null;
 }
 
