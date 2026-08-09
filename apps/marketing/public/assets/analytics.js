@@ -88,9 +88,20 @@
     if (/mumbai-layover-cheat-sheet\.pdf(?:$|[?#])/i.test(link.href)) {
       track('cheat_sheet_download', { link_type: 'pdf', page_path: location.pathname });
     }
-    if (link.matches('[data-app-store], [href*="apps.apple.com"], [href*="play.google.com/store"]')) {
+    var store = null;
+    try {
+      var destination = new URL(link.href, location.href);
+      if (destination.hostname.toLowerCase() === 'apps.apple.com') store = 'ios';
+      if (
+        destination.hostname.toLowerCase() === 'play.google.com'
+        && destination.pathname.indexOf('/store/apps') === 0
+      ) store = 'android';
+    } catch (_) {
+      store = null;
+    }
+    if (store) {
       track('app_store_click', {
-        store: link.href.indexOf('apple.com') >= 0 ? 'ios' : 'android',
+        store: store,
         page_path: location.pathname,
       });
     }

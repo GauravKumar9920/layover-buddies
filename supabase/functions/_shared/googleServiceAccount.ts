@@ -31,6 +31,12 @@ function pemBytes(value: string): Uint8Array {
   return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 }
 
+function ownedArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
+}
+
 async function serviceAccountAssertion(email: string, privateKey: string, scope: string): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const header = base64UrlJson({ alg: 'RS256', typ: 'JWT' });
@@ -44,7 +50,7 @@ async function serviceAccountAssertion(email: string, privateKey: string, scope:
   const signingInput = `${header}.${payload}`;
   const key = await crypto.subtle.importKey(
     'pkcs8',
-    pemBytes(privateKey),
+    ownedArrayBuffer(pemBytes(privateKey)),
     { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
     false,
     ['sign'],
