@@ -116,7 +116,7 @@ function shouldRetainHeadNode(node: LegacyNode): boolean {
   if (tag === 'script') {
     const source = attr(node, 'src') || '';
     if (attr(node, 'type') === 'application/ld+json') return false;
-    if (source.includes('googletagmanager.com') || source.endsWith('assets/utm.js')) return false;
+    if (hasExactHostname(source, 'www.googletagmanager.com') || source.endsWith('assets/utm.js')) return false;
     if (textContent(node).includes("gtag('config'")) return false;
   }
   return true;
@@ -130,6 +130,14 @@ function textContent(node: LegacyNode): string {
 
 function normalizeText(node: LegacyNode): string {
   return textContent(node).replace(/\s+/gu, ' ').trim();
+}
+
+function hasExactHostname(value: string, hostname: string): boolean {
+  try {
+    return new URL(value, 'https://detour.local').hostname.toLowerCase() === hostname;
+  } catch {
+    return false;
+  }
 }
 
 function prepareTree(node: LegacyNode, source: string, inHead = false): void {
