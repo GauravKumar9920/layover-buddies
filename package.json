@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "description": "Detour — layover marketplace monorepo: mobile app, admin console, marketing site, and Supabase backend.",
   "workspaces": [
-    "apps/*",
+    "apps/admin",
+    "apps/marketing",
+    "apps/mobile",
     "packages/*"
   ],
   "scripts": {
@@ -16,24 +18,27 @@
     "mobile:ios": "npm run start:ios --workspace @detour/mobile",
     "mobile:android": "npm run start:android --workspace @detour/mobile",
     "admin": "npm run dev --workspace @detour/admin",
-    "test:edge": "deno test --allow-env --no-check supabase/functions/__tests__/"
+    "studio": "npm --prefix apps/studio run dev",
+    "studio:build": "npm --prefix apps/studio run build",
+    "studio:test": "npm --prefix apps/studio run type-check && npm --prefix apps/studio test",
+    "test:edge": "deno test --allow-env --no-check supabase/functions/__tests__/",
+    "security:admin-bundle": "node scripts/assert-no-client-secrets.mjs apps/admin/dist"
   },
   "devDependencies": {
     "turbo": "^2.0.0"
   },
   "engines": {
-    "node": ">=20.0.0",
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0",
     "npm": ">=10.0.0"
   },
   "packageManager": "npm@10.9.3",
   "//overrides": "Security patches for transitive deps flagged by Dependabot, consolidated from the per-app package.json files. npm only honours `overrides` declared at the workspace root, so they MUST live here. Pinned to the first patched version; verified against Expo bundling, the mobile Jest suite, and the admin Vite build.",
   "overrides": {
-    "tar": "6.2.1",
     "@xmldom/xmldom": "0.8.13",
-    "fast-uri": "3.1.2",
+    "fast-uri": "3.1.5",
     "@babel/plugin-transform-modules-systemjs": "7.29.4",
     "ws": "8.21.0",
     "uuid": "11.1.1",
-    "postcss": "8.5.10"
+    "postcss": "8.5.26"
   }
 }

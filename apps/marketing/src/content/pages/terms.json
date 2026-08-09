@@ -1,0 +1,10 @@
+{
+  "route": "/terms",
+  "legacySource": "terms.html",
+  "pageType": "website",
+  "title": "Terms of Service — Detour Trips",
+  "description": "The terms that govern your use of Detour — the platform connecting layover travellers with verified Mumbai student guides.",
+  "updatedAt": "2026-06-14",
+  "changeFrequency": "yearly",
+  "priority": 0.3
+}

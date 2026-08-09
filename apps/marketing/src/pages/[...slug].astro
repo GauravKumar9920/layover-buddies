@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import StructuredPage from '../components/StructuredPage.astro';
+import { readLegacyDocument } from '../lib/legacy';
+import { getSitePages, type SitePage } from '../lib/site-pages';
+
+export async function getStaticPaths() {
+  return (await getSitePages())
+    .filter((page) => page.route !== '/404')
+    .map((page) => ({
+      params: { slug: page.route === '/' ? undefined : page.route.slice(1) },
+      props: { page },
+    }));
+}
+
+interface Props { page: SitePage }
+const { page } = Astro.props;
+const legacy = page.contentSource === 'local' ? await readLegacyDocument(page) : undefined;
+const structuredHead = '<link rel="stylesheet" href="/assets/site.css">';
+---
+
+<BaseLayout page={page} retainedHead={legacy?.retainedHead || structuredHead} theme={legacy?.theme || 'light'} faqs={legacy?.faqs}>
+  {legacy ? <Fragment set:html={legacy.body} /> : <StructuredPage page={page} />}
+</BaseLayout>

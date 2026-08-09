@@ -1,0 +1,13 @@
+{
+  "route": "/guides",
+  "legacySource": "guides/index.html",
+  "pageType": "collection",
+  "title": "Mumbai Layover Guides — Visas, Itineraries, Safety & Luggage | Detour",
+  "description": "Everything you need to plan a Mumbai (BOM) layover, in one place: the complete guide, hour-by-hour itineraries, the visa question, airport luggage storage, and safety — all written by local students.",
+  "socialTitle": "Mumbai Layover Guides | Detour",
+  "socialDescription": "The complete set of Mumbai layover guides — itineraries, visa, luggage storage and safety, written by local students.",
+  "image": "/images/hero-skyline-main.jpg",
+  "updatedAt": "2026-06-14",
+  "changeFrequency": "weekly",
+  "priority": 0.9
+}

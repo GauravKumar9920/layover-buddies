@@ -60,6 +60,12 @@ INSERT INTO auth.users (
 ('aaaaaaaa-0000-4000-a000-000000000013', 'authenticated', 'authenticated',
  'sofia.mueller@proton.me',    crypt('Test1234!', gen_salt('bf')),
  now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{"full_name":"Sofia Mueller","role":"traveler"}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
+ '', '', '', ''),
+-- Hosted Admin 2.0 owner. First sign-in is AAL1; the console requires TOTP
+-- enrollment/challenge before any operation other than session.get.
+('aaaaaaaa-0000-4000-a000-000000000099', 'authenticated', 'authenticated',
+ 'admin@detour.local',         crypt('DetourAdmin123!', gen_salt('bf')),
+ now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{"full_name":"Detour Owner","role":"admin"}'::jsonb, false, '00000000-0000-0000-0000-000000000000',
  '', '', '', '')
 ON CONFLICT (id) DO UPDATE SET
   raw_app_meta_data = EXCLUDED.raw_app_meta_data,
@@ -93,7 +99,10 @@ INSERT INTO auth.identities (
  'email', now(), now(), now(), 'james.tanaka@outlook.com'),
 ('aaaaaaaa-0000-4000-a000-000000000013', 'aaaaaaaa-0000-4000-a000-000000000013',
  '{"sub":"aaaaaaaa-0000-4000-a000-000000000013","email":"sofia.mueller@proton.me","email_verified":true}'::jsonb,
- 'email', now(), now(), now(), 'sofia.mueller@proton.me')
+ 'email', now(), now(), now(), 'sofia.mueller@proton.me'),
+('aaaaaaaa-0000-4000-a000-000000000099', 'aaaaaaaa-0000-4000-a000-000000000099',
+ '{"sub":"aaaaaaaa-0000-4000-a000-000000000099","email":"admin@detour.local","email_verified":true}'::jsonb,
+ 'email', now(), now(), now(), 'admin@detour.local')
 ON CONFLICT DO NOTHING;
 
 -- ============================================================================
@@ -114,7 +123,8 @@ INSERT INTO users (id, email, phone, full_name, role, avatar_url, is_verified, a
 -- Travelers
 ('aaaaaaaa-0000-4000-a000-000000000011', 'emma.wilson@gmail.com',        '+14155551234',  'Emma Wilson',     'traveler', 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=480&h=480&q=85', TRUE,  'google'),
 ('aaaaaaaa-0000-4000-a000-000000000012', 'james.tanaka@outlook.com',     '+81901234567',  'James Tanaka',    'traveler', 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?auto=format&fit=crop&w=480&h=480&q=85', TRUE,  'email'),
-('aaaaaaaa-0000-4000-a000-000000000013', 'sofia.mueller@proton.me',      '+491761234567', 'Sofia Mueller',   'traveler', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=480&h=480&q=85', TRUE,  'apple')
+('aaaaaaaa-0000-4000-a000-000000000013', 'sofia.mueller@proton.me',      '+491761234567', 'Sofia Mueller',   'traveler', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=480&h=480&q=85', TRUE,  'apple'),
+('aaaaaaaa-0000-4000-a000-000000000099', 'admin@detour.local',           NULL,             'Detour Owner',    'admin',    NULL, TRUE, 'email')
 ON CONFLICT (id) DO UPDATE SET
   phone        = EXCLUDED.phone,
   full_name    = EXCLUDED.full_name,
@@ -122,6 +132,16 @@ ON CONFLICT (id) DO UPDATE SET
   avatar_url   = EXCLUDED.avatar_url,
   is_verified  = EXCLUDED.is_verified,
   auth_provider = EXCLUDED.auth_provider;
+
+INSERT INTO admin_memberships
+  (user_id, role, is_active, invited_by, invited_at, accepted_at)
+VALUES
+  ('aaaaaaaa-0000-4000-a000-000000000099', 'owner', TRUE, NULL, now(), now())
+ON CONFLICT (user_id) DO UPDATE SET
+  role = EXCLUDED.role,
+  is_active = TRUE,
+  accepted_at = COALESCE(admin_memberships.accepted_at, now()),
+  updated_at = now();
 
 -- Keep re-runs compatible with older seeds whose auth metadata omitted role.
 -- A user owns exactly one role-specific profile.

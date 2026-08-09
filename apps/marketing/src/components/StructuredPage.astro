@@ -1,0 +1,59 @@
+---
+import type { SitePage } from '../lib/site-pages';
+import { portableTextToHtml } from '../lib/portable-text';
+import BookingModal from './BookingModal.astro';
+
+interface Props { page: SitePage }
+const { page } = Astro.props;
+const content = portableTextToHtml(page.structuredBody);
+const updated = new Intl.DateTimeFormat('en', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(page.updatedAt));
+const safeExternalUrl = (value: string) => /^https:\/\//i.test(value) ? value : undefined;
+const ctaDestination = page.cta?.destination === '#booking' ? '#' : page.cta?.destination;
+---
+
+<nav id="nav">
+  <a class="logo" href="/">
+    <div><div class="wm">Det<em>ou</em>r</div><div class="tag">Mumbai · BOM</div></div>
+  </a>
+  <div class="nav-cta">
+    <a href="/guides">Layover guides</a>
+    <button class="btn-primary btn-trigger-booking">Request a Detour</button>
+  </div>
+</nav>
+
+<header class="guide-hero">
+  <div class="wrap">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> <span>›</span> <a href="/guides">Guides</a></nav>
+    <span class="eyebrow">{page.eyebrow || 'Written in Mumbai'}</span>
+    <h1>{page.title.replace(/ \| Detour$/, '')}</h1>
+    <p class="lead">{page.description}</p>
+    <div class="guide-meta"><span>Updated {updated}</span><span class="dot">·</span><span>{page.author}</span></div>
+  </div>
+</header>
+
+<main class="guide-layout">
+  <article class="guide-body">
+    {page.heroMedia && <figure><img src={page.heroMedia.url} alt={page.heroMedia.alt} loading="eager" decoding="async">{page.heroMedia.caption && <figcaption>{page.heroMedia.caption}{page.heroMedia.credit ? ` · ${page.heroMedia.credit}` : ''}</figcaption>}</figure>}
+    <Fragment set:html={content} />
+
+    {page.sourceLinks?.length && <section><h2 id="sources">Sources and local checks</h2><ul>{page.sourceLinks.map((source) => <li><a href={safeExternalUrl(source.url)} target="_blank" rel="noopener noreferrer">{source.label}</a>{source.checkedAt ? ` — checked ${source.checkedAt}` : ''}</li>)}</ul></section>}
+    {page.featuredContent?.length && <section><h2 id="keep-planning">Keep planning</h2><ul>{page.featuredContent.map((item) => <li><a href={item.route}>{item.title}</a></li>)}</ul></section>}
+  </article>
+</main>
+
+{page.faqs?.length && (
+  <section class="wrap" data-secnav>
+    <h2 id="questions">Questions travellers ask</h2>
+    {page.faqs.map((faq) => <article><h3>{faq.question}</h3><p>{faq.answer}</p></article>)}
+  </section>
+)}
+
+{page.testimonials?.length && <section class="wrap" data-secnav><h2 id="traveller-stories">Traveller stories</h2>{page.testimonials.map((item) => <blockquote><p>“{item.quote}”</p><footer>— {item.travellerName}{item.travellerContext ? `, ${item.travellerContext}` : ''}{item.verified ? ' · Verified Detour' : ''}</footer></blockquote>)}</section>}
+{page.founderNote && <section class="wrap" data-secnav><h2 id="founder-note">A note from the founder</h2><p>{page.founderNote}</p></section>}
+
+<section style="padding:0 0 80px;">
+  <div class="wrap"><div class="cta-band"><h2>Let a <em>local</em> plan it.</h2><p>Share your arrival and departure times and a Mumbai student Buddy will shape a safe route around your flight.</p>{ctaDestination && ctaDestination !== '#' ? <a class="btn-primary" href={ctaDestination}>{page.cta?.label || 'Request a Detour'}</a> : <button class="btn-primary btn-trigger-booking">{page.cta?.label || 'Request a Detour'}</button>}</div></div>
+</section>
+
+<footer><div class="wrap"><div class="foot-legal"><div>© 2026 Detour · Made in Mumbai with a lot of cutting chai.</div><div><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></div></div></div></footer>
+<BookingModal />

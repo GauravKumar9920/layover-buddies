@@ -151,9 +151,9 @@ max_indexes = 5
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
-site_url = "http://127.0.0.1:3000"
+site_url = "http://127.0.0.1:5174"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+additional_redirect_urls = ["http://localhost:5174", "http://127.0.0.1:5174"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to the local API URL (http://127.0.0.1:<port>/auth/v1).
@@ -283,8 +283,8 @@ max_enrolled_factors = 10
 
 # Control MFA via App Authenticator (TOTP)
 [auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
+enroll_enabled = true
+verify_enabled = true
 
 # Configure MFA via Phone Messaging
 [auth.mfa.phone]
@@ -373,6 +373,20 @@ deno_version = 2
 # verification runs. The function itself validates X-Razorpay-Signature against
 # RAZORPAY_WEBHOOK_SECRET, so disabling Kong's JWT check is safe.
 [functions.razorpay-webhook]
+verify_jwt = false
+
+# First-party website endpoint. It performs strict origin, payload, honeypot,
+# HMAC idempotency and database-backed rate-limit checks itself.
+[functions.submit-marketing-lead]
+verify_jwt = false
+
+# Scheduled sync uses a dedicated SEARCH_SYNC_SECRET, never the service-role
+# key. Gateway JWT verification is disabled so pg_cron can call it.
+[functions.sync-search-console]
+verify_jwt = false
+
+# Sanity/Vercel events authenticate with a raw-body HMAC signature.
+[functions.content-deployment-webhook]
 verify_jwt = false
 
 [analytics]

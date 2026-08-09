@@ -1,51 +1,87 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@detour/database';
 
-// Admin-only client. Uses the SERVICE ROLE key so we bypass RLS — this is
-// why the app is gated behind a password and runs locally only.
-//
-// Never deploy this bundle publicly. If we ever do, swap to a server-side
-// proxy that keeps the service key on the backend.
-//
-// PRODUCTION-BUILD GUARD: Vite inlines VITE_* env vars into the client
-// bundle at build time, so `npm run build` followed by any kind of deploy
-// would ship the service-role key as plain text in the JS output. Refuse
-// to import this module in a production build unless an explicit escape
-// hatch is set, so an accidental `vercel --prod` (or similar) crashes
-// loudly rather than silently leaking god-mode DB access.
-const env = import.meta.env;
-if (env.PROD && !env.VITE_ADMIN_LOCAL_BUILD) {
-  throw new Error(
-    '[admin] Refusing to run a production build. The admin panel embeds ' +
-      'a Supabase service-role key (VITE_SUPABASE_SERVICE_KEY) in the ' +
-      'client bundle. Deploying that publicly leaks read/write to every ' +
-      'table. If you are intentionally building locally for static preview, ' +
-      'set VITE_ADMIN_LOCAL_BUILD=1 in admin/.env.local. To deploy this for ' +
-      'real, first move Supabase calls to a server-side proxy that keeps ' +
-      'the service key server-only.',
-  );
+export interface PublicConfig {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
 }
 
-const url = env.VITE_SUPABASE_URL as string | undefined;
-const serviceKey = env.VITE_SUPABASE_SERVICE_KEY as string | undefined;
-
-if (!url || !serviceKey) {
-  // eslint-disable-next-line no-console
-  console.warn(
-    '[admin] Missing VITE_SUPABASE_URL or VITE_SUPABASE_SERVICE_KEY. ' +
-      'Copy admin/.env.local.example to admin/.env.local and fill them in.',
-  );
+export interface ConfigState {
+  configured: boolean;
+  config: PublicConfig | null;
+  problem: string | null;
 }
 
-export const supabase = createClient(url ?? 'http://localhost:54321', serviceKey ?? 'missing-key', {
-  auth: {
-    // We're not using Supabase Auth inside the admin — the service key is
-    // our bearer token. Don't persist anything.
-    persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
-  },
-});
+function jwtRole(key: string): string | null {
+  const payload = key.split('.')[1];
+  if (!payload) return null;
+  try {
+    const unpadded = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const normalized = unpadded.padEnd(Math.ceil(unpadded.length / 4) * 4, '=');
+    const parsed = JSON.parse(atob(normalized)) as { role?: unknown };
+    return typeof parsed.role === 'string' ? parsed.role : null;
+  } catch {
+    return null;
+  }
+}
+
+function readConfig(): ConfigState {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return {
+      configured: false,
+      config: null,
+      problem: 'Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to connect this console.',
+    };
+  }
+
+  try {
+    const parsed = new URL(supabaseUrl);
+    if (parsed.protocol !== 'https:' && parsed.hostname !== '127.0.0.1' && parsed.hostname !== 'localhost') {
+      throw new Error('Supabase URL must use HTTPS outside local development.');
+    }
+  } catch (error) {
+    return {
+      configured: false,
+      config: null,
+      problem: error instanceof Error ? error.message : 'Supabase URL is invalid.',
+    };
+  }
+
+  const role = jwtRole(supabaseAnonKey);
+  if (supabaseAnonKey.startsWith('sb_secret_') || (role !== null && role !== 'anon')) {
+    return {
+      configured: false,
+      config: null,
+      problem: 'The browser credential is privileged. Replace it with the public anon or publishable key.',
+    };
+  }
+
+  return { configured: true, config: { supabaseUrl, supabaseAnonKey }, problem: null };
+}
+
+export const configState = readConfig();
+
+let client: SupabaseClient<Database> | null = null;
+
+export function getSupabase(): SupabaseClient<Database> {
+  if (!configState.configured || !configState.config) {
+    throw new Error(configState.problem ?? 'Admin console is not configured.');
+  }
+  if (!client) {
+    client = createClient<Database>(configState.config.supabaseUrl, configState.config.supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        flowType: 'pkce',
+      },
+    });
+  }
+  return client;
+}
 
 export function isConfigured(): boolean {
-  return Boolean(url && serviceKey);
+  return configState.configured;
 }
