@@ -20,6 +20,10 @@ export function bearerToken(req: Request): string | null {
   return match?.[1] ?? null;
 }
 
+export function adminMfaRequired(): boolean {
+  return Deno.env.get('ADMIN_REQUIRE_MFA')?.trim().toLowerCase() !== 'false';
+}
+
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
     const part = token.split('.')[1];
@@ -70,7 +74,7 @@ export async function authenticateAdmin(
 
   const claims = decodeJwtPayload(token);
   const aal = claims?.aal === 'aal2' ? 'aal2' : 'aal1';
-  if (options.requireAal2 !== false && aal !== 'aal2') {
+  if (adminMfaRequired() && options.requireAal2 !== false && aal !== 'aal2') {
     return { ok: false, code: 'mfa_required', message: 'Complete multi-factor authentication to continue.', status: 403 };
   }
 

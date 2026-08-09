@@ -18,7 +18,7 @@ import {
   parseAdminRequest,
   type AdminOperation,
 } from '../_shared/adminContract.ts';
-import { authenticateAdmin, type AdminIdentity } from '../_shared/adminAuth.ts';
+import { adminMfaRequired, authenticateAdmin, type AdminIdentity } from '../_shared/adminAuth.ts';
 import {
   AdminOperationError,
   executeReadOperation,
@@ -337,7 +337,7 @@ serve(async (req: Request) => {
       email: identity.email,
       role: identity.role,
       aal: identity.aal,
-      mfaRequired: identity.aal !== 'aal2',
+      mfaRequired: adminMfaRequired() && identity.aal !== 'aal2',
     });
   }
 
