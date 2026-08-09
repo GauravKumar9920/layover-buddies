@@ -44,13 +44,12 @@
         "npm:turbo@2"
       ],
       "overrides": {
-        "tar": "6.2.1",
         "@xmldom/xmldom": "0.8.13",
-        "fast-uri": "3.1.2",
+        "fast-uri": "3.1.5",
         "@babel/plugin-transform-modules-systemjs": "7.29.4",
         "ws": "8.21.0",
         "uuid": "11.1.1",
-        "postcss": "8.5.10"
+        "postcss": "8.5.26"
       }
     },
     "members": {
@@ -58,6 +57,7 @@
         "packageJson": {
           "dependencies": [
             "npm:@detour/config@*",
+            "npm:@detour/database@*",
             "npm:@supabase/supabase-js@^2.45.0",
             "npm:@types/react-dom@^18.3.0",
             "npm:@types/react@^18.3.3",
@@ -65,11 +65,19 @@
             "npm:autoprefixer@^10.4.19",
             "npm:postcss@^8.4.40",
             "npm:react-dom@^18.3.1",
-            "npm:react-router-dom@^6.30.4",
+            "npm:react-router-dom@^7.18.2",
             "npm:react@^18.3.1",
             "npm:tailwindcss@^3.4.7",
             "npm:typescript@^5.5.4",
             "npm:vite@^8.0.16"
+          ]
+        }
+      },
+      "apps/marketing": {
+        "packageJson": {
+          "dependencies": [
+            "npm:astro@^7.2.0",
+            "npm:parse5@^7.3.0"
           ]
         }
       },
