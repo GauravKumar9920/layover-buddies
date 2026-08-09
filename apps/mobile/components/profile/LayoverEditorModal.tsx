@@ -8,56 +8,52 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import DateTimePicker, {
-  type DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
 import Feather from "@expo/vector-icons/Feather";
-import { format, isValid, parseISO } from "date-fns";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { theme } from "@/config/theme";
-import type { NextLayoverPayload } from "@/lib/api/travelerProfile";
+import { toMumbaiIso, istPartsFromIso } from "@/lib/time/ist";
+import type {
+  NextLayoverPayload,
+  PartyType,
+  TravelerProfile,
+} from "@/lib/api/travelerProfile";
+import {
+  MAX_PARTY_SIZE,
+  PARTY_SIZES,
+  PARTY_TYPE_OPTIONS,
+  PARTY_TYPE_FIXED_SIZE,
+} from "@/config/profileOptions";
 import { hapticImpactMedium, hapticSuccess } from "@/lib/haptics";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { PrivacyNote } from "@/components/profile/ProfileBuilder";
+import {
+  DateOrTimeField,
+  fieldLabelStyle,
+} from "@/components/ui/DateOrTimeField";
 
 const MIN_LAYOVER_MINUTES = 7 * 60;
 
 interface LayoverEditorModalProps {
   visible: boolean;
   replacingActiveLayover: boolean;
+  /**
+   * `create` archives the active layover and starts a new trip.
+   * `edit` patches the current one in place — correcting a flight number must
+   * not orphan the bookings that reference this trip.
+   */
+  mode?: "create" | "edit";
+  /** Existing layover to pre-fill from. Required for `edit` to be meaningful. */
+  initial?: TravelerProfile | null;
   onClose: () => void;
   onCreate: (payload: NextLayoverPayload) => Promise<void>;
-}
-
-function pad2(value: number): string {
-  return value.toString().padStart(2, "0");
-}
-
-function dateValue(date: Date): string {
-  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-}
-
-function timeValue(date: Date): string {
-  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
-}
-
-function toMumbaiIso(date: string, time: string): string {
-  const utcMs =
-    Date.UTC(
-      Number(date.slice(0, 4)),
-      Number(date.slice(5, 7)) - 1,
-      Number(date.slice(8, 10)),
-      Number(time.slice(0, 2)),
-      Number(time.slice(3, 5)),
-    ) -
-    (5 * 60 + 30) * 60_000;
-  return new Date(utcMs).toISOString();
 }
 
 export function LayoverEditorModal({
   visible,
   replacingActiveLayover,
+  mode = "create",
+  initial = null,
   onClose,
   onCreate,
 }: LayoverEditorModalProps) {
@@ -69,20 +65,41 @@ export function LayoverEditorModal({
   const [flightIn, setFlightIn] = useState("");
   const [flightOut, setFlightOut] = useState("");
   const [groupSize, setGroupSize] = useState(1);
+  const [partyType, setPartyType] = useState<PartyType | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Pre-fill from the trip already on file. This used to blank every field on
+  // open, so "fix my flight number" meant retyping four dates and times.
+  // istPartsFromIso is the exact inverse of the toMumbaiIso used on save, which
+  // is what makes the round-trip safe — see lib/time/ist.ts.
   useEffect(() => {
     if (!visible) return;
-    setArrivalDate("");
-    setArrivalTime("");
-    setDepartureDate("");
-    setDepartureTime("");
-    setFlightIn("");
-    setFlightOut("");
-    setGroupSize(1);
+    const arrival = istPartsFromIso(initial?.arrival_at);
+    const departure = istPartsFromIso(initial?.departure_at);
+    setArrivalDate(arrival?.date ?? "");
+    setArrivalTime(arrival?.time ?? "");
+    setDepartureDate(departure?.date ?? "");
+    setDepartureTime(departure?.time ?? "");
+    setFlightIn(initial?.flight_in ?? "");
+    setFlightOut(initial?.flight_out ?? "");
+    setGroupSize(
+      Math.max(1, Math.min(MAX_PARTY_SIZE, initial?.group_size ?? 1)),
+    );
+    setPartyType(initial?.party_type ?? null);
     setFormError(null);
-  }, [visible]);
+  }, [visible, initial]);
+
+  // Solo and couple imply their own headcount; family and friends do not.
+  // Enforced here only — a DB CHECK across two independently-edited columns
+  // fails with an opaque 23514 depending on which one moved first.
+  function selectPartyType(next: PartyType) {
+    hapticImpactMedium();
+    setPartyType(next);
+    const fixed = PARTY_TYPE_FIXED_SIZE[next];
+    if (fixed) setGroupSize(fixed);
+    else if (groupSize < 2) setGroupSize(2);
+  }
 
   const layoverMinutes = useMemo(() => {
     if (
@@ -96,8 +113,8 @@ export function LayoverEditorModal({
       return null;
     }
 
-    const arrival = Date.parse(toMumbaiIso(arrivalDate, arrivalTime));
-    const departure = Date.parse(toMumbaiIso(departureDate, departureTime));
+    const arrival = Date.parse(toMumbaiIso(arrivalDate, arrivalTime) ?? "");
+    const departure = Date.parse(toMumbaiIso(departureDate, departureTime) ?? "");
     if (!Number.isFinite(arrival) || !Number.isFinite(departure)) return null;
     return Math.floor((departure - arrival) / 60_000);
   }, [arrivalDate, arrivalTime, departureDate, departureTime]);
@@ -106,7 +123,7 @@ export function LayoverEditorModal({
     layoverMinutes !== null &&
     layoverMinutes >= MIN_LAYOVER_MINUTES &&
     groupSize >= 1 &&
-    groupSize <= 3;
+    groupSize <= MAX_PARTY_SIZE;
 
   async function handleCreate() {
     if (!arrivalDate || !arrivalTime || !departureDate || !departureTime) {
@@ -128,11 +145,12 @@ export function LayoverEditorModal({
     setFormError(null);
     try {
       await onCreate({
-        arrival_at: toMumbaiIso(arrivalDate, arrivalTime),
-        departure_at: toMumbaiIso(departureDate, departureTime),
+        arrival_at: toMumbaiIso(arrivalDate, arrivalTime) ?? "",
+        departure_at: toMumbaiIso(departureDate, departureTime) ?? "",
         flight_in: flightIn.trim().toUpperCase() || null,
         flight_out: flightOut.trim().toUpperCase() || null,
         group_size: groupSize,
+        party_type: partyType,
         airport_code: "BOM",
       });
       hapticSuccess();
@@ -358,22 +376,78 @@ export function LayoverEditorModal({
           </View>
 
           <View>
+            <Text style={fieldLabelStyle}>Who’s travelling?</Text>
+            <View
+              style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+            >
+              {PARTY_TYPE_OPTIONS.map((option) => {
+                const selected = option.key === partyType;
+                return (
+                  <TouchableOpacity
+                    key={option.key}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={`${option.label} — ${option.hint}`}
+                    onPress={() => selectPartyType(option.key)}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                      borderRadius: 20,
+                      borderWidth: selected ? 2 : 1,
+                      paddingVertical: 9,
+                      paddingHorizontal: 13,
+                      borderColor: selected
+                        ? theme.colors.primary
+                        : theme.colors.divider,
+                      backgroundColor: selected
+                        ? theme.colors.primaryLight
+                        : theme.colors.surface,
+                    }}
+                  >
+                    <Text style={{ fontSize: 14 }}>{option.emoji}</Text>
+                    <Text
+                      style={{
+                        fontFamily: selected
+                          ? theme.fonts.bodyBold
+                          : theme.fonts.bodyMed,
+                        fontSize: 13.5,
+                        color: selected
+                          ? theme.colors.primaryDark
+                          : theme.colors.text,
+                      }}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          <View>
             <Text style={fieldLabelStyle}>Travelers in your group</Text>
             <View style={{ flexDirection: "row", gap: 8 }}>
-              {[1, 2, 3].map((size) => {
+              {PARTY_SIZES.map((size) => {
                 const selected = size === groupSize;
+                const lockedBy = partyType
+                  ? PARTY_TYPE_FIXED_SIZE[partyType]
+                  : null;
+                const disabled = lockedBy !== null && lockedBy !== size;
                 return (
                   <TouchableOpacity
                     key={size}
                     accessibilityRole="button"
                     accessibilityState={{ selected }}
                     accessibilityLabel={`${size} ${size === 1 ? "traveler" : "travelers"}`}
+                    disabled={disabled}
                     onPress={() => {
                       hapticImpactMedium();
                       setGroupSize(size);
                     }}
                     style={{
                       flex: 1,
+                      opacity: disabled ? 0.4 : 1,
                       minHeight: 48,
                       alignItems: "center",
                       justifyContent: "center",
@@ -483,203 +557,5 @@ export function LayoverEditorModal({
         </ScrollView>
       </KeyboardAvoidingView>
     </Modal>
-  );
-}
-
-const fieldLabelStyle = {
-  ...theme.typography.eyebrow,
-  color: theme.colors.textSecondary,
-  marginBottom: 7,
-};
-
-function DateOrTimeField({
-  mode,
-  label,
-  value,
-  onChange,
-}: {
-  mode: "date" | "time";
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  const [pickerVisible, setPickerVisible] = useState(false);
-  const [temporaryDate, setTemporaryDate] = useState(new Date());
-
-  useEffect(() => {
-    if (mode === "date" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      const parsed = parseISO(`${value}T12:00:00`);
-      if (isValid(parsed)) setTemporaryDate(parsed);
-    }
-    if (mode === "time" && /^\d{2}:\d{2}$/.test(value)) {
-      const [hours, minutes] = value.split(":").map(Number);
-      const parsed = new Date();
-      parsed.setHours(hours, minutes, 0, 0);
-      setTemporaryDate(parsed);
-    }
-  }, [mode, value]);
-
-  if (Platform.OS === "web") {
-    return (
-      <View>
-        <Text style={fieldLabelStyle}>{label}</Text>
-        {React.createElement("input", {
-          type: mode,
-          value,
-          ...(mode === "date"
-            ? { min: new Date().toISOString().slice(0, 10) }
-            : {}),
-          onChange: (event: { target: { value: string } }) =>
-            onChange(event.target.value),
-          style: {
-            backgroundColor: theme.colors.surface,
-            borderRadius: 8,
-            border: `1px solid ${theme.colors.divider}`,
-            padding: "14px 14px",
-            fontSize: 15,
-            color: theme.colors.text,
-            width: "100%",
-            boxSizing: "border-box",
-            outline: "none",
-            fontFamily: "inherit",
-          },
-        })}
-      </View>
-    );
-  }
-
-  const displayValue =
-    mode === "date" && /^\d{4}-\d{2}-\d{2}$/.test(value)
-      ? format(parseISO(`${value}T12:00:00`), "d MMM yyyy")
-      : mode === "time" && /^\d{2}:\d{2}$/.test(value)
-        ? format(temporaryDate, "h:mm a")
-        : null;
-
-  function handleAndroidChange(event: DateTimePickerEvent, selected?: Date) {
-    setPickerVisible(false);
-    if (event.type !== "set" || !selected) return;
-    setTemporaryDate(selected);
-    onChange(mode === "date" ? dateValue(selected) : timeValue(selected));
-  }
-
-  return (
-    <View>
-      <Text style={fieldLabelStyle}>{label}</Text>
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessibilityLabel={`${label}. ${displayValue ?? "Not set"}`}
-        onPress={() => {
-          hapticImpactMedium();
-          setPickerVisible(true);
-        }}
-        style={{
-          minHeight: 48,
-          justifyContent: "center",
-          paddingHorizontal: 12,
-          borderRadius: theme.borderRadius.md,
-          borderWidth: 1,
-          borderColor: theme.colors.divider,
-          backgroundColor: theme.colors.surface,
-        }}
-      >
-        <Text
-          style={{
-            fontFamily: theme.fonts.body,
-            fontSize: 14,
-            color: displayValue ? theme.colors.text : theme.colors.textMuted,
-          }}
-        >
-          {displayValue ?? (mode === "date" ? "Pick date" : "Pick time")}
-        </Text>
-      </TouchableOpacity>
-
-      {pickerVisible && Platform.OS === "android" ? (
-        <DateTimePicker
-          value={temporaryDate}
-          mode={mode}
-          display={mode === "date" ? "calendar" : "clock"}
-          minimumDate={mode === "date" ? new Date() : undefined}
-          is24Hour={false}
-          onChange={handleAndroidChange}
-        />
-      ) : null}
-
-      {Platform.OS === "ios" ? (
-        <Modal
-          visible={pickerVisible}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setPickerVisible(false)}
-        >
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "flex-end",
-              backgroundColor: "rgba(0,0,0,0.42)",
-            }}
-          >
-            <View
-              style={{
-                backgroundColor: theme.colors.surface,
-                paddingBottom: 24,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  paddingHorizontal: 18,
-                  paddingVertical: 14,
-                  borderBottomWidth: 1,
-                  borderBottomColor: theme.colors.divider,
-                }}
-              >
-                <TouchableOpacity onPress={() => setPickerVisible(false)}>
-                  <Text
-                    style={{
-                      fontFamily: theme.fonts.bodySemi,
-                      fontSize: 16,
-                      color: theme.colors.textSecondary,
-                    }}
-                  >
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    onChange(
-                      mode === "date"
-                        ? dateValue(temporaryDate)
-                        : timeValue(temporaryDate),
-                    );
-                    setPickerVisible(false);
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontFamily: theme.fonts.bodyBold,
-                      fontSize: 16,
-                      color: theme.colors.primary,
-                    }}
-                  >
-                    Done
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <DateTimePicker
-                value={temporaryDate}
-                mode={mode}
-                display={mode === "date" ? "inline" : "spinner"}
-                minimumDate={mode === "date" ? new Date() : undefined}
-                onChange={(_, selected) => {
-                  if (selected) setTemporaryDate(selected);
-                }}
-              />
-            </View>
-          </View>
-        </Modal>
-      ) : null}
-    </View>
   );
 }

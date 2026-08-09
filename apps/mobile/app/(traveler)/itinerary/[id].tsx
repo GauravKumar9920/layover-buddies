@@ -29,6 +29,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchGuideById, fetchItineraryById } from '@/lib/api/guides';
 import { safeBack } from '@/lib/navigation';
 import { theme } from '@/config/theme';
+import { TimeFitChip } from '@/components/ui/TimeFitChip';
+import { useTravelerTrip } from '@/lib/hooks/useTravelerTrip';
+import { formatFromPrice } from '@/lib/booking/tourPricing';
 import { getGuideHeroPhoto, getItineraryPhoto } from '@/config/photoLibrary';
 import { hapticImpactLight, hapticImpactMedium } from '@/lib/haptics';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -166,6 +169,7 @@ function buildFallbackContent(itinerary: Itinerary, guide: GuideProfile | null):
 }
 
 export default function ItineraryDetailScreen() {
+  const { layoverHours } = useTravelerTrip();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -539,7 +543,13 @@ export default function ItineraryDetailScreen() {
             items={[
               { label: 'Duration', value: `${itinerary.estimated_duration_hours}h` },
               { label: 'Stops', value: String((itinerary.stops ?? []).length) },
-              { label: 'From', value: `₹${itinerary.buddy_cost_inr.toLocaleString('en-IN')}` },
+              {
+                label: 'From',
+                value: formatFromPrice(
+                  itinerary.base_cost_inr,
+                  itinerary.buddy_cost_inr,
+                ),
+              },
             ]}
           />
 
@@ -957,7 +967,7 @@ export default function ItineraryDetailScreen() {
         />
         <View style={{ flex: 1 }}>
           <Button
-            title={`Inquire · ₹${itinerary.buddy_cost_inr.toLocaleString('en-IN')}`}
+            title={`Inquire · ${formatFromPrice(itinerary.base_cost_inr, itinerary.buddy_cost_inr)}`}
             size="lg"
             onPress={() =>
               router.push({

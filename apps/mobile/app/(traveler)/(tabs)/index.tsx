@@ -251,10 +251,6 @@ export default function BrowseScreen() {
               index={index}
               travelerInterests={travelerProfile?.interests}
               layoverHours={layoverHours}
-              // No itinerary data on this card today, so fall back to a
-              // reasonable shortest-tour assumption. Soft signal — caller
-              // can override if they have richer per-guide tour data.
-              shortestTourHours={3}
             />
           )}
           contentContainerStyle={{ padding: 14, paddingBottom: insets.bottom + 24 }}

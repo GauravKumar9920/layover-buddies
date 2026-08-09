@@ -1,8 +1,8 @@
 // ============================================================================
 // TRAVELER ONBOARDING — 4-step flow run right after signup
 // ============================================================================
-// Step 1 — Nationality (flag picker)
-// Step 2 — Trip window (arrival date+time, departure date+time, optional flight nos)
+// Step 1 — Who you are (gender, age band, nationality flag picker)
+// Step 2 — Trip window (arrival/departure date+time, flight nos, who's coming)
 // Step 3 — Interests (multi-select chips)
 // Step 4 — "Max 3 buddies at a time" notice + Continue → routes to Explore
 //
@@ -20,30 +20,31 @@ import {
   Alert,
   KeyboardAvoidingView,
   ActivityIndicator,
-  Modal,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import {
-  format,
   parseISO,
   isValid,
   isBefore,
   differenceInMinutes,
 } from "date-fns";
-import DateTimePicker, {
-  type DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
 import { hapticImpactMedium, hapticSuccess, hapticError } from "@/lib/haptics";
+import { DateOrTimeField } from "@/components/ui/DateOrTimeField";
+import { NationalityPicker } from "@/components/ui/NationalityPicker";
 import { completeOnboarding } from "@/lib/api/travelerProfile";
 import { notifyOnboardingComplete } from "@/lib/onboardingSignal";
 import { theme } from "@/config/theme";
 import {
+  AGE_BAND_OPTIONS as AGE_BANDS,
   GENDER_OPTIONS as GENDERS,
   INTEREST_OPTIONS as INTERESTS,
-  NATIONALITY_OPTIONS as NATIONALITIES,
+  PARTY_SIZES,
+  PARTY_TYPE_OPTIONS,
+  PARTY_TYPE_FIXED_SIZE,
 } from "@/config/profileOptions";
+import type { AgeBand, PartyType } from "@/lib/api/travelerProfile";
 
 // ─── Reference data ─────────────────────────────────────────────────────────
 
@@ -56,6 +57,9 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [nationality, setNationality] = useState<string | null>(null);
   const [gender, setGender] = useState<string | null>(null);
+  const [ageBand, setAgeBand] = useState<AgeBand | null>(null);
+  const [partyType, setPartyType] = useState<PartyType | null>(null);
+  const [groupSize, setGroupSize] = useState(1);
   const [arrivalDate, setArrivalDate] = useState("");
   const [arrivalTime, setArrivalTime] = useState("");
   const [departureDate, setDepartureDate] = useState("");
@@ -82,7 +86,7 @@ export default function OnboardingScreen() {
   const isLayoverEligible = layoverHours !== null && layoverHours >= 7;
 
   const canAdvance = useMemo(() => {
-    if (step === 1) return !!nationality && !!gender;
+    if (step === 1) return !!nationality && !!gender && !!ageBand;
     if (step === 2) {
       if (!arrivalDate || !arrivalTime || !departureDate || !departureTime)
         return false;
@@ -94,6 +98,7 @@ export default function OnboardingScreen() {
       const a = parseISO(`${arrivalDate}T${arrivalTime}:00`);
       const d = parseISO(`${departureDate}T${departureTime}:00`);
       if (!isValid(a) || !isValid(d) || isBefore(d, a)) return false;
+      if (!partyType) return false;
       return isLayoverEligible; // ← must have ≥7hr layover
     }
     if (step === 3) return interests.length >= 1;
@@ -102,6 +107,8 @@ export default function OnboardingScreen() {
     step,
     nationality,
     gender,
+    ageBand,
+    partyType,
     arrivalDate,
     arrivalTime,
     departureDate,
@@ -158,6 +165,9 @@ export default function OnboardingScreen() {
         flight_in: flightIn.trim() || null,
         flight_out: flightOut.trim() || null,
         interests,
+        age_band: ageBand,
+        party_type: partyType,
+        group_size: groupSize,
       });
       hapticSuccess();
       // Tell useAuth to re-probe `onboarded_at` BEFORE we navigate. Without
@@ -213,7 +223,7 @@ export default function OnboardingScreen() {
             lineHeight: 32,
           }}
         >
-          {step === 1 && "Where are you visiting from?"}
+          {step === 1 && "Tell us about you"}
           {step === 2 && "When are you in Mumbai?"}
           {step === 3 && "What interests you?"}
           {step === 4 && "One last thing"}
@@ -303,57 +313,72 @@ export default function OnboardingScreen() {
                 marginBottom: 2,
               }}
             >
-              Nationality
+              Your age
             </Text>
-            {NATIONALITIES.map((n) => {
-              const selected = nationality === n.name;
-              return (
-                <TouchableOpacity
-                  key={n.code}
-                  onPress={() => {
-                    hapticImpactMedium();
-                    setNationality(n.name);
-                  }}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 14,
-                    backgroundColor: selected
-                      ? theme.colors.primaryLight
-                      : theme.colors.surface,
-                    borderColor: selected
-                      ? theme.colors.primary
-                      : theme.colors.divider,
-                    borderWidth: selected ? 2 : 1,
-                    borderRadius: 12,
-                    padding: 14,
-                  }}
-                >
-                  <Text style={{ fontSize: 26 }}>{n.flag}</Text>
-                  <Text
+            <Text
+              style={{
+                fontFamily: theme.fonts.body,
+                fontSize: 12.5,
+                color: theme.colors.textSecondary,
+                marginTop: -6,
+                marginBottom: 4,
+              }}
+            >
+              A range is enough — it helps your Buddy pitch the right day.
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: 8,
+                marginBottom: 10,
+              }}
+            >
+              {AGE_BANDS.map((band) => {
+                const selected = ageBand === band.key;
+                return (
+                  <TouchableOpacity
+                    key={band.key}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    onPress={() => {
+                      hapticImpactMedium();
+                      setAgeBand(band.key);
+                    }}
                     style={{
-                      flex: 1,
-                      fontFamily: theme.fonts.bodySemi,
-                      fontSize: 16,
-                      color: theme.colors.text,
+                      backgroundColor: selected
+                        ? theme.colors.primary
+                        : theme.colors.surface,
+                      borderColor: selected
+                        ? theme.colors.primaryDark
+                        : theme.colors.divider,
+                      borderWidth: 1.5,
+                      borderRadius: 20,
+                      paddingVertical: 9,
+                      paddingHorizontal: 15,
                     }}
                   >
-                    {n.name}
-                  </Text>
-                  {selected && (
                     <Text
                       style={{
-                        color: theme.colors.primary,
-                        fontFamily: theme.fonts.bodyBold,
-                        fontSize: 15,
+                        fontFamily: theme.fonts.monoMed,
+                        fontSize: 13.5,
+                        color: selected
+                          ? "#FCF7EA"
+                          : theme.colors.textSecondary,
                       }}
                     >
-                      ✓
+                      {band.label}
                     </Text>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <NationalityPicker
+              label="Nationality"
+              value={nationality}
+              onChange={setNationality}
+            />
           </View>
         )}
 
@@ -370,14 +395,16 @@ export default function OnboardingScreen() {
             </Text>
             <View style={{ flexDirection: "row", gap: 12 }}>
               <View style={{ flex: 1 }}>
-                <NativeDateField
+                <DateOrTimeField
+                  mode="date"
                   label="Date"
                   value={arrivalDate}
                   onChange={setArrivalDate}
                 />
               </View>
               <View style={{ flex: 1 }}>
-                <NativeTimeField
+                <DateOrTimeField
+                  mode="time"
                   label="Time"
                   value={arrivalTime}
                   onChange={setArrivalTime}
@@ -408,14 +435,16 @@ export default function OnboardingScreen() {
             </Text>
             <View style={{ flexDirection: "row", gap: 12 }}>
               <View style={{ flex: 1 }}>
-                <NativeDateField
+                <DateOrTimeField
+                  mode="date"
                   label="Date"
                   value={departureDate}
                   onChange={setDepartureDate}
                 />
               </View>
               <View style={{ flex: 1 }}>
-                <NativeTimeField
+                <DateOrTimeField
+                  mode="time"
                   label="Time"
                   value={departureTime}
                   onChange={setDepartureTime}
@@ -428,6 +457,137 @@ export default function OnboardingScreen() {
               value={flightOut}
               onChangeText={setFlightOut}
             />
+
+            <View
+              style={{
+                height: 1,
+                backgroundColor: theme.colors.divider,
+                marginVertical: 6,
+              }}
+            />
+            <Text
+              style={{
+                ...theme.typography.eyebrow,
+                color: theme.colors.primary,
+                marginBottom: -2,
+              }}
+            >
+              Who’s travelling?
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {PARTY_TYPE_OPTIONS.map((option) => {
+                const selected = partyType === option.key;
+                return (
+                  <TouchableOpacity
+                    key={option.key}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={`${option.label} — ${option.hint}`}
+                    onPress={() => {
+                      hapticImpactMedium();
+                      setPartyType(option.key);
+                      // Solo and couple imply their headcount; family and
+                      // friends leave it to the traveler.
+                      const fixed = PARTY_TYPE_FIXED_SIZE[option.key];
+                      if (fixed) setGroupSize(fixed);
+                      else if (groupSize < 2) setGroupSize(2);
+                    }}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 7,
+                      backgroundColor: selected
+                        ? theme.colors.primaryLight
+                        : theme.colors.surface,
+                      borderColor: selected
+                        ? theme.colors.primary
+                        : theme.colors.divider,
+                      borderWidth: selected ? 2 : 1,
+                      borderRadius: 20,
+                      paddingVertical: 10,
+                      paddingHorizontal: 14,
+                    }}
+                  >
+                    <Text style={{ fontSize: 15 }}>{option.emoji}</Text>
+                    <Text
+                      style={{
+                        fontFamily: selected
+                          ? theme.fonts.bodyBold
+                          : theme.fonts.bodyMed,
+                        fontSize: 14,
+                        color: selected
+                          ? theme.colors.primaryDark
+                          : theme.colors.text,
+                      }}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {partyType ? (
+              <View>
+                <Text
+                  style={{
+                    fontFamily: theme.fonts.mono,
+                    fontSize: 11,
+                    color: theme.colors.textSecondary,
+                    letterSpacing: 1.2,
+                    textTransform: "uppercase",
+                    marginBottom: 6,
+                  }}
+                >
+                  How many of you
+                </Text>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  {PARTY_SIZES.map((size) => {
+                    const selected = size === groupSize;
+                    const fixed = PARTY_TYPE_FIXED_SIZE[partyType];
+                    const disabled = fixed !== null && fixed !== size;
+                    return (
+                      <TouchableOpacity
+                        key={size}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected, disabled }}
+                        accessibilityLabel={`${size} ${size === 1 ? "traveller" : "travellers"}`}
+                        disabled={disabled}
+                        onPress={() => {
+                          hapticImpactMedium();
+                          setGroupSize(size);
+                        }}
+                        style={{
+                          flex: 1,
+                          minHeight: 48,
+                          opacity: disabled ? 0.4 : 1,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: theme.borderRadius.md,
+                          borderWidth: 1.5,
+                          borderColor: selected
+                            ? theme.colors.primaryDark
+                            : theme.colors.divider,
+                          backgroundColor: selected
+                            ? theme.colors.primary
+                            : theme.colors.surface,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: theme.fonts.monoMed,
+                            fontSize: 16,
+                            color: selected ? "#FCF7EA" : theme.colors.text,
+                          }}
+                        >
+                          {size}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            ) : null}
 
             {/* ── Layover eligibility banner ─────────────────────────────── */}
             {layoverHours !== null && (
@@ -764,368 +924,6 @@ function Field({
           {helper}
         </Text>
       ) : null}
-    </View>
-  );
-}
-
-// ─── Date/time pickers ──────────────────────────────────────────────────────
-// Web uses native <input type="date|time"> for the built-in OS picker.
-// Native uses @react-native-community/datetimepicker — Android shows a modal
-// dialog automatically; iOS needs the spinner wrapped in a confirm modal so
-// the user can dismiss after picking.
-
-const fieldLabelStyle = {
-  fontFamily: theme.fonts.mono,
-  fontSize: 11,
-  color: theme.colors.textSecondary,
-  letterSpacing: 1.2,
-  textTransform: "uppercase" as const,
-  marginBottom: 6,
-};
-
-const fieldButtonStyle = {
-  backgroundColor: theme.colors.surface,
-  borderRadius: theme.borderRadius.md,
-  borderWidth: 1,
-  borderColor: theme.colors.divider,
-  paddingHorizontal: 14,
-  paddingVertical: 14,
-  minHeight: 48,
-  justifyContent: "center" as const,
-};
-
-function pad2(n: number): string {
-  return n < 10 ? `0${n}` : `${n}`;
-}
-
-function isoFromDate(d: Date): string {
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-}
-
-function hhmmFromDate(d: Date): string {
-  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-}
-
-function NativeDateField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (iso: string) => void;
-}) {
-  const [showPicker, setShowPicker] = useState(false);
-  const [tempDate, setTempDate] = useState<Date>(() => {
-    if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      const d = parseISO(`${value}T00:00:00`);
-      if (isValid(d)) return d;
-    }
-    return new Date();
-  });
-
-  if (Platform.OS === "web") {
-    return (
-      <View>
-        <Text style={fieldLabelStyle}>{label}</Text>
-        {React.createElement("input", {
-          type: "date",
-          value,
-          min: new Date().toISOString().slice(0, 10),
-          onChange: (e: any) => onChange(e.target.value),
-          style: {
-            backgroundColor: theme.colors.surface,
-            borderRadius: 8,
-            border: `1px solid ${theme.colors.divider}`,
-            padding: "14px 14px",
-            fontSize: 15,
-            color: theme.colors.text,
-            width: "100%",
-            boxSizing: "border-box",
-            outline: "none",
-            fontFamily: "inherit",
-          },
-        })}
-      </View>
-    );
-  }
-
-  const display =
-    value && /^\d{4}-\d{2}-\d{2}$/.test(value)
-      ? format(parseISO(`${value}T00:00:00`), "EEE, d MMM yyyy")
-      : "";
-
-  // Android: picker is a modal dialog managed by the OS — set the value on
-  // the 'set' event and dismiss on 'dismissed'. iOS: render an inline spinner
-  // inside a Modal with Cancel/Done so the user can confirm.
-  const onAndroidChange = (event: DateTimePickerEvent, selected?: Date) => {
-    setShowPicker(false);
-    if (event.type === "set" && selected) {
-      onChange(isoFromDate(selected));
-    }
-  };
-
-  return (
-    <View>
-      <Text style={fieldLabelStyle}>{label}</Text>
-      <TouchableOpacity
-        onPress={() => {
-          hapticImpactMedium();
-          setShowPicker(true);
-        }}
-        style={fieldButtonStyle}
-        activeOpacity={0.7}
-      >
-        <Text
-          style={{
-            fontSize: 15,
-            color: display ? theme.colors.text : theme.colors.textMuted,
-          }}
-        >
-          {display || "Pick a date"}
-        </Text>
-      </TouchableOpacity>
-
-      {showPicker && Platform.OS === "android" && (
-        <DateTimePicker
-          value={tempDate}
-          mode="date"
-          display="calendar"
-          minimumDate={new Date()}
-          onChange={onAndroidChange}
-        />
-      )}
-
-      {Platform.OS === "ios" && (
-        <Modal
-          visible={showPicker}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowPicker(false)}
-        >
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "flex-end",
-              backgroundColor: "rgba(0,0,0,0.4)",
-            }}
-          >
-            <View
-              style={{
-                backgroundColor: theme.colors.surface,
-                paddingBottom: 24,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  borderBottomWidth: 1,
-                  borderBottomColor: theme.colors.divider,
-                }}
-              >
-                <TouchableOpacity onPress={() => setShowPicker(false)}>
-                  <Text
-                    style={{ color: theme.colors.textSecondary, fontSize: 16 }}
-                  >
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    onChange(isoFromDate(tempDate));
-                    setShowPicker(false);
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: theme.colors.primary,
-                      fontSize: 16,
-                      fontWeight: "700",
-                    }}
-                  >
-                    Done
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display="inline"
-                minimumDate={new Date()}
-                onChange={(_, selected) => {
-                  if (selected) setTempDate(selected);
-                }}
-              />
-            </View>
-          </View>
-        </Modal>
-      )}
-    </View>
-  );
-}
-
-function NativeTimeField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (hhmm: string) => void;
-}) {
-  const [showPicker, setShowPicker] = useState(false);
-  const [tempDate, setTempDate] = useState<Date>(() => {
-    if (value && /^\d{2}:\d{2}$/.test(value)) {
-      const [h, m] = value.split(":").map(Number);
-      const d = new Date();
-      d.setHours(h, m, 0, 0);
-      return d;
-    }
-    return new Date();
-  });
-
-  if (Platform.OS === "web") {
-    return (
-      <View>
-        <Text style={fieldLabelStyle}>{label}</Text>
-        {React.createElement("input", {
-          type: "time",
-          value,
-          onChange: (e: any) => onChange(e.target.value),
-          style: {
-            backgroundColor: theme.colors.surface,
-            borderRadius: 8,
-            border: `1px solid ${theme.colors.divider}`,
-            padding: "14px 14px",
-            fontSize: 15,
-            color: theme.colors.text,
-            width: "100%",
-            boxSizing: "border-box",
-            outline: "none",
-            fontFamily: "inherit",
-          },
-        })}
-      </View>
-    );
-  }
-
-  const display =
-    value && /^\d{2}:\d{2}$/.test(value)
-      ? (() => {
-          const [h, m] = value.split(":").map(Number);
-          const d = new Date();
-          d.setHours(h, m, 0, 0);
-          return format(d, "h:mm a");
-        })()
-      : "";
-
-  const onAndroidChange = (event: DateTimePickerEvent, selected?: Date) => {
-    setShowPicker(false);
-    if (event.type === "set" && selected) {
-      onChange(hhmmFromDate(selected));
-    }
-  };
-
-  return (
-    <View>
-      <Text style={fieldLabelStyle}>{label}</Text>
-      <TouchableOpacity
-        onPress={() => {
-          hapticImpactMedium();
-          setShowPicker(true);
-        }}
-        style={fieldButtonStyle}
-        activeOpacity={0.7}
-      >
-        <Text
-          style={{
-            fontSize: 15,
-            color: display ? theme.colors.text : theme.colors.textMuted,
-          }}
-        >
-          {display || "Pick a time"}
-        </Text>
-      </TouchableOpacity>
-
-      {showPicker && Platform.OS === "android" && (
-        <DateTimePicker
-          value={tempDate}
-          mode="time"
-          display="clock"
-          is24Hour={false}
-          onChange={onAndroidChange}
-        />
-      )}
-
-      {Platform.OS === "ios" && (
-        <Modal
-          visible={showPicker}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowPicker(false)}
-        >
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "flex-end",
-              backgroundColor: "rgba(0,0,0,0.4)",
-            }}
-          >
-            <View
-              style={{
-                backgroundColor: theme.colors.surface,
-                paddingBottom: 24,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  borderBottomWidth: 1,
-                  borderBottomColor: theme.colors.divider,
-                }}
-              >
-                <TouchableOpacity onPress={() => setShowPicker(false)}>
-                  <Text
-                    style={{ color: theme.colors.textSecondary, fontSize: 16 }}
-                  >
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    onChange(hhmmFromDate(tempDate));
-                    setShowPicker(false);
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: theme.colors.primary,
-                      fontSize: 16,
-                      fontWeight: "700",
-                    }}
-                  >
-                    Done
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <DateTimePicker
-                value={tempDate}
-                mode="time"
-                display="spinner"
-                onChange={(_, selected) => {
-                  if (selected) setTempDate(selected);
-                }}
-              />
-            </View>
-          </View>
-        </Modal>
-      )}
     </View>
   );
 }
