@@ -32,6 +32,29 @@ export async function verifyHexHmac(message: string, signature: string | null, s
   return constantTimeEqual(signature.toLowerCase(), expected);
 }
 
+export async function hmacSha1Hex(message: string, secret: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    'raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-1' }, false, ['sign'],
+  );
+  const signature = new Uint8Array(await crypto.subtle.sign('HMAC', key, encoder.encode(message)));
+  return Array.from(signature, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Vercel signs webhook deliveries as a hex HMAC-SHA1 of the exact raw body in
+ * `x-vercel-signature`. SHA-1 is Vercel's choice, not ours; it is only ever
+ * compared against a locally computed digest, never used to derive a secret.
+ */
+export async function verifyVercelSignature(
+  rawBody: string,
+  signature: string | null,
+  secret: string | undefined,
+): Promise<boolean> {
+  if (!secret || secret.length < 16 || !signature || !/^[a-f0-9]{40}$/i.test(signature)) return false;
+  const expected = await hmacSha1Hex(rawBody, secret);
+  return constantTimeEqual(signature.toLowerCase(), expected);
+}
+
 function base64Url(bytes: Uint8Array): string {
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);

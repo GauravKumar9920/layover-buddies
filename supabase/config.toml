@@ -389,6 +389,11 @@ verify_jwt = false
 [functions.content-deployment-webhook]
 verify_jwt = false
 
+# Vercel project webhook. Authenticates with Vercel's raw-body HMAC-SHA1
+# signature in `x-vercel-signature`; no end-user JWT is involved.
+[functions.vercel-deployment-webhook]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

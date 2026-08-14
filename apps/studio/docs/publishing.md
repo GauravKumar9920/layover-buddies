@@ -56,14 +56,38 @@ signature, deduplicates the delivery, writes `content_deployments`, calls the
 server-only Vercel hook, and records the accepted build state. This is what
 makes deployment failures visible in Detour Admin.
 
-Configure a server-side Vercel deployment listener to POST completion events
-back to the same Edge Function. The callback body must contain `eventId`,
-`deploymentId`, `documentId`, `status` (`building`, `ready`, `failed`, or
-`cancelled`) and provider URLs/IDs where available. Sign the exact JSON body as
-hex HMAC-SHA256 in `x-detour-signature` with a dedicated
-`CONTENT_STATUS_SECRET`. That secret must differ from both the Sanity webhook
-secret and the Supabase service-role key. Without the callback, Admin correctly
-keeps the deployment in `building` instead of reporting a false success.
+Completion is reported by a second Edge Function, `vercel-deployment-webhook`,
+which Vercel calls directly. Create a webhook in Vercel Project Settings →
+Webhooks:
+
+- URL: `https://<project-ref>.supabase.co/functions/v1/vercel-deployment-webhook`
+- Events: `deployment.succeeded`, `deployment.error`, `deployment.canceled`
+  (`deployment.created` is optional and only refines the `building` timestamp).
+- Scope: the marketing project only.
+- Secret: Vercel generates a signing secret when the webhook is created. Store
+  it as `VERCEL_WEBHOOK_SECRET`, and set `VERCEL_MARKETING_PROJECT_ID` so events
+  from another project are ignored rather than mismatched.
+
+Vercel signs the exact raw body as hex HMAC-**SHA1** in `x-vercel-signature`;
+that is Vercel's scheme, not ours, and the digest is only ever compared against
+a locally computed one.
+
+Correlation is not by deployment id alone. The deploy-hook response returns a
+*job* id while the webhook reports a *deployment* id, and the two differ, so
+`resolve_content_deployment_for_vercel` claims the oldest publish still pending
+within a 30-minute window and stamps the deployment id onto it. Every later
+event for that build then matches directly. A Vercel deploy with no pending
+publish — a git push, a manual redeploy — resolves to nothing and is ignored.
+
+The `x-detour-signature` / `CONTENT_STATUS_SECRET` path on
+`content-deployment-webhook` remains supported for manual replay and for any
+other deployment provider. Its body must contain `eventId`, `deploymentId`,
+`documentId`, `status` (`building`, `ready`, `failed`, or `cancelled`) and
+provider URLs/IDs where available, signed as hex HMAC-SHA256. That secret must
+differ from both the Sanity webhook secret and the Supabase service-role key.
+
+If no completion event ever arrives, Admin correctly keeps the deployment in
+`building` instead of reporting a false success.
 
 The editor workflow is: edit draft → open the preview URL → publish → wait for
 the deployment status → verify the clean URL. Sanity's document history can
