@@ -76,6 +76,7 @@
         "npm:turbo@2"
       ],
       "overrides": {
+        "tar": "6.2.1",
         "@xmldom/xmldom": "0.8.13",
         "fast-uri": "3.1.5",
         "@babel/plugin-transform-modules-systemjs": "7.29.4",
@@ -95,7 +96,7 @@
             "npm:@types/react@^18.3.3",
             "npm:@vitejs/plugin-react@^6.0.2",
             "npm:autoprefixer@^10.4.19",
-            "npm:postcss@^8.4.40",
+            "npm:postcss@^8.5.25",
             "npm:react-dom@^18.3.1",
             "npm:react-router-dom@^7.18.2",
             "npm:react@^18.3.1",
