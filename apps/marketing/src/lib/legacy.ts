@@ -117,7 +117,7 @@ function shouldRetainHeadNode(node: LegacyNode): boolean {
     const source = attr(node, 'src') || '';
     if (attr(node, 'type') === 'application/ld+json') return false;
     if (hasExactHostname(source, 'www.googletagmanager.com') || source.endsWith('assets/utm.js')) return false;
-    if (textContent(node).includes("gtag('config'")) return false;
+    if (/\bgtag\s*\(\s*['"]config['"]/iu.test(rawScriptContent(node))) return false;
   }
   return true;
 }
@@ -126,6 +126,11 @@ function textContent(node: LegacyNode): string {
   if (node.tagName === 'script' || node.tagName === 'style') return '';
   if (node.nodeName === '#text') return node.value || '';
   return (node.childNodes || []).map(textContent).join(' ');
+}
+
+function rawScriptContent(node: LegacyNode): string {
+  if (node.nodeName === '#text') return node.value || '';
+  return (node.childNodes || []).map(rawScriptContent).join('');
 }
 
 function normalizeText(node: LegacyNode): string {

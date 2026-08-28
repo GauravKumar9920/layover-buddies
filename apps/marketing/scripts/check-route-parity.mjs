@@ -53,6 +53,7 @@ for (const page of manifests) {
   assert.match(html, /<script type="application\/ld\+json">/, `${page.route} must contain generated JSON-LD`);
   assert.doesNotMatch(html, /formsubmit\.co/i, `${page.route} must not retain an inline FormSubmit handler`);
   assert.doesNotMatch(html, /googletagmanager\.com\/gtag\/js/i, `${page.route} must not load GA before consent`);
+  assert.doesNotMatch(html, /\bgtag\s*\(\s*['"]config['"]/iu, `${page.route} must not configure GA before consent`);
   if (page.index) assert.match(await readFile(path.join(distRoot, 'sitemap.xml'), 'utf8'), new RegExp(`<loc>${canonicalFor(page.route).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}</loc>`));
 }
 
