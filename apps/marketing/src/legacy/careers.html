@@ -426,14 +426,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       <!-- To get the embed URL: Open your Google Form → Click "Send" → Click the embed icon (<>) → Copy the src URL -->
       <iframe
         id="google-form-iframe"
-        src="about:blank"
-        data-src="https://docs.google.com/forms/d/e/1FAIpQLScblGPJAbuRdQuzOjd7Eg2W3ikjjQkovlbN7Ut-5c4xAMlWaw/viewform?embedded=true"
+        src="https://docs.google.com/forms/d/e/1FAIpQLScblGPJAbuRdQuzOjd7Eg2W3ikjjQkovlbN7Ut-5c4xAMlWaw/viewform?embedded=true"
         title="Job Application Form"
         loading="lazy"
         allow="autoplay"
       >Loading…</iframe>
       <!-- Fallback message shown when no form URL is configured -->
-      <div id="form-placeholder" style="padding:48px 32px;text-align:center;">
+      <div id="form-placeholder" style="display:none;padding:48px 32px;text-align:center;">
         <div style="font-size:48px;margin-bottom:16px;">📝</div>
         <h3 style="font-family:var(--display);font-weight:700;font-size:22px;margin-bottom:10px;color:var(--ink);">Application form coming soon</h3>
         <p style="font-size:14.5px;color:var(--ink-mute);line-height:1.55;max-width:380px;margin:0 auto 20px;">Send your portfolio and anything you're proud of — personal projects, AI experiments, all welcome:</p>
@@ -509,8 +508,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   const applyModal = document.getElementById('apply-modal');
   const openApplyBtn = document.getElementById('open-apply-modal');
   const closeApplyBtn = document.getElementById('close-apply');
-  const formIframe = document.getElementById('google-form-iframe');
-  const formPlaceholder = document.getElementById('form-placeholder');
 
   const openModal = () => {
     if (applyModal) {
@@ -518,16 +515,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       applyModal.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
 
-      // Lazy-load Google Form iframe if src is configured
-      const formSrc = formIframe?.getAttribute('data-src');
-      if (formSrc && formSrc.length > 5) {
-        formIframe.src = formSrc;
-        formIframe.style.display = 'block';
-        if (formPlaceholder) formPlaceholder.style.display = 'none';
-      } else {
-        formIframe.style.display = 'none';
-        if (formPlaceholder) formPlaceholder.style.display = 'block';
-      }
     }
   };
 

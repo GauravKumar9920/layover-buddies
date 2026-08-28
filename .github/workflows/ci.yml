@@ -46,8 +46,16 @@ jobs:
           node-version: '22.12'
           cache: 'npm'
           cache-dependency-path: package-lock.json
+      - name: Reject committed Google API keys
+        run: |
+          if git grep -nE 'AIza[0-9A-Za-z_-]{35}'; then
+            echo '::error::A Google API key is committed to the repository'
+            exit 1
+          fi
       - name: Install (workspaces)
         run: npm ci
+      - name: Verify patched untrusted-image parser guards
+        run: npm run test:dependency-security
       - name: Type check
         run: npm run type-check --workspace @detour/mobile
       - name: Lint
