@@ -54,6 +54,11 @@ jobs:
           fi
       - name: Install (workspaces)
         run: npm ci
+      - name: Verify Expo SDK dependency alignment
+        working-directory: apps/mobile
+        env:
+          CI: "1"
+        run: npx --no-install expo install --check --npm
       - name: Verify patched untrusted-image parser guards
         run: npm run test:dependency-security
       - name: Type check
