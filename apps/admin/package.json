@@ -3,14 +3,19 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Local-only admin panel for Detour. Solo admin, password-gated, uses Supabase service role key.",
+  "description": "Secure operations, growth, trust and finance console for Detour.",
   "scripts": {
     "dev": "vite --port 5174",
     "build": "tsc -b && vite build",
-    "preview": "vite preview --port 5174"
+    "preview": "vite preview --port 5174",
+    "type-check": "tsc -b --pretty false",
+    "lint": "tsc -b --pretty false",
+    "test": "node --test tests/*.test.mjs",
+    "security:scan": "node ../../scripts/assert-no-client-secrets.mjs dist"
   },
   "dependencies": {
     "@detour/config": "*",
+    "@detour/database": "*",
     "@supabase/supabase-js": "^2.45.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

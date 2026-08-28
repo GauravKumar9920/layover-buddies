@@ -15,6 +15,8 @@ interface Props<T> {
   rowKey: (row: T) => string;
   emptyMessage?: string;
   loading?: boolean;
+  onRowClick?: (row: T) => void;
+  compact?: boolean;
 }
 
 export default function DataTable<T>({
@@ -23,10 +25,12 @@ export default function DataTable<T>({
   rowKey,
   emptyMessage = 'No records found.',
   loading,
+  onRowClick,
+  compact,
 }: Props<T>) {
   return (
-    <div className="mx-8 mb-8 bg-white rounded-2xl shadow-card border border-divider overflow-hidden">
-      <table className="w-full text-sm">
+    <div className="table-shell">
+      <table className="w-full min-w-[760px] text-sm">
         <thead>
           <tr className="bg-cream/60 text-muted">
             {columns.map((col) => (
@@ -34,7 +38,8 @@ export default function DataTable<T>({
                 key={col.key}
                 style={{ width: col.width }}
                 className={[
-                  'px-4 py-3 font-medium text-xs uppercase tracking-wider',
+                  compact ? 'px-3 py-2.5' : 'px-4 py-3',
+                  'font-medium text-[10px] uppercase tracking-[0.12em]',
                   col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left',
                 ].join(' ')}
               >
@@ -60,13 +65,22 @@ export default function DataTable<T>({
             rows.map((row) => (
               <tr
                 key={rowKey(row)}
-                className="border-t border-divider hover:bg-cream/40 transition"
+                onClick={() => onRowClick?.(row)}
+                tabIndex={onRowClick ? 0 : undefined}
+                onKeyDown={(event) => {
+                  if (onRowClick && (event.key === 'Enter' || event.key === ' ')) onRowClick(row);
+                }}
+                className={[
+                  'border-t border-divider/80 transition',
+                  onRowClick ? 'cursor-pointer hover:bg-primary-50/60 focus:bg-primary-50/60 focus:outline-none' : 'hover:bg-cream/40',
+                ].join(' ')}
               >
                 {columns.map((col) => (
                   <td
                     key={col.key}
                     className={[
-                      'px-4 py-3 align-middle',
+                      compact ? 'px-3 py-2.5' : 'px-4 py-3.5',
+                      'align-middle',
                       col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left',
                       col.numeric ? 'num' : '',
                     ].join(' ')}

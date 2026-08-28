@@ -21,7 +21,7 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ── reports ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS reports (
-  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   reporter_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   reported_user_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   -- Optional context: which trip/chat this arose from.
@@ -41,7 +41,7 @@ CREATE INDEX IF NOT EXISTS idx_reports_reporter       ON reports(reporter_id);
 
 -- ── blocked_users ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS blocked_users (
-  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   blocker_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   blocked_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),

@@ -1,0 +1,24 @@
+<div id="booking-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="booking-title">
+  <div class="modal-card">
+    <button class="modal-close" aria-label="Close booking modal">&times;</button>
+    <div class="modal-header">
+      <span class="eyebrow">Free · early access</span>
+      <h2 id="booking-title">Be the first to take a <em>Detour.</em></h2>
+      <p style="font-size:14px;color:var(--ink-mute);margin-top:10px;line-height:1.55;">Tell us about your layover and we'll build a route around it.</p>
+    </div>
+    <form id="booking-form" novalidate>
+      <div class="form-group"><label for="bf-name">Your name</label><input type="text" id="bf-name" name="name" required autocomplete="name"></div>
+      <div class="form-group"><label for="bf-email">Email</label><input type="email" id="bf-email" name="email" required autocomplete="email"></div>
+      <div class="form-row">
+        <div class="form-group"><label for="bf-arrive">Arriving at BOM (date &amp; time)</label><input type="text" id="bf-arrive" name="arrival" required></div>
+        <div class="form-group"><label for="bf-depart">Departing (date &amp; time)</label><input type="text" id="bf-depart" name="departure" required></div>
+      </div>
+      <div class="form-group"><label for="bf-flights">Flight numbers (optional)</label><input type="text" id="bf-flights" name="flights"></div>
+      <div class="form-group"><label for="bf-into">What are you into?</label><textarea id="bf-into" name="interests" rows="2"></textarea></div>
+      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+      <button class="btn-primary btn-submit" type="submit" id="booking-submit">Send my layover</button>
+    </form>
+    <div class="form-status" id="booking-success"><h3>Got it — we're on it.</h3><p>We'll reply with a buddy match and a draft route.</p></div>
+    <div class="form-status" id="booking-error"><h3>Hmm, that didn't send.</h3><p>Email <a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a> with your arrival and departure times.</p></div>
+  </div>
+</div>

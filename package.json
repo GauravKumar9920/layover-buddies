@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "description": "Detour — layover marketplace monorepo: mobile app, admin console, marketing site, and Supabase backend.",
   "workspaces": [
-    "apps/*",
+    "apps/admin",
+    "apps/marketing",
+    "apps/mobile",
     "packages/*"
   ],
   "scripts": {
@@ -17,14 +19,18 @@
     "mobile:ios": "npm run start:ios --workspace @detour/mobile",
     "mobile:android": "npm run start:android --workspace @detour/mobile",
     "admin": "npm run dev --workspace @detour/admin",
+    "studio": "npm --prefix apps/studio run dev",
+    "studio:build": "npm --prefix apps/studio run build",
+    "studio:test": "npm --prefix apps/studio run type-check && npm --prefix apps/studio test",
     "test:edge": "deno test --allow-env --no-check supabase/functions/__tests__/",
+    "security:admin-bundle": "node scripts/assert-no-client-secrets.mjs apps/admin/dist",
     "test:dependency-security": "node scripts/test-image-size-patch.mjs"
   },
   "devDependencies": {
     "turbo": "^2.0.0"
   },
   "engines": {
-    "node": ">=20.0.0",
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0",
     "npm": ">=10.0.0"
   },
   "packageManager": "npm@10.9.3",

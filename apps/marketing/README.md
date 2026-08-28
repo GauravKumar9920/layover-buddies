@@ -1,41 +1,63 @@
-# Detour — Landing site (detourtrips.com)
+# Detour marketing site
 
-The public brand/story page for **detourtrips.com**. A single self-contained static
-page (`index.html`) — no build step. Promoted from the prototype
-`design/brand/detour-brand-site.html`.
+The public site for [detourtrips.com](https://detourtrips.com) is statically
+generated with Astro. The migration deliberately keeps the current HTML and
+visual behaviour as checked-in parity sources while moving routing, metadata,
+sitemaps, analytics, lead delivery, and future editorial content into shared
+infrastructure.
 
-- `index.html` — the page (inline CSS/SVG; loads Google Fonts via CDN)
-- `images/` — real, web-optimized Mumbai photos (band + duotone specimens)
-- `vercel.json` — clean URLs + long-cache headers for `/images`
+## Run and verify
 
-Faces in the "buddies" section are honest **initials** until real student photos are shot.
+From the repository root:
 
-## Deploy (Vercel)
-
-**Static — no build.** Two ways:
-
-**A. Vercel CLI (fastest)**
 ```bash
-npm i -g vercel
-vercel login
-cd apps/marketing
-vercel --prod          # accept defaults; Framework = Other, no build command
+npm run dev --workspace @detour/marketing
+npm run test:build --workspace @detour/marketing
 ```
 
-**B. Connect the GitHub repo (vercel.com/new)**
-- Import the repo → set **Root Directory = `apps/marketing`**
-- Framework Preset = **Other**, Build Command = *(empty)*, Output Directory = *(empty / `.`)*
-- Deploy.
+The development site runs at `http://127.0.0.1:8791`. Route-parity checks cover
+all current clean URLs, internal links and assets, canonical metadata,
+structured data, deferred video, the analytics contract, and the initial local
+payload budget.
 
-## Custom domain (detourtrips.com)
-In the Vercel project → **Settings → Domains → Add** `detourtrips.com` (and `www.detourtrips.com`).
-Vercel shows the exact records. Typical at your registrar:
-- Apex `detourtrips.com` → **A** record → `76.76.21.21`
-- `www` → **CNAME** → `cname.vercel-dns.com`
+## Content sources
 
-If the domain is registered with Vercel itself, "Add domain" auto-configures DNS — nothing to paste.
+- `src/content/pages/` is the typed route and publication manifest. Its
+  `updatedAt` values generate sitemap `lastmod` values.
+- `src/legacy/` preserves the current live content and styling during the
+  no-redesign Astro migration.
+- A published Sanity `guide` or `landingPage` with the same clean route can
+  provide structured body and SEO fields at build time. New Sanity routes are
+  also generated. If Sanity is unconfigured or unavailable, local content
+  builds deterministically. `/privacy` and `/terms` are explicitly denied in
+  both Studio validation and the build resolver because legal text remains
+  code-controlled.
+- `public/` contains browser assets. Images include original JPEG, responsive
+  WebP, and AVIF variants. The sub-1 MB hero video attaches only after visitor
+  interaction; the secondary band attaches when it approaches the viewport.
 
-## TODO (post-launch)
-- Self-host the Google Fonts for zero external deps.
-- Replace buddy initials with real student photos once shot.
-- Add a proper OG social-card image (currently reuses the skyline photo).
+Copy `.env.example` to `.env.local` for the lead endpoint and optional Sanity
+source. The same file exposes optional Google Search Console and Bing
+verification tags. Never put service-role, Google service-account, Sanity write, or Vercel
+Deploy Hook secrets in a `PUBLIC_*` variable.
+
+## Leads and measurement
+
+Forms POST the documented nested payload to the configurable
+`submit-marketing-lead` endpoint. FormSubmit is used temporarily only when the
+primary endpoint is unconfigured, unreachable, or returns 5xx; validation,
+rate-limit, and other 4xx responses cannot bypass the primary endpoint.
+
+GA4 loads only after analytics consent. Events are allowlisted and contain no
+names, emails, flight details, interests, or arbitrary URLs. Persistent UTM
+attribution uses the same consent, expires after 90 days (or the browser
+session for last touch), excludes advertising click IDs, and is submitted only
+with the lead.
+
+## Vercel
+
+Set the project root to `apps/marketing`, build command to `npm run build`, and
+output directory to `dist`. Keep `cleanUrls` enabled. Publishing content from
+Sanity should call the Vercel Deploy Hook described in
+`../studio/docs/publishing.md`; a Git push by itself is not proof of a
+production release.

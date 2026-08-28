@@ -1,0 +1,86 @@
+---
+import ConsentBanner from '../components/ConsentBanner.astro';
+import { serializeJsonLd } from '../lib/json-ld.mjs';
+import type { SitePage } from '../lib/site-pages';
+import { buildStructuredData } from '../lib/structured-data';
+
+interface Props {
+  page: SitePage;
+  retainedHead?: string;
+  theme?: string;
+  faqs?: Array<{ question: string; answer: string }>;
+}
+
+const { page, retainedHead = '', theme, faqs = [] } = Astro.props;
+const site = (Astro.site || new URL('https://detourtrips.com')).toString();
+const canonical = new URL(page.route, site).toString();
+const socialImage = new URL(page.image, site).toString();
+const measurementId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-54QYM83DKF';
+const leadEndpoint = import.meta.env.PUBLIC_MARKETING_LEAD_ENDPOINT || '';
+const googleVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION || '';
+const bingVerification = import.meta.env.PUBLIC_BING_SITE_VERIFICATION || '';
+const structuredData = buildStructuredData(page, page.faqs || faqs);
+const serializedStructuredData = serializeJsonLd(structuredData);
+---
+
+<!doctype html>
+<html lang="en" data-theme={theme}>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{page.title}</title>
+    <meta name="description" content={page.description}>
+    <link rel="canonical" href={canonical}>
+    {!page.index && <meta name="robots" content="noindex,nofollow">}
+    <meta property="og:type" content={page.pageType === 'article' ? 'article' : 'website'}>
+    <meta property="og:site_name" content="Detour">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:title" content={page.socialTitle || page.title}>
+    <meta property="og:description" content={page.socialDescription || page.description}>
+    <meta property="og:url" content={canonical}>
+    <meta property="og:image" content={socialImage}>
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content={page.socialTitle || page.title}>
+    <meta name="twitter:description" content={page.socialDescription || page.description}>
+    <meta name="twitter:image" content={socialImage}>
+    {page.pageType === 'article' && <meta property="article:modified_time" content={page.updatedAt}>}
+    {page.publishedAt && <meta property="article:published_time" content={page.publishedAt}>}
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 30 C 10 22 6 18 6 13 A 10 10 0 1 1 26 13 C 26 18 22 22 16 30 Z' fill='%23C8542A'/%3E%3Ccircle cx='16' cy='13' r='3.6' fill='%23FCF7EA'/%3E%3C/svg%3E">
+    <meta name="detour-ga-id" content={measurementId}>
+    <meta name="detour-lead-endpoint" content={leadEndpoint}>
+    {googleVerification && <meta name="google-site-verification" content={googleVerification}>}
+    {bingVerification && <meta name="msvalidate.01" content={bingVerification}>}
+    <script type="application/ld+json" set:html={serializedStructuredData}></script>
+    <style is:inline>
+      @font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:400 800;font-display:optional;src:url('/fonts/bricolage-grotesque-latin.woff2') format('woff2')}
+      @font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:400 700;font-display:optional;src:url('/fonts/plus-jakarta-sans-latin.woff2') format('woff2')}
+      @font-face{font-family:'DM Mono';font-style:normal;font-weight:400;font-display:optional;src:url('/fonts/dm-mono-latin.woff2') format('woff2')}
+      @font-face{font-family:'Instrument Serif';font-style:italic;font-weight:400;font-display:optional;src:url('/fonts/instrument-serif-italic-latin.woff2') format('woff2')}
+    </style>
+    <Fragment set:html={retainedHead} />
+    <script is:inline>
+      try { const saved = localStorage.getItem('detour-theme'); if (saved) document.documentElement.setAttribute('data-theme', saved); } catch {}
+    </script>
+  </head>
+  <body>
+    <slot />
+    <ConsentBanner />
+    <script is:inline src="/assets/analytics.js" defer></script>
+    <script is:inline src="/assets/utm.js" defer></script>
+    <script is:inline src="/assets/booking.js" defer></script>
+    <script is:inline>
+      (() => {
+        let applied = false;
+        const applyBrandFonts = () => {
+          if (applied) return;
+          applied = true;
+          document.documentElement.dataset.fonts = 'brand';
+        };
+        for (const event of ['pointerdown', 'touchstart', 'keydown', 'scroll']) {
+          addEventListener(event, applyBrandFonts, { once: true, passive: true });
+        }
+        setTimeout(applyBrandFonts, 8000);
+      })();
+    </script>
+  </body>
+</html>

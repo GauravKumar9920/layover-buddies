@@ -1,6 +1,6 @@
 # Detour — Developer Runbook
 
-> Last updated: 2026-04-26  
+> Last updated: 2026-08-09
 > Everything in this file reflects the actual working state of the repo.
 
 ---
@@ -28,11 +28,11 @@
 
 | Surface | Status | URL / Port |
 |---|---|---|
-| Marketing website | ✅ Working | `http://localhost:5173` |
+| Marketing website (Astro) | ✅ Working | `http://127.0.0.1:8791` |
 | Mobile app (iOS Simulator) | ✅ Working | Expo Go on simulator |
 | Mobile app (Android Emulator) | ✅ Working | Expo Go on emulator |
 | Mobile app (Web) | ✅ Working | `http://localhost:8081` |
-| Admin panel | ✅ Working | `http://localhost:5174` |
+| Admin 2.0 (Auth + MFA + RBAC) | ✅ Working | `http://127.0.0.1:5174` |
 | Local Supabase backend | ✅ Working | `http://localhost:54321` |
 | Auth (email + password) | ✅ Working | Shared login for guides & travelers |
 | Role-based routing | ✅ Working | Guides → guide area, travelers → traveler area |
@@ -43,10 +43,12 @@
 | Guide dashboard | ✅ Working | Incoming requests, accept / decline |
 | Messaging | ✅ Working | Per-booking chat thread |
 | Saved / Favorites | ✅ Working | Heart guides, persisted per user |
-| Admin: Users table | ✅ Working | View all users, role, join date |
-| Admin: Bookings table | ✅ Working | All bookings with status badges |
-| Admin: Revenue dashboard | ✅ Working | Total revenue, 7d / 30d / all-time toggle |
-| Admin: SOS alerts | ✅ Working | Acknowledge + resolve safety flags |
+| Admin: Action Centre | ✅ Working | Owner, age, SLA, next action, fail-closed source health |
+| Admin: Operations + marketplace | ✅ Working | Leads, inquiries, booking timeline, profiles, reviews |
+| Admin: Money | ✅ Working | Payment/refund/payout ledgers and reconciliation |
+| Admin: Trust & Safety | ✅ Working | Realtime SOS, reports, disputes and audited commands |
+| Admin: Growth & Content | ✅ Working | GA4/GSC reports, funnel, tracking health and deployments |
+| Sanity Studio | ✅ Working | Structured drafts, preview, revision and publishing workflow |
 | Seed data | ✅ Present | 7 guides, 15 itineraries, 6 bookings, 5 reviews |
 
 ---
@@ -56,8 +58,8 @@
 Install these once:
 
 ```bash
-# Node.js 18+ (check with: node -v)
-# npm 9+ (check with: npm -v)
+# Node.js 22.12+ (check with: node -v)
+# npm 10+ (check with: npm -v)
 
 # Expo CLI
 npm install -g expo-cli
@@ -82,12 +84,12 @@ For Android:
 
 ## Environment Setup
 
-### Mobile App (`mobile/.env.local`)
+### Mobile App (`apps/mobile/.env.local`)
 
 Copy the example and fill in values:
 
 ```bash
-cp mobile/.env.local.example mobile/.env.local
+cp apps/mobile/.env.local.example apps/mobile/.env.local
 ```
 
 For **local development** use these values:
@@ -103,13 +105,24 @@ EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=
 
 > ⚠️ Use `127.0.0.1` not a LAN IP — the LAN IP is unreachable from the simulator on newer macOS.
 
-### Admin Panel (`admin/.env.local`)
+### Admin Console (`apps/admin/.env.local`)
 
 ```env
 VITE_SUPABASE_URL=http://127.0.0.1:54321
-VITE_SUPABASE_SERVICE_KEY=<service_role key from `npx supabase status`>
-VITE_ADMIN_PASSWORD=test-admin-123
+VITE_SUPABASE_ANON_KEY=<anon key from `npx supabase status`>
 ```
+
+Never put a service-role key, Google credential, or deployment token in a
+`VITE_*` variable. The hosted console authenticates administrators with
+Supabase Auth and TOTP MFA; privileged reads and commands execute inside Edge
+Functions after membership and role checks.
+
+### Server integrations (`supabase/.env.local`)
+
+Copy `supabase/.env.local.example` for local Edge Function work. It documents
+the server-only GA4, Search Console, Resend, Sanity and Vercel values. In a
+hosted project, configure the same names with `supabase secrets set`; never put
+them in Admin, Marketing or Studio browser variables.
 
 ---
 
@@ -139,7 +152,9 @@ service_role key: sb_secret_...
 Studio URL: http://127.0.0.1:54323   ← database browser UI
 ```
 
-Paste the `anon key` into `mobile/.env.local` and the `service_role key` into `admin/.env.local`.
+Paste the public `anon key` into both `apps/mobile/.env.local` and
+`apps/admin/.env.local`. Keep the `service_role` key server-side; local
+Supabase supplies it directly to Edge Functions.
 
 **To stop Supabase:**
 ```bash
@@ -150,27 +165,35 @@ npx supabase stop
 
 ## Launching the Marketing Website
 
-The marketing site is a Vite + Tailwind static site at the repo root.
+Astro generates the public site as complete static HTML while preserving the
+clean production URLs.
 
 ```bash
 cd /Users/gaurav/Desktop/mumbai-buddies
-npm install        # first time only
-npm run dev
+npm install
+npm run dev --workspace @detour/marketing
 ```
 
-Open: **http://localhost:5173**
+Open **http://127.0.0.1:8791**. A production-parity check is:
 
-Pages:
-- `/` → `index.html` — Main landing page
-- `/know-more.html` → Deep-dive info page
-
-**Build for production:**
 ```bash
-npm run build      # outputs to dist/
-npm run preview    # preview the production build locally
+npm run build --workspace @detour/marketing
+npm test --workspace @detour/marketing
+npm run preview --workspace @detour/marketing
 ```
 
-> 📝 **Known issues:** The site still uses placeholder URLs (`localhost:8081`, `wa.me/910000000000`) and missing images in `/public/images/`. See CLAUDE.md §5–7 for the full list.
+The checked-in content is a deterministic fallback. Configure Sanity only when
+testing editorial publishing; see `apps/studio/docs/publishing.md`.
+
+The Studio has an isolated React 19 dependency graph:
+
+```bash
+npm install --prefix apps/studio
+npm run studio
+# verification
+npm run studio:test
+npm run studio:build
+```
 
 ---
 
@@ -179,8 +202,8 @@ npm run preview    # preview the production build locally
 The app is React Native + Expo 52 with Expo Router 4 for file-based navigation.
 
 ```bash
-cd /Users/gaurav/Desktop/mumbai-buddies/mobile
-npm install        # first time only
+cd /Users/gaurav/Desktop/mumbai-buddies
+npm install        # first time only, installs all root workspaces
 ```
 
 ### iOS Simulator
@@ -193,7 +216,7 @@ npm install        # first time only
 
 2. Start the app:
    ```bash
-   npm run start:ios
+   npm run mobile:ios
    # equivalent to: expo start --ios
    ```
 
@@ -201,7 +224,7 @@ npm install        # first time only
 
 **One-liner from the repo root:**
 ```bash
-npm --prefix /Users/gaurav/Desktop/mumbai-buddies/mobile run start:ios
+npm run mobile:ios
 ```
 
 ---
@@ -224,14 +247,14 @@ npm --prefix /Users/gaurav/Desktop/mumbai-buddies/mobile run start:ios
 
 3. Start the app:
    ```bash
-   cd mobile
-   npm run start:android
+   cd /Users/gaurav/Desktop/mumbai-buddies
+   npm run mobile:android
    # equivalent to: expo start --android
    ```
 
 **One-liner from the repo root:**
 ```bash
-npm --prefix /Users/gaurav/Desktop/mumbai-buddies/mobile run start:android
+npm run mobile:android
 ```
 
 ---
@@ -241,8 +264,8 @@ npm --prefix /Users/gaurav/Desktop/mumbai-buddies/mobile run start:android
 Runs the app as a web app — useful for fast iteration and preview tools.
 
 ```bash
-cd mobile
-npm run start:web
+cd /Users/gaurav/Desktop/mumbai-buddies
+npm run start:web --workspace @detour/mobile
 # equivalent to: expo start --web
 ```
 
@@ -252,37 +275,39 @@ The viewport defaults to desktop. For an iPhone-sized view, resize your browser 
 
 **One-liner from the repo root:**
 ```bash
-npm --prefix /Users/gaurav/Desktop/mumbai-buddies/mobile run start:web
+npm run start:web --workspace @detour/mobile
 ```
 
 ---
 
-## Launching the Admin Panel
+## Launching the Admin Console
 
-The admin panel is a separate Vite + React app in `/admin/`. It uses the **Supabase service role key** (full DB access, no RLS), so it must **never** be deployed publicly.
+The Vite browser app has only the public anon key. Supabase Auth, MFA, active
+membership, operation-specific roles, validated commands, and the append-only
+audit log protect privileged work.
 
 ```bash
-cd /Users/gaurav/Desktop/mumbai-buddies/admin
-npm install        # first time only
-npm run dev
+cd /Users/gaurav/Desktop/mumbai-buddies
+cp apps/admin/.env.local.example apps/admin/.env.local
+# fill VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
+npm run admin
 ```
 
-Open: **http://localhost:5174**
+Open **http://127.0.0.1:5174**, sign in with an Auth user that has an active
+`admin_memberships` record, and enrol/verify an authenticator when prompted.
+Local seeded owner details are documented beside the seed once the backend has
+been reset.
 
-You'll be prompted for the admin password. Default for local dev: `test-admin-123` (set in `admin/.env.local`).
+Before any hosted release:
 
-**One-liner from the repo root:**
 ```bash
-npm run dev --prefix /Users/gaurav/Desktop/mumbai-buddies/admin
+npm run build --workspace @detour/admin
+npm test --workspace @detour/admin
+npm run security:admin-bundle
 ```
 
-**Admin pages:**
-| Page | Path | What it shows |
-|---|---|---|
-| Users | `/users` | All users, role, signup date, active status |
-| Bookings | `/bookings` | All bookings with status badges and amounts |
-| Revenue | `/revenue` | Total revenue, 7d / 30d / all-time breakdown |
-| SOS Alerts | `/sos` | Safety flag queue — acknowledge and resolve |
+The final command must pass; it rejects service credentials, private keys, and
+privileged environment markers in downloadable assets.
 
 ---
 
@@ -389,21 +414,20 @@ Or browse / reset any account in Supabase Studio:
 
 | Feature | Status | Notes |
 |---|---|---|
-| Razorpay payments | 🔜 Stubbed | `mobile/lib/api/payments.ts` exists; needs real key + company registration |
+| Razorpay payments | 🔜 Stubbed | `apps/mobile/lib/api/payments.ts` exists; needs real key + company registration |
 | Google Maps live tour | 🔜 Stubbed | `.native.tsx` variant exists; needs `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` in `app.json` |
 | Push notifications | ✅ Done (PR #6) | Expo Push token registration, Edge fn delivery, cron polling, deep-link tap routing |
 | Google OAuth | 🔜 UI exists | Button is on login screen; Supabase provider not configured |
-| Marketing site real links | 🔜 Placeholder | Replace `localhost:8081`, WhatsApp, Instagram, Twitter/X URLs |
-| Marketing site images | 🔜 Missing | ~30 images in `/public/images/` return 404 |
-| Marketing site colors | 🔜 Off-brand | Uses indigo `#4F46E5`; should be saffron `#F97316` |
-| CI/CD pipeline | ✅ Done | 5-job GitHub Actions suite (lint, typecheck, migrations, build, edge tests) |
-| EAS / production build | 🔜 Needs setup | Run `eas init` in `mobile/` to replace the placeholder projectId in `app.json` |
+| GA4 + Search Console live data | 🔜 Needs access | Configure the numeric property ID, domain property and read-only service account |
+| Sanity production publishing | 🔜 Needs access | Configure project/dataset, signed relay secret and Vercel deployment callbacks |
+| CI/CD pipeline | ✅ Done | Mobile, Admin, Edge, Marketing, Studio and fresh migration checks |
+| EAS / production build | 🔜 Needs setup | Run `eas init` in `apps/mobile/` to replace the placeholder projectId in `app.json` |
 
 ---
 
 ## Business Rules
 
-These are enforced in `mobile/config/constants.ts`. **Do not change without founder sign-off.**
+These are enforced in `apps/mobile/config/constants.ts`. **Do not change without founder sign-off.**
 
 | Rule | Value |
 |---|---|

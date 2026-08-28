@@ -1,0 +1,12 @@
+{
+  "route": "/",
+  "legacySource": "index.html",
+  "pageType": "home",
+  "title": "Mumbai Layover Tours with Local Student Guides | Detour",
+  "description": "Turn your Mumbai layover into the best part of your trip. A local student guide plans a route around your flight, meets you at BOM, and gets you back with time to spare. Free in early access.",
+  "socialDescription": "Got a few hours between flights in Mumbai? A local student guide plans your route, meets you at BOM, and gets you back with time to spare. Free in early access.",
+  "image": "/images/hero-skyline-main.jpg",
+  "updatedAt": "2026-07-02",
+  "changeFrequency": "weekly",
+  "priority": 1
+}

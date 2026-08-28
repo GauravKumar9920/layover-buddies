@@ -1,0 +1,11 @@
+{
+  "route": "/404",
+  "legacySource": "404.html",
+  "pageType": "error",
+  "title": "Lost the trail — Detour",
+  "description": "That Detour page could not be found.",
+  "updatedAt": "2026-06-14",
+  "changeFrequency": "yearly",
+  "priority": 0,
+  "index": false
+}

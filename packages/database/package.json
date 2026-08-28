@@ -1,0 +1,11 @@
+{
+  "name": "@detour/database",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generated Supabase schema types shared by Detour clients and server boundaries.",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  }
+}

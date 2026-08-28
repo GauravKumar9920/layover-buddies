@@ -5,21 +5,27 @@ A two-sided marketplace connecting international airport layover travelers with 
 
 This is an **npm-workspaces monorepo** (Turborepo for task orchestration). Packages:
 - **Mobile app**: React Native + Expo 52, file-based routing via Expo Router — `apps/mobile/` (`@detour/mobile`)
-- **Admin console**: local-only Vite + React + Tailwind — `apps/admin/` (`@detour/admin`)
-- **Marketing site** (live brand page): self-contained static HTML at `apps/marketing/` (`@detour/marketing`) → deploys to detourtrips.com
+- **Admin console**: hosted Vite + React + Tailwind operations console — `apps/admin/` (`@detour/admin`)
+- **Marketing site**: Astro-generated static site with bounded Sanity content — `apps/marketing/` (`@detour/marketing`) → deploys to detourtrips.com
+- **Content Studio**: isolated Sanity + React 19 application — `apps/studio/`; its own lockfile prevents React 19 from being hoisted into Expo/admin
 - **Backend**: Supabase (auth + database + storage + Deno edge functions) — `supabase/` at the repo root (CLI expects `./supabase`)
 - **Shared libraries**: `packages/*` (`@detour/*`)
 - **Design system**: `design/brand/design-system.md` and `design/brand/design-handoff-spec.md`
 
-`apps/mobile` and `apps/admin` share **one Supabase project** (mobile uses the anon key under RLS; admin uses the service-role key). See `docs/technical/ADR-002-monorepo-workspaces.md`.
+`apps/mobile` and `apps/admin` share **one Supabase project**. Both browser
+clients use an anon key. Admin-only reads and commands run behind authenticated,
+MFA- and role-checked Edge Functions; never put a service-role or Google
+credential in a `VITE_*` variable. See
+`docs/technical/ADR-003-admin-control-plane-growth-publishing.md`.
 
 ---
 
 ## How To Run The App
 
-Install once at the repo root (single lockfile, all workspaces):
+Install the React 18 workspaces at the root, then the isolated React 19 Studio:
 ```bash
 npm install
+npm install --prefix apps/studio
 ```
 
 ### iOS Simulator
@@ -43,6 +49,13 @@ Start an emulator from Android Studio → Device Manager first.
 ### Admin console
 ```bash
 npm run admin               # Vite dev server at http://127.0.0.1:5174
+```
+
+### Sanity Studio
+```bash
+npm run studio              # http://127.0.0.1:3333
+npm run studio:test
+npm run studio:build
 ```
 
 ### Repo-wide checks (Turborepo)
@@ -126,15 +139,14 @@ detour/                          # npm-workspaces monorepo root (package.json + 
 │   │   ├── types/index.ts       # TypeScript models
 │   │   ├── metro.config.js      # monorepo-aware Metro (watchFolders + nodeModulesPaths)
 │   │   └── .env.local.example   # EXPO_PUBLIC_SUPABASE_* etc.
-│   ├── admin/                   # @detour/admin — local-only Vite+React+Tailwind console
-│   │   ├── src/pages/           # Users, Bookings, Revenue, SOS
-│   │   ├── src/lib/             # supabase client (service role), auth gate, helpers
-│   │   └── .env.local.example   # VITE_SUPABASE_URL / SERVICE_KEY / ADMIN_PASSWORD
-│   └── marketing/               # @detour/marketing — static site → detourtrips.com
-│       ├── index.html           # Detour brand/story page
-│       ├── guides/              # SEO layover-guide cluster
-│       ├── assets/              # site.css, booking.js, utm.js
-│       ├── images/              # web-optimized Mumbai photos
+│   ├── admin/                   # @detour/admin — hosted Vite+React+Tailwind console
+│   │   ├── src/pages/           # Operations, marketplace, safety, money, growth, platform
+│   │   ├── src/lib/             # anon Supabase Auth client + typed admin API
+│   │   └── .env.local.example   # VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY
+│   └── marketing/               # @detour/marketing — Astro static site → detourtrips.com
+│       ├── src/pages/           # URL-preserving generated pages
+│       ├── src/components/      # shared layout, forms, metadata, tracking
+│       ├── public/              # optimized media and static downloads
 │       └── vercel.json          # static deploy config
 ├── packages/                    # shared internal libraries (@detour/*)
 ├── supabase/                    # migrations, edge functions (Deno), seed.sql — shared backend
@@ -148,9 +160,9 @@ detour/                          # npm-workspaces monorepo root (package.json + 
 ```
 
 ### Admin panel (`apps/admin/`)
-- Runs on `127.0.0.1:5174`. Password-gated (`VITE_ADMIN_PASSWORD`), session-scoped auth.
-- Uses the Supabase **service role** key and bypasses RLS. Local-only; never deploy as-is.
-- Day-1 screens: Users (role filter), Bookings (status filter + joined names), Revenue (7d/30d/90d/all-time; earned vs pipeline), SOS events (Acknowledge/Resolve + Google Maps link).
+- Runs on `127.0.0.1:5174` locally and is safe to host after the security gates pass.
+- Uses Supabase Auth, TOTP MFA, and `admin_memberships` roles. The browser has only the anon key; privileged access stays inside Edge Functions and audited RPCs.
+- Navigation is grouped by Overview, Operations, Marketplace, Trust & Safety, Money, Growth & Content, and Platform.
 - No guide-approval queue — guides auto-approve per product spec.
 
 Run: `npm install` (root) then `cp apps/admin/.env.local.example apps/admin/.env.local`, fill env vars, and `npm run admin`.
@@ -182,7 +194,9 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=
 EXPO_PUBLIC_RAZORPAY_KEY_ID=       # deferred
 EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=   # deferred
 ```
-Admin needs `apps/admin/.env.local` with `VITE_SUPABASE_URL`, `VITE_SUPABASE_SERVICE_KEY`, `VITE_ADMIN_PASSWORD`.
+Admin needs `apps/admin/.env.local` with `VITE_SUPABASE_URL` and
+`VITE_SUPABASE_ANON_KEY`. Provider and service credentials are server-side
+Supabase function secrets.
 
 ---
 
@@ -190,6 +204,6 @@ Admin needs `apps/admin/.env.local` with `VITE_SUPABASE_URL`, `VITE_SUPABASE_SER
 - **Monorepo:** npm workspaces + Turborepo
 - **Mobile:** React Native 0.76, Expo 52, Expo Router 4, TypeScript 5.x
 - **Styling:** NativeWind 4 (Tailwind for RN) · **Animations:** Reanimated 3 · **State:** Zustand 4
-- **Admin/Marketing web:** Vite 8 + React 18 (admin); static HTML (marketing)
+- **Admin/Marketing web:** Vite 8 + React 18 (admin); Astro static output + Sanity content (marketing)
 - **Backend:** Supabase JS v2, Postgres, Deno edge functions
 - **Payments:** Razorpay (deferred) · **Maps:** react-native-maps 1.18, expo-location
