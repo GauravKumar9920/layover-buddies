@@ -3,7 +3,22 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 const require = createRequire(import.meta.url);
-const packageJsonPath = require.resolve('image-size/package.json');
+let packageJsonPath;
+
+try {
+  packageJsonPath = require.resolve('image-size/package.json');
+} catch (error) {
+  // `image-size` is a mobile/Metro transitive dependency. Scoped installs such
+  // as the standalone marketing deployment do not include it, so there is no
+  // parser to patch in those installs.
+  if (error?.code === 'MODULE_NOT_FOUND') {
+    console.log('image-size is not installed; no Metro parser patch is required for this install.');
+    process.exit(0);
+  }
+
+  throw error;
+}
+
 const packageRoot = dirname(packageJsonPath);
 const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'));
 
