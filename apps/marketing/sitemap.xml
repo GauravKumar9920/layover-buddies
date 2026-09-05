@@ -8,10 +8,36 @@
   </url>
   <url>
     <loc>https://detourtrips.com/guides</loc>
-    <lastmod>2026-06-14</lastmod>
+    <lastmod>2026-08-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+  <url>
+    <loc>https://detourtrips.com/guides/places</loc>
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://detourtrips.com/guides/gateway-of-india-mumbai</loc>
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url><loc>https://detourtrips.com/guides/fort-kala-ghoda-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/bandra-fort-bandstand-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/marine-drive-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/colaba-causeway-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/csmt-heritage-quarter-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/elephanta-caves-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/dadar-flower-market-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/dhobi-ghat-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/juhu-beach-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/bandra-villages-street-art-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/powai-lake-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/bkc-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/worli-sea-face-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://detourtrips.com/guides/kanheri-caves-sanjay-gandhi-national-park-mumbai</loc><lastmod>2026-08-23</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url>
     <loc>https://detourtrips.com/guides/complete-mumbai-layover-guide</loc>
     <lastmod>2026-06-14</lastmod>

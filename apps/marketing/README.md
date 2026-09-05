@@ -39,3 +39,4 @@ If the domain is registered with Vercel itself, "Add domain" auto-configures DNS
 - Self-host the Google Fonts for zero external deps.
 - Replace buddy initials with real student photos once shot.
 - Add a proper OG social-card image (currently reuses the skyline photo).
+- Expand the place-field-note photo library. Priority sets: Fort + Kala Ghoda, Bandra Fort + Bandstand, Marine Drive, Colaba, CSMT, Elephanta, Dadar flower market, Dhobi Ghat, Juhu, Bandra villages, Powai, BKC, Worli, and Kanheri. Until then, the directory deliberately reuses the existing Mumbai library.
