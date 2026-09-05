@@ -1,109 +1,38 @@
 # Technical Documentation
 
-## Purpose
-Central repository for technical specifications, architecture decisions, API documentation, database schemas, and system design. Keep this updated as implementation progresses.
+> Last verified: 2026-09-05.
 
-## Contents
-- System Architecture Overview
-- Database Schema Diagrams & Specifications
-- API Documentation (endpoints, request/response examples)
-- Authentication & Security Specifications
-- Integration Guides (Razorpay, Supabase, etc.)
-- Deployment & DevOps Documentation
-- Performance & Scalability Considerations
-- Error Handling & Status Codes
-- Data Privacy & Encryption Specifications
+## Start here
+- [project-structure.md](project-structure.md) — monorepo layout, workspaces, conventions
+- [system-architecture.md](system-architecture.md) — components, data flow, security model
+- [RUNBOOK.md](RUNBOOK.md) — run every surface locally; test accounts; screen map
+- [TESTING.md](TESTING.md) — automated suites + manual smoke checklists
 
-## Tech Stack Summary
+## Architecture decisions
+- [ADR-001-unified-codebase.md](ADR-001-unified-codebase.md) — why Expo Universal (one codebase for iOS/Android/web)
+- [ADR-002-monorepo-workspaces.md](ADR-002-monorepo-workspaces.md) — why a workspaces monorepo
+- [ADR-003-admin-control-plane-growth-publishing.md](ADR-003-admin-control-plane-growth-publishing.md) — Admin 2.0: anon-key SPA + server-only control plane, growth reporting, Astro/Sanity/Vercel publishing
+
+## Operations
+- [ADMIN2_PROVIDER_SETUP_RUNBOOK.md](ADMIN2_PROVIDER_SETUP_RUNBOOK.md) — the 10 remaining Admin 2.0 provider-config steps (DNS, MFA, Resend, GA4, Search Console, publishing hooks, Sanity import, acceptance)
+- [DEPENDENCY_SECURITY.md](DEPENDENCY_SECURITY.md) — dependency security exceptions; root `overrides` policy
+- [app_launch.md](app_launch.md) — operating notes for the two-sided local demo
+
+## Stack summary (current)
 | Component | Technology |
 |-----------|-----------|
-| Website | Vite + Tailwind CSS |
-| Web App | Next.js |
-| Mobile | React Native / Expo |
-| Backend | Supabase or Node.js |
-| Database | PostgreSQL |
-| Payments | Razorpay |
-| Hosting | Vercel (webapp), Expo (mobile), Supabase (backend) |
+| Mobile app | React Native 0.76 / Expo 52 / Expo Router 4 / NativeWind 4 / Zustand 4 |
+| Admin console | Vite 8 + React 18 + React Router 7 + Tailwind → Vercel (`detour-admin.vercel.app`) |
+| Marketing site | Astro 7 static output → Vercel (detourtrips.com) |
+| Content Studio | Sanity 6 + React 19 (isolated lockfile) → `detour-content.sanity.studio` |
+| Backend | Supabase (Postgres + Auth + Storage + Deno Edge Functions, pg_cron) |
+| Payments | Razorpay — checkout wired (test mode); live payouts deferred |
+| Push | Expo Push via `send-push` edge function (built, pending enablement) |
+| Maps | react-native-maps 1.18, expo-location |
+| Hosting | Vercel (admin + marketing), Sanity (studio), Supabase (backend) |
 
-## Database Schema (To Document)
-- **users**: travelers, guides, admins
-- **guides**: profiles, languages, ratings, availability
-- **bookings**: reservations, status tracking, payments
-- **reviews**: ratings, feedback, moderation
-- **messages**: chat history, real-time sync
-- **payments**: transaction logs, refunds
-- **notifications**: delivery logs, preferences
-
-## API Endpoints (To Document)
-```
-Authentication
-POST   /auth/register
-POST   /auth/login
-POST   /auth/logout
-
-Guides
-GET    /api/guides              # Search with filters
-GET    /api/guides/:id          # Get details
-PUT    /api/guides/:id          # Update profile
-GET    /api/guides/:id/reviews  # Get reviews
-
-Bookings
-POST   /api/bookings            # Create booking
-GET    /api/bookings/:id        # Get booking details
-PUT    /api/bookings/:id        # Update/cancel
-GET    /api/bookings            # List user bookings
-
-Payments
-POST   /api/payments/razorpay   # Create payment
-POST   /api/payments/verify     # Verify payment
-
-Messages
-GET    /api/messages/:booking_id
-POST   /api/messages            # Send message
-WebSocket /ws/messages          # Real-time
-
-Reviews
-POST   /api/reviews             # Submit review
-GET    /api/reviews/:guide_id   # Get guide reviews
-```
-
-## Security Considerations
-- [ ] JWT authentication for API
-- [ ] Row-Level Security (RLS) in database
-- [ ] Password hashing (bcrypt)
-- [ ] Rate limiting on sensitive endpoints
-- [ ] HTTPS/TLS for all communications
-- [ ] Payment data encryption (Razorpay PCI compliance)
-- [ ] Data retention policy
-- [ ] Incident logging & monitoring
-
-## Performance & Scalability
-- [ ] Database indexing strategy
-- [ ] Caching (Redis for frequently accessed data)
-- [ ] CDN for static assets
-- [ ] Load testing before launch
-- [ ] Auto-scaling configuration
-- [ ] Database backups & disaster recovery
-
-## Deployment Pipeline
-- [ ] GitHub Actions for CI/CD
-- [ ] Staging & production environments
-- [ ] Database migration strategy
-- [ ] Rollback procedures
-- [ ] Monitoring & alerting (Sentry, DataDog)
-- [ ] Log aggregation (CloudWatch, LogRocket)
-
-## Tools Recommended
-- **Documentation**: Notion, Markdown + GitHub
-- **API Testing**: Postman, Insomnia
-- **Database Design**: DbDiagram.io, Lucidchart
-- **Monitoring**: Sentry, DataDog, New Relic
-- **Version Control**: GitHub with branch protection
-
-## Key Decisions to Document
-- [ ] Authentication method (JWT vs. sessions)
-- [ ] Database: Supabase vs. custom Node.js
-- [ ] Real-time messaging (WebSocket vs. polling)
-- [ ] File storage (Supabase vs. AWS S3)
-- [ ] Caching strategy (Redis, CDN)
-- [ ] Backup & disaster recovery plan
+## Historical documents (bannered — do not follow blindly)
+- [ADMIN2_GROWTH_HANDOFF_2026-08-14.md](ADMIN2_GROWTH_HANDOFF_2026-08-14.md) — superseded by the provider setup runbook
+- [claude-code-handoff.md](claude-code-handoff.md), [claude-code-handoff-2026-04-19.md](claude-code-handoff-2026-04-19.md) — April 2026 build handoffs
+- [admin-smoke-test-handoff.md](admin-smoke-test-handoff.md) — describes the retired local password/service-role security model
+- [../manual-ios-test.md](../manual-ios-test.md) — native-only manual test script; current testing guide is [TESTING.md](TESTING.md)
