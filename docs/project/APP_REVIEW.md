@@ -1,5 +1,7 @@
 # Detour App Review — Code, Lifecycle & Design
 
+*Historical snapshot from June 10, 2026 — findings may since be fixed or superseded. The cron/push concerns flagged here were later built (pg_cron jobs + `send-push`); see [ADR-003](../technical/ADR-003-admin-control-plane-growth-publishing.md) and `supabase/migrations/`. See [PROJECT-OVERVIEW.md](PROJECT-OVERVIEW.md) for current state.*
+
 **Date:** 10 June 2026 · **Scope:** `/mobile/` (45 screens/components read or audited), booking state machine, CTA map, APIs, types, theme, both role flows.
 
 First, credit where due: this codebase is far stronger than CLAUDE.md suggests. The 25-state booking machine is a pure, tested reducer with legacy shims; CTAs are centralized per state×role; money is in integer paise with DB-enforced invariants; there are snapshot tests for agreements, cancellation and reconciliation. That's rare discipline for a pre-launch startup. The issues below are mostly *edges* of that machine, not its core.

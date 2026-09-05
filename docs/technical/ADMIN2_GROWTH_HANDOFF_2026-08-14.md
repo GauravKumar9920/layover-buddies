@@ -1,5 +1,7 @@
 # Detour Admin 2.0 / Growth / Publishing — continuation handoff
 
+*Historical snapshot from August 14, 2026 — the PR it references (#54) is merged; the current continuation is [ADMIN2_PROVIDER_SETUP_RUNBOOK.md](ADMIN2_PROVIDER_SETUP_RUNBOOK.md). See [../project/PROJECT-OVERVIEW.md](../project/PROJECT-OVERVIEW.md) for current state.*
+
 **Prepared:** 2026-08-14 (Asia/Kolkata)  
 **Status:** implementation is on a feature branch and the hosted backend is provisioned; it is **not production-complete**. Resolve the PR conflict, complete provider configuration, perform production acceptance testing, then release deliberately.
 
