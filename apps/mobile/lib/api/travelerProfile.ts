@@ -10,6 +10,11 @@
 
 import { supabase } from "../supabase";
 
+/** Mirrors traveler_layovers.party_type's CHECK constraint. */
+export type PartyType = "solo" | "couple" | "family" | "friends";
+/** Mirrors traveler_profiles.age_band's CHECK constraint. */
+export type AgeBand = "18_24" | "25_34" | "35_49" | "50_64" | "65_plus";
+
 export interface TravelerLayover {
   id: string;
   traveler_id: string;
@@ -19,6 +24,7 @@ export interface TravelerLayover {
   flight_in: string | null;
   flight_out: string | null;
   group_size: number;
+  party_type: PartyType | null;
   status: "active" | "archived";
 }
 
@@ -31,6 +37,7 @@ export interface TravelerProfile {
   travel_pace: "relaxed" | "balanced" | "packed" | null;
   dietary_preferences: string[];
   accessibility_notes: string | null;
+  age_band: AgeBand | null;
   onboarding_version: number;
   setup_completed_at: string | null;
   onboarded_at: string | null;
@@ -43,6 +50,7 @@ export interface TravelerProfile {
   flight_in: string | null;
   flight_out: string | null;
   group_size: number;
+  party_type: PartyType | null;
 
   // Private safety projection. RLS permits owner reads and active-trip Buddy reads.
   gender: string | null;
@@ -58,6 +66,9 @@ export interface OnboardingPayload {
   flight_in?: string | null;
   flight_out?: string | null;
   interests: string[];
+  age_band?: AgeBand | null;
+  party_type?: PartyType | null;
+  group_size?: number;
 }
 
 export interface NextLayoverPayload {
@@ -66,7 +77,34 @@ export interface NextLayoverPayload {
   flight_in?: string | null;
   flight_out?: string | null;
   group_size: number;
+  party_type?: PartyType | null;
   airport_code?: string;
+}
+
+const PARTY_TYPES: readonly PartyType[] = [
+  "solo",
+  "couple",
+  "family",
+  "friends",
+];
+const AGE_BANDS: readonly AgeBand[] = [
+  "18_24",
+  "25_34",
+  "35_49",
+  "50_64",
+  "65_plus",
+];
+
+function asPartyType(value: unknown): PartyType | null {
+  return typeof value === "string" && (PARTY_TYPES as readonly string[]).includes(value)
+    ? (value as PartyType)
+    : null;
+}
+
+function asAgeBand(value: unknown): AgeBand | null {
+  return typeof value === "string" && (AGE_BANDS as readonly string[]).includes(value)
+    ? (value as AgeBand)
+    : null;
 }
 
 function normalizeStringArray(value: unknown): string[] {
@@ -110,6 +148,7 @@ function aggregateTravelerProfile(
         : null,
     onboarded_at:
       typeof profile?.onboarded_at === "string" ? profile.onboarded_at : null,
+    age_band: asAgeBand(profile?.age_band),
 
     active_layover_id: typeof layover?.id === "string" ? layover.id : null,
     airport_code:
@@ -123,6 +162,7 @@ function aggregateTravelerProfile(
     flight_out:
       typeof layover?.flight_out === "string" ? layover.flight_out : null,
     group_size: Number(layover?.group_size ?? 1),
+    party_type: asPartyType(layover?.party_type),
 
     gender: typeof safety?.gender === "string" ? safety.gender : null,
     emergency_contact_name:
@@ -191,6 +231,9 @@ export async function completeOnboarding(
     p_flight_in: payload.flight_in ?? null,
     p_flight_out: payload.flight_out ?? null,
     p_interests: payload.interests,
+    p_age_band: payload.age_band ?? null,
+    p_party_type: payload.party_type ?? null,
+    p_group_size: payload.group_size ?? 1,
   });
   if (error) throw error;
 
@@ -211,6 +254,7 @@ export interface TravelerProfilePatch {
   travel_pace?: "relaxed" | "balanced" | "packed" | null;
   dietary_preferences?: string[];
   accessibility_notes?: string | null;
+  age_band?: AgeBand | null;
 
   arrival_at?: string;
   departure_at?: string;
@@ -218,6 +262,7 @@ export interface TravelerProfilePatch {
   flight_out?: string | null;
   airport_code?: string;
   group_size?: number;
+  party_type?: PartyType | null;
 
   gender?: string | null;
   emergency_contact_name?: string | null;
@@ -242,6 +287,30 @@ export async function updateMyTravelerProfile(
   if (error) throw error;
 }
 
+/** The trip facts editable from the booking screen's "Edit trip details". */
+export interface ActiveLayoverPatch {
+  arrival_at?: string;
+  departure_at?: string;
+  flight_in?: string | null;
+  flight_out?: string | null;
+  group_size?: number;
+  party_type?: PartyType | null;
+}
+
+/**
+ * Patch the traveler's CURRENT layover in place.
+ *
+ * Deliberately not `createMyNextLayover`: that archives the active row and
+ * mints a new one, which is right for "I'm coming back in March" and wrong for
+ * "I typed my flight number wrong". Correcting a typo must not orphan the
+ * bookings that reference this trip or churn the layover history.
+ */
+export async function updateMyActiveLayover(
+  patch: ActiveLayoverPatch,
+): Promise<void> {
+  await updateMyTravelerProfile(patch);
+}
+
 /**
  * Archive the current active layover and create the traveler's next one.
  * The server transaction keeps historical trips intact and guarantees that
@@ -257,6 +326,7 @@ export async function createMyNextLayover(
     p_flight_out: payload.flight_out ?? null,
     p_group_size: payload.group_size,
     p_airport_code: payload.airport_code ?? "BOM",
+    p_party_type: payload.party_type ?? null,
   });
   if (error) throw error;
 

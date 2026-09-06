@@ -27,10 +27,11 @@ import {
   DIETARY_OPTIONS,
   GENDER_OPTIONS,
   INTEREST_OPTIONS,
-  NATIONALITY_OPTIONS,
   TRAVEL_PACE_OPTIONS,
+  MAX_PARTY_SIZE,
 } from "@/config/profileOptions";
 import { theme } from "@/config/theme";
+import { NationalityPicker } from "@/components/ui/NationalityPicker";
 import { pickImage } from "@/lib/imagePicker";
 import { uploadImage } from "@/lib/imageUpload";
 import { supabase } from "@/lib/supabase";
@@ -183,7 +184,7 @@ export default function TravelerProfileEditScreen() {
       setAboutMe(travelerProfile?.about_me ?? "");
       setFlightIn(travelerProfile?.flight_in ?? "");
       setFlightOut(travelerProfile?.flight_out ?? "");
-      setGroupSize(Math.max(1, Math.min(3, travelerProfile?.group_size ?? 1)));
+      setGroupSize(Math.max(1, Math.min(MAX_PARTY_SIZE, travelerProfile?.group_size ?? 1)));
       setInterests(travelerProfile?.interests ?? []);
       setTravelPace(travelerProfile?.travel_pace ?? null);
       setDietaryPreferences(travelerProfile?.dietary_preferences ?? []);
@@ -205,7 +206,7 @@ export default function TravelerProfileEditScreen() {
   const hasActiveLayover = Boolean(
     profile?.active_layover_id && profile.arrival_at && profile.departure_at,
   );
-  const layoverComplete = hasActiveLayover && groupSize >= 1 && groupSize <= 3;
+  const layoverComplete = hasActiveLayover && groupSize >= 1 && groupSize <= MAX_PARTY_SIZE;
   const identityComplete = Boolean(
     avatarUrl &&
     name.trim() &&
@@ -312,7 +313,7 @@ export default function TravelerProfileEditScreen() {
       );
       return;
     }
-    if (groupSize < 1 || groupSize > 3) {
+    if (groupSize < 1 || groupSize > MAX_PARTY_SIZE) {
       Alert.alert(
         "Check group size",
         "Detour supports groups of 1 to 3 travelers.",
@@ -376,7 +377,7 @@ export default function TravelerProfileEditScreen() {
     setProfile(refreshed);
     setFlightIn(refreshed.flight_in ?? "");
     setFlightOut(refreshed.flight_out ?? "");
-    setGroupSize(Math.max(1, Math.min(3, refreshed.group_size)));
+    setGroupSize(Math.max(1, Math.min(MAX_PARTY_SIZE, refreshed.group_size)));
   }
 
   if (loading) return <Loading fullScreen />;
@@ -601,7 +602,7 @@ export default function TravelerProfileEditScreen() {
                   <CounterButton
                     icon="plus"
                     label="Add one traveler"
-                    disabled={groupSize >= 3}
+                    disabled={groupSize >= MAX_PARTY_SIZE}
                     onPress={() => {
                       setDirty(true);
                       setGroupSize((current) => Math.min(3, current + 1));
@@ -675,23 +676,13 @@ export default function TravelerProfileEditScreen() {
 
           <View>
             <FieldLabel>Visiting from</FieldLabel>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8, paddingRight: 8 }}
-            >
-              {NATIONALITY_OPTIONS.map((option) => (
-                <ChoiceChip
-                  key={option.code}
-                  label={`${option.flag} ${option.name}`}
-                  selected={nationality === option.name}
-                  onPress={() => {
-                    setDirty(true);
-                    setNationality(option.name);
-                  }}
-                />
-              ))}
-            </ScrollView>
+            <NationalityPicker
+              value={nationality}
+              onChange={(name) => {
+                setDirty(true);
+                setNationality(name);
+              }}
+            />
           </View>
 
           <Input

@@ -15,7 +15,9 @@ import { StarRating } from '@/components/ui/StarRating';
 import { theme } from '@/config/theme';
 import { getGuideHeroPhoto, getGuideAvatar } from '@/config/photoLibrary';
 import { hapticImpactLight } from '@/lib/haptics';
-import { interestOverlap, computeTimeFit, timeFitLabel } from '@/lib/booking/timeFit';
+import { interestOverlap, computeTimeFit } from '@/lib/booking/timeFit';
+import { TimeFitChip } from '@/components/ui/TimeFitChip';
+import { formatRupees } from '@/lib/booking/tourPricing';
 import type { GuideProfile } from '@/types';
 
 interface GuideCardProps {
@@ -97,9 +99,10 @@ export function GuideCard({
     .toUpperCase();
 
   const overlap = interestOverlap(guide.categories, travelerInterests ?? null);
-  const timeFit = timeFitLabel(
-    computeTimeFit(layoverHours ?? null, shortestTourHours ?? 3),
-  );
+  // Prefer the duration the caller passed; otherwise the one the list query
+  // derived. Never a default — see TimeFitChip.
+  const tourHours = shortestTourHours ?? guide.shortest_tour_hours ?? null;
+  const showFit = computeTimeFit(layoverHours ?? null, tourHours) !== null;
 
   return (
     <Animated.View style={[entranceStyle, { marginBottom: 16 }]}>
@@ -198,24 +201,9 @@ export function GuideCard({
             {/* Content */}
             <View style={{ padding: 16 }}>
               {/* Time-fit + interest-match chips */}
-              {(timeFit || overlap > 0) && (
+              {(showFit || overlap > 0) && (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
-                  {timeFit && (
-                    <View style={{
-                      flexDirection: 'row', alignItems: 'center', gap: 5,
-                      backgroundColor: timeFit.tone + '1A',
-                      borderWidth: 1, borderColor: timeFit.tone + '40',
-                      borderRadius: theme.borderRadius.sm, paddingHorizontal: 8, paddingVertical: 3,
-                    }}>
-                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: timeFit.tone }} />
-                      <Text style={{
-                        fontFamily: theme.fonts.monoMed, fontSize: 10, letterSpacing: 0.4,
-                        textTransform: 'uppercase', color: timeFit.tone,
-                      }}>
-                        {timeFit.text}
-                      </Text>
-                    </View>
-                  )}
+                  <TimeFitChip layoverHours={layoverHours} tourHours={tourHours} />
                   {overlap > 0 && (
                     <View style={{
                       backgroundColor: theme.colors.primaryLight,
@@ -253,19 +241,19 @@ export function GuideCard({
                 </View>
 
                 {/* Price */}
-                {itineraryPrice && (
+                {(itineraryPrice ?? guide.from_price_inr) ? (
                   <View style={{ alignItems: 'flex-end' }}>
                     <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 18, color: theme.colors.primary, letterSpacing: -0.5 }}>
-                      ₹{itineraryPrice.toLocaleString('en-IN')}
+                      {formatRupees((itineraryPrice ?? guide.from_price_inr)!)}
                     </Text>
                     <Text style={{
                       fontFamily: theme.fonts.mono, fontSize: 9.5, color: theme.colors.textMuted,
                       letterSpacing: 0.4, textTransform: 'uppercase',
                     }}>
-                      per tour
+                      from
                     </Text>
                   </View>
-                )}
+                ) : null}
               </View>
 
               {/* Rating */}

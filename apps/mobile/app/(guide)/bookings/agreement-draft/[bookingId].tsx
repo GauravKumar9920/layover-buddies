@@ -57,6 +57,7 @@ import {
   type DraftLineItem,
 } from '@/lib/api/agreements';
 import { fetchBookingById } from '@/lib/api/bookings';
+import { tourBuddyFeeInr } from '@/lib/booking/tourPricing';
 import { getEffectiveRates, EARLY_ACCESS_RATES, type EffectiveRates } from '@/lib/api/platformSettings';
 
 const CATEGORIES: CostCategory[] = ['food', 'transport', 'entry', 'activity', 'misc'];
@@ -111,9 +112,33 @@ export default function AgreementDraftScreen() {
             position:        row.position ?? i,
           })));
         } else {
-          // Seed trip start = +24h
-          const seed = new Date(Date.now() + 24 * 60 * 60 * 1000);
-          setTripStart(seed.toISOString());
+          // Brand-new draft. Seed it from what the traveler actually inquired
+          // about instead of making the Buddy retype a number from memory.
+          //
+          // The agreement's buddy_fee_paise is what the traveler ultimately
+          // pays, and until now it ignored the itinerary price AND the party
+          // size entirely — which is how a trip could show ₹7,905 on its
+          // detail screen and ₹9,560 on the agreement. Everything stays
+          // editable; this only sets the starting point.
+          const booking = await fetchBookingById(bookingId);
+          const itin = booking?.itinerary;
+          if (itin) {
+            const seedFee = tourBuddyFeeInr(
+              itin.base_cost_inr,
+              itin.buddy_cost_inr,
+              booking?.num_travelers ?? 1,
+            );
+            if (seedFee > 0) setBuddyFeeRupees(String(seedFee));
+          }
+
+          // Trip window comes from the layover snapshot on the booking, which
+          // is the same window the traveler saw scored on the fit chip.
+          setTripStart(
+            booking?.start_date ??
+              booking?.arrival_time ??
+              new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          );
+          if (booking?.end_date) setTripEnd(booking.end_date);
         }
       } catch (err) {
         notify('Failed to load draft', err instanceof Error ? err.message : 'Unknown error');

@@ -29,6 +29,9 @@ import {
 } from "@/lib/api/guides";
 import { safeBack } from "@/lib/navigation";
 import { theme } from "@/config/theme";
+import { TimeFitChip } from "@/components/ui/TimeFitChip";
+import { useTravelerTrip } from "@/lib/hooks/useTravelerTrip";
+import { formatFromPrice, tourFromPriceInr } from "@/lib/booking/tourPricing";
 import {
   getGuideHeroPhoto,
   getGuideAvatar,
@@ -79,6 +82,7 @@ function issueNumberFor(guideId: string): number {
 }
 
 export default function GuideDetailScreen() {
+  const { layoverHours } = useTravelerTrip();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -227,7 +231,7 @@ export default function GuideDetailScreen() {
 
   const lowestPrice =
     itineraries.length > 0
-      ? Math.min(...itineraries.map((i) => i.buddy_cost_inr))
+      ? Math.min(...itineraries.map((i) => tourFromPriceInr(i.base_cost_inr, i.buddy_cost_inr)))
       : null;
 
   // A timeline is shown only when a real itinerary has enough persisted stops.
@@ -926,6 +930,7 @@ export default function GuideDetailScreen() {
                 renderItem={({ item }) => (
                   <WalkCard
                     itinerary={item}
+                    layoverHours={layoverHours}
                     onPress={() =>
                       router.push({
                         pathname: "/(traveler)/itinerary/[id]",
@@ -1356,9 +1361,12 @@ function GuidePromptCard({
 function WalkCard({
   itinerary,
   onPress,
+  layoverHours,
 }: {
   itinerary: Itinerary;
   onPress: () => void;
+  /** Null hides the fit chip — never guess a layover. */
+  layoverHours: number | null;
 }) {
   const photo =
     itinerary.cover_image_url ??
@@ -1426,6 +1434,12 @@ function WalkCard({
           {itinerary.estimated_duration_hours}h ·{" "}
           {(itinerary.stops ?? []).length} stops
         </Text>
+        <TimeFitChip
+          layoverHours={layoverHours}
+          tourHours={itinerary.estimated_duration_hours}
+          variant="compact"
+          style={{ marginTop: 8 }}
+        />
         <View
           style={{
             flexDirection: "row",
@@ -1441,7 +1455,7 @@ function WalkCard({
               color: theme.colors.primary,
             }}
           >
-            ₹{itinerary.buddy_cost_inr.toLocaleString("en-IN")}
+            {formatFromPrice(itinerary.base_cost_inr, itinerary.buddy_cost_inr)}
           </Text>
           <Text
             style={{

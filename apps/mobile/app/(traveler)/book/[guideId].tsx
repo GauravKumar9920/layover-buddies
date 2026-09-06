@@ -7,8 +7,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Modal,
-  ScrollView,
   useWindowDimensions,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -24,18 +22,6 @@ import Animated, {
   Extrapolate,
 } from 'react-native-reanimated';
 import {
-  format,
-  addMonths,
-  subMonths,
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-  getDay,
-  isSameDay,
-  isBefore,
-  parseISO,
-  isValid,
-  differenceInMinutes,
 } from 'date-fns';
 import { StarRating } from '@/components/ui/StarRating';
 import { Card } from '@/components/ui/Card';
@@ -51,285 +37,92 @@ import { hapticImpactMedium, hapticSuccess, hapticError } from '@/lib/haptics';
 import { theme } from '@/config/theme';
 import { ESTIMATED_EXPENSES_PERCENT, CURRENCY_SYMBOL } from '@/config/constants';
 import type { GuideProfile, Itinerary } from '@/types';
+import {
+  computeLayoverPlan,
+  timeFitLabel,
+  TRANSIT_BUFFER_MINUTES,
+} from '@/lib/booking/timeFit';
+import { tourBuddyFeeInr, clampPartySize, formatFromPrice } from '@/lib/booking/tourPricing';
+import { formatMumbaiTime, formatMumbaiShortDate } from '@/lib/dateTime';
+import { TimeFitChip } from '@/components/ui/TimeFitChip';
+import { TripSummaryCard } from '@/components/trip/TripSummaryCard';
+import { LayoverEditorModal } from '@/components/profile/LayoverEditorModal';
+import { useTravelerTrip } from '@/lib/hooks/useTravelerTrip';
+import { createMyNextLayover } from '@/lib/api/travelerProfile';
 
 const CARD_WIDTH = 288;
 const CARD_IMAGE_HEIGHT = Math.round(CARD_WIDTH * (9 / 16));
-const DAYS_OF_WEEK = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-// Onboarding stores arrival/departure as true-UTC instants of an IST wall
-// clock. To prefill the form with the same wall-clock the traveler typed, add
-// the +5:30 offset back and read the UTC fields.
-function istParts(iso: string | null | undefined): { date: string; time: string } | null {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  const ist = new Date(d.getTime() + (5 * 60 + 30) * 60_000);
-  return { date: ist.toISOString().slice(0, 10), time: ist.toISOString().slice(11, 16) };
-}
 
-// ─── Calendar picker ─────────────────────────────────────────────────────────
-function CalendarPicker({
-  label,
-  value,
-  onChange,
-  minDate,
-  helper,
-  required,
-}: {
-  label: string;
-  value: string;
-  onChange: (iso: string) => void;
-  minDate?: string;
-  helper?: string;
-  required?: boolean;
-}) {
-  const [visible, setVisible] = useState(false);
-  const selected = value ? parseISO(value) : null;
-  const minD = minDate ? parseISO(minDate) : null;
-
-  const [viewMonth, setViewMonth] = useState(() => {
-    if (selected && isValid(selected)) return selected;
-    if (minD && isValid(minD)) return minD;
-    return new Date();
-  });
-
-  const firstDay = startOfMonth(viewMonth);
-  const days = eachDayOfInterval({ start: firstDay, end: endOfMonth(viewMonth) });
-  const startPadding = getDay(firstDay);
-
-  // Build week rows for the grid
-  const weeks = useMemo(() => {
-    const rows: (Date | null)[][] = [];
-    let row: (Date | null)[] = Array(startPadding).fill(null);
-    for (const day of days) {
-      row.push(day);
-      if (row.length === 7) { rows.push(row); row = []; }
-    }
-    if (row.length > 0) {
-      while (row.length < 7) row.push(null);
-      rows.push(row);
-    }
-    return rows;
-  }, [viewMonth]);
-
-  function isDisabled(day: Date) {
-    if (minD && isValid(minD) && isBefore(day, minD)) return true;
-    return false;
-  }
-
-  const displayValue = selected && isValid(selected) ? format(selected, 'd MMM yyyy') : '';
-
-  return (
-    <View style={{ marginBottom: 16 }}>
-      <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 }}>
-        {label}{required ? ' *' : ''}
-      </Text>
-      <TouchableOpacity
-        onPress={() => setVisible(true)}
-        style={{
-          flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-          backgroundColor: theme.colors.surface,
-          borderRadius: theme.borderRadius.md,
-          borderWidth: 1,
-          borderColor: theme.colors.divider,
-          paddingHorizontal: 14, paddingVertical: 13,
-        }}
-      >
-        <Text style={{ fontFamily: theme.fonts.body, fontSize: 15, color: displayValue ? theme.colors.text : theme.colors.textMuted }}>
-          {displayValue || 'Select date'}
-        </Text>
-        <Text style={{ fontFamily: theme.fonts.mono, fontSize: 12, color: theme.colors.textMuted, letterSpacing: 0.5 }}>▾</Text>
-      </TouchableOpacity>
-      {helper ? <Text style={{ fontSize: 11, color: theme.colors.textMuted, marginTop: 4 }}>{helper}</Text> : null}
-
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={() => setVisible(false)}>
-        <TouchableOpacity
-          style={{ flex: 1, backgroundColor: 'rgba(14,25,41,0.5)', justifyContent: 'flex-end' }}
-          activeOpacity={1}
-          onPress={() => setVisible(false)}
-        >
-          <TouchableOpacity activeOpacity={1} style={{
-            backgroundColor: theme.colors.background,
-            borderTopLeftRadius: 24, borderTopRightRadius: 24,
-            padding: 20, paddingBottom: 36,
-          }}>
-            {/* Month navigation */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <TouchableOpacity onPress={() => setViewMonth((m) => subMonths(m, 1))} style={{ padding: 8 }}>
-                <Text style={{ fontSize: 24, color: theme.colors.text }}>‹</Text>
-              </TouchableOpacity>
-              <Text style={{ fontFamily: theme.fonts.display, fontSize: 18, color: theme.colors.text, letterSpacing: -0.2 }}>
-                {format(viewMonth, 'MMMM yyyy')}
-              </Text>
-              <TouchableOpacity onPress={() => setViewMonth((m) => addMonths(m, 1))} style={{ padding: 8 }}>
-                <Text style={{ fontSize: 24, color: theme.colors.text }}>›</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Day headers */}
-            <View style={{ flexDirection: 'row', marginBottom: 8 }}>
-              {DAYS_OF_WEEK.map((d, i) => (
-                <View key={i} style={{ flex: 1, alignItems: 'center' }}>
-                  <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 11, color: theme.colors.textMuted }}>{d}</Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Calendar grid */}
-            {weeks.map((week, wi) => (
-              <View key={wi} style={{ flexDirection: 'row', marginBottom: 4 }}>
-                {week.map((day, di) => {
-                  if (!day) return <View key={di} style={{ flex: 1 }} />;
-                  const sel = selected && isValid(selected) && isSameDay(day, selected);
-                  const disabled = isDisabled(day);
-                  return (
-                    <TouchableOpacity
-                      key={di}
-                      onPress={() => {
-                        if (!disabled) {
-                          onChange(format(day, 'yyyy-MM-dd'));
-                          setVisible(false);
-                        }
-                      }}
-                      style={{ flex: 1, alignItems: 'center', paddingVertical: 4, opacity: disabled ? 0.28 : 1 }}
-                    >
-                      <View style={{
-                        width: 36, height: 36, borderRadius: 18,
-                        backgroundColor: sel ? theme.colors.primary : 'transparent',
-                        alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        <Text style={{
-                          fontFamily: sel ? theme.fonts.monoMed : theme.fonts.mono,
-                          fontSize: 14,
-                          color: sel ? '#FCF7EA' : theme.colors.text,
-                        }}>{format(day, 'd')}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            ))}
-
-            <TouchableOpacity onPress={() => setVisible(false)} style={{ marginTop: 12, alignItems: 'center', paddingVertical: 10 }}>
-              <Text style={{ color: theme.colors.textSecondary, fontSize: 15 }}>Cancel</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
-    </View>
-  );
-}
-
-// ─── Time input (HH:MM) ───────────────────────────────────────────────────────
-function TimeInput({ label, value, onChange, placeholder }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string;
-}) {
-  const [focused, setFocused] = useState(false);
-  return (
-    <View style={{ flex: 1 }}>
-      <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 }}>{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={(v) => {
-          // Auto-insert colon after 2 digits
-          let clean = v.replace(/[^0-9:]/g, '');
-          if (clean.length === 2 && !clean.includes(':') && value.length < 2) clean += ':';
-          if (clean.length <= 5) onChange(clean);
-        }}
-        placeholder={placeholder ?? 'HH:MM'}
-        placeholderTextColor={theme.colors.textMuted}
-        keyboardType="numbers-and-punctuation"
-        maxLength={5}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        style={{
-          backgroundColor: theme.colors.surface,
-          borderRadius: theme.borderRadius.md,
-          borderWidth: 1,
-          borderColor: focused ? theme.colors.primary : theme.colors.divider,
-          paddingHorizontal: 14, paddingVertical: 13,
-          fontSize: 15, color: theme.colors.text,
-          textAlign: 'center',
-          ...(Platform.OS === 'web' ? { outline: 'none' } as any : {}),
-        }}
-      />
-    </View>
-  );
-}
 
 // ─── Day overview ─────────────────────────────────────────────────────────────
+/**
+ * The traveler's day, laid out against their layover.
+ *
+ * Verdict and clock times both come from computeLayoverPlan — the same
+ * function that powers the fit chip and that createBooking uses to stamp
+ * tour_start_time onto the booking. This used to re-implement that maths
+ * inline with its own copies of the 90/30-minute buffers and its own
+ * green/amber/red hexes, so one tour could read differently in a list and
+ * here. It also had a latent bug where "fits" and "won't fit" shared a
+ * background colour.
+ */
 function DayOverview({
-  arrivalDate, arrivalTime, departureDate, departureTime, tourDurationHours,
+  arrivalIso, departureIso, tourDurationHours,
 }: {
-  arrivalDate: string; arrivalTime: string;
-  departureDate: string; departureTime: string;
+  arrivalIso: string | null;
+  departureIso: string | null;
   tourDurationHours: number;
 }) {
-  const TRANSIT_BUFFER = 90;  // minutes each way (airport transit)
-  const TOUR_BUFFER = 30;     // minutes buffer between transit and tour
+  const plan = useMemo(
+    () => computeLayoverPlan({ arrivalIso, departureIso, tourHours: tourDurationHours }),
+    [arrivalIso, departureIso, tourDurationHours],
+  );
+  if (!plan) return null;
 
-  const arrival = useMemo(() => {
-    if (!arrivalDate || !arrivalTime || !/^\d{2}:\d{2}$/.test(arrivalTime)) return null;
-    const d = parseISO(`${arrivalDate}T${arrivalTime}:00`);
-    return isValid(d) ? d : null;
-  }, [arrivalDate, arrivalTime]);
+  const label = timeFitLabel(plan.fit)!;
+  const tone =
+    plan.fit === 'green' ? theme.colors.success
+      : plan.fit === 'yellow' ? theme.colors.gold
+        : theme.colors.error;
+  const toneText =
+    plan.fit === 'green' ? '#2F6E45' : plan.fit === 'yellow' ? '#946312' : '#8E2C20';
+  const hours = Math.floor(plan.totalMinutes / 60);
+  const mins = plan.totalMinutes % 60;
 
-  const departure = useMemo(() => {
-    if (!departureDate || !departureTime || !/^\d{2}:\d{2}$/.test(departureTime)) return null;
-    const d = parseISO(`${departureDate}T${departureTime}:00`);
-    return isValid(d) ? d : null;
-  }, [departureDate, departureTime]);
-
-  if (!arrival || !departure) return null;
-
-  const totalMinutes = differenceInMinutes(departure, arrival);
-  if (totalMinutes <= 0) return null;
-
-  const availableForTour = totalMinutes - TRANSIT_BUFFER * 2 - TOUR_BUFFER * 2;
-  const tourMinutes = tourDurationHours * 60;
-  const hasEnoughTime = availableForTour >= tourMinutes;
-  const isTight = !hasEnoughTime && availableForTour >= tourMinutes * 0.8;
-
-  const tourStartTime = new Date(arrival.getTime() + (TRANSIT_BUFFER + TOUR_BUFFER) * 60000);
-  const tourEndTime = new Date(tourStartTime.getTime() + tourMinutes * 60000);
-
-  const totalHours = Math.floor(totalMinutes / 60);
-  const totalMins = totalMinutes % 60;
+  const rows = [
+    { label: 'Land', value: formatMumbaiTime(arrivalIso!) },
+    { label: 'Into the city', value: `~${TRANSIT_BUFFER_MINUTES} min` },
+    { label: 'Tour starts', value: formatMumbaiTime(plan.tourStart.toISOString()) },
+    { label: 'Tour ends', value: formatMumbaiTime(plan.tourEnd.toISOString()) },
+    { label: 'Back to airport', value: `~${TRANSIT_BUFFER_MINUTES} min` },
+    { label: 'Take off', value: formatMumbaiTime(departureIso!) },
+  ];
 
   return (
-    <Card style={{ marginBottom: 16, backgroundColor: hasEnoughTime ? theme.colors.primaryLight : isTight ? '#FBEACB' : theme.colors.primaryLight }}>
-      <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textSecondary, marginBottom: 12 }}>
-        Day overview
+    <Card style={{ marginTop: 4, marginBottom: 16 }}>
+      <Text style={{ ...theme.typography.eyebrow, color: theme.colors.textMuted, marginBottom: 10 }}>
+        Your day
       </Text>
-
-      <View style={{ gap: 7 }}>
-        {[
-          ['Arrive Mumbai', format(arrival, 'HH:mm'), false],
-          ['Transit to city', `~${TRANSIT_BUFFER} min`, 'muted'],
-          ['Tour start', format(tourStartTime, 'HH:mm'), 'accent'],
-          ['Tour end', format(tourEndTime, 'HH:mm'), 'accent'],
-          ['Back to airport', `~${TRANSIT_BUFFER} min`, 'muted'],
-          ['Depart Mumbai', format(departure, 'HH:mm'), false],
-        ].map(([label, val, kind], i) => (
-          <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={{ fontFamily: theme.fonts.body, fontSize: 12.5, color: kind === 'accent' ? theme.colors.primary : theme.colors.textSecondary }}>{label}</Text>
-            <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 12.5, color: kind === 'accent' ? theme.colors.primary : kind === 'muted' ? theme.colors.textMuted : theme.colors.text }}>{val}</Text>
-          </View>
-        ))}
-      </View>
-
-      <View style={{ height: 1, backgroundColor: 'rgba(14,25,41,0.1)', marginVertical: 12 }} />
-
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-        <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: hasEnoughTime ? theme.colors.success : isTight ? theme.colors.gold : theme.colors.error }} />
-      <Text style={{ flex: 1, fontFamily: theme.fonts.bodySemi, fontSize: 12.5, color: hasEnoughTime ? '#2F6E45' : isTight ? '#946312' : '#8E2C20' }}>
-        {totalHours}h {totalMins > 0 ? `${totalMins}m ` : ''}layover ·{' '}
-        {hasEnoughTime
-          ? `Plenty of time for this ${tourDurationHours}h tour`
-          : isTight
-          ? `Tight schedule — this ${tourDurationHours}h tour may run close`
-          : `Not enough time for a ${tourDurationHours}h tour`}
-      </Text>
+      {rows.map((row) => (
+        <View key={row.label} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 }}>
+          <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary }}>
+            {row.label}
+          </Text>
+          <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 13, color: theme.colors.text }}>
+            {row.value}
+          </Text>
+        </View>
+      ))}
+      <View style={{
+        flexDirection: 'row', alignItems: 'center', gap: 8,
+        marginTop: 12, paddingTop: 12,
+        borderTopWidth: 1, borderTopColor: theme.colors.divider,
+      }}>
+        <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: tone }} />
+        <Text style={{ flex: 1, fontFamily: theme.fonts.bodySemi, fontSize: 12.5, color: toneText }}>
+          {hours}h {mins > 0 ? `${mins}m ` : ''}layover · {label.text}
+        </Text>
       </View>
     </Card>
   );
@@ -356,7 +149,13 @@ function HeroSkeleton() {
 }
 
 // ─── Itinerary card ───────────────────────────────────────────────────────────
-function ItinCard({ itin, selected, onPress }: { itin: Itinerary; selected: boolean; onPress: () => void }) {
+function ItinCard({ itin, selected, onPress, layoverHours }: {
+  itin: Itinerary;
+  selected: boolean;
+  onPress: () => void;
+  /** Null hides the fit chip — never guess a layover. */
+  layoverHours: number | null;
+}) {
   const photo = getItineraryPhoto(itin);
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -395,6 +194,12 @@ function ItinCard({ itin, selected, onPress }: { itin: Itinerary; selected: bool
           }}>
             <Text style={{ fontFamily: theme.fonts.monoMed, color: '#FCF7EA', fontSize: 11, letterSpacing: 0.4 }}>{itin.estimated_duration_hours}H</Text>
           </View>
+          <TimeFitChip
+            layoverHours={layoverHours}
+            tourHours={itin.estimated_duration_hours}
+            variant="overlay"
+            style={{ position: 'absolute', bottom: 10, left: 10 }}
+          />
           {selected && (
             <View style={{
               position: 'absolute', top: 10, left: 10,
@@ -411,7 +216,7 @@ function ItinCard({ itin, selected, onPress }: { itin: Itinerary; selected: bool
               {itin.name ?? itin.title}
             </Text>
             <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 16, color: theme.colors.primary }}>
-              {CURRENCY_SYMBOL}{itin.buddy_cost_inr.toLocaleString('en-IN')}
+              {formatFromPrice(itin.base_cost_inr, itin.buddy_cost_inr)}
             </Text>
           </View>
           {itin.description ? (
@@ -438,43 +243,6 @@ function PriceRow({ label, value, bold, muted }: { label: string; value: string;
 }
 
 // ─── Labeled text input ───────────────────────────────────────────────────────
-function LabeledInput({
-  label, value, onChangeText, placeholder, keyboardType, autoCapitalize, helper,
-}: {
-  label: string; value: string; onChangeText: (v: string) => void;
-  placeholder: string; keyboardType?: 'default' | 'numeric' | 'email-address';
-  autoCapitalize?: 'none' | 'characters' | 'sentences' | 'words';
-  helper?: string;
-}) {
-  const [focused, setFocused] = useState(false);
-  return (
-    <View style={{ marginBottom: 16 }}>
-      <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 }}>
-        {label}
-      </Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={theme.colors.textMuted}
-        keyboardType={keyboardType ?? 'default'}
-        autoCapitalize={autoCapitalize ?? 'sentences'}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        style={{
-          backgroundColor: theme.colors.surface,
-          borderRadius: theme.borderRadius.md,
-          borderWidth: 1,
-          borderColor: focused ? theme.colors.primary : theme.colors.divider,
-          paddingHorizontal: 14, paddingVertical: 12,
-          fontSize: 15, color: theme.colors.text,
-          ...(Platform.OS === 'web' ? { outline: 'none' } as any : {}),
-        }}
-      />
-      {helper ? <Text style={{ fontSize: 11, color: theme.colors.textMuted, marginTop: 4 }}>{helper}</Text> : null}
-    </View>
-  );
-}
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 export default function BookingScreen() {
@@ -504,20 +272,13 @@ export default function BookingScreen() {
   // When arriving from a specific tour, hide the other tours until the traveler
   // explicitly asks to browse them.
   const [showAllTours, setShowAllTours] = useState(false);
-  const [tourStartDate, setTourStartDate] = useState('');
-  const [tourEndDate, setTourEndDate] = useState('');
-  const [arrivalDate, setArrivalDate] = useState('');
-  const [arrivalTime, setArrivalTime] = useState('');
-  const [departureDate, setDepartureDate] = useState('');
-  const [departureTime, setDepartureTime] = useState('');
-  const [flightNumber, setFlightNumber] = useState('');
-  const [numTravelers, setNumTravelers] = useState('1');
+  const [layoverModalOpen, setLayoverModalOpen] = useState(false);
+  const trip = useTravelerTrip();
   // Set on successful inquiry — shows the boarding-pass reveal, whose onDone
   // navigates into the new chat thread.
   const [revealBookingId, setRevealBookingId] = useState<string | null>(null);
   const [rates, setRates] = useState<EffectiveRates>(EARLY_ACCESS_RATES);
 
-  const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
 
   useEffect(() => {
     getEffectiveRates().then(setRates).catch(() => {});
@@ -545,22 +306,6 @@ export default function BookingScreen() {
         // the first (or the pre-selected) tour.
         if (!isCasual && !selectedItinId && it.length > 0) setSelectedItinId(it[0].id);
 
-        // Autofill flight + trip window from what the traveler entered at
-        // onboarding. Functional updates so we only fill fields the traveler
-        // hasn't already started editing while this async fetch was in flight.
-        if (profile) {
-          if (profile.flight_in) setFlightNumber((v) => v || profile.flight_in!);
-          const arr = istParts(profile.arrival_at);
-          if (arr) {
-            setArrivalDate((v) => v || arr.date);
-            setArrivalTime((v) => v || arr.time);
-          }
-          const dep = istParts(profile.departure_at);
-          if (dep) {
-            setDepartureDate((v) => v || dep.date);
-            setDepartureTime((v) => v || dep.time);
-          }
-        }
       })
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : 'Failed to load guide details.');
@@ -569,39 +314,30 @@ export default function BookingScreen() {
   }, [guideId]);
 
   const selectedItin = itineraries.find((i) => i.id === selectedItinId);
-  // Group-size scaling: createBooking multiplies every line by num_travelers
-  // before writing to the DB (see mobile/lib/api/bookings.ts), so the preview
-  // here has to match or travelers will see a different total at checkout.
-  const groupSize = Math.max(1, Math.min(10, parseInt(numTravelers, 10) || 1));
+  // Mirrors createBooking (lib/api/bookings.ts) line for line. If these drift,
+  // the traveler is quoted one number here and charged another.
+  const groupSize = clampPartySize(trip.groupSize);
   const perPersonBuddyCost = selectedItin?.buddy_cost_inr ?? 0;
-  const perPersonExpenses = Math.round(perPersonBuddyCost * (ESTIMATED_EXPENSES_PERCENT / 100));
-  const perPersonCommission = calcCommission(perPersonBuddyCost, rates.commissionRate);
-  const buddyCost = perPersonBuddyCost * groupSize;
-  const estimatedExpenses = perPersonExpenses * groupSize;
-  const commission = perPersonCommission * groupSize;
+  const buddyCost = tourBuddyFeeInr(
+    selectedItin?.base_cost_inr ?? 0,
+    perPersonBuddyCost,
+    groupSize,
+  );
+  const estimatedExpenses =
+    Math.round(perPersonBuddyCost * (ESTIMATED_EXPENSES_PERCENT / 100)) * groupSize;
+  const commission = calcCommission(buddyCost, rates.commissionRate);
   const total = buddyCost + estimatedExpenses + commission;
 
   async function handleSend() {
     if (submitting) return;
     setError(null);
 
-    // Inquiry-first: nothing is locked here, so requirements are light. We only
-    // validate fields the traveler actually filled in.
-    if (tourStartDate) {
-      const startParsed = parseISO(tourStartDate);
-      if (!isValid(startParsed) || isBefore(startParsed, parseISO(today))) {
-        hapticError(); setError('Preferred date cannot be in the past.'); return;
-      }
-      if (tourEndDate) {
-        const endParsed = parseISO(tourEndDate);
-        if (!isValid(endParsed) || isBefore(endParsed, startParsed)) {
-          hapticError(); setError('End date must be on or after the start date.'); return;
-        }
-      }
-    }
-    const travelers = parseInt(numTravelers, 10);
-    if (Number.isNaN(travelers) || travelers < 1 || travelers > 10) {
-      hapticError(); setError('Number of travelers must be between 1 and 10.'); return;
+    // Onboarding already validated the trip window (>= 7 hours) and the party
+    // (1-4). The only thing that can be wrong here is having no layover at all.
+    if (!trip.hasActiveLayover) {
+      hapticError();
+      setError('Add your Mumbai layover before sending an inquiry.');
+      return;
     }
 
     hapticImpactMedium();
@@ -618,14 +354,6 @@ export default function BookingScreen() {
       const booking = await createBooking({
         guide_id: guideId,
         itinerary_id: itineraryId,
-        flight_number: flightNumber.trim() || undefined,
-        flight_date: arrivalDate || undefined,
-        flight_time: /^\d{2}:\d{2}$/.test(arrivalTime) ? arrivalTime : undefined,
-        departure_date: departureDate || undefined,
-        departure_time: /^\d{2}:\d{2}$/.test(departureTime) ? departureTime : undefined,
-        start_date: tourStartDate || undefined,
-        end_date: tourEndDate || tourStartDate || undefined,
-        num_travelers: travelers,
       });
 
       // Seed the conversation with the traveler's note (best-effort).
@@ -657,13 +385,28 @@ export default function BookingScreen() {
       style={{ flex: 1, backgroundColor: theme.colors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      {/* Editing here writes back to the layover — the single source — rather
+          than to a per-booking copy, so the fix is visible everywhere. */}
+      <LayoverEditorModal
+        visible={layoverModalOpen}
+        replacingActiveLayover={trip.hasActiveLayover}
+        mode={trip.hasActiveLayover ? 'edit' : 'create'}
+        initial={trip.profile}
+        onClose={() => setLayoverModalOpen(false)}
+        onCreate={async (payload) => {
+          await createMyNextLayover(payload);
+          await trip.refresh();
+        }}
+      />
       <BoardingPassReveal
         visible={revealBookingId !== null}
         itineraryName={selectedItin?.name ?? selectedItin?.title ?? 'Mumbai plans'}
         guideName={guide?.name ?? 'your guide'}
         guideAvatar={guide ? getGuideAvatar(guide) : null}
-        dateLabel={tourStartDate ? format(parseISO(tourStartDate), 'MMM d') : 'TBD'}
-        flightNumber={flightNumber.trim() || undefined}
+        dateLabel={
+          trip.profile?.arrival_at ? formatMumbaiShortDate(trip.profile.arrival_at) : 'TBD'
+        }
+        flightNumber={trip.profile?.flight_in ?? undefined}
         totalLabel={selectedItin && total > 0 ? `${CURRENCY_SYMBOL}${total.toLocaleString('en-IN')}` : 'In chat'}
         stampLabel="Request sent"
         eyebrowLabel="Inquiry"
@@ -769,7 +512,7 @@ export default function BookingScreen() {
           // Focused view: just the tour they inquired about, plus a quiet way to
           // browse the guide's other tours if they change their mind.
           <View style={{ paddingLeft: 20 }}>
-            <ItinCard itin={selectedItin} selected onPress={() => setShowAllTours(true)} />
+            <ItinCard itin={selectedItin} selected layoverHours={trip.layoverHours} onPress={() => setShowAllTours(true)} />
             {itineraries.length > 1 && (
               <TouchableOpacity onPress={() => setShowAllTours(true)} style={{ paddingVertical: 12 }}>
                 <Text style={{ fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.accent }}>
@@ -786,6 +529,7 @@ export default function BookingScreen() {
             renderItem={({ item }) => (
               <ItinCard
                 itin={item}
+                layoverHours={trip.layoverHours}
                 selected={item.id === selectedItinId}
                 onPress={() => setSelectedItinId((prev) => (prev === item.id ? '' : item.id))}
               />
@@ -802,107 +546,35 @@ export default function BookingScreen() {
 
         <View style={{ paddingHorizontal: 20, paddingTop: 28 }}>
 
-          {/* ── Preferred dates ───────────────────────────────────────── */}
-          <Text style={{ fontFamily: theme.fonts.display, fontSize: 19, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 4 }}>
-            Preferred Dates
-          </Text>
-          <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary, marginBottom: 16 }}>
-            Optional — you'll lock these in with your guide.
-          </Text>
-
-          <CalendarPicker
-            label="Preferred Start Date"
-            value={tourStartDate}
-            onChange={setTourStartDate}
-            minDate={today}
-            helper="When you'd like to explore"
-          />
-          <CalendarPicker
-            label="Preferred End Date (optional)"
-            value={tourEndDate}
-            onChange={setTourEndDate}
-            minDate={tourStartDate || today}
-            helper="Leave blank for a single-day tour"
+          {/* ── Your trip ─────────────────────────────────────────────────
+              Shown, not asked for. These six values were collected at
+              onboarding, then re-collected here into a different table that
+              never synced back — so a correction made while booking was lost,
+              and the next inquiry pre-filled the stale values again. The
+              "Preferred Dates" that used to sit here invented a fifth date
+              concept with no source table at all: the tour necessarily
+              happens inside the layover window. */}
+          <TripSummaryCard
+            arrivalAt={trip.profile?.arrival_at ?? null}
+            departureAt={trip.profile?.departure_at ?? null}
+            flightIn={trip.profile?.flight_in}
+            flightOut={trip.profile?.flight_out}
+            groupSize={trip.groupSize}
+            partyType={trip.partyType}
+            onEdit={() => {
+              hapticImpactMedium();
+              setLayoverModalOpen(true);
+            }}
           />
 
-          {/* Travelers counter */}
-          <View style={{ marginBottom: 24 }}>
-            <Text style={{ fontFamily: theme.fonts.mono, fontSize: 11, color: theme.colors.textSecondary, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 }}>
-              Number of Travelers
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 0 }}>
-              <TouchableOpacity
-                onPress={() => { hapticImpactMedium(); setNumTravelers((v) => String(Math.max(1, parseInt(v, 10) - 1))); }}
-                style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.divider, alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Text style={{ fontSize: 20, fontWeight: '600', color: theme.colors.text }}>−</Text>
-              </TouchableOpacity>
-              <View style={{ width: 56, alignItems: 'center' }}>
-                <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 22, color: theme.colors.text }}>{numTravelers}</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => { hapticImpactMedium(); setNumTravelers((v) => String(Math.min(10, parseInt(v, 10) + 1))); }}
-                style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.divider, alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Text style={{ fontSize: 20, fontWeight: '600', color: theme.colors.text }}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* ── Flight info ────────────────────────────────────────────── */}
-          <Text style={{ fontFamily: theme.fonts.display, fontSize: 19, color: theme.colors.text, letterSpacing: -0.3, marginBottom: 4 }}>
-            Your Flight Details
-          </Text>
-          <Text style={{ fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.textSecondary, marginBottom: 16 }}>
-            Pre-filled from your trip info — edit anything that's changed.
-          </Text>
-
-          <LabeledInput
-            label="Flight Number (optional)"
-            value={flightNumber}
-            onChangeText={setFlightNumber}
-            placeholder="e.g. EK504"
-            autoCapitalize="characters"
-          />
-
-          <CalendarPicker
-            label="Arrival Date (optional)"
-            value={arrivalDate}
-            onChange={setArrivalDate}
-            helper="Day your flight lands in Mumbai"
-          />
-
-          {arrivalDate ? (
-            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 8, marginTop: -4 }}>
-              <TimeInput label="Arrival Time" value={arrivalTime} onChange={setArrivalTime} placeholder="e.g. 08:30" />
-              <View style={{ flex: 1 }} />
-            </View>
-          ) : null}
-
-          <CalendarPicker
-            label="Departure Date (optional)"
-            value={departureDate}
-            onChange={setDepartureDate}
-            helper="Day you fly out of Mumbai"
-          />
-
-          {departureDate ? (
-            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 8, marginTop: -4 }}>
-              <TimeInput label="Departure Time" value={departureTime} onChange={setDepartureTime} placeholder="e.g. 22:00" />
-              <View style={{ flex: 1 }} />
-            </View>
-          ) : null}
-
-          {/* ── Day overview ───────────────────────────────────────────── */}
           {selectedItin ? (
             <DayOverview
-              arrivalDate={arrivalDate}
-              arrivalTime={arrivalTime}
-              departureDate={departureDate}
-              departureTime={departureTime}
+              arrivalIso={trip.profile?.arrival_at ?? null}
+              departureIso={trip.profile?.departure_at ?? null}
               tourDurationHours={selectedItin.estimated_duration_hours}
             />
           ) : null}
+
 
           {/* ── Price breakdown ────────────────────────────────────────── */}
           {selectedItin ? (
@@ -986,7 +658,7 @@ export default function BookingScreen() {
             onPress={handleSend}
             onPressIn={() => { confirmScale.value = withSpring(0.96, { damping: 15, stiffness: 150 }); }}
             onPressOut={() => { confirmScale.value = withSpring(1, { damping: 15, stiffness: 150 }); }}
-            disabled={submitting || loading}
+            disabled={submitting || loading || !trip.hasActiveLayover}
             activeOpacity={0.9}
             style={{
               height: 56, borderRadius: theme.borderRadius.md,
@@ -997,7 +669,11 @@ export default function BookingScreen() {
             }}
           >
             <Text style={{ fontFamily: theme.fonts.bodyBold, color: submitting || loading ? '#9A9384' : '#FCF7EA', fontSize: 16, letterSpacing: 0.2 }}>
-              {submitting ? 'Sending inquiry…' : 'Send inquiry'}
+              {submitting
+                ? 'Sending inquiry…'
+                : !trip.hasActiveLayover
+                  ? 'Add your layover first'
+                  : 'Send inquiry'}
             </Text>
           </TouchableOpacity>
         </Animated.View>

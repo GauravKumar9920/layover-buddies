@@ -10,6 +10,7 @@ interface RawItineraryRow {
   category: string | null;
   cover_image_url: string | null;
   duration_hours: number | null;
+  base_cost: number | null;
   buddy_cost: number | null;
   max_travelers: number | null;
   is_published: boolean | null;
@@ -31,6 +32,7 @@ function normalizeItinerary(
     image_url: row.cover_image_url ?? null,
     cover_image_url: row.cover_image_url ?? null,
     estimated_duration_hours: Number(row.duration_hours ?? 0),
+    base_cost_inr: Number(row.base_cost ?? 0),
     buddy_cost_inr: Number(row.buddy_cost ?? 0),
     max_travelers: Number(row.max_travelers ?? 1),
     is_active: row.is_published ?? false,
@@ -51,6 +53,9 @@ export interface CreateItineraryRequest {
   name: string;
   description: string;
   estimated_duration_hours: number;
+  /** Flat charge, once per booking. */
+  base_cost_inr: number;
+  /** Per-person charge. Party of N pays base_cost_inr + buddy_cost_inr * N. */
   buddy_cost_inr: number;
   max_travelers: number;
   category?: string;
@@ -62,7 +67,7 @@ export async function createItinerary(req: CreateItineraryRequest): Promise<Itin
   const user = (await supabase.auth.getUser()).data.user;
   if (!user) throw new Error('Not authenticated');
 
-  const { stops, name, estimated_duration_hours, buddy_cost_inr, max_travelers, category, cover_image_url, ...rest } = req;
+  const { stops, name, estimated_duration_hours, base_cost_inr, buddy_cost_inr, max_travelers, category, cover_image_url, ...rest } = req;
 
   // itineraries.guide_id references users(id), so use the auth user's ID directly
   const { data: itin, error } = await supabase
@@ -71,6 +76,7 @@ export async function createItinerary(req: CreateItineraryRequest): Promise<Itin
       ...rest,
       title: name,
       duration_hours: estimated_duration_hours,
+      base_cost: base_cost_inr,
       buddy_cost: buddy_cost_inr,
       max_travelers,
       guide_id: user.id,
@@ -110,10 +116,11 @@ export async function updateItinerary(
   updates: Partial<Omit<Itinerary, 'id' | 'guide_id' | 'created_at'>>,
   stopsChange?: { current: EditableStop[]; original: EditableStop[] },
 ): Promise<void> {
-  const { name, estimated_duration_hours, buddy_cost_inr, is_active, max_travelers, city: _city, ...rest } = updates as Record<string, unknown> & typeof updates;
+  const { name, estimated_duration_hours, base_cost_inr, buddy_cost_inr, is_active, max_travelers, city: _city, ...rest } = updates as Record<string, unknown> & typeof updates;
   const schemaUpdates: Record<string, unknown> = { ...rest };
   if (name !== undefined) schemaUpdates.title = name;
   if (estimated_duration_hours !== undefined) schemaUpdates.duration_hours = estimated_duration_hours;
+  if (base_cost_inr !== undefined) schemaUpdates.base_cost = base_cost_inr;
   if (buddy_cost_inr !== undefined) schemaUpdates.buddy_cost = buddy_cost_inr;
   if (max_travelers !== undefined) schemaUpdates.max_travelers = max_travelers;
   if (is_active !== undefined) schemaUpdates.is_published = is_active;

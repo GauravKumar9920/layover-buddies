@@ -1,4 +1,8 @@
 import { supabase } from "../supabase";
+import { fetchMyTravelerProfile } from "@/lib/api/travelerProfile";
+import { computeLayoverPlan } from "@/lib/booking/timeFit";
+import { tourBuddyFeeInr, clampPartySize } from "@/lib/booking/tourPricing";
+import { minutesBetweenIso } from "@/lib/time/ist";
 import {
   COMMISSION_RATE,
   BOOKING_STATUS,
@@ -57,6 +61,7 @@ interface RawItineraryRow {
   category: string | null;
   cover_image_url: string | null;
   duration_hours: number | null;
+  base_cost: number | null;
   buddy_cost: number | null;
   max_travelers: number | null;
   is_published: boolean | null;
@@ -88,34 +93,6 @@ interface RawBookingRow {
   itinerary?: RawItineraryRow;
 }
 
-function toIsoOrNull(date: string | undefined, time: string): string | null {
-  if (!date) return null;
-  // The booking form collects a calendar date only — no time picker yet.
-  // Callers pass a default-time string like `09:00:00.000Z`. Previously we
-  // appended that as a literal UTC suffix, so a "Mon Jun 1 09:00 UTC" tour
-  // landed at 14:30 IST in the UI — well into lunch. Tours run in Mumbai
-  // local time, so we anchor the default time to IST (UTC+5:30) instead.
-  const istOffsetMinutes = 5 * 60 + 30;
-  const localIso = `${date}T${time.replace(/Z$/, "")}`; // strip any trailing Z
-  const localMs = Date.parse(localIso);
-  if (Number.isNaN(localMs)) return null;
-  // Date.parse on `YYYY-MM-DDTHH:mm:ss.sss` (no zone) is treated as local
-  // time by the JS engine — which in the dev env is whatever the host is.
-  // Force it to IST by subtracting the IST offset relative to UTC so the
-  // stored ISO timestamp consistently represents "9 AM Mumbai" regardless of
-  // where the caller is running.
-  const istAsUtcMs =
-    Date.UTC(
-      Number(date.slice(0, 4)),
-      Number(date.slice(5, 7)) - 1,
-      Number(date.slice(8, 10)),
-      Number(time.slice(0, 2)) || 0,
-      Number(time.slice(3, 5)) || 0,
-      0,
-    ) -
-    istOffsetMinutes * 60_000;
-  return new Date(istAsUtcMs).toISOString();
-}
 
 function normalizePaymentStatus(status: string): PaymentStatus {
   if (status === "paid") return "captured";
@@ -191,6 +168,7 @@ function normalizeItinerary(row?: RawItineraryRow): Booking["itinerary"] {
     image_url: row.cover_image_url ?? null,
     cover_image_url: row.cover_image_url ?? null,
     estimated_duration_hours: Number(row.duration_hours ?? 0),
+    base_cost_inr: Number(row.base_cost ?? 0),
     buddy_cost_inr: Number(row.buddy_cost ?? 0),
     max_travelers: Number(row.max_travelers ?? 1),
     is_active: row.is_published ?? false,
@@ -330,24 +308,23 @@ export async function createBooking(
   const user = (await supabase.auth.getUser()).data.user;
   if (!user) throw new Error("Not authenticated");
 
-  const tourStartTime = toIsoOrNull(req.start_date, "09:00:00.000Z");
-  const tourEndTime = toIsoOrNull(req.end_date, "17:00:00.000Z");
-  // Preserve the traveler's actual arrival/departure times (HH:MM, IST) when
-  // provided; fall back to midnight only if no time was entered.
-  const arrivalTime = toIsoOrNull(
-    req.flight_date,
-    req.flight_time || "00:00:00.000Z",
-  );
-  const departureTime = toIsoOrNull(
-    req.departure_date,
-    req.departure_time || "00:00:00.000Z",
-  );
+  // The traveler's active layover is the single source of truth for when the
+  // trip happens and how many people are coming. It was captured once at
+  // onboarding and is editable from the profile or the booking screen's
+  // "Edit trip details" — never re-asked as part of sending an inquiry.
+  const profile = await fetchMyTravelerProfile();
+  if (!profile?.active_layover_id || !profile.arrival_at || !profile.departure_at) {
+    throw new Error(
+      "Add your Mumbai layover before sending an inquiry.",
+    );
+  }
 
-  // Clamp group size to [1, 10] — DB has the same CHECK constraint, this just
-  // gives a friendlier failure mode than a 23514.
-  const numTravelers = Math.max(
-    1,
-    Math.min(10, Math.round(req.num_travelers ?? 1)),
+  // Snapshot, not a reference: a traveler who later edits their layover must
+  // not retroactively change what this booking was agreed and priced on.
+  const numTravelers = clampPartySize(profile.group_size);
+  const availableWindowMinutes = minutesBetweenIso(
+    profile.arrival_at,
+    profile.departure_at,
   );
 
   // A casual inquiry has no package yet — pricing is figured out later in the
@@ -356,12 +333,14 @@ export async function createBooking(
   let buddyCost = 0;
   let estimatedExpenses = 0;
   let commission = 0;
+  let tourStartTime: string | null = null;
+  let tourEndTime: string | null = null;
 
   if (req.itinerary_id) {
     // Fetch itinerary to get price (deleted tours can't be booked)
     const { data: itin, error: itinErr } = await supabase
       .from("itineraries")
-      .select("buddy_cost")
+      .select("base_cost, buddy_cost, duration_hours")
       .eq("id", req.itinerary_id)
       .is("deleted_at", null)
       .single();
@@ -370,19 +349,30 @@ export async function createBooking(
 
     const rates = await getEffectiveRates();
 
-    // Per-person rates from the itinerary; total scales linearly with group size.
-    const perPersonBuddyCost = itin.buddy_cost;
-    const perPersonExpenses = Math.round(
-      perPersonBuddyCost * (ESTIMATED_EXPENSES_PERCENT / 100),
-    );
-    const perPersonCommission = calcCommission(
+    // Buddy fee is base + per-person × party. Expenses stay strictly
+    // per-head — meals and entry tickets scale with people, not with the
+    // Buddy's fixed planning effort — while commission is taken on the whole
+    // fee, since it is the platform's cut of what the Buddy earns.
+    const perPersonBuddyCost = Number(itin.buddy_cost ?? 0);
+    buddyCost = tourBuddyFeeInr(
+      Number(itin.base_cost ?? 0),
       perPersonBuddyCost,
-      rates.commissionRate,
+      numTravelers,
     );
+    estimatedExpenses =
+      Math.round(perPersonBuddyCost * (ESTIMATED_EXPENSES_PERCENT / 100)) *
+      numTravelers;
+    commission = calcCommission(buddyCost, rates.commissionRate);
 
-    buddyCost = perPersonBuddyCost * numTravelers;
-    estimatedExpenses = perPersonExpenses * numTravelers;
-    commission = perPersonCommission * numTravelers;
+    // The window the traveler was shown on the fit chip is the window the
+    // booking records — rather than the old hardcoded 09:00–17:00 fiction.
+    const plan = computeLayoverPlan({
+      arrivalIso: profile.arrival_at,
+      departureIso: profile.departure_at,
+      tourHours: Number(itin.duration_hours ?? 0),
+    });
+    tourStartTime = plan?.tourStart.toISOString() ?? null;
+    tourEndTime = plan?.tourEnd.toISOString() ?? null;
   }
 
   const { data, error } = await supabase
@@ -391,9 +381,13 @@ export async function createBooking(
       traveler_id: user.id,
       guide_id: req.guide_id,
       itinerary_id: req.itinerary_id ?? null,
-      arrival_flight_number: req.flight_number ?? null,
-      arrival_time: arrivalTime,
-      departure_time: departureTime,
+      arrival_flight_number: profile.flight_in,
+      departure_flight_number: profile.flight_out,
+      // Already true-UTC instants of an IST wall clock, so they go through
+      // verbatim — no re-parsing, no second chance to drift by 5.5 hours.
+      arrival_time: profile.arrival_at,
+      departure_time: profile.departure_at,
+      available_window_minutes: availableWindowMinutes,
       tour_start_time: tourStartTime,
       tour_end_time: tourEndTime,
       num_travelers: numTravelers,

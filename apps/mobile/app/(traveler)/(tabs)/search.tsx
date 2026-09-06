@@ -3,6 +3,7 @@ import { View, FlatList, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Input } from '@/components/ui/Input';
+import { useTravelerTrip } from '@/lib/hooks/useTravelerTrip';
 import { GuideCard } from '@/components/guides/GuideCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Loading } from '@/components/ui/Loading';
@@ -13,6 +14,7 @@ import { getItineraryPhoto } from '@/config/photoLibrary';
 import type { GuideProfile } from '@/types';
 
 export default function SearchScreen() {
+  const { layoverHours, interests } = useTravelerTrip();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<GuideProfile[]>([]);
@@ -118,7 +120,12 @@ export default function SearchScreen() {
         <FlatList
           data={results}
           keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => <GuideCard guide={item} index={index} />}
+          renderItem={({ item, index }) => <GuideCard
+              guide={item}
+              index={index}
+              travelerInterests={interests}
+              layoverHours={layoverHours}
+            />}
           contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16 }}
           ListEmptyComponent={
             hasSearched ? (

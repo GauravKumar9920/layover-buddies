@@ -13,6 +13,9 @@ import { Image } from 'expo-image';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Loading } from '@/components/ui/Loading';
 import { theme } from '@/config/theme';
+import { TimeFitChip } from '@/components/ui/TimeFitChip';
+import { useTravelerTrip } from '@/lib/hooks/useTravelerTrip';
+import { formatFromPrice } from '@/lib/booking/tourPricing';
 import { getItineraryPhoto } from '@/config/photoLibrary';
 import { fetchItineraryById } from '@/lib/api/guides';
 import { useFavoritesStore } from '@/lib/stores/favorites';
@@ -27,6 +30,7 @@ import type { Itinerary } from '@/types';
  * this is fine; if it ever grows, we'll add a bulk endpoint and slot it in.
  */
 export default function SavedScreen() {
+  const { layoverHours } = useTravelerTrip();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   // Subscribe to the Set itself, NOT to `Array.from(s.ids)` — that returned a
@@ -101,6 +105,7 @@ export default function SavedScreen() {
         renderItem={({ item }) => (
           <SavedRow
             itinerary={item}
+            layoverHours={layoverHours}
             onPress={() =>
               router.push({ pathname: '/(traveler)/itinerary/[id]', params: { id: item.id } })
             }
@@ -134,9 +139,12 @@ export default function SavedScreen() {
 function SavedRow({
   itinerary,
   onPress,
+  layoverHours,
 }: {
   itinerary: Itinerary;
   onPress: () => void;
+  /** Null hides the fit chip — never guess a layover. */
+  layoverHours: number | null;
 }) {
   const toggle = useFavoritesStore((s) => s.toggle);
   const { session } = useAuth();
@@ -197,7 +205,7 @@ function SavedRow({
           }}
         >
           <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 15, color: theme.colors.primary }}>
-            ₹{itinerary.buddy_cost_inr.toLocaleString('en-IN')}
+            {formatFromPrice(itinerary.base_cost_inr, itinerary.buddy_cost_inr)}
           </Text>
           <TouchableOpacity
             onPress={(e) => {
