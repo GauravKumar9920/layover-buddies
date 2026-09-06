@@ -8,6 +8,18 @@ updates:
       time: "04:00"
       timezone: Asia/Kolkata
     open-pull-requests-limit: 5
+    # Expo SDK 52 owns this native dependency matrix. Keep patch updates
+    # available, but make minor/major platform changes through a coordinated
+    # Expo SDK upgrade instead of independent Dependabot PRs.
+    ignore:
+      - dependency-name: "expo*"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-major"
+      - dependency-name: "react-native*"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-major"
     groups:
       npm-patch-and-minor:
         patterns:
