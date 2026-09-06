@@ -1,5 +1,7 @@
 # Mumbai Buddies - Claude Code Handoff Document
 
+*Historical snapshot from April 12, 2026 — describes the pre-monorepo, pre-Admin-2.0 build. See [../project/PROJECT-OVERVIEW.md](../project/PROJECT-OVERVIEW.md) for current state.*
+
 **Purpose:** This document contains EVERYTHING Claude Code needs to start building the Mumbai Buddies mobile + web app without asking questions about architecture or business logic.
 
 **For:** Gaurav Sharma (Founder)  

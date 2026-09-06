@@ -1,4 +1,7 @@
 # Mumbai Buddies — Code Review & Live Test Report
+
+*Historical snapshot from May 14, 2026 — findings may since be fixed (e.g. the migration/function counts and admin security model are long superseded). See [project/PROJECT-OVERVIEW.md](project/PROJECT-OVERVIEW.md) for current state.*
+
 **Date:** 2026-05-14
 **Scope:** Marketing site, Mobile app, Admin panel, Supabase backend (29 migrations, 15 Edge Functions, pg_cron)
 **Method:** 3 parallel review agents + live Claude Preview testing + read-only psql/curl smoke against local Supabase

@@ -1,5 +1,7 @@
 # Mumbai Buddies — Review Backlog (Deferred Findings)
 
+*Historical snapshot from May 2026 — many findings have since been fixed; verify against the code before acting on any item. See [project/PROJECT-OVERVIEW.md](project/PROJECT-OVERVIEW.md) for current state.*
+
 **Source:** docs/CODE_REVIEW_2026-05-14.md (review pass on 2026-05-14)
 **Status legend:** 🔴 in this pass · 🟡 next pass · ⚪ later · ❓ needs decision
 

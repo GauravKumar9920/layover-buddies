@@ -1,5 +1,7 @@
 # Detour
 
+> Last verified: 2026-09-05.
+
 A two-sided marketplace connecting international airport layover travelers with Mumbai student guides — turning transit time into a real local experience.
 
 ## What It Is
@@ -81,12 +83,16 @@ Full lists live in each app's environment example.
 | Mobile app | React Native 0.76, Expo 52, Expo Router 4, TypeScript, NativeWind 4, Reanimated 3, Zustand 4 |
 | Admin console | Vite, React 18, React Router, Tailwind, TypeScript |
 | Marketing site | Astro static output + Sanity-managed editorial content → Vercel |
-| Backend | Supabase (Postgres + Auth + Storage + Deno Edge Functions) |
-| Payments | Razorpay (integration in progress) |
+| Backend | Supabase (Postgres + Auth + Storage + Deno Edge Functions, pg_cron) |
+| Payments | Razorpay — checkout wired in test mode; live payouts/refunds deferred (see [DEFERRED](docs/project/DEFERRED.md)) |
+| Push | Expo Push via `send-push` edge function (pipeline built, pending enablement) |
 | Maps | react-native-maps, expo-location |
 
 ## Documentation
 
+- [docs/project/PROJECT-OVERVIEW.md](docs/project/PROJECT-OVERVIEW.md) — what the product is and where it stands today
+- [docs/project/NEXT_TASKS.md](docs/project/NEXT_TASKS.md) — current prioritized roadmap
+- [docs/technical/RUNBOOK.md](docs/technical/RUNBOOK.md) — run everything locally
 - [docs/technical/project-structure.md](docs/technical/project-structure.md) — full layout & conventions
 - [docs/technical/ADR-001-unified-codebase.md](docs/technical/ADR-001-unified-codebase.md) — why Expo Universal
 - [docs/technical/ADR-002-monorepo-workspaces.md](docs/technical/ADR-002-monorepo-workspaces.md) — why a workspaces monorepo

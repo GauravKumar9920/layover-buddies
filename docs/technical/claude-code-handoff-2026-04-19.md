@@ -1,5 +1,7 @@
 # Mumbai Buddies — Claude Code Handoff (2026-04-19)
 
+*Historical snapshot from April 19, 2026 — findings may since be fixed. See [../project/PROJECT-OVERVIEW.md](../project/PROJECT-OVERVIEW.md) for current state.*
+
 **Purpose:** This document is a focused handoff for the changes that landed
 in the 2026-04-17 → 2026-04-19 Claude-design session. It tells Claude Code
 (a) what is already done and should just be verified, (b) what was fixed
