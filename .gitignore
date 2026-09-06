@@ -59,3 +59,20 @@ apps/mobile/android/
 .claude/settings.json
 .claude/settings.local.json
 .env*
+
+# Agent tooling local state (Codex CLI, claude-flow remnants, Kimi Work memory)
+.codex/
+.ruflo/
+.ruvector/
+.agents/
+.kimi/
+ruvector.db
+
+# Local env backups
+*.pre-admin2.bak
+
+# Scratch dirs and Supabase Studio saved snippets (per-user)
+output/
+tmp/
+tmp_pdf_audit/
+supabase/snippets/
