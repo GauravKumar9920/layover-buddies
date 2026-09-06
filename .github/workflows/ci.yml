@@ -5,8 +5,9 @@ name: CI
 # doesn't mask issues in the others.
 #
 # This is an npm-workspaces monorepo: a single root `npm ci` installs every
-# workspace (apps/* + packages/*) from the root package-lock.json, then each
-# job runs the relevant workspace script via `npm run <task> -w <name>`.
+# application workspace plus packages/* from the root package-lock.json, then
+# each job runs the relevant workspace script via `npm run <task> -w <name>`.
+# Sanity Studio is intentionally isolated with its own React 19 lockfile.
 #
 # What this catches:
 #   - TypeScript errors (wrong field names, missing imports, type mismatches)
@@ -42,11 +43,19 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22.12'
           cache: 'npm'
           cache-dependency-path: package-lock.json
+      - name: Reject committed Google API keys
+        run: |
+          if git grep -nE 'AIza[0-9A-Za-z_-]{35}'; then
+            echo '::error::A Google API key is committed to the repository'
+            exit 1
+          fi
       - name: Install (workspaces)
         run: npm ci
+      - name: Verify patched untrusted-image parser guards
+        run: npm run test:dependency-security
       - name: Type check
         run: npm run type-check --workspace @detour/mobile
       - name: Lint
@@ -63,7 +72,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22.12'
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - name: Install (workspaces)
@@ -72,6 +81,10 @@ jobs:
       # and the production bundle in one step.
       - name: Build
         run: npm run build --workspace @detour/admin
+      - name: Test API contracts and security invariants
+        run: npm test --workspace @detour/admin
+      - name: Verify the browser bundle contains no privileged credentials
+        run: npm run security:admin-bundle
 
   edge-test:
     name: edge · test
@@ -84,28 +97,56 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      - name: Type check admin and growth boundaries
+        run: |
+          deno check supabase/functions/admin-api/index.ts
+          deno check supabase/functions/admin-growth-report/index.ts
+          deno check supabase/functions/submit-marketing-lead/index.ts
+          deno check supabase/functions/sync-search-console/index.ts
+          deno check supabase/functions/content-deployment-webhook/index.ts
       - name: Test edge functions
         run: deno test --allow-env --no-check supabase/functions/__tests__/
 
   marketing-check:
     name: marketing · check
     runs-on: ubuntu-latest
-    # The live marketing site (apps/marketing/) is static HTML deployed by
-    # Vercel — there is no build step. This job validates the shipped static
-    # site has its required entry pages and that they're well-formed enough to
-    # be real HTML (catches an empty file or a bad move/rename).
+    # The marketing workspace produces the static site deployed by Vercel.
+    # The build also validates Astro content and route generation.
     steps:
       - uses: actions/checkout@v4
-      - name: Validate static marketing site
-        run: |
-          set -euo pipefail
-          for f in apps/marketing/index.html apps/marketing/careers.html apps/marketing/vercel.json; do
-            test -s "$f" || { echo "::error::Missing or empty $f"; exit 1; }
-          done
-          for f in apps/marketing/index.html apps/marketing/careers.html; do
-            grep -qiE '<!doctype html|<html' "$f" || { echo "::error::$f does not look like HTML"; exit 1; }
-          done
-          echo "✓ apps/marketing static site present and well-formed"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.12'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - name: Install (workspaces)
+        run: npm ci
+      - name: Build and validate marketing routes
+        run: npm run build --workspace @detour/marketing
+      - name: Check URL, metadata and generated-route parity
+        run: npm test --workspace @detour/marketing
+
+  studio-check:
+    name: studio · typecheck + schema + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/studio
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.12'
+          cache: 'npm'
+          cache-dependency-path: apps/studio/package-lock.json
+      - name: Install isolated Studio dependencies
+        run: npm ci
+      - name: Type check
+        run: npm run type-check
+      - name: Validate schemas
+        run: npm test
+      - name: Build
+        run: npm run build
 
   db-migrations:
     name: db · migrations apply cleanly

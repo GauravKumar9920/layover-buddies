@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { readLegacyDocument } from '../lib/legacy';
+import { getSitePages } from '../lib/site-pages';
+
+const page = (await getSitePages()).find((entry) => entry.route === '/404');
+if (!page) throw new Error('Missing 404 page manifest');
+const legacy = await readLegacyDocument(page);
+---
+
+<BaseLayout page={page} retainedHead={legacy.retainedHead} theme={legacy.theme}>
+  <Fragment set:html={legacy.body} />
+</BaseLayout>

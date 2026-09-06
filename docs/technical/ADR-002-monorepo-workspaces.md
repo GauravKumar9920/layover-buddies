@@ -5,6 +5,10 @@
 **Decision Maker:** Gaurav (Founder)
 **Supersedes/extends:** Builds on [ADR-001](ADR-001-unified-codebase.md) (Expo Universal app). ADR-001 decided *how the app is built*; this ADR decides *how the repository is organized*.
 
+> The monorepo decision remains current. References below to a browser
+> service-role admin and a no-build marketing site describe the architecture at
+> the time of this decision and are superseded by [ADR-003](ADR-003-admin-control-plane-growth-publishing.md).
+
 ---
 
 ## Context

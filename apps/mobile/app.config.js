@@ -8,6 +8,7 @@
 //   eas build          — set env vars in eas.json or the EAS dashboard
 
 const { withAndroidManifest } = require('@expo/config-plugins');
+const ANDROID_GOOGLE_MAPS_PLACEHOLDER = '${GOOGLE_MAPS_API_KEY}';
 
 // Custom config plugin — guarantees the Google Maps API key meta-data tag
 // is present in the generated AndroidManifest.xml. The built-in
@@ -15,8 +16,7 @@ const { withAndroidManifest } = require('@expo/config-plugins');
 // silently skipped on our SDK 52 prebuild, leaving MapView to crash at
 // runtime with "API key not found". Doing it here explicitly removes that
 // failure mode regardless of what the upstream plugin does.
-function withGoogleMapsMetaData(expoConfig, { apiKey }) {
-  if (!apiKey) return expoConfig;
+function withGoogleMapsMetaData(expoConfig) {
   return withAndroidManifest(expoConfig, (config) => {
     const application = config.modResults.manifest.application?.[0];
     if (!application) return config;
@@ -27,7 +27,10 @@ function withGoogleMapsMetaData(expoConfig, { apiKey }) {
     const tag = {
       $: {
         'android:name': 'com.google.android.geo.API_KEY',
-        'android:value': apiKey,
+        // Gradle supplies this value from EXPO_PUBLIC_GOOGLE_MAPS_API_KEY or
+        // the GOOGLE_MAPS_API_KEY Gradle property at build time. Never write
+        // the real key into the committed native manifest.
+        'android:value': ANDROID_GOOGLE_MAPS_PLACEHOLDER,
       },
     };
     if (existing >= 0) application['meta-data'][existing] = tag;
@@ -85,7 +88,7 @@ const config = {
     // Google Maps for Android — always required (Android has no Apple Maps).
     config: {
       googleMaps: {
-        apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+        apiKey: ANDROID_GOOGLE_MAPS_PLACEHOLDER,
       },
     },
   },
@@ -134,8 +137,6 @@ const config = {
 };
 
 // Apply the inline plugin so the API key meta-data lands in the manifest.
-const finalConfig = withGoogleMapsMetaData(config, {
-  apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-});
+const finalConfig = withGoogleMapsMetaData(config);
 
 export default { expo: finalConfig };

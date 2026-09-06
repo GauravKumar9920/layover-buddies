@@ -1,0 +1,50 @@
+<aside class="detour-consent" data-consent-banner hidden aria-label="Analytics preference">
+  <p>May we use optional analytics and remember campaign attribution for up to 90 days? We do not send contact or flight details to Google. <a href="/privacy">Privacy details</a></p>
+  <div>
+    <button type="button" data-consent-choice="denied">Not now</button>
+    <button type="button" class="accept" data-consent-choice="granted">Allow analytics</button>
+  </div>
+</aside>
+<button type="button" class="detour-consent-manage" data-consent-manage hidden aria-label="Open analytics preferences">Analytics preferences</button>
+
+<style is:global>
+  .detour-consent {
+    position: fixed;
+    z-index: 1000;
+    right: 18px;
+    bottom: 18px;
+    width: min(430px, calc(100vw - 36px));
+    padding: 16px;
+    border: 1px solid rgba(14, 25, 41, .22);
+    border-radius: 16px;
+    background: #fcf7ea;
+    color: #0e1929;
+    box-shadow: 0 18px 48px rgba(14, 25, 41, .2);
+    font: 500 13px/1.5 system-ui, sans-serif;
+  }
+  .detour-consent p { margin: 0 0 12px; }
+  .detour-consent a { color: #9e3a1f; text-decoration: underline; }
+  .detour-consent div { display: flex; justify-content: flex-end; gap: 8px; }
+  .detour-consent button {
+    border: 1px solid #0e1929;
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: transparent;
+    color: #0e1929;
+    font: inherit;
+    font-weight: 700;
+  }
+  .detour-consent button.accept { border-color: #a83d1c; background: #a83d1c; color: white; }
+  .detour-consent-manage {
+    position: fixed;
+    z-index: 999;
+    left: 12px;
+    bottom: 12px;
+    border: 1px solid rgba(14, 25, 41, .18);
+    border-radius: 999px;
+    padding: 7px 10px;
+    background: rgba(252, 247, 234, .94);
+    color: #445169;
+    font: 600 11px/1.2 system-ui, sans-serif;
+  }
+</style>

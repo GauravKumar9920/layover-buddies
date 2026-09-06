@@ -1,0 +1,10 @@
+{
+  "route": "/privacy",
+  "legacySource": "privacy.html",
+  "pageType": "website",
+  "title": "Privacy Policy — Detour Trips",
+  "description": "How Detour collects, uses, and protects your data — including location during trips and the SOS feature.",
+  "updatedAt": "2026-06-14",
+  "changeFrequency": "yearly",
+  "priority": 0.3
+}

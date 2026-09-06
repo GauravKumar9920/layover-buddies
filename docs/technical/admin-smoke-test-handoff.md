@@ -1,5 +1,11 @@
 # Detour — Admin Panel GUI Smoke-Test Handoff
 
+> **Archived security model:** this checklist describes the retired local
+> password/service-role implementation. Do not follow its credential setup.
+> Use `docs/technical/RUNBOOK.md` and ADR-003 for the Supabase Auth, MFA, RBAC,
+> and server-only Admin 2.0 flow. The historical steps below remain only as a
+> record of the original console.
+
 **Purpose:** Step-by-step runbook for Claude Code to execute a live, browser-driven smoke test of the new local admin panel at `/admin/`. The panel was scaffolded in the Cowork session on 2026-04-25 and has been built + type-checked cleanly, but has not yet been exercised in a browser against a live Supabase project.
 
 **Owner:** Gaurav Sharma
