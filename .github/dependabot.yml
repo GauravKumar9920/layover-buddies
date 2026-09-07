@@ -12,6 +12,9 @@ updates:
     # available, but make minor/major platform changes through a coordinated
     # Expo SDK upgrade instead of independent Dependabot PRs.
     ignore:
+      # Expo 52 requires this exact version, including its patch number.
+      - dependency-name: "react-native-maps"
+        versions: ["*"]
       - dependency-name: "expo*"
         update-types:
           - "version-update:semver-minor"
