@@ -12,6 +12,17 @@ updates:
     # available, but make minor/major platform changes through a coordinated
     # Expo SDK upgrade instead of independent Dependabot PRs.
     ignore:
+      # NativeWind 4 requires Tailwind 3; migrate the styling stack together.
+      - dependency-name: "tailwindcss"
+        update-types:
+          - "version-update:semver-major"
+      # Match the oldest supported Node runtime rather than unreleased APIs.
+      - dependency-name: "@types/node"
+        update-types:
+          - "version-update:semver-major"
+      # Expo 52 requires this exact version, including its patch number.
+      - dependency-name: "react-native-maps"
+        versions: ["*"]
       - dependency-name: "expo*"
         update-types:
           - "version-update:semver-minor"
