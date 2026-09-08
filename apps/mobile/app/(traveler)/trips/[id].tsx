@@ -234,7 +234,7 @@ export default function TripDetailScreen() {
             />
           )}
         </View>
-      <BookingSupport bookingId={booking.id} status={booking.status} />
+      <BookingSupport bookingId={booking.id} status={booking.status} onReported={() => loadBooking(false)} />
       </ScrollView>
     </View>
   );

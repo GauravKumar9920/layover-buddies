@@ -538,7 +538,7 @@ export default function GuideBookingDetailScreen() {
               : "After the platform fee and TDS. Final payout is confirmed during reconciliation."}
           </Text>
         </Card>
-      <BookingSupport bookingId={booking.id} status={booking.status} />
+      <BookingSupport bookingId={booking.id} status={booking.status} onReported={load} />
       </ScrollView>
 
       <View

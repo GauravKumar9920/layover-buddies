@@ -11,12 +11,12 @@ const reportErrors: Record<string, string> = {
   payment_in_progress: 'A payment is being processed. Please retry shortly or contact support.',
 };
 interface SupportCase { id: string; kind: string; status: string; reason: string; resolution?: { reason?: string; traveler_refund_paise?: number; buddy_net_paise?: number } }
-export function BookingSupport({ bookingId, status }: { bookingId: string; status: string }) {
+export function BookingSupport({ bookingId, status, onReported }: { bookingId: string; status: string; onReported?: () => Promise<void> }) {
   const [cases, setCases] = useState<SupportCase[]>([]);
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
-  useEffect(() => { let active = true; void supabase.functions.invoke('booking-support', { body: { action: 'list', booking_id: bookingId } }).then(({ data, error }) => { if (active) { if (error) setMessage('Support history is unavailable. Please retry.'); else setCases(data?.cases ?? []); } }); return () => { active = false; }; }, [bookingId]);
+  useEffect(() => { let active = true; void supabase.functions.invoke('booking-support', { body: { action: 'list', booking_id: bookingId } }).then(({ data, error }) => { if (active) { if (error) setMessage('Support history is unavailable. Please retry.'); else setCases(data?.cases ?? []); } }); return () => { active = false; }; }, [bookingId, status]);
   const kind = status === 'trip_ready' ? 'no_show' : 'dispute';
   const canReport = ['trip_ready','in_progress','awaiting_proofs','reconciling','completed','rated'].includes(status) && !cases.some(c => c.status === 'open');
   async function submit() {
@@ -25,7 +25,7 @@ export function BookingSupport({ bookingId, status }: { bookingId: string; statu
     try {
       const { data, error } = await supabase.functions.invoke('booking-support', { body: { booking_id: bookingId, kind, reason: reason.trim() } });
       if (error) { const detail = await error.context?.json?.().catch(() => null); throw new Error(reportErrors[detail?.error] ?? 'The report could not be submitted. Please retry or contact support.'); }
-      setCases(previous => [data.case, ...previous.filter(c => c.id !== data.case.id)]); setReason(''); setMessage('Report received. Operations will review it before deciding the outcome.');
+      setCases(previous => [data.case, ...previous.filter(c => c.id !== data.case.id)]); setReason(''); setMessage('Report received. Operations will review it before deciding the outcome.'); await onReported?.();
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Support is unavailable.'); } finally { setBusy(false); }
   }
   return <View style={{ marginVertical: 16, padding: 16, borderWidth: 1, borderColor: theme.colors.divider, borderRadius: 12 }}>
