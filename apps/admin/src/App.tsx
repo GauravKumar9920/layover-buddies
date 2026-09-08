@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthBoundary, AuthProvider, useAuth } from '@/auth/AuthProvider';
@@ -5,12 +6,26 @@ import Shell from '@/components/Shell';
 import Icon from '@/components/Icon';
 import { canAccessPath } from '@/lib/permissions';
 import OverviewPage from '@/pages/Overview';
-import { BookingDetailPage, BookingListPage, DisputesPage, LeadsPage } from '@/pages/Operations';
-import { MarketplaceCapabilityPage, PeoplePage, UserDetailPage } from '@/pages/Marketplace';
-import { ReportsPage, SosPage, TrustCapabilityPage } from '@/pages/TrustSafety';
-import { CancellationsPage, LedgerPage, MoneyListPage, PricingPage } from '@/pages/Money';
-import { ContentPage, GrowthPage } from '@/pages/Growth';
-import { AuditPage, HealthPage, PlatformSettingsPage, TeamPage } from '@/pages/Platform';
+const BookingDetailPage = lazy(() => import('@/pages/Operations').then(m => ({ default: m.BookingDetailPage })));
+const BookingListPage = lazy(() => import('@/pages/Operations').then(m => ({ default: m.BookingListPage })));
+const DisputesPage = lazy(() => import('@/pages/Operations').then(m => ({ default: m.DisputesPage })));
+const LeadsPage = lazy(() => import('@/pages/Operations').then(m => ({ default: m.LeadsPage })));
+const MarketplaceCapabilityPage = lazy(() => import('@/pages/Marketplace').then(m => ({ default: m.MarketplaceCapabilityPage })));
+const PeoplePage = lazy(() => import('@/pages/Marketplace').then(m => ({ default: m.PeoplePage })));
+const UserDetailPage = lazy(() => import('@/pages/Marketplace').then(m => ({ default: m.UserDetailPage })));
+const ReportsPage = lazy(() => import('@/pages/TrustSafety').then(m => ({ default: m.ReportsPage })));
+const SosPage = lazy(() => import('@/pages/TrustSafety').then(m => ({ default: m.SosPage })));
+const TrustCapabilityPage = lazy(() => import('@/pages/TrustSafety').then(m => ({ default: m.TrustCapabilityPage })));
+const CancellationsPage = lazy(() => import('@/pages/Money').then(m => ({ default: m.CancellationsPage })));
+const LedgerPage = lazy(() => import('@/pages/Money').then(m => ({ default: m.LedgerPage })));
+const MoneyListPage = lazy(() => import('@/pages/Money').then(m => ({ default: m.MoneyListPage })));
+const PricingPage = lazy(() => import('@/pages/Money').then(m => ({ default: m.PricingPage })));
+const ContentPage = lazy(() => import('@/pages/Growth').then(m => ({ default: m.ContentPage })));
+const GrowthPage = lazy(() => import('@/pages/Growth').then(m => ({ default: m.GrowthPage })));
+const AuditPage = lazy(() => import('@/pages/Platform').then(m => ({ default: m.AuditPage })));
+const HealthPage = lazy(() => import('@/pages/Platform').then(m => ({ default: m.HealthPage })));
+const PlatformSettingsPage = lazy(() => import('@/pages/Platform').then(m => ({ default: m.PlatformSettingsPage })));
+const TeamPage = lazy(() => import('@/pages/Platform').then(m => ({ default: m.TeamPage })));
 
 export default function App() {
   return <AuthProvider><AuthBoundary><AdminRoutes /></AuthBoundary></AuthProvider>;
@@ -18,7 +33,7 @@ export default function App() {
 
 function AdminRoutes() {
   return (
-    <Routes>
+    <Suspense fallback={<div role="status" className="page-content">Loading view…</div>}><Routes>
       <Route element={<Shell />}>
         <Route index element={<Navigate to="/overview" replace />} />
         <Route path="overview" element={<Guard><OverviewPage /></Guard>} />
@@ -67,7 +82,7 @@ function AdminRoutes() {
         <Route path="settings" element={<Navigate to="/platform/settings" replace />} />
         <Route path="*" element={<NotFound />} />
       </Route>
-    </Routes>
+    </Routes></Suspense>
   );
 }
 

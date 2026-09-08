@@ -15,6 +15,8 @@ import { DEPOSIT_PAISE, PG_FEE_RATE, PLATFORM_CREDIT_PAISE } from '@/config/cons
 import type { BookingState } from './stateMachine';
 
 export type CancellationTrigger =
+  | 'no_show_traveler'
+  | 'no_show_buddy'
   | 'voluntary'              // either party tapped "Cancel"
   | 't_minus_12_no_pay'      // cron fired: late_fee_due hit T-12h without payment
   | 'force_majeure_verified' // ops adjudicated a force-majeure event
@@ -27,6 +29,8 @@ export type CancellationTier =
   | '24_to_72h'
   | 'lt_24h'
   | 'late_no_pay'
+  | 'traveler_no_show'
+  | 'buddy_no_show'
   | 'buddy_cancel'
   | 'force_majeure'
   | 'pre_signing';
@@ -131,6 +135,10 @@ export function computeCancellationResolution(
   } else if (trigger === 't_minus_12_no_pay') {
     tier = 'late_no_pay';
     nextStatus = 'cancelled_no_pay';
+  } else if (trigger === 'no_show_buddy') {
+    tier = 'buddy_no_show'; nextStatus = 'no_show_buddy';
+  } else if (trigger === 'no_show_traveler') {
+    tier = 'traveler_no_show'; nextStatus = 'no_show_traveler';
   } else if (triggerActor === 'buddy') {
     tier = 'buddy_cancel';
     nextStatus = 'cancelled_buddy';
@@ -184,6 +192,7 @@ export function computeCancellationResolution(
       break;
     }
 
+    case 'traveler_no_show':
     case 'lt_24h':
       // Forfeited / voucher placeholder. Buddy still gets deposit back.
       travelerDeposit = travelerDepositHeld
@@ -202,6 +211,7 @@ export function computeCancellationResolution(
       lateFee = lateFeePaise > 0 ? FORFEITED(lateFeePaise) : WAIVED;
       break;
 
+    case 'buddy_no_show':
     case 'buddy_cancel':
       // Full refund to traveler. Buddy forfeits deposit + gets banned.
       travelerDeposit = travelerDepositHeld ? REFUNDED(DEPOSIT_PAISE) : NOT_PAID;

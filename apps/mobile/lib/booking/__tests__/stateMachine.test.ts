@@ -328,6 +328,34 @@ describe('Force-majeure and dispute edges', () => {
   });
 });
 
+describe('No-show edges (APP_REVIEW §P0)', () => {
+  test('trip_ready + no_show_marked (buddy) → no_show_buddy', () => {
+    expect(next('trip_ready', { kind: 'no_show_marked', party: 'buddy' })).toBe(
+      'no_show_buddy',
+    );
+  });
+
+  test('trip_ready + no_show_marked (traveler) → no_show_traveler', () => {
+    expect(next('trip_ready', { kind: 'no_show_marked', party: 'traveler' })).toBe(
+      'no_show_traveler',
+    );
+  });
+
+  test('no-show is illegal once the trip has started', () => {
+    illegal('in_progress', { kind: 'no_show_marked', party: 'buddy' });
+  });
+
+  test('no-show is illegal before the trip is payable/ready', () => {
+    illegal('awaiting_balance', { kind: 'no_show_marked', party: 'traveler' });
+    illegal('balance_paid', { kind: 'no_show_marked', party: 'buddy' });
+  });
+
+  test('no_show_* states are terminal', () => {
+    illegal('no_show_traveler', { kind: 'rating_submitted' });
+    illegal('no_show_buddy', { kind: 'cancel', actor: 'traveler', reason: 'too_late' });
+  });
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 8. Illegal transition negative tests
 // ─────────────────────────────────────────────────────────────────────────────
@@ -610,7 +638,7 @@ describe('isUpcomingBookingState / isActiveBookingState', () => {
     // outgoing transition (rating_submitted → rated), so it remains "active".
     ['completed',                    false, true ],
     ['rated',                        false, false],
-    ['disputed',                     false, false],
+    ['disputed',                     false, true ],
     ['cancelled',                    false, false],
     ['cancelled_no_pay',             false, false],
     ['cancelled_traveler_voluntary', false, false],
@@ -618,6 +646,8 @@ describe('isUpcomingBookingState / isActiveBookingState', () => {
     ['cancelled_force_majeure',      false, false],
     ['cancelled_pre_signing',        false, false],
     ['cancelled_no_deposit',         false, false],
+    ['no_show_traveler',             false, false],
+    ['no_show_buddy',                false, false],
   ] as const)('classifies %s → upcoming=%s active=%s', (state, upcoming, active) => {
     expect(isUpcomingBookingState(state as never)).toBe(upcoming);
     expect(isActiveBookingState(state as never)).toBe(active);
@@ -628,6 +658,28 @@ describe('isUpcomingBookingState / isActiveBookingState', () => {
     for (const t of TERMINAL_BOOKING_STATES) {
       expect(PAST_BOOKING_STATES.has(t)).toBe(true);
     }
-    expect(PAST_BOOKING_STATES.size).toBe(TERMINAL_BOOKING_STATES.size + 1);
+    expect(PAST_BOOKING_STATES.size).toBe(TERMINAL_BOOKING_STATES.size + 2);
   });
+});
+
+
+describe('support and recovery transitions', () => {
+  test('only verified held deposits can recover', () => {
+    expect(transition('deposits_held', { kind: 'deposits_recovered' }, { bothSignaturesPresent: true, bothDepositsHeld: false }).ok).toBe(false);
+    expect(transition('deposits_held', { kind: 'deposits_recovered' }, { bothSignaturesPresent: true, bothDepositsHeld: true })).toEqual({ ok: true, next: 'awaiting_balance' });
+  });
+  test.each(['completed','rated'] as const)('%s dispute requires an open window', state => {
+    const ctx = { bothSignaturesPresent: true, bothDepositsHeld: true };
+    expect(transition(state, { kind: 'dispute_raised' }, ctx).ok).toBe(false);
+    expect(transition(state, { kind: 'dispute_raised' }, { ...ctx, disputeWindowOpen: true })).toEqual({ ok: true, next: 'disputed' });
+  });
+  test('a reviewed settlement exits dispute', () => {
+    expect(transition('disputed', { kind: 'dispute_resolved', outcome: 'settled' }, { bothSignaturesPresent: true, bothDepositsHeld: true })).toEqual({ ok: true, next: 'completed' });
+  });
+});
+
+test('a dismissed no-show restores trip readiness without a penalty', () => {
+  const ctx = { bothSignaturesPresent: true, bothDepositsHeld: true };
+  expect(transition('trip_ready', { kind: 'no_show_reported' }, ctx)).toEqual({ ok: true, next: 'disputed' });
+  expect(transition('disputed', { kind: 'dispute_resolved', outcome: 'resume', previousState: 'trip_ready' }, ctx)).toEqual({ ok: true, next: 'trip_ready' });
 });

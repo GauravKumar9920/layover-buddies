@@ -1,3 +1,5 @@
+import { refundDispatch } from '../_shared/refundDispatch.ts';
+import { claimDispatch, finishDispatchClaim } from '../_shared/dispatchClaim.ts';
 // ============================================================================
 // ISSUE-REFUND — Phase 3 Edge Function (admin/service-role only)
 // ============================================================================
@@ -24,7 +26,6 @@ import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient } from '../_shared/supabaseAdmin.ts';
 import { timingSafeEqual } from '../_shared/razorpaySignature.ts';
 import {
-  createRefund,
   createPayout,
   createFundAccount,
   idempotencyKey,
@@ -96,41 +97,12 @@ serve(async (req: Request) => {
   const results: { id: string; ok: boolean; error?: string }[] = [];
 
   for (const dispatch of dispatches) {
+    if (!await claimDispatch(db, dispatch)) continue;
     try {
       const iKey = await idempotencyKey([dispatch.id, dispatch.kind, dispatch.booking_id]);
 
       if (REFUND_KINDS.has(dispatch.kind)) {
-        // Find the payment to refund against.
-        const { data: payEvent } = await db
-          .from('payment_events')
-          .select('razorpay_payment_id')
-          .eq('booking_id', dispatch.booking_id)
-          .in('kind', ['deposit', 'balance'])
-          .eq('status', 'captured')
-          .order('initiated_at', { ascending: true })
-          .limit(1)
-          .single();
-
-        if (!payEvent?.razorpay_payment_id) {
-          throw new Error('no_captured_payment_found');
-        }
-
-        const result = await createRefund({
-          payment_id:      payEvent.razorpay_payment_id,
-          amount_paise:    dispatch.net_paise,
-          idempotency_key: iKey,
-          notes: { booking_id: dispatch.booking_id, kind: dispatch.kind },
-        });
-
-        await db
-          .from('payout_dispatches')
-          .update({
-            status:             'sent',
-            razorpay_refund_id: result.refund_id,
-            failed_reason:      null,
-            completed_at:       new Date().toISOString(),
-          })
-          .eq('id', dispatch.id);
+        await refundDispatch(db, dispatch);
       } else if (PAYOUT_KINDS.has(dispatch.kind)) {
         // Payout to fund account.
         const { data: recipient } = await db
@@ -189,6 +161,7 @@ serve(async (req: Request) => {
 
       results.push({ id: dispatch.id, ok: false, error: msg });
     }
+    await finishDispatchClaim(db, dispatch.id);
   }
 
   const succeeded = results.filter(r => r.ok).length;

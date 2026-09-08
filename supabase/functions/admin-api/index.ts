@@ -81,6 +81,7 @@ function rpcError(error: { message?: string; code?: string }): never {
     'invalid_admin_role', 'owner_cannot_demote_self', 'last_owner_required',
     'platform_settings_missing', 'invalid_pricing_values',
     'matching_ready_content_deployment_required', 'booking_not_found',
+    'no_show_report_required', 'no_show_grace_period', 'reconciliation_required', 'use_remaining_settlement', 'invalid_refund_percent', 'no_unpaid_settlement', 'settlement_already_dispatched',
     'booking_not_disputed', 'invalid_dispute_resolution',
     'payout_dispatch_not_found', 'dispatch_not_retryable', 'dispatch_is_not_refund',
     'dispatch_is_not_payout', 'invalid_dispatch_family',
@@ -161,9 +162,12 @@ async function command(
       const data = await hydrateIdempotentResult(ctx, rpc, 'reports', '*', id);
       return { data };
     }
+    case 'lifecycle.resolve': {
+      return { data: await invokeRpc(ctx, 'admin_resolve_support_tx', { ...actor, p_booking_id: requireUuid(payload.id), p_resolution: requiredString(payload, 'resolution'), p_reason: reason(), p_idempotency_key: idempotencyKey(), p_refund_percent: payload.refundPercent == null ? null : numberField(payload, 'refundPercent') }) };
+    }
     case 'disputes.resolve': {
       const id = requireUuid(payload.id);
-      const rpc = await invokeRpc(ctx, 'admin_resolve_dispute_tx', {
+      const rpc = await invokeRpc(ctx, 'admin_resolve_support_tx', {
         ...actor,
         p_booking_id: id,
         p_resolution: requiredString(payload, 'resolution', { max: 64 }),

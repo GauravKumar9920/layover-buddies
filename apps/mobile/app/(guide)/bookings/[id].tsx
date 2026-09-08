@@ -1,3 +1,4 @@
+import { BookingSupport } from '@/components/bookings/BookingSupport';
 import { useCallback, useEffect, useState } from "react";
 import { View, Text, ScrollView, Alert, RefreshControl } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -537,6 +538,7 @@ export default function GuideBookingDetailScreen() {
               : "After the platform fee and TDS. Final payout is confirmed during reconciliation."}
           </Text>
         </Card>
+      <BookingSupport bookingId={booking.id} status={booking.status} onReported={load} />
       </ScrollView>
 
       <View

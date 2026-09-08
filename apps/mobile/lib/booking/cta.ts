@@ -120,6 +120,14 @@ const VIEWER_AGREEMENT: Record<BookingState, Partial<Record<Viewer, BookingCta>>
   },
 
   // ── Cancellation terminal states ──────────────────────────────────────────
+  no_show_traveler: {
+    traveler: { label: 'View no-show outcome', route: { pathname: '/(traveler)/trips/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+    buddy:    { label: 'View no-show outcome', route: { pathname: '/(guide)/bookings/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+  },
+  no_show_buddy: {
+    traveler: { label: 'View no-show outcome', route: { pathname: '/(traveler)/trips/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+    buddy:    { label: 'View no-show outcome', route: { pathname: '/(guide)/bookings/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
+  },
   cancelled: {
     traveler: { label: 'View cancellation', route: { pathname: '/(traveler)/trips/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },
     buddy:    { label: 'View cancellation', route: { pathname: '/(guide)/bookings/cancellation-receipt/[bookingId]' }, disabled: false, variant: 'secondary' },

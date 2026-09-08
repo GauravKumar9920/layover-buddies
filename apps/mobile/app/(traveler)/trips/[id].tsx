@@ -1,3 +1,4 @@
+import { BookingSupport } from '@/components/bookings/BookingSupport';
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Alert, RefreshControl } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -233,6 +234,7 @@ export default function TripDetailScreen() {
             />
           )}
         </View>
+      <BookingSupport bookingId={booking.id} status={booking.status} onReported={() => loadBooking(false)} />
       </ScrollView>
     </View>
   );

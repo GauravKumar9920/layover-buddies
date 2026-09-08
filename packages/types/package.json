@@ -1,0 +1,13 @@
+{
+  "name": "@detour/types",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "types": "index.ts",
+  "dependencies": {
+    "@detour/config": "*"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  }
+}

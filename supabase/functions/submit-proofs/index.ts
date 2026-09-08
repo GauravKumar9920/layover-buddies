@@ -1,3 +1,5 @@
+import { refundDispatch } from '../_shared/refundDispatch.ts';
+import { claimDispatch, finishDispatchClaim } from '../_shared/dispatchClaim.ts';
 // ============================================================================
 // SUBMIT-PROOFS — Phase 4 Edge Function (buddy)
 // ============================================================================
@@ -18,7 +20,6 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient, getUserFromRequest } from '../_shared/supabaseAdmin.ts';
 import {
-  createRefund,
   createPayout,
   createFundAccount,
   idempotencyKey,
@@ -92,31 +93,12 @@ serve(async (req: Request) => {
     .in('kind', ['buddy_fee_final', 'traveler_refund']);
 
   for (const dispatch of dispatches ?? []) {
+    if (!await claimDispatch(db, dispatch)) continue;
     try {
       const iKey = await idempotencyKey([dispatch.id, dispatch.kind, body.booking_id]);
 
       if (dispatch.kind === 'traveler_refund') {
-        // Refund against the captured balance payment.
-        const { data: payEvent } = await db
-          .from('payment_events')
-          .select('razorpay_payment_id')
-          .eq('booking_id', body.booking_id)
-          .eq('kind', 'balance')
-          .eq('status', 'captured')
-          .maybeSingle();
-
-        if (payEvent?.razorpay_payment_id) {
-          const result = await createRefund({
-            payment_id:      payEvent.razorpay_payment_id,
-            amount_paise:    dispatch.net_paise,
-            idempotency_key: iKey,
-            notes: { booking_id: body.booking_id, kind: 'traveler_refund' },
-          });
-          await db.from('payout_dispatches').update({
-            status: 'sent', razorpay_refund_id: result.refund_id,
-            completed_at: new Date().toISOString(),
-          }).eq('id', dispatch.id);
-        }
+        await refundDispatch(db, dispatch);
       } else if (dispatch.kind === 'buddy_fee_final') {
         const { data: buddy } = await db
           .from('users')
@@ -124,7 +106,8 @@ serve(async (req: Request) => {
           .eq('id', dispatch.recipient_user_id)
           .single();
 
-        if (buddy?.payout_vpa) {
+        if (!buddy?.payout_vpa) throw new Error('vpa_missing');
+        if (buddy.payout_vpa) {
           let fundAccountId = buddy.razorpay_fund_account_id;
           if (!fundAccountId) {
             const fa = await createFundAccount({
@@ -155,6 +138,7 @@ serve(async (req: Request) => {
         .update({ failed_reason: reason })
         .eq('id', dispatch.id);
     }
+    await finishDispatchClaim(db, dispatch.id);
   }
 
   // ── 6. Transition to completed ────────────────────────────────────────────

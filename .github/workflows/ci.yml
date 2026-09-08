@@ -104,6 +104,12 @@ jobs:
           deno-version: v2.x
       - name: Type check admin and growth boundaries
         run: |
+          deno check supabase/functions/booking-support/index.ts
+          deno check supabase/functions/cancel-booking/index.ts
+          deno check supabase/functions/submit-proofs/index.ts
+          deno check supabase/functions/qr-scan/index.ts
+          deno check supabase/functions/issue-refund/index.ts
+          deno check supabase/functions/replay-stubbed-payouts/index.ts
           deno check supabase/functions/admin-api/index.ts
           deno check supabase/functions/admin-growth-report/index.ts
           deno check supabase/functions/submit-marketing-lead/index.ts
@@ -168,6 +174,10 @@ jobs:
           version: latest
       - name: Start Supabase (applies migrations to fresh DB)
         run: supabase start
+      - name: Test booking support transactions
+        run: docker exec -i supabase_db_mumbai-buddies psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/booking_support.sql
+      - name: Test refund allocation safety
+        run: docker exec -i supabase_db_mumbai-buddies psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/refund_allocations.sql
       - name: Stop Supabase
         if: always()
         run: supabase stop --no-backup
