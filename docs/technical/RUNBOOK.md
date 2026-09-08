@@ -1,6 +1,6 @@
 # Detour — Developer Runbook
 
-> Last updated: 2026-08-09
+> Last verified: 2026-09-05
 > Everything in this file reflects the actual working state of the repo.
 
 ---
@@ -49,7 +49,7 @@
 | Admin: Trust & Safety | ✅ Working | Realtime SOS, reports, disputes and audited commands |
 | Admin: Growth & Content | ✅ Working | GA4/GSC reports, funnel, tracking health and deployments |
 | Sanity Studio | ✅ Working | Structured drafts, preview, revision and publishing workflow |
-| Seed data | ✅ Present | 7 guides, 15 itineraries, 6 bookings, 5 reviews |
+| Seed data | ✅ Present | 5 guides, 3 travelers, 1 owner admin, 15 itineraries, 6 bookings |
 
 ---
 
@@ -294,9 +294,8 @@ npm run admin
 ```
 
 Open **http://127.0.0.1:5174**, sign in with an Auth user that has an active
-`admin_memberships` record, and enrol/verify an authenticator when prompted.
-Local seeded owner details are documented beside the seed once the backend has
-been reset.
+`admin_memberships` record (locally: the seeded owner — see
+[Test Accounts](#test-accounts)), and enrol/verify an authenticator when prompted.
 
 Before any hosted release:
 
@@ -332,6 +331,12 @@ All accounts are created automatically by `supabase db reset`. Every account use
 | `priya.sharma@iitb.ac.in` | `Test1234!` | IIT Bombay · 4.6★ · architecture & photography |
 | `sneha.mehta@nmims.edu` | `Test1234!` | NMIMS · 4.5★ · business & photography |
 | `kabir.joshi@mithibai.ac.in` | `Test1234!` | Mithibai · new (0 reviews) · hidden gems |
+
+### Admin
+
+| Email | Password | Role |
+|---|---|---|
+| `admin@detour.local` | `DetourAdmin123!` | `owner` in `admin_memberships` (local seed only) |
 
 ### Re-seeding after a db reset
 
@@ -414,20 +419,21 @@ Or browse / reset any account in Supabase Studio:
 
 | Feature | Status | Notes |
 |---|---|---|
-| Razorpay payments | 🔜 Stubbed | `apps/mobile/lib/api/payments.ts` exists; needs real key + company registration |
-| Google Maps live tour | 🔜 Stubbed | `.native.tsx` variant exists; needs `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` in `app.json` |
-| Push notifications | ✅ Done (PR #6) | Expo Push token registration, Edge fn delivery, cron polling, deep-link tap routing |
-| Google OAuth | 🔜 UI exists | Button is on login screen; Supabase provider not configured |
-| GA4 + Search Console live data | 🔜 Needs access | Configure the numeric property ID, domain property and read-only service account |
-| Sanity production publishing | 🔜 Needs access | Configure project/dataset, signed relay secret and Vercel deployment callbacks |
+| Razorpay money-in | ✅ Wired (test mode) | `apps/mobile/lib/api/razorpayCheckout.ts` native sheet; orders created server-side (`create-deposit-order` / `create-balance-order` / `create-topup-order`); `razorpay-webhook` drives state |
+| Razorpay money-out | 🔜 Deferred | Refunds/payouts/fund accounts code-complete behind `RAZORPAY_LIVE_FEATURES_ENABLED`; blocked on company registration + GST. See `docs/project/DEFERRED.md` §1 |
+| Google Maps live tour | 🔜 Key needed | `.native.tsx` variant exists; needs `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` (Android manifest carries a placeholder) |
+| Push notifications | ✅ Built, pending enable | `send-push` Edge fn drains `notifications` → Expo Push, scheduled via pg_cron; needs FCM/APNs credentials |
+| Google OAuth | 🔜 Stubbed | Login-screen button shows a "Coming soon" alert; Supabase provider not configured |
+| GA4 + Search Console live data | 🔜 Needs access | Configure the numeric property ID, domain property and read-only service account (runbook steps 5–6) |
+| Sanity production publishing | 🔜 Needs access | Configure project/dataset, signed relay secret and Vercel deployment callbacks (runbook steps 7–8) |
 | CI/CD pipeline | ✅ Done | Mobile, Admin, Edge, Marketing, Studio and fresh migration checks |
-| EAS / production build | 🔜 Needs setup | Run `eas init` in `apps/mobile/` to replace the placeholder projectId in `app.json` |
+| EAS / production build | 🔜 Needs setup | Run `eas init` in `apps/mobile/` to replace the placeholder projectId in `app.json`; no `eas.json` yet |
 
 ---
 
 ## Business Rules
 
-These are enforced in `apps/mobile/config/constants.ts`. **Do not change without founder sign-off.**
+These are enforced in `packages/config/constants.ts`. **Do not change without founder sign-off.**
 
 | Rule | Value |
 |---|---|
@@ -435,9 +441,12 @@ These are enforced in `apps/mobile/config/constants.ts`. **Do not change without
 | Estimated expenses | 30% of buddy fee shown as placeholder in price breakdown |
 | Min booking notice | 4 hours before arrival |
 | Max booking advance | 90 days |
+| Deposit | ₹500 refundable, per side |
+| Balance buffer | 20% of itinerary fund |
+| Late fee | ₹1,000 fixed |
 | Escrow auto-release | 24 hours after tour ends |
 | Min guide rating (search) | 4.0★ (new guides with 0 reviews are exempt) |
 | Currency | INR (₹) |
 | Supported cities | Mumbai only (v1) |
 
-> ⚠️ Commission rate: CLAUDE.md Task 7 spec suggests 15% but code is at 25%. Confirm with Gaurav before changing.
+> ⚠️ Commission rate: the retired April spec suggested 15% but code is at 25%. **Undecided — owner decision needed** (NEXT_TASKS.md item 1). Agreement snapshots freeze rates at signing, so decide before real users.
