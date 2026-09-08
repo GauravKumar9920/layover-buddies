@@ -1,4 +1,7 @@
 # Code Review & Live Test — Mumbai Buddies
+
+*Historical snapshot from May 14–15, 2026 — findings may since be fixed. See [project/PROJECT-OVERVIEW.md](project/PROJECT-OVERVIEW.md) for current state.*
+
 **Date:** 2026-05-14 / 2026-05-15  
 **Reviewer:** Claude Code (via Claude Preview, static analysis, Supabase CLI)  
 **Scope:** Full-stack — Marketing site, Admin panel, Mobile web export (Expo), Backend (Supabase)

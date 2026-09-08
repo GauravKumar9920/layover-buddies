@@ -1,13 +1,17 @@
 # DEFERRED — Things we've built but intentionally not activated
 
+> Last verified: 2026-09-05.
+
 This file tracks the exact steps needed to flip each deferred feature on in production.
 Update this file whenever you defer something; don't let decisions live only in code comments.
+
+> **Removed from this list:** push notifications — the pipeline is now built (`notifications` table → `send-push` Edge fn → Expo Push, scheduled via pg_cron). What remains is *enablement* (FCM/APNs credentials), tracked in [NEXT_TASKS.md](NEXT_TASKS.md).
 
 ---
 
 ## 1. Razorpay Live Payouts — Refunds, Payouts, Fund Accounts
 
-**Status:** Code complete. Stubbed behind `RAZORPAY_LIVE_FEATURES_ENABLED` env var.
+**Status:** Code complete. Stubbed behind `RAZORPAY_LIVE_FEATURES_ENABLED` env var. (Money-*in* is not deferred: checkout is wired via `apps/mobile/lib/api/razorpayCheckout.ts` with server-side order creation in test mode.)
 
 **Why deferred:** Company not yet registered. Live Razorpay credentials require a GST number and bank account linked to the registered entity. Test-mode Orders work today; live Payouts and Refunds do not.
 
@@ -47,25 +51,7 @@ All three throw `RazorpayLiveNotConfiguredError` when the env flag is unset. Cal
 
 ---
 
-## 2. Push Notifications
-
-**Status:** `notifications` table is created (migration 100400). Rows are written by:
-- `cron_balance_reminder` (T-84/48/24/18h before trip)
-- `cron_rating_link_send` (T+3h post-completion)
-- `cron_proofs_overdue` (when proofs deadline passes)
-- `cancel-booking` Edge fn (on any cancellation — for ops review)
-
-**Why deferred:** Expo Push Notifications require an FCM/APNs key setup and a registered push token per device. Adding it now would add infra complexity before the product is live.
-
-**Runbook:**
-1. Expo Push setup: https://docs.expo.dev/push-notifications/overview/
-2. Store `expo_push_token` on the `users` table.
-3. Write a `send-push` Edge fn that reads the `notifications` table + calls Expo Push API.
-4. Schedule `send-push` to run every minute (pg_cron or external cron hitting the Edge fn).
-
----
-
-## 3. Voucher / Platform Credit Issuance
+## 2. Voucher / Platform Credit Issuance
 
 **Status:** `cancelled_resolution_jsonb.platform_credit_paise` is computed and stored for buddy-cancelled bookings (₹500 per §7). The `payment_events` table has a `kind='platform_credit'` enum value reserved.
 
@@ -79,22 +65,22 @@ All three throw `RazorpayLiveNotConfiguredError` when the env flag is unset. Cal
 
 ---
 
-## 4. Buddy Ban Enforcement at Auth/Sign-In
+## 3. Buddy Ban Enforcement at Auth/Sign-In
 
 **Status:** `users.is_banned = true` is set by `compute_cancellation_resolution_tx` for buddy-cancel cases. The column exists and is populated.
 
 **Why deferred:** Auth guard requires changes to the auth flow (`_layout.tsx` or a Supabase Row-Level-Security policy on auth). Deliberately kept separate from the financial PR.
 
 **Runbook:**
-1. In `mobile/app/_layout.tsx`, after sign-in, check `users.is_banned`.
+1. In `apps/mobile/app/_layout.tsx`, after sign-in, check `users.is_banned`.
 2. If `true`, sign the user out and show a ban message.
 3. Optionally: add a Postgres RLS policy that prevents banned users from inserting bookings.
 
 ---
 
-## 5. Failed-Payout Retry Cron
+## 4. Failed-Payout Retry Cron
 
-**Status:** `payout_dispatches` rows with `status='failed'` exist and are visible in the admin Payouts page. Manual retry via the "Retry" button in admin is available.
+**Status:** `payout_dispatches` rows with `status='failed'` exist and are visible in the admin Payouts surface. Manual retry via the "Retry" button in admin is available.
 
 **Why deferred:** Edge case handling (alternate VPA, bank rejection codes) varies per Razorpay error type. Building a smart retry loop before we have real failed payout data would be premature.
 
@@ -106,7 +92,7 @@ All three throw `RazorpayLiveNotConfiguredError` when the env flag is unset. Cal
 
 ---
 
-## 6. PDF Receipts
+## 5. PDF Receipts
 
 **Status:** All receipt data is rendered in-app (reconciliation receipt, cancellation receipt). No PDF export.
 
@@ -119,12 +105,12 @@ All three throw `RazorpayLiveNotConfiguredError` when the env flag is unset. Cal
 
 ---
 
-## 7. Multi-Currency / FX
+## 6. Multi-Currency / FX
 
-**Status:** All amounts are hardcoded INR. `CURRENCY = 'INR'` in `constants.ts`.
+**Status:** All amounts are hardcoded INR. `CURRENCY = 'INR'` in `packages/config/constants.ts`.
 
 **Why deferred:** All Phase 1-4 users are expected to be Mumbai-based or India-visiting (INR-comfortable). FX caching (an OER/fixer.io subscription) adds API cost and complexity before product-market fit.
 
 ---
 
-*Last updated: Phase 3+4 PR (Stage G)*
+*Last updated: 2026-09-05 (push notifications removed — pipeline built, pending enablement)*
