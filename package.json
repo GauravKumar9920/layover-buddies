@@ -27,7 +27,7 @@
     "test:dependency-security": "node scripts/test-image-size-patch.mjs"
   },
   "devDependencies": {
-    "turbo": "^2.0.0"
+    "turbo": "^2.10.12"
   },
   "engines": {
     "node": "^22.12.0 || ^24.0.0 || >=26.0.0",
