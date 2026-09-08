@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +15,13 @@ import { getItineraryPhoto } from '@/config/photoLibrary';
 import { supabase } from '@/lib/supabase';
 import { theme } from '@/config/theme';
 import { SUPPORTED_CITIES } from '@/config/constants';
+import { MAX_PARTY_SIZE } from '@/config/profileOptions';
+import { PricePreview } from '@/components/guides/PricePreview';
+import {
+  getEffectiveRates,
+  EARLY_ACCESS_RATES,
+  type EffectiveRates,
+} from '@/lib/api/platformSettings';
 
 // DB enum values for itinerary_category
 const ITINERARY_CATEGORIES: { value: string; label: string }[] = [
@@ -29,6 +36,17 @@ const ITINERARY_CATEGORIES: { value: string; label: string }[] = [
 
 export default function CreateItineraryScreen() {
   const router = useRouter();
+  const [rates, setRates] = useState<EffectiveRates>(EARLY_ACCESS_RATES);
+
+  useEffect(() => {
+    void getEffectiveRates().then(setRates).catch(() => {});
+  }, []);
+
+  const earnHint =
+    rates.platformFeeDownRate === 0
+      ? 'Early access — you keep 100% of what you charge.'
+      : `You'll receive ${((1 - rates.platformFeeDownRate) * 100).toFixed(1)}% after the platform fee.`;
+
   const insets = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -38,6 +56,7 @@ export default function CreateItineraryScreen() {
   const [city, setCity] = useState('Mumbai');
   const [category, setCategory] = useState('custom');
   const [duration, setDuration] = useState('');
+  const [basePrice, setBasePrice] = useState('');
   const [price, setPrice] = useState('');
   const [maxTravelers, setMaxTravelers] = useState('1');
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
@@ -81,8 +100,18 @@ export default function CreateItineraryScreen() {
       Alert.alert('Name required', 'Please enter a tour name.');
       return;
     }
-    if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      Alert.alert('Price required', 'Please enter a valid price in INR.');
+    const baseInr = Number(basePrice || 0);
+    const perPersonInr = Number(price || 0);
+    if (isNaN(baseInr) || isNaN(perPersonInr) || baseInr < 0 || perPersonInr < 0) {
+      Alert.alert('Check your pricing', 'Charges must be zero or more.');
+      return;
+    }
+    // Mirrors itineraries_price_positive — one component may be zero, not both.
+    if (baseInr + perPersonInr <= 0) {
+      Alert.alert(
+        'Price required',
+        'Set a base charge, a per-person charge, or both.',
+      );
       return;
     }
     if (!duration || isNaN(Number(duration))) {
@@ -96,8 +125,9 @@ export default function CreateItineraryScreen() {
         name: name.trim(),
         description: description.trim(),
         estimated_duration_hours: Number(duration),
-        buddy_cost_inr: Number(price),
-        max_travelers: Math.max(1, Math.min(12, Number(maxTravelers) || 1)),
+        base_cost_inr: baseInr,
+        buddy_cost_inr: perPersonInr,
+        max_travelers: Math.max(1, Math.min(MAX_PARTY_SIZE, Number(maxTravelers) || 1)),
         category,
         cover_image_url: coverImageUrl,
         stops: stops
@@ -242,15 +272,43 @@ export default function CreateItineraryScreen() {
             />
           </View>
 
-          <Input
-            label="Your Price (₹ INR)"
-            value={price}
-            onChangeText={setPrice}
-            keyboardType="numeric"
-            placeholder="e.g. 2000"
-            style={{ marginTop: 12 }}
-            hint="You'll receive 75% after platform fee"
+          <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
+            <Input
+              label="Base charge (₹)"
+              value={basePrice}
+              onChangeText={setBasePrice}
+              keyboardType="numeric"
+              placeholder="e.g. 500"
+              style={{ flex: 1 }}
+              hint="Charged once, however many come"
+            />
+            <Input
+              label="Per person (₹)"
+              value={price}
+              onChangeText={setPrice}
+              keyboardType="numeric"
+              placeholder="e.g. 1200"
+              style={{ flex: 1 }}
+              hint="Charged for each traveller"
+            />
+          </View>
+
+          <PricePreview
+            baseInr={Number(basePrice || 0)}
+            perPersonInr={Number(price || 0)}
           />
+
+          <Text
+            style={{
+              fontFamily: theme.fonts.body,
+              fontSize: 12,
+              lineHeight: 18,
+              color: theme.colors.textSecondary,
+              marginTop: 10,
+            }}
+          >
+            {earnHint}
+          </Text>
         </Card>
 
         {/* Stops */}
