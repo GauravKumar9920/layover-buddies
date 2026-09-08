@@ -62,7 +62,8 @@
     "react-native-web": "^0.19.13",
     "tailwindcss": "^3.4.0",
     "zod": "^3.23.0",
-    "zustand": "^4.5.0"
+    "zustand": "^4.5.0",
+    "@detour/types": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",

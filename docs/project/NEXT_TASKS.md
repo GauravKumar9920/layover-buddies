@@ -1,6 +1,6 @@
 # Detour — Next Tasks
 
-> Last verified: 2026-09-05. This replaces the April 2026 task list (Tasks 0–7), which is fully done — see git history and [SMOKE_TEST_RESULTS.md](SMOKE_TEST_RESULTS.md).
+> Last verified: 2026-09-08. This replaces the April 2026 task list (Tasks 0–7), which is fully done — see git history and [SMOKE_TEST_RESULTS.md](SMOKE_TEST_RESULTS.md).
 
 Current prioritized roadmap. Work top-to-bottom within a group; items are independent across groups unless noted.
 
@@ -18,30 +18,23 @@ Current prioritized roadmap. Work top-to-bottom within a group; items are indepe
 ### 1. Decide the commission rate — owner decision needed
 `COMMISSION_RATE` is **25%** in `packages/config/constants.ts`; the retired April task spec said 15%. **Undecided since April.** Agreement snapshots freeze rates at signing, so this must be decided before the first real booking. Decide, update the constant, and delete the stale cross-references.
 
-### 2. PR #55 — trip fit, party shape, split pricing: rebase or close
-Open since Aug 9: +4,558/−1,426 across 45 files — `age_band`, `party_type`, party size 1–4, base+per-person pricing, slimmer `BookingRequest`, nationality picker, 438 tests. A month stale; main has moved a lot since → expect conflicts. **Decide: rebase+merge, or close.** Repo: `GauravKumar9920/layover-buddies` (main protected, PRs only).
+### 2. Completed application handoff
+PR #55 has been reviewed and merged. The September application handoff implements reviewed no-shows, support cases, bounded post-completion disputes, audited settlement outcomes, shared `@detour/types`, one canonical state machine, and lazy admin routes. The existing two-deposit recovery sweep was verified with database tests. See [BOOKING_SUPPORT_RUNBOOK.md](../technical/BOOKING_SUPPORT_RUNBOOK.md) for deployment and operations.
 
 ### 3. Dependency hygiene
-Merge **PR #65** first (CI guard pinning Expo SDK 52 dependency alignment — it declares the SDK-incompatible dependabot majors unsafe), then triage the remaining dependabot batch (#67–#72): close the SDK-incompatible majors (#68, #70, #71), review the compatible patches (#67, #69, #72) after CI. Root `package.json` `overrides` are the security-patch mechanism — see [../technical/DEPENDENCY_SECURITY.md](../technical/DEPENDENCY_SECURITY.md).
+Keep Expo 52's `react-native-maps` at exactly 1.18.0. Tailwind 4 requires a coordinated NativeWind migration; Node typings should match the oldest supported runtime (22). Review patch PRs with Expo alignment, mobile tests, admin build and CI. Root overrides remain the security-patch mechanism.
 
 ### 4. Admin 2.0 — run the 10 provider-config steps
-All remaining Admin 2.0 work is configuration, not code. Follow [ADMIN2_PROVIDER_SETUP_RUNBOOK.md](../technical/ADMIN2_PROVIDER_SETUP_RUNBOOK.md) in order:
-DNS for `admin.detourtrips.com` + Supabase redirects (step 2) → MFA enable/protect decision (step 3) → Resend lead email (4) → GA4 service account (5) → Search Console (6) → publishing-loop hooks (7) → Sanity content import (8) → marketing production release (9 — the privacy/terms 404 there is **already fixed**, both routes live) → ops acceptance test (10). Step 10 also covers the deferred surfaces + 507 KB bundle code-split.
+Remaining provider activation requires the owner accounts and credentials. Route-level bundle splitting is implemented. Follow [ADMIN2_PROVIDER_SETUP_RUNBOOK.md](../technical/ADMIN2_PROVIDER_SETUP_RUNBOOK.md) in order:
+DNS for `admin.detourtrips.com` + Supabase redirects (step 2) → MFA enable/protect decision (step 3) → Resend lead email (4) → GA4 service account (5) → Search Console (6) → publishing-loop hooks (7) → Sanity content import (8) → marketing production release (9 — the privacy/terms 404 there is **already fixed**, both routes live) → ops acceptance test (10). Step 10 still covers acceptance of provider-dependent surfaces.
 
 ### 5. Port the 16 SEO place pages into Astro
 The rebuilt static marketing site + 16 SEO place pages exist only on the `archive/static-marketing-seo` branch (pre-Astro architecture). Port them: drop HTML into `apps/marketing/src/legacy/`, add JSON manifests in `apps/marketing/src/content/pages/`, and extend `expectedRoutes` in `apps/marketing/scripts/check-route-parity.mjs` from 12 → 28. Do **not** ship the old branch as-is (FormSubmit-only forms, pre-consent GA — both superseded on main).
 
-### 6. Booking lifecycle gaps
-Known edges of the 27-state machine (from [APP_REVIEW.md](APP_REVIEW.md), June 2026 — still open):
-- No **no-show** event (neither party can be marked as not showing up)
-- No exit from `deposits_held` if the webhook never fires
-- `disputed` is terminal with no admin resolution path
-- No post-completion dispute window
-- No **guide verification flow** despite marketing claiming "vetted students"
-- No availability calendar / double-booking guard
-
-### 7. Extract `@detour/types` + de-duplicate the booking state machine
-`apps/mobile/types/index.ts` is coupled to `BookingState` from `apps/mobile/lib/booking/stateMachine.ts`. Extract together with de-duplicating the state machine mirrored between `apps/mobile/lib/booking/` and `supabase/functions/_shared/` (parity test: `supabase/functions/__tests__/stateMachineParity.test.ts`).
+### 6. Product decisions and separate roadmap
+- Confirm the proposed seven-day post-completion reporting window (`POST_COMPLETION_DISPUTE_DAYS` and its matching SQL interval) before launch.
+- Guide verification and availability-calendar work remain separate product scope; these were not part of the September implementation handoff.
+- The marketing website and SEO page port remain excluded from this handoff completion.
 
 ---
 
@@ -51,7 +44,6 @@ Known edges of the 27-state machine (from [APP_REVIEW.md](APP_REVIEW.md), June 2
 - **Push enablement:** the pipeline is built (`send-push` drains `notifications` → Expo Push; pg_cron schedules it). Remaining: FCM/APNs credentials + device-token registration verification, then flip it on. See [DEFERRED.md](DEFERRED.md).
 - **EAS / store submission:** run `eas init` in `apps/mobile/` to replace the placeholder projectId in `app.json`; add `eas.json` (verify current state first).
 - **Marketing content backlog** (see `marketing-ops/`): 6-hour + overnight layover guides, street-food guide, meet-the-buddies page, founding-traveler stories; manual ops: Brevo, Google Business Profile, Trustpilot, GSC/Bing verification, PR/Reddit.
-- **Admin bundle code-split** (part of runbook step 10): the main admin bundle is ~507 KB.
 
 ---
 

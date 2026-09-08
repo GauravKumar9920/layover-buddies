@@ -42,7 +42,7 @@ const INQUIRY_STATUSES = ['chat_open', 'agreement_drafting', 'agreement_sent'];
 const CANCELLED_STATUSES = [
   'cancelled', 'cancelled_no_pay', 'cancelled_traveler_voluntary',
   'cancelled_buddy', 'cancelled_force_majeure', 'cancelled_pre_signing',
-  'cancelled_no_deposit',
+  'cancelled_no_deposit', 'no_show_traveler', 'no_show_buddy',
 ];
 const ALL_BOOKING_STATUSES = new Set([
   ...ACTIVE_BOOKING_STATUSES, ...CANCELLED_STATUSES,
@@ -485,7 +485,8 @@ async function financeSummary(ctx: OperationContext, payload: Record<string, unk
     }
   }
   const result = await ctx.db.rpc('admin_finance_summary', {
-    p_start_date: startDate,
+    // SQL accepts NULL for its all-time range; generated RPC args omit nullability.
+    p_start_date: startDate as string,
     p_end_date: endDate,
   }) as DbResult;
   if (result.error || !result.data) {
@@ -669,6 +670,12 @@ export async function executeReadOperation(
     case 'live-trips.list': return await bookingsList(ctx, payload, ['trip_ready', 'in_progress']);
     case 'sos.list': return await sosList(ctx, payload);
     case 'reports.list': return await reportsList(ctx, payload);
+    case 'lifecycle.list': {
+      const id = uuid(payload.id);
+      const result = await (ctx.db as any).from('booking_support_cases').select('*').eq('booking_id', id).order('created_at', { ascending: false }).limit(20);
+      if (result.error) throw new AdminOperationError('support_unavailable', 'Support cases could not be loaded.', 503);
+      return { data: result.data };
+    }
     case 'disputes.list': return await disputesList(ctx, payload);
     case 'leads.list': return await leadsList(ctx, payload);
     case 'finance.summary': return await financeSummary(ctx, payload);

@@ -1,3 +1,4 @@
+import { claimDispatch, finishDispatchClaim } from '../_shared/dispatchClaim.ts';
 // ============================================================================
 // QR-SCAN — Phase 4 Edge Function (buddy)
 // ============================================================================
@@ -122,6 +123,7 @@ serve(async (req: Request) => {
     .select('id')
     .single();
 
+  if (!dispatch || !await claimDispatch(db, dispatch)) return jsonResponse({ ok: true, booking_status: 'in_progress', payout_pending: true });
   let stubbed = false;
   try {
     const iKey = await idempotencyKey(['trip_pot', booking_id, caller.userId]);
@@ -169,5 +171,6 @@ serve(async (req: Request) => {
     }
   }
 
+  await finishDispatchClaim(db, dispatch.id);
   return jsonResponse({ ok: true, booking_status: 'in_progress', trip_pot_paise: tripPotPaise, stubbed });
 });

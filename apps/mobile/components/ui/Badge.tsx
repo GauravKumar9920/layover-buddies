@@ -89,6 +89,8 @@ export function bookingStatusVariant(status: string): BadgeVariant {
     // All cancel variants
     case BOOKING_STATUS.CANCELLED_PRE_SIGNING:
     case BOOKING_STATUS.CANCELLED:
+    case 'no_show_traveler':
+    case 'no_show_buddy':
     case 'cancelled_no_pay':
     case 'cancelled_traveler_voluntary':
     case 'cancelled_buddy':
@@ -130,6 +132,8 @@ export function bookingStatusLabel(status: string): string {
 
     // Cancellations
     cancelled_pre_signing: 'Cancelled',
+    no_show_traveler: 'Traveler no-show',
+    no_show_buddy: 'Buddy no-show',
     cancelled: 'Cancelled',
     cancelled_no_pay: 'Cancelled',
     cancelled_traveler_voluntary: 'Cancelled',

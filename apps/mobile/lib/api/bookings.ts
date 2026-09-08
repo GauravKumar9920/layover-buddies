@@ -143,6 +143,8 @@ const VALID_BOOKING_STATUSES = new Set<string>([
   "cancelled_force_majeure",
   "cancelled_pre_signing",
   "cancelled_no_deposit",
+  "no_show_traveler",
+  "no_show_buddy",
 ]);
 
 function normalizeBookingStatus(status: string): BookingStatus {

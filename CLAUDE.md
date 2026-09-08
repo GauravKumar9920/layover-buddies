@@ -1,9 +1,9 @@
 # Detour — Claude Context
 
-> Last verified: 2026-09-05 (against `main` @ `d2a94f7`).
+> Last verified: 2026-09-08 (application handoff completion).
 
 ## What This Project Is
-A two-sided marketplace connecting international airport layover travelers with Mumbai student guides.
+A marketplace for Mumbai layover experiences. The current launch is founder-hosted; student buddies are planned for January 2027.
 
 This is an **npm-workspaces monorepo** (Turborepo for task orchestration). Packages:
 - **Mobile app**: React Native + Expo 52, file-based routing via Expo Router — `apps/mobile/` (`@detour/mobile`)
@@ -11,6 +11,7 @@ This is an **npm-workspaces monorepo** (Turborepo for task orchestration). Packa
 - **Marketing site**: Astro 7 static site with bounded Sanity content — `apps/marketing/` (`@detour/marketing`) → deploys to detourtrips.com
 - **Content Studio**: isolated Sanity + React 19 application — `apps/studio/`; its own lockfile prevents React 19 from being hoisted into Expo/admin
 - **Backend**: Supabase (auth + database + storage + Deno edge functions) — `supabase/` at the repo root (CLI expects `./supabase`)
+- **Shared models**: `packages/types` (`@detour/types`), with one canonical reducer in `supabase/functions/_shared/domain/stateMachine.ts`.
 - **Shared libraries**: `packages/config` (`@detour/config`) and `packages/database` (`@detour/database`)
 - **Design system**: `design/brand/detour-design-philosophy.md` (current v3) and `design/brand/design-handoff-spec.md`; `design/brand/design-system.md` is the superseded v2 saffron palette
 
@@ -84,16 +85,16 @@ constants) are all **done** — see git history and `docs/project/SMOKE_TEST_RES
 The live roadmap is **`docs/project/NEXT_TASKS.md`**; deferred items with
 runbooks are in `docs/project/DEFERRED.md`. Headline open items:
 
-1. **PR #55** — trip-fit / party-shape / split-pricing (+4.5k lines, stale): rebase or close.
+1. **Application handoff completed** — PR #55 merged; reviewed no-shows, support resolution, shared types/state machine and lazy admin routes implemented. See `docs/technical/BOOKING_SUPPORT_RUNBOOK.md`.
 2. **Admin 2.0 config** — 10 provider steps in `docs/technical/ADMIN2_PROVIDER_SETUP_RUNBOOK.md`.
 3. **16 SEO place pages** on `archive/static-marketing-seo` → port into Astro (route parity 12→28).
 4. **Commission rate** — 25% in code vs 15% in old docs: **undecided, owner decision needed** before real users (agreement snapshots freeze rates at signing).
-5. **Pre-launch** — Razorpay live keys (blocked on company registration/GST), push enablement, Google Maps key, `@detour/types` extraction + state-machine dedup.
+5. **Pre-launch decisions/config** — Razorpay live keys, push credentials, store accounts, commission decision and proposed seven-day reporting window. Marketing work remains separate.
 
 ### Notes that are still true
 - `apps/mobile/app/(traveler)/trips/live/[id].native.tsx` is the native map variant; web falls back via a Metro stub (`apps/mobile/metro.config.js`). Native maps need `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`.
 - Razorpay checkout is wired via `apps/mobile/lib/api/razorpayCheckout.ts` (native sheet wrapper; orders created server-side by edge functions; used by `deposits.ts`/`balance.ts`/`topUp.ts`). Remaining: live keys + payouts (see `docs/project/DEFERRED.md`).
-- `@detour/config` (theme + constants) is extracted; `apps/mobile/config/*` files are re-export shims. **Still TODO:** extract `@detour/types` — it's coupled to `BookingState` from `apps/mobile/lib/booking/stateMachine.ts`, so do it together with de-duplicating the booking state machine mirrored between `apps/mobile/lib/booking/` and `supabase/functions/_shared/`.
+- `@detour/config` supplies theme/constants; `@detour/types` supplies models. Mobile and edge facades load the canonical reducer in `supabase/functions/_shared/domain/stateMachine.ts`, kept inside the edge deployment tree. Generated database types also have one canonical source in `_shared/database.types.ts`.
 
 ---
 
@@ -110,9 +111,9 @@ detour/                          # npm-workspaces monorepo root (package.json + 
 │   │   │   └── (shared)/        # Messages
 │   │   ├── components/          # ui/, guides/, bookings/
 │   │   ├── lib/api/             # guides.ts, bookings.ts, deposits.ts, razorpayCheckout.ts, earnings.ts, …
-│   │   ├── lib/booking/         # state machine + snapshots (mirrored in edge fns)
+│   │   ├── lib/booking/         # state-machine facade + financial snapshots
 │   │   ├── config/              # re-export shims → @detour/config (+ app-local LEGAL URLs)
-│   │   ├── types/index.ts       # TypeScript models
+│   │   ├── types/index.ts       # facade to @detour/types
 │   │   ├── metro.config.js      # monorepo-aware Metro (watchFolders + nodeModulesPaths)
 │   │   └── .env.local.example   # EXPO_PUBLIC_SUPABASE_* etc.
 │   ├── admin/                   # @detour/admin — hosted Vite+React+Tailwind console

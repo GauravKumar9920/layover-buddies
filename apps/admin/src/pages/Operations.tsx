@@ -12,6 +12,7 @@ import { formatDateTime, formatINR, formatPaise, relative } from '@/lib/format';
 import { useAdminQuery } from '@/lib/useAdminQuery';
 import type { BookingDetail, BookingSummary, DisputeSummary, LeadSummary, PageData } from '@/types/admin';
 import { useAuth } from '@/auth/AuthProvider';
+import SupportCases from '@/components/SupportCases';
 import { canMutate } from '@/lib/permissions';
 
 const PAGE_SIZE = 30;
@@ -161,6 +162,7 @@ export function BookingDetailPage() {
           </section>
 
           <aside className="space-y-4">
+            <SupportCases bookingId={item.id} status={item.status} />
             <DetailCard title="Trip window" rows={[
               ['Arrival', formatDateTime(item.arrivalTime)], ['Departure', formatDateTime(item.departureTime)], ['Starts', formatDateTime(item.tripStartsAt ?? item.tourStartTime)], ['Ends', formatDateTime(item.tourEndTime)],
             ]} />

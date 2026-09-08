@@ -243,3 +243,17 @@ describe('PG fee — recorded but borne by platform in v1', () => {
     expect(r.pg_fee_paise).toBe(0);
   });
 });
+
+
+describe('confirmed no-show economics', () => {
+  test('buddy no-show applies the existing buddy cancellation economics', () => {
+    const actual = computeCancellationResolution({ ...baseInputs(), trigger: 'no_show_buddy', triggerActor: 'platform' });
+    const expected = computeCancellationResolution({ ...baseInputs(), triggerActor: 'buddy' });
+    expect(actual).toEqual({ ...expected, trigger: 'no_show_buddy', trigger_actor: 'platform', tier: 'buddy_no_show', next_booking_status: 'no_show_buddy' });
+  });
+  test('traveler no-show uses the established under-24-hour cancellation rule', () => {
+    const actual = computeCancellationResolution({ ...baseInputs(), hoursUntilTrip: 0, trigger: 'no_show_traveler', triggerActor: 'platform' });
+    const expected = computeCancellationResolution({ ...baseInputs(), hoursUntilTrip: 0 });
+    expect(actual).toEqual({ ...expected, trigger: 'no_show_traveler', trigger_actor: 'platform', tier: 'traveler_no_show', next_booking_status: 'no_show_traveler' });
+  });
+});

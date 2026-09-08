@@ -1,6 +1,3 @@
-// Generated from the local migration state. Keep this artifact inside the
-// Supabase function tree so the Edge deployment bundler can resolve it; the
-// @detour/database workspace re-exports the same type for browser clients.
 export type Json =
   | string
   | number
@@ -10,6 +7,31 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       admin_action_log: {
@@ -303,6 +325,77 @@ export type Database = {
           {
             foreignKeyName: "blocked_users_blocker_id_fkey"
             columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_support_cases: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          kind: string
+          previous_status: Database["public"]["Enums"]["booking_status"]
+          reason: string
+          reported_party: string | null
+          reporter_id: string
+          resolution: Json | null
+          resolved_at: string | null
+          status: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          previous_status: Database["public"]["Enums"]["booking_status"]
+          reason: string
+          reported_party?: string | null
+          reporter_id: string
+          resolution?: Json | null
+          resolved_at?: string | null
+          status?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          previous_status?: Database["public"]["Enums"]["booking_status"]
+          reason?: string
+          reported_party?: string | null
+          reporter_id?: string
+          resolution?: Json | null
+          resolved_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_support_cases_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_support_cases_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "pending_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_support_cases_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "active_guides"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "booking_support_cases_reporter_id_fkey"
+            columns: ["reporter_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -1210,6 +1303,7 @@ export type Database = {
       itineraries: {
         Row: {
           avg_rating: number | null
+          base_cost: number
           buddy_cost: number
           category: Database["public"]["Enums"]["itinerary_category"]
           cover_image_url: string | null
@@ -1233,6 +1327,7 @@ export type Database = {
         }
         Insert: {
           avg_rating?: number | null
+          base_cost?: number
           buddy_cost: number
           category?: Database["public"]["Enums"]["itinerary_category"]
           cover_image_url?: string | null
@@ -1256,6 +1351,7 @@ export type Database = {
         }
         Update: {
           avg_rating?: number | null
+          base_cost?: number
           buddy_cost?: number
           category?: Database["public"]["Enums"]["itinerary_category"]
           cover_image_url?: string | null
@@ -1904,6 +2000,7 @@ export type Database = {
           buffer_clawback_paise: number
           completed_at: string | null
           deposit_component_paise: number
+          dispatch_claimed_at: string | null
           failed_reason: string | null
           gross_paise: number
           id: string
@@ -1922,6 +2019,7 @@ export type Database = {
           buffer_clawback_paise?: number
           completed_at?: string | null
           deposit_component_paise?: number
+          dispatch_claimed_at?: string | null
           failed_reason?: string | null
           gross_paise: number
           id?: string
@@ -1940,6 +2038,7 @@ export type Database = {
           buffer_clawback_paise?: number
           completed_at?: string | null
           deposit_component_paise?: number
+          dispatch_claimed_at?: string | null
           failed_reason?: string | null
           gross_paise?: number
           id?: string
@@ -2075,6 +2174,48 @@ export type Database = {
             columns: ["pricing_content_deployment_id"]
             isOneToOne: false
             referencedRelation: "content_deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      refund_payment_allocations: {
+        Row: {
+          amount_paise: number
+          dispatch_id: string
+          id: string
+          payment_event_id: string
+          razorpay_refund_id: string | null
+          status: string
+        }
+        Insert: {
+          amount_paise: number
+          dispatch_id: string
+          id?: string
+          payment_event_id: string
+          razorpay_refund_id?: string | null
+          status?: string
+        }
+        Update: {
+          amount_paise?: number
+          dispatch_id?: string
+          id?: string
+          payment_event_id?: string
+          razorpay_refund_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refund_payment_allocations_dispatch_id_fkey"
+            columns: ["dispatch_id"]
+            isOneToOne: false
+            referencedRelation: "payout_dispatches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refund_payment_allocations_payment_event_id_fkey"
+            columns: ["payment_event_id"]
+            isOneToOne: false
+            referencedRelation: "payment_events"
             referencedColumns: ["id"]
           },
         ]
@@ -2471,6 +2612,7 @@ export type Database = {
           flight_out: string | null
           group_size: number
           id: string
+          party_type: string | null
           status: string
           traveler_id: string
           updated_at: string
@@ -2484,6 +2626,7 @@ export type Database = {
           flight_out?: string | null
           group_size?: number
           id?: string
+          party_type?: string | null
           status?: string
           traveler_id: string
           updated_at?: string
@@ -2497,6 +2640,7 @@ export type Database = {
           flight_out?: string | null
           group_size?: number
           id?: string
+          party_type?: string | null
           status?: string
           traveler_id?: string
           updated_at?: string
@@ -2522,6 +2666,7 @@ export type Database = {
         Row: {
           about_me: string | null
           accessibility_notes: string | null
+          age_band: string | null
           arrival_at: string | null
           created_at: string | null
           departure_at: string | null
@@ -2544,6 +2689,7 @@ export type Database = {
         Insert: {
           about_me?: string | null
           accessibility_notes?: string | null
+          age_band?: string | null
           arrival_at?: string | null
           created_at?: string | null
           departure_at?: string | null
@@ -2566,6 +2712,7 @@ export type Database = {
         Update: {
           about_me?: string | null
           accessibility_notes?: string | null
+          age_band?: string | null
           arrival_at?: string | null
           created_at?: string | null
           departure_at?: string | null
@@ -2861,7 +3008,7 @@ export type Database = {
         Returns: Json
       }
       admin_finance_summary: {
-        Args: { p_end_date: string; p_start_date: string | null }
+        Args: { p_end_date: string; p_start_date: string }
         Returns: Json
       }
       admin_idempotent_result: {
@@ -2909,6 +3056,19 @@ export type Database = {
           p_booking_id: string
           p_idempotency_key: string
           p_reason: string
+          p_request_id?: string
+          p_resolution: string
+        }
+        Returns: Json
+      }
+      admin_resolve_support_tx: {
+        Args: {
+          p_actor_id: string
+          p_actor_role: Database["public"]["Enums"]["admin_role"]
+          p_booking_id: string
+          p_idempotency_key: string
+          p_reason: string
+          p_refund_percent?: number
           p_request_id?: string
           p_resolution: string
         }
@@ -3018,20 +3178,35 @@ export type Database = {
         Returns: undefined
       }
       backfill_public_users_from_auth: { Args: never; Returns: number }
+      claim_booking_dispatch_tx: {
+        Args: { p_dispatch_id: string }
+        Returns: boolean
+      }
       complete_traveler_onboarding_tx: {
         Args: {
+          p_age_band?: string
           p_arrival_at: string
           p_departure_at: string
           p_flight_in?: string
           p_flight_out?: string
           p_gender: string
+          p_group_size?: number
           p_interests?: string[]
           p_nationality: string
+          p_party_type?: string
         }
         Returns: undefined
       }
+      compute_cancellation_before_support_tx: {
+        Args: { p_actor: string; p_booking_id: string; p_trigger: string }
+        Returns: Json
+      }
       compute_cancellation_resolution_tx: {
         Args: { p_actor: string; p_booking_id: string; p_trigger: string }
+        Returns: Json
+      }
+      compute_reconciliation_before_support_tx: {
+        Args: { p_booking_id: string }
         Returns: Json
       }
       compute_reconciliation_tx: {
@@ -3098,6 +3273,7 @@ export type Database = {
           p_flight_in?: string
           p_flight_out?: string
           p_group_size?: number
+          p_party_type?: string
         }
         Returns: string
       }
@@ -3183,6 +3359,23 @@ export type Database = {
           p_site_url: string
         }
         Returns: number
+      }
+      report_booking_support_tx: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_kind: string
+          p_reason: string
+        }
+        Returns: Json
+      }
+      reserve_dispatch_refunds_tx: {
+        Args: { p_dispatch_id: string }
+        Returns: Json
+      }
+      resolve_content_deployment_for_vercel: {
+        Args: { p_provider_deployment_id: string; p_window?: string }
+        Returns: Json
       }
       retry_pending_sos_alerts: { Args: never; Returns: undefined }
       run_admin2_lead_maintenance: { Args: never; Returns: Json }
@@ -3356,6 +3549,8 @@ export type Database = {
         | "cancelled_force_majeure"
         | "cancelled_pre_signing"
         | "cancelled_no_deposit"
+        | "no_show_traveler"
+        | "no_show_buddy"
       content_deployment_status:
         | "requested"
         | "building"
@@ -3583,6 +3778,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       admin_role: ["owner", "operations", "finance", "growth"],
@@ -3624,6 +3822,8 @@ export const Constants = {
         "cancelled_force_majeure",
         "cancelled_pre_signing",
         "cancelled_no_deposit",
+        "no_show_traveler",
+        "no_show_buddy",
       ],
       content_deployment_status: [
         "requested",

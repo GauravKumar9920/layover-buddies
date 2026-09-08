@@ -1,3 +1,5 @@
+import { refundDispatch } from '../_shared/refundDispatch.ts';
+import { claimDispatch, finishDispatchClaim } from '../_shared/dispatchClaim.ts';
 // ============================================================================
 // REPLAY-STUBBED-PAYOUTS — Phase 4 admin Edge Function
 // ============================================================================
@@ -26,7 +28,7 @@ import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient } from '../_shared/supabaseAdmin.ts';
 import { timingSafeEqual } from '../_shared/razorpaySignature.ts';
 import {
-  createRefund,
+  RazorpayLiveNotConfiguredError,
   createPayout,
   createFundAccount,
   idempotencyKey,
@@ -73,37 +75,11 @@ serve(async (req: Request) => {
 
   // ── 2. Replay each row ─────────────────────────────────────────────────────
   for (const dispatch of dispatches) {
+    if (!await claimDispatch(db, dispatch)) continue;
     const iKey = await idempotencyKey([dispatch.id, dispatch.kind, dispatch.booking_id]);
     try {
       if (REFUND_KINDS.has(dispatch.kind) && !PAYOUT_KINDS.has(dispatch.kind)) {
-        // Find the captured balance payment to refund against.
-        const { data: payEvent } = await db
-          .from('payment_events')
-          .select('razorpay_payment_id')
-          .eq('booking_id', dispatch.booking_id)
-          .in('kind', ['balance', 'deposit'])
-          .eq('status', 'captured')
-          .order('initiated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (!payEvent?.razorpay_payment_id) {
-          throw new Error('no_captured_payment_to_refund');
-        }
-
-        const result = await createRefund({
-          payment_id:      payEvent.razorpay_payment_id,
-          amount_paise:    dispatch.net_paise,
-          idempotency_key: iKey,
-          notes: { booking_id: dispatch.booking_id, kind: dispatch.kind, dispatch_id: dispatch.id },
-        });
-
-        await db.from('payout_dispatches').update({
-          status:            'sent',
-          razorpay_refund_id: result.refund_id,
-          failed_reason:     null,
-          completed_at:      new Date().toISOString(),
-        }).eq('id', dispatch.id);
+        await refundDispatch(db, dispatch);
 
       } else if (PAYOUT_KINDS.has(dispatch.kind)) {
         // Payout to buddy's VPA.
@@ -147,16 +123,17 @@ serve(async (req: Request) => {
       succeeded++;
       results.push({ id: dispatch.id, kind: dispatch.kind });
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : String(err);
+      const errMsg = err instanceof RazorpayLiveNotConfiguredError ? 'razorpay_live_not_configured' : String(err);
       await db.from('payout_dispatches')
-        .update({ failed_reason: `replay_failed: ${errMsg}` })
+        .update({ failed_reason: errMsg })
         .eq('id', dispatch.id);
       results.push({ id: dispatch.id, kind: dispatch.kind, error: errMsg });
     }
+    await finishDispatchClaim(db, dispatch.id);
   }
 
   return jsonResponse({
-    replayed:  dispatches.length,
+    replayed:  results.length,
     succeeded,
     failed:    results.filter(r => r.error),
   });

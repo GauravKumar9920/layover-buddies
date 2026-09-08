@@ -283,6 +283,8 @@ export const financialCopy = {
       lt_24h:               'Cancelled <24h before trip',
       late_no_pay:          'Auto-cancelled (balance not paid)',
       buddy_cancel:         'Buddy cancelled',
+      buddy_no_show:        'Buddy no-show confirmed',
+      traveler_no_show:     'Traveler no-show confirmed',
       force_majeure:        'Force majeure',
       pre_signing:          'Booking expired before deposits',
     },

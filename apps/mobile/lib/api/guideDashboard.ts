@@ -10,7 +10,7 @@ import type { Booking } from "@/types";
 import type { Database } from "@/types/supabase";
 
 type GuideDashboardSummaryRow =
-  Database["public"]["Functions"]["get_my_guide_dashboard_summary"]["Returns"][number];
+  Database["public"]["Functions"]["get_my_guide_dashboard_summary"]["Returns"];
 
 export interface GuideDashboardSummary {
   openInquiries: number;

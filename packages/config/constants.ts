@@ -32,6 +32,9 @@ export const PROOFS_DUE_HOURS       = 24;       // buddy has 24h post-trip to up
 export const TOP_UP_EXPIRY_MINUTES  = 15;       // traveler has 15 min to decide on a top-up
 export const RATING_LINK_HOURS      = 3;        // T+3h post-completion → rating link sent
 export const PLATFORM_CREDIT_PAISE  = 50_000;   // ₹500 platform credit on buddy-cancellation
+// TODO(Gaurav): confirm the seven-day post-completion support window before launch.
+export const POST_COMPLETION_DISPUTE_DAYS = 7;
+export const NO_SHOW_GRACE_HOURS    = 2;        // T+2h past trip start → present party may report a no-show (APP_REVIEW §P0)
 
 export const BOOKING_STATUS = {
   PENDING: 'pending',

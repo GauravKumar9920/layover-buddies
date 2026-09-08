@@ -1,23 +1,4 @@
-// ============================================================================
-// STATE MACHINE PARITY TEST
-// ============================================================================
-// supabase/functions/_shared/stateMachine.ts is a hand-maintained copy of
-// apps/mobile/lib/booking/stateMachine.ts (see the header comment there for
-// why it cannot be imported directly by edge functions). This test is the
-// drift guard those headers demand: it exhaustively drives BOTH reducers
-// through every (state × event × guard-context) combination and requires
-// identical results.
-//
-// This exists because the copies did drift once, with money consequences:
-// the edge copy routed platform/system cancellations to
-// cancelled_traveler_voluntary (traveler deposit forfeiture) while the mobile
-// copy correctly routed them to cancelled_force_majeure (full refunds).
-//
-// Runs under `npm run test:edge` (deno test --no-check). The mobile module's
-// only foreign dependency is a type-only import, which Deno erases, so it
-// loads fine here despite living in the Expo app.
-// ============================================================================
-
+// Both facades deliberately load one canonical source; fixture coverage protects its contract.
 import { assertEquals } from 'https://deno.land/std@0.224.0/assert/mod.ts';
 
 import * as edge from '../_shared/stateMachine.ts';
@@ -51,6 +32,8 @@ const ALL_STATES: AnyState[] = [
   'cancelled_force_majeure',
   'cancelled_pre_signing',
   'cancelled_no_deposit',
+  'no_show_traveler',
+  'no_show_buddy',
   'pending',
   'guide_accepted',
   'confirmed',
@@ -64,6 +47,10 @@ const ALL_EVENTS: AnyEvent[] = [
   { kind: 'buddy_signs' },
   { kind: 'deposit_captured', side: 'traveler' },
   { kind: 'deposit_captured', side: 'buddy' },
+  { kind: 'deposits_recovered' },
+  { kind: 'dispute_resolved', outcome: 'resume' },
+  { kind: 'dispute_resolved', outcome: 'settled' },
+  { kind: 'dispute_resolved', outcome: 'cancel' },
   { kind: 'balance_captured' },
   { kind: 't_minus_72_reached' },
   { kind: 't_minus_12_reached' },
@@ -78,10 +65,14 @@ const ALL_EVENTS: AnyEvent[] = [
   { kind: 'cancel', actor: 'system', reason: 'parity' },
   { kind: 'force_majeure_verified' },
   { kind: 'dispute_raised' },
+  { kind: 'no_show_reported' },
+  { kind: 'no_show_marked', party: 'traveler' },
+  { kind: 'no_show_marked', party: 'buddy' },
   { kind: 'deposit_window_expired' },
 ];
 
 const ALL_CONTEXTS: edge.GuardContext[] = [
+  { bothSignaturesPresent: true, bothDepositsHeld: true, disputeWindowOpen: true },
   { bothSignaturesPresent: false, bothDepositsHeld: false },
   { bothSignaturesPresent: true, bothDepositsHeld: false },
   { bothSignaturesPresent: false, bothDepositsHeld: true },

@@ -65,7 +65,7 @@ const CANCELLED_PREFIX = 'cancelled';
 /** Resolve a booking status to its journey-stage position (or banner status). */
 export function stageForState(state: BookingState): TripStagePosition {
   if (state === 'disputed') return { index: -1, status: 'disputed' };
-  if (state.startsWith(CANCELLED_PREFIX)) return { index: -1, status: 'cancelled' };
+  if ((state.startsWith(CANCELLED_PREFIX) || state.startsWith('no_show_'))) return { index: -1, status: 'cancelled' };
 
   const index = STATE_TO_STAGE_INDEX.get(state);
   // Unknown value from a newer DB enum — park it on the first stage rather

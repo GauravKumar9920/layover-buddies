@@ -331,6 +331,8 @@ export interface OperationMap {
   'users.get': { input: { id: string }; output: UserDetail };
   'users.suspension': { input: UserSuspensionInput; output: UserSuspensionResult };
   'bookings.list': { input: PageRequest; output: PageData<BookingSummary> };
+  'lifecycle.list': { input: { id: string }; output: SupportCase[] };
+  'lifecycle.resolve': { input: { id: string; resolution: string; reason: string; idempotencyKey: string; refundPercent?: number }; output: unknown };
   'bookings.get': { input: { id: string }; output: BookingDetail };
   'inquiries.list': { input: PageRequest; output: PageData<BookingSummary> };
   'live-trips.list': { input: PageRequest; output: PageData<BookingSummary> };
@@ -438,3 +440,5 @@ export interface GrowthReportRequest {
   endDate: string;
   limit?: number;
 }
+
+export interface SupportCase { id: string; kind: 'no_show' | 'dispute'; reported_party: string | null; reason: string; status: string; created_at: string; resolution: Record<string, unknown> | null; }
