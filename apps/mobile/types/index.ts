@@ -62,6 +62,14 @@ export interface GuideProfile {
   // Editorial-zine profile fields (migration 20260420160000)
   prompts?: GuidePrompt[];
   pull_quote?: string | null;
+  /**
+   * Cheapest and shortest published tour this guide offers. Derived by the
+   * list query, not stored. `shortest_tour_hours` is what makes the layover
+   * fit chip on a guide card a real verdict instead of a guess — when it is
+   * null the caller must hide the chip rather than assume a duration.
+   */
+  shortest_tour_hours?: number | null;
+  from_price_inr?: number | null;
 }
 
 export type GuideProfilePhotoRole = "cover" | "story" | "gallery";
@@ -167,6 +175,9 @@ export interface Itinerary {
   image_url?: string | null;
   cover_image_url?: string | null;
   estimated_duration_hours: number;
+  /** Flat charge applied once per booking, whatever the party size. */
+  base_cost_inr: number;
+  /** Per-person charge. A party of N pays base_cost_inr + buddy_cost_inr * N. */
   buddy_cost_inr: number;
   max_travelers: number;
   is_active: boolean;
@@ -268,22 +279,17 @@ export interface Message {
 
 // ─── API Request/Response ────────────────────────────────────────────────────
 
+/**
+ * Everything about *when* the trip happens now comes from the traveler's
+ * active layover, which they filled in once at onboarding — so flight number,
+ * arrival/departure times and party size are deliberately NOT accepted here.
+ * `createBooking` reads them from `traveler_layovers` and snapshots them onto
+ * the booking. Asking for them again was the whole problem.
+ */
 export interface CreateBookingRequest {
   guide_id: string;
   /** Null/omitted for a casual inquiry (no specific package chosen yet). */
   itinerary_id?: string | null;
-  /** Arrival flight number. */
-  flight_number?: string;
-  /** Arrival date (YYYY-MM-DD) + time (HH:MM, IST) → bookings.arrival_time. */
-  flight_date?: string;
-  flight_time?: string;
-  /** Departure date (YYYY-MM-DD) + time (HH:MM, IST) → bookings.departure_time. */
-  departure_date?: string;
-  departure_time?: string;
-  start_date?: string;
-  end_date?: string;
-  /** Group size, 1–10. Pricing scales linearly with this count. */
-  num_travelers?: number;
 }
 
 export interface CreateReviewRequest {

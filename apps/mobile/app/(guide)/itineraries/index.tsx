@@ -14,6 +14,8 @@ import { fetchGuideItineraries } from '@/lib/api/guides';
 import { updateItinerary, deleteItinerary } from '@/lib/api/itineraries';
 import { supabase } from '@/lib/supabase';
 import { theme } from '@/config/theme';
+import { formatTourPrice } from '@/lib/booking/tourPricing';
+import { MAX_PARTY_SIZE } from '@/config/profileOptions';
 import type { Itinerary } from '@/types';
 
 export default function ItinerariesScreen() {
@@ -120,11 +122,11 @@ export default function ItinerariesScreen() {
                   {item.name ?? item.title ?? 'City Tour'}
                 </Text>
                 <Text style={{ fontFamily: theme.fonts.mono, fontSize: 10.5, color: theme.colors.textSecondary, letterSpacing: 0.3, textTransform: 'uppercase', marginTop: 5 }}>
-                  {item.city}  ·  {item.estimated_duration_hours}h  ·  Max {item.max_travelers}
+                  {item.city}  ·  {item.estimated_duration_hours}h  ·  Up to {Math.min(item.max_travelers, MAX_PARTY_SIZE)}
                 </Text>
               </View>
               <Text style={{ fontFamily: theme.fonts.monoMed, fontSize: 17, color: theme.colors.primary }}>
-                ₹{item.buddy_cost_inr.toLocaleString('en-IN')}
+                {formatTourPrice(item.base_cost_inr, item.buddy_cost_inr)}
               </Text>
             </View>
 
