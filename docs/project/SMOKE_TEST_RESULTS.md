@@ -1,4 +1,7 @@
 # Smoke Test Results
+
+*Historical snapshot from April 14, 2026 — the five bugs found here were fixed at the time; the app has changed substantially since. See [PROJECT-OVERVIEW.md](PROJECT-OVERVIEW.md) for current state.*
+
 **Date:** 2026-04-14  
 **Tester:** Claude Code  
 **Environment:** Local Supabase (Docker) + Expo Go on iPhone 17 Pro Simulator
