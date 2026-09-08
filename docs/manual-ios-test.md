@@ -1,5 +1,7 @@
 # Detour — Manual iOS Simulator Test Script
 
+*Historical snapshot (last updated June 2026) — paths and statuses may be stale; the current testing guide is [technical/TESTING.md](technical/TESTING.md). See [project/PROJECT-OVERVIEW.md](project/PROJECT-OVERVIEW.md) for current state.*
+
 This checklist covers the native-only features that cannot be tested in the Expo Web export. Run it on the iOS Simulator (or a physical iPhone with Expo Dev Client) before each release. Roughly 30–45 minutes to walk end-to-end.
 
 ## 0. Prerequisites
