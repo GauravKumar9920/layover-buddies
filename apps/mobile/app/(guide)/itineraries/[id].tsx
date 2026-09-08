@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
 import { StopEditor, type EditableStop } from '@/components/guides/StopEditor';
+import { PricePreview } from '@/components/guides/PricePreview';
 import { supabase } from '@/lib/supabase';
 import { updateItinerary } from '@/lib/api/itineraries';
 import { getItineraryPhoto } from '@/config/photoLibrary';
@@ -41,6 +42,7 @@ function normalizeItineraryRow(row: Record<string, unknown>): Itinerary {
     image_url: typeof row.cover_image_url === 'string' ? row.cover_image_url : null,
     cover_image_url: typeof row.cover_image_url === 'string' ? row.cover_image_url : null,
     estimated_duration_hours: Number(row.duration_hours ?? 0),
+    base_cost_inr: Number(row.base_cost ?? 0),
     buddy_cost_inr: Number(row.buddy_cost ?? 0),
     max_travelers: Number(row.max_travelers ?? 1),
     is_active: Boolean(row.is_published ?? false),
@@ -61,6 +63,7 @@ export default function EditItineraryScreen() {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [basePrice, setBasePrice] = useState('');
   const [price, setPrice] = useState('');
   const [duration, setDuration] = useState('');
   const [maxTravelers, setMaxTravelers] = useState('1');
@@ -100,6 +103,7 @@ export default function EditItineraryScreen() {
         setItin(normalized);
         setName(normalized.name);
         setDescription(normalized.description ?? '');
+        setBasePrice(String(normalized.base_cost_inr));
         setPrice(String(normalized.buddy_cost_inr));
         setDuration(String(normalized.estimated_duration_hours));
         setMaxTravelers(String(normalized.max_travelers ?? 1));
@@ -172,7 +176,8 @@ export default function EditItineraryScreen() {
         {
           name: name.trim(),
           description: description.trim(),
-          buddy_cost_inr: Number(price),
+          base_cost_inr: Number(basePrice || 0),
+          buddy_cost_inr: Number(price || 0),
           estimated_duration_hours: Number(duration),
           max_travelers: Math.max(1, Math.min(12, Number(maxTravelers) || 1)),
           category,
@@ -288,13 +293,30 @@ export default function EditItineraryScreen() {
             />
           </View>
 
-          <Input
-            label="Price (₹)"
-            value={price}
-            onChangeText={setPrice}
-            keyboardType="numeric"
-            style={{ marginTop: 12 }}
+          <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
+            <Input
+              label="Base charge (₹)"
+              value={basePrice}
+              onChangeText={setBasePrice}
+              keyboardType="numeric"
+              style={{ flex: 1 }}
+              hint="Once per booking"
+            />
+            <Input
+              label="Per person (₹)"
+              value={price}
+              onChangeText={setPrice}
+              keyboardType="numeric"
+              style={{ flex: 1 }}
+              hint="For each traveller"
+            />
+          </View>
+
+          <PricePreview
+            baseInr={Number(basePrice || 0)}
+            perPersonInr={Number(price || 0)}
           />
+
         </Card>
 
         <View style={{ marginTop: 16 }}>
