@@ -22,7 +22,7 @@ Current prioritized roadmap. Work top-to-bottom within a group; items are indepe
 PR #55 has been reviewed and merged. The September application handoff implements reviewed no-shows, support cases, bounded post-completion disputes, audited settlement outcomes, shared `@detour/types`, one canonical state machine, and lazy admin routes. The existing two-deposit recovery sweep was verified with database tests. See [BOOKING_SUPPORT_RUNBOOK.md](../technical/BOOKING_SUPPORT_RUNBOOK.md) for deployment and operations.
 
 ### 3. Dependency hygiene
-Keep Expo 52's `react-native-maps` at exactly 1.18.0. Tailwind 4 requires a coordinated NativeWind migration; Node typings should match the oldest supported runtime (22). Review patch PRs with Expo alignment, mobile tests, admin build and CI. Root overrides remain the security-patch mechanism.
+Keep Expo 52's `react-native-maps` at exactly 1.18.0. Tailwind 4 requires a coordinated NativeWind migration; Node typings should match the oldest supported runtime (22). Review patch PRs with Expo alignment, mobile tests, admin build and CI. Jest 30 (with jest-expo/ts-jest), Zod 4, Zustand 5 and date-fns 4 are deliberate future migrations, not automatic launch-backlog fixes; the newly generated major PRs were deferred and closed. Root overrides remain the security-patch mechanism.
 
 ### 4. Admin 2.0 — run the 10 provider-config steps
 Remaining provider activation requires the owner accounts and credentials. Route-level bundle splitting is implemented. Follow [ADMIN2_PROVIDER_SETUP_RUNBOOK.md](../technical/ADMIN2_PROVIDER_SETUP_RUNBOOK.md) in order:

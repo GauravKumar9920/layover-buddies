@@ -12,6 +12,28 @@ updates:
     # available, but make minor/major platform changes through a coordinated
     # Expo SDK upgrade instead of independent Dependabot PRs.
     ignore:
+      # Major toolchain/API migrations need a dedicated compatibility task.
+      # Continue automated patch/minor updates for these current app versions.
+      - dependency-name: "jest"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "@types/jest"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "zod"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "zustand"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "date-fns"
+        update-types:
+          - "version-update:semver-major"
+      # Scoped native packages also belong to the Expo SDK matrix.
+      - dependency-name: "@react-native*"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-major"
       # NativeWind 4 requires Tailwind 3; migrate the styling stack together.
       - dependency-name: "tailwindcss"
         update-types:
