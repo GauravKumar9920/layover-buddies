@@ -29,7 +29,7 @@
     "@react-native-community/datetimepicker": "8.2.0",
     "@supabase/supabase-js": "^2.114.0",
     "ajv": "^8.18.0",
-    "date-fns": "^3.6.0",
+    "date-fns": "^4.4.0",
     "expo": "~52.0.0",
     "expo-camera": "~16.0.0",
     "expo-constants": "~17.0.8",
