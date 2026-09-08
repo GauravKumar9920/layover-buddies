@@ -132,91 +132,130 @@ export async function pickImages(
   );
 }
 
+/**
+ * Mount a hidden file input, open it, and keep it alive until the browser
+ * reports a result.
+ *
+ * The input MUST stay in the document while the OS file chooser is open.
+ * WebKit discards the selection and never fires `change` if the element is
+ * detached in the meantime, so the old `requestAnimationFrame(() =>
+ * removeChild(input))` meant picking a photo in Safari did precisely nothing:
+ * no file, no error, no upload. Chrome kept working, which is why it went
+ * unnoticed.
+ *
+ * `settle` is invoked exactly once, with the input removed by then.
+ */
+function openFileInput(
+  configure: (input: HTMLInputElement) => void,
+  onResult: (input: HTMLInputElement) => void,
+  onDismiss: () => void,
+): void {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  // Off-screen rather than display:none — Safari refuses to open the chooser
+  // for an input that is not rendered.
+  input.style.position = "fixed";
+  input.style.left = "-9999px";
+  input.style.opacity = "0";
+  configure(input);
+
+  let settled = false;
+  const cleanup = () => {
+    if (input.parentNode) input.parentNode.removeChild(input);
+  };
+
+  input.addEventListener("change", () => {
+    if (settled) return;
+    settled = true;
+    // Read `files` before detaching; some browsers clear it on removal.
+    onResult(input);
+    cleanup();
+  });
+
+  // Fired when the chooser is dismissed without a selection (Chrome 113+,
+  // Safari 16.4+). Older browsers simply leave the element mounted until the
+  // next pick replaces it — a few bytes, and far better than a lost photo.
+  input.addEventListener("cancel", () => {
+    if (settled) return;
+    settled = true;
+    onDismiss();
+    cleanup();
+  });
+
+  document.body.appendChild(input);
+  input.click();
+}
+
 /** Web-only multi-select via <input type="file" multiple>. */
 function pickImagesWeb(limit: number): Promise<PickedImage[]> {
   return new Promise((resolve) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.multiple = true;
-    input.addEventListener("cancel", () => resolve([]));
-    input.addEventListener("change", () => {
-      const files = Array.from(input.files ?? []).slice(0, limit);
-      if (files.length === 0) {
-        resolve([]);
-        return;
-      }
-      resolve(
-        files.map((file) => ({
-          uri: URL.createObjectURL(file),
-          blob: file,
-          mimeType: file.type || "image/jpeg",
-          fileName: file.name || `photo_${Date.now()}.jpg`,
-          width: 0,
-          height: 0,
-        })),
-      );
-    });
-    document.body.appendChild(input);
-    input.click();
-    requestAnimationFrame(() => document.body.removeChild(input));
+    openFileInput(
+      (input) => {
+        input.multiple = true;
+      },
+      (input) => {
+        const files = Array.from(input.files ?? []).slice(0, limit);
+        resolve(
+          files.map((file) => ({
+            uri: URL.createObjectURL(file),
+            blob: file,
+            mimeType: file.type || "image/jpeg",
+            fileName: file.name || `photo_${Date.now()}.jpg`,
+            width: 0,
+            height: 0,
+          })),
+        );
+      },
+      () => resolve([]),
+    );
   });
 }
 
 /** Web-only: use a hidden <input type="file"> to open the OS file picker. */
 function pickImageWeb(): Promise<PickedImage | null> {
-  return new Promise((resolve, reject) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
+  return new Promise((resolve) => {
+    openFileInput(
+      () => {},
+      (input) => {
+        const file = input.files?.[0];
+        if (!file) {
+          resolve(null);
+          return;
+        }
 
-    // Resolve to null if the picker is dismissed without a selection.
-    input.addEventListener("cancel", () => resolve(null));
+        const uri = URL.createObjectURL(file);
+        const mimeType = file.type || "image/jpeg";
+        const fileName = file.name || `photo_${Date.now()}.jpg`;
 
-    input.addEventListener("change", () => {
-      const file = input.files?.[0];
-      if (!file) {
-        resolve(null);
-        return;
-      }
-
-      const uri = URL.createObjectURL(file);
-      const mimeType = file.type || "image/jpeg";
-      const fileName = file.name || `photo_${Date.now()}.jpg`;
-
-      // Read image dimensions via an off-DOM <img>.
-      // Use HTMLImageElement constructor explicitly to avoid a name collision
-      // with React Native's <Image> component when DOM lib is included.
-      const img = new globalThis.Image();
-      img.onload = () => {
-        resolve({
-          uri,
-          blob: file, // File extends Blob — no copy needed
-          mimeType,
-          fileName,
-          width: img.naturalWidth,
-          height: img.naturalHeight,
-        });
-      };
-      img.onerror = () => {
-        // Still resolve with 0×0 — dimensions are not critical for upload
-        resolve({
-          uri,
-          blob: file,
-          mimeType,
-          fileName,
-          width: 0,
-          height: 0,
-        });
-      };
-      img.src = uri;
-    });
-
-    // Append briefly so some browsers trigger it; remove after.
-    document.body.appendChild(input);
-    input.click();
-    // The element is tiny and invisible; remove it after a tick so it doesn't
-    // accumulate in the DOM if the user opens the picker multiple times.
-    requestAnimationFrame(() => document.body.removeChild(input));
+        // Read image dimensions via an off-DOM <img>.
+        // Use HTMLImageElement constructor explicitly to avoid a name collision
+        // with React Native's <Image> component when DOM lib is included.
+        const img = new globalThis.Image();
+        img.onload = () => {
+          resolve({
+            uri,
+            blob: file, // File extends Blob — no copy needed
+            mimeType,
+            fileName,
+            width: img.naturalWidth,
+            height: img.naturalHeight,
+          });
+        };
+        img.onerror = () => {
+          // Still resolve with 0×0 — dimensions are not critical for upload
+          resolve({
+            uri,
+            blob: file,
+            mimeType,
+            fileName,
+            width: 0,
+            height: 0,
+          });
+        };
+        img.src = uri;
+      },
+      () => resolve(null),
+    );
   });
 }
