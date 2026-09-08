@@ -1,5 +1,6 @@
 import '../global.css';
 import '@/lib/setupTextFont';
+import '@/lib/webAlert';
 import { useEffect } from 'react';
 import { LogBox } from 'react-native';
 import { Stack } from 'expo-router';

@@ -1,5 +1,6 @@
 import { supabase } from "../supabase";
 import { PRIMARY_CITY } from "@/config/constants";
+import { tourFromPriceInr } from "@/lib/booking/tourPricing";
 import type {
   GuideProfile,
   GuideProfilePhoto,
@@ -63,6 +64,7 @@ interface RawItineraryRow {
   category: string | null;
   cover_image_url: string | null;
   duration_hours: number | null;
+  base_cost: number | null;
   buddy_cost: number | null;
   max_travelers: number | null;
   is_published: boolean | null;
@@ -240,6 +242,7 @@ function normalizeItinerary(row: RawItineraryRow): Itinerary {
     image_url: row.cover_image_url ?? null,
     cover_image_url: row.cover_image_url ?? null,
     estimated_duration_hours: Number(row.duration_hours ?? 0),
+    base_cost_inr: Number(row.base_cost ?? 0),
     buddy_cost_inr: Number(row.buddy_cost ?? 0),
     max_travelers: Number(row.max_travelers ?? 1),
     is_active: row.is_published ?? false,
@@ -280,29 +283,65 @@ async function resolveGuideUserId(guideId: string): Promise<string> {
   return data?.user_id ?? guideId;
 }
 
-async function fetchGuideIdsByCity(_city: string): Promise<string[]> {
+export interface GuideTourSignals {
+  shortestTourHours: number | null;
+  fromPriceInr: number | null;
+}
+
+/**
+ * Which guides have a bookable tour, and the headline numbers for each.
+ *
+ * This used to select `guide_id` alone. Pulling duration and price in the same
+ * pass is what lets a guide card show a real layover-fit verdict: previously
+ * the Explore feed passed a hardcoded 3-hour assumption, so the chip was a
+ * guess dressed up as an answer.
+ */
+async function fetchPublishedTourSignals(
+  _city: string,
+): Promise<{ ids: string[]; signals: Map<string, GuideTourSignals> }> {
   const { data, error } = await supabase
     .from("itineraries")
-    .select("guide_id")
+    .select("guide_id, duration_hours, base_cost, buddy_cost")
     .eq("is_published", true)
     .is("deleted_at", null);
 
   if (error) throw error;
 
-  return Array.from(
-    new Set(
-      (data ?? [])
-        .map((row) => row.guide_id)
-        .filter((id): id is string => typeof id === "string" && id.length > 0),
-    ),
-  );
+  const signals = new Map<string, GuideTourSignals>();
+  for (const row of data ?? []) {
+    const guideId = row.guide_id;
+    if (typeof guideId !== "string" || !guideId) continue;
+
+    const hours = Number(row.duration_hours ?? 0);
+    const price = tourFromPriceInr(
+      Number(row.base_cost ?? 0),
+      Number(row.buddy_cost ?? 0),
+    );
+    const current = signals.get(guideId) ?? {
+      shortestTourHours: null,
+      fromPriceInr: null,
+    };
+    signals.set(guideId, {
+      // Shortest tour, because that is the one most likely to fit a layover.
+      shortestTourHours:
+        hours > 0 && (current.shortestTourHours === null || hours < current.shortestTourHours)
+          ? hours
+          : current.shortestTourHours,
+      fromPriceInr:
+        price > 0 && (current.fromPriceInr === null || price < current.fromPriceInr)
+          ? price
+          : current.fromPriceInr,
+    });
+  }
+
+  return { ids: Array.from(signals.keys()), signals };
 }
 
 export async function fetchActiveGuides(
   city?: string,
 ): Promise<GuideProfile[]> {
   const targetCity = PRIMARY_CITY;
-  const ids = await fetchGuideIdsByCity(targetCity);
+  const { ids, signals } = await fetchPublishedTourSignals(targetCity);
   if (ids.length === 0) return [];
 
   const query = supabase
@@ -318,7 +357,15 @@ export async function fetchActiveGuides(
   const { data, error } = await query.limit(30);
   if (error) throw error;
   return (
-    (data as RawGuideProfileRow[] | null)?.map(normalizeGuideProfile) ?? []
+    (data as RawGuideProfileRow[] | null)?.map((row) => {
+      const guide = normalizeGuideProfile(row);
+      const signal = signals.get(guide.user_id);
+      return {
+        ...guide,
+        shortest_tour_hours: signal?.shortestTourHours ?? null,
+        from_price_inr: signal?.fromPriceInr ?? null,
+      };
+    }) ?? []
   );
 }
 
