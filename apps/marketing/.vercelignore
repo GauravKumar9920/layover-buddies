@@ -1,0 +1,3 @@
+# Local source photographs and one-off preparation tooling are not runtime assets.
+content/
+scripts/prepare-place-images.mjs
