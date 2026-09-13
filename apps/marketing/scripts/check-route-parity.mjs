@@ -13,8 +13,17 @@ const expectedRoutes = [
   '/guides/complete-mumbai-layover-guide', '/guides/mumbai-layover-visa',
   '/guides/8-hour-layover-mumbai', '/guides/12-hour-layover-mumbai',
   '/guides/mumbai-airport-luggage-storage', '/guides/is-mumbai-safe-on-a-layover',
+  '/guides/places', '/guides/gateway-of-india-mumbai', '/guides/marine-drive-mumbai',
+  '/guides/csmt-heritage-quarter-mumbai', '/guides/bmc-headquarters-mumbai',
+  '/guides/asiatic-library-town-hall-mumbai', '/guides/fort-kala-ghoda-mumbai',
+  '/guides/bandra-worli-sea-link-mumbai',
   '/404',
 ].sort();
+const expectedGalleryRoutes = [
+  'gateway-of-india-mumbai', 'marine-drive-mumbai', 'csmt-heritage-quarter-mumbai',
+  'bmc-headquarters-mumbai', 'asiatic-library-town-hall-mumbai', 'fort-kala-ghoda-mumbai',
+  'bandra-worli-sea-link-mumbai',
+].map((slug) => `/guides/${slug}/photos`);
 
 const manifestFiles = (await readdir(manifestRoot)).filter((file) => file.endsWith('.json'));
 const manifests = await Promise.all(manifestFiles.map(async (file) => JSON.parse(await readFile(path.join(manifestRoot, file), 'utf8'))));
@@ -55,6 +64,12 @@ for (const page of manifests) {
   assert.doesNotMatch(html, /googletagmanager\.com\/gtag\/js/i, `${page.route} must not load GA before consent`);
   assert.doesNotMatch(html, /\bgtag\s*\(\s*['"]config['"]/iu, `${page.route} must not configure GA before consent`);
   if (page.index) assert.match(await readFile(path.join(distRoot, 'sitemap.xml'), 'utf8'), new RegExp(`<loc>${canonicalFor(page.route).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}</loc>`));
+}
+
+for (const route of expectedGalleryRoutes) {
+  const html = await readFile(outputPath(route), 'utf8');
+  assert.match(html, new RegExp(`<link rel="canonical" href="${canonicalFor(route).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
+  assert.match(html, /class="full-photo-grid"/, `${route} must render its dedicated photo collection`);
 }
 
 async function walk(directory) {
@@ -156,4 +171,4 @@ for (const disclosure of ['Supabase', 'Resend', 'FormSubmit', '90 days', '30 day
 }
 assert.doesNotMatch(homeHtml, /anonymised website analytics|Once your detour is complete/i, 'homepage privacy summary is stale');
 
-console.log(`Marketing parity checks passed for ${expectedRoutes.length} routes; initial local payload ${Math.round(initialBytes / 1024)} KiB.`);
+console.log(`Marketing parity checks passed for ${expectedRoutes.length + expectedGalleryRoutes.length} routes; initial local payload ${Math.round(initialBytes / 1024)} KiB.`);
