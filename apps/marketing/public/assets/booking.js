@@ -99,6 +99,7 @@
     var response;
     try {
       response = await fetch(primaryEndpoint, {
+        signal: AbortSignal.timeout(20000),
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify(payload),
@@ -132,11 +133,13 @@
     fields._subject = requestType === 'detour' ? 'Detour request (temporary fallback)' : 'Cheat sheet request (temporary fallback)';
     fields._template = 'table';
     var response = await fetch(FALLBACK_ENDPOINT, {
+      signal: AbortSignal.timeout(20000),
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(fields),
     });
-    if (!response.ok) throw new Error('fallback submission failed');
+    var body = await response.json().catch(function () { return null; });
+    if (!response.ok || !body || (body.success !== true && body.success !== 'true')) throw new Error('fallback submission failed');
     return { accepted: true, fallback: true };
   }
 
@@ -154,21 +157,26 @@
     }
   }
 
+  // One transport contract for the independent mobile planner and existing forms.
+  window.DetourLeads = Object.freeze({ submit: submitLead });
+
   var bookingForm = document.getElementById('booking-form');
   if (bookingForm) bookingForm.addEventListener('submit', async function (event) {
     event.preventDefault();
     if (!bookingForm.reportValidity()) return;
     var button = document.getElementById('booking-submit');
     if (button) { button.setAttribute('disabled', ''); button.setAttribute('aria-busy', 'true'); }
+    var priorFailure = document.getElementById('booking-error');
+    if (priorFailure) priorFailure.classList.remove('show');
     try {
       await submitLead(bookingForm, 'detour');
       bookingForm.style.display = 'none';
       var success = document.getElementById('booking-success');
       if (success) success.classList.add('show');
     } catch (error) {
-      bookingForm.style.display = 'none';
       var failure = document.getElementById('booking-error');
       if (failure) failure.classList.add('show');
+      if (button) { button.removeAttribute('disabled'); button.removeAttribute('aria-busy'); }
     }
   });
 
@@ -217,7 +225,7 @@
     });
   }
 
-  if (!document.getElementById('route-rail')) {
+  if (!document.querySelector('.mw-shell') && !document.getElementById('route-rail')) {
     var seen = {};
     var headings = [];
     document.querySelectorAll('.guide-body h2, main h2, [data-secnav] h2').forEach(function (heading) {

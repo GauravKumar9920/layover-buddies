@@ -1,4 +1,6 @@
 ---
+import MobileHome from '../components/mobile/MobileHome.astro';
+import MobileShell from '../components/mobile/MobileShell.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import StructuredPage from '../components/StructuredPage.astro';
 import PlaceGuide from '../components/PlaceGuide.astro';
@@ -17,11 +19,22 @@ export async function getStaticPaths() {
 
 interface Props { page: SitePage }
 const { page } = Astro.props;
+const isHome = page.route === '/';
 const isPlacePage = page.route === '/guides/places' || places.some(p => page.route === `/guides/${p.slug}`);
 const legacy = !isPlacePage && page.contentSource === 'local' ? await readLegacyDocument(page) : undefined;
 const structuredHead = isPlacePage ? '<link rel="stylesheet" href="/assets/field-note.css">' : '<link rel="stylesheet" href="/assets/site.css">';
 ---
 
-<BaseLayout page={page} retainedHead={legacy?.retainedHead || structuredHead} theme={legacy?.theme || 'light'} faqs={legacy?.faqs}>
-  {isPlacePage ? <PlaceGuide slug={page.route.slice('/guides/'.length)} /> : legacy ? <Fragment set:html={legacy.body} /> : <StructuredPage page={page} />}
+<BaseLayout page={page} retainedHead={(legacy?.retainedHead || structuredHead) + '<link rel="stylesheet" href="/assets/mobile/mobile.css">'} theme={legacy?.theme || 'light'} faqs={legacy?.faqs}>
+  {isHome ? <>
+    <div class="desktop-home">
+      {legacy ? <Fragment set:html={legacy.body} /> : <StructuredPage page={page} />}
+    </div>
+    <MobileShell home><MobileHome /></MobileShell>
+  </> : <>
+    <div id="mw-page-content" tabindex="-1">
+      {isPlacePage ? <PlaceGuide slug={page.route.slice('/guides/'.length)} /> : legacy ? <Fragment set:html={legacy.body} /> : <StructuredPage page={page} />}
+    </div>
+    <MobileShell contentTarget="#mw-page-content" />
+  </>}
 </BaseLayout>

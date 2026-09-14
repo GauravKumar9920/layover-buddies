@@ -76,7 +76,7 @@
       if (started) return;
       started = true;
       track('form_start', {
-        form_type: form.id === 'booking-form' ? 'detour' : form.id === 'capture-form' ? 'cheat_sheet' : 'other',
+        form_type: (form.id === 'booking-form' || form.id === 'mw-form') ? 'detour' : form.id === 'capture-form' ? 'cheat_sheet' : 'other',
         page_path: location.pathname,
       });
     });
