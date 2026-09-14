@@ -1,0 +1,43 @@
+---
+import places from '../data/place-guides.json';
+import cityPhotos from '../data/city-photos.json';
+import FieldNav from './FieldNav.astro';
+interface Props { slug?: string }
+const { slug } = Astro.props;
+const place = places.find(p => p.slug === slug);
+const maps = (query: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+const directions = (query: string) => `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(query)}`;
+const related = places.filter(p => p.slug !== slug).slice(0, 3);
+---
+<div class="field-note">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <FieldNav />
+  <main id="main-content">
+    <div class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span><a href="/guides">Guides</a><span aria-hidden="true">/</span>{place ? <><a href="/guides/places">Places to explore</a><span aria-hidden="true">/</span><span>{place.name}</span></> : <span>Places to explore</span>}</div>
+    {place ? <>
+      <header class="opening"><div class="eyebrow">{place.area} · Mumbai field notes</div><h1>{place.name.split(' ').slice(0,-1).join(' ')} <em>{place.name.split(' ').at(-1)}.</em></h1><p class="lead">{place.lead}</p><small>By the Detour founders · Updated 13 September 2026</small></header>
+      <section id="photos" class="photo-browser" aria-label={`${place.name} photographs`} aria-roledescription="carousel">
+        <div class="slide-window"><div class="slide-track">{place.photos.map((photo,i) => <a class="photo-slide" href={photo.src} target="_blank" rel="noopener" aria-label={`Open photo ${i+1} at full size`} aria-hidden={i > 0 ? 'true' : undefined} tabindex={i > 0 ? -1 : 0}><img class="slide-backdrop" src={photo.thumb} alt="" aria-hidden="true" loading={i === 0 ? 'eager' : 'lazy'} /><img class="hero" src={photo.src} alt={photo.alt} width="1600" height="1067" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} /></a>)}</div></div>
+        <div class="gallery-bar"><div class="slide-dots" aria-label="Choose a photograph">{place.photos.map((_,i) => <button type="button" data-slide={i} aria-label={`Show photo ${i+1}`} aria-current={i === 0 ? 'true' : undefined}></button>)}</div><span class="gallery-label">{place.photos.length} photographs</span></div>
+        <div class="sr-only" data-announcement aria-live="polite"></div>
+        <a class="view-all-photos" href={`/guides/${place.slug}/photos`}>View all {place.photos.length} photos <span aria-hidden="true">↗</span></a>
+      </section>
+      <div class="facts"><div><small>Suggested time</small><strong>{place.time}</strong></div><div><small>Pairs with</small><strong>{place.pair}</strong></div><div><small>Before you leave</small><strong>Check live traffic</strong></div></div>
+      <div class="body"><article><small>01 / Why make the detour</small><h2>A place to <em>pause.</em></h2><p>{place.why}</p>
+        <section class="place-context" aria-labelledby="context-heading"><small>A little context</small><h2 id="context-heading">Behind the <em>place.</em></h2><div class="context-cards">{place.notes.map(note => <div class="context-card"><h3>{note.title}</h3><p>{note.summary}</p><details><summary><span class="when-closed">Read more</span><span class="when-open">Read less</span></summary><div class="context-copy"><p>{note.text}</p><a href={note.url} target="_blank" rel="noopener">Continue reading at {note.sourceLabel} ↗</a></div></details></div>)}</div></section>
+        <section class="local-notes"><small>02 / On the ground</small><h2>The useful <em>details.</em></h2><p>{place.practical}</p></section>
+      </article><aside class="note"><small>Before you go</small><h3>Make room for the return.</h3><p>{place.layover}</p>{place.mapLabel && <p><strong>Directions: {place.mapLabel}</strong></p>}<a class="button" href={maps(place.map)} target="_blank" rel="noopener">Open in Google Maps ↗</a><p><a href={directions(place.map)} target="_blank" rel="noopener">Directions from your location ↗</a></p><a href="/guides/complete-mumbai-layover-guide">Plan your airport buffer →</a></aside></div>
+        <section class="compact-route" aria-labelledby="route-heading"><small>03 / A route at your pace</small><h2 id="route-heading">A little room to <em>wander.</em></h2><p class="muted">Suggested time at each stop; travel to and from the area is additional.</p><div class="route-grid">{place.route.map(([time,title,text],i) => <div class="stop"><small>{String(i+1).padStart(2,'0')} · {time}</small><h3>{title}</h3><p>{text}</p></div>)}</div></section>
+
+      <section class="related"><small>Keep exploring</small><h2>Another <em>detour.</em></h2><div class="place-cards">{related.map(p => <a class="place-card" href={`/guides/${p.slug}`}><img src={p.photos[0].thumb} style={`object-position: ${p.photos[0].focus || "50% 50%"}`} alt={p.photos[0].alt} loading="lazy" width="480" height="320" /><small>{p.area}</small><h3>{p.name}</h3><p>{p.time}</p><span>Read field note ↗</span></a>)}</div><p><a href="/guides/places">See all places →</a></p></section>
+    </> : <>
+      <header class="opening"><div class="eyebrow">Mumbai / The place library</div><h1>A little closer<br>to the <em>city.</em></h1><p class="lead">Harbour air, heritage streets, a pause by the sea. Choose a place to explore through photographs, local context and a practical route.</p><small>{places.length} field notes · By the Detour founders</small></header>
+      <div class="directory-intro"><p><strong>Still planning your layover?</strong> Start with visas, luggage and your airport buffer in our <a href="/guides">layover guides</a>. Then choose a place that fits the time left.</p></div>
+      <section class="place-cards" aria-label="Mumbai place guides">{places.map(p => <a class="place-card" href={`/guides/${p.slug}`}><img src={p.photos[0].thumb} style={`object-position: ${p.photos[0].focus || "50% 50%"}`} alt={p.photos[0].alt} loading="lazy" width="480" height="320" /><small>{p.area}</small><h2>{p.name}</h2><p>{p.lead}</p><div class="card-meta">{p.time} · {p.photos.length} photos</div><span>Read field note ↗</span></a>)}</section>
+      <section class="city-context"><small>The wider view</small><h2>Between the <em>landmarks.</em></h2><p>Mumbai is more than its famous stops. A few views of the city around them.</p><div class="city-photos">{cityPhotos.map(photo => <figure><a href={photo.src} target="_blank" rel="noopener" aria-label={`Open full-size photograph: ${photo.alt}`}><img src={photo.thumb} alt={photo.alt} loading="lazy" width="480" height="320" /></a></figure>)}</div></section>
+    </>}
+    <section class="end"><small>Take a detour</small><h2>Your layover. A local’s <em>Mumbai.</em></h2><p>Explore with Gaurav and his co-founder. Share your flight timings so we can help shape a realistic route.</p><a class="button" href="/#board">Plan with the founders ↗</a></section>
+  </main>
+  <footer><a href="/">Detour</a><a href="/guides">Layover guides</a><a href="/guides/places">Places to explore</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><span>Made in Mumbai.</span></footer>
+</div>
+<script src="../scripts/field-note.js"></script>

@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import FieldNav from '../../../components/FieldNav.astro';
+import places from '../../../data/place-guides.json';
+
+export function getStaticPaths() {
+  return places.map((place) => ({ params: { place: place.slug }, props: { place } }));
+}
+
+const { place } = Astro.props;
+const page = {
+  route: `/guides/${place.slug}/photos`,
+  title: `${place.name} photographs | Detour`,
+  description: `See all ${place.photos.length} photographs from Detour’s field note on ${place.name}, Mumbai.`,
+  image: place.photos[0].src,
+  updatedAt: '2026-09-13',
+  changeFrequency: 'monthly',
+  priority: 0.5,
+  index: true,
+  pageType: 'article',
+  author: 'Detour founder team',
+};
+---
+<BaseLayout page={page} retainedHead={'<link rel="stylesheet" href="/assets/field-note.css">'} theme="light">
+  <div class="field-note gallery-page">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <FieldNav />
+    <main id="main-content">
+      <div class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span><a href="/guides/places">Places</a><span aria-hidden="true">/</span><a href={`/guides/${place.slug}`}>{place.name}</a><span aria-hidden="true">/</span><span>Photographs</span></div>
+      <header class="gallery-opening"><div class="eyebrow">{place.area} · Photo collection</div><h1>{place.name} <em>in photographs.</em></h1><p class="lead">{place.photos.length} views from our Mumbai field note. Open any photograph to see it at full size.</p><a href={`/guides/${place.slug}`}>← Back to the field note</a></header>
+      <section class="full-photo-grid" aria-label={`${place.name} photo collection`}>
+        {place.photos.map((photo, i) => <figure><a href={photo.src} target="_blank" rel="noopener" aria-label={`Open photo ${i + 1} at full size`}><img src={photo.src} alt={photo.alt} width="1600" height="1067" loading={i < 2 ? 'eager' : 'lazy'} /></a><figcaption>{String(i + 1).padStart(2, '0')}</figcaption></figure>)}
+      </section>
+      <details class="gallery-credits"><summary>Photo credits</summary><p>{place.photos.map((photo,i) => `${i+1}. ${photo.credit}`).join(' · ')}</p></details>
+    </main>
+  </div>
+</BaseLayout>

@@ -1,0 +1,30 @@
+[
+  {
+    "source": "apps/marketing/content/Images/Skyline/drone-master-qrj4LiT9NRQ-unsplash.jpg",
+    "src": "/images/places/skyline-0.webp",
+    "thumb": "/images/places/skyline-0-480.webp",
+    "alt": "Mumbai towers above low-rise neighbourhoods",
+    "credit": "Drone Master"
+  },
+  {
+    "source": "apps/marketing/content/Images/Skyline/hardik-joshi-niUei6OnuiA-unsplash.jpg",
+    "src": "/images/places/skyline-1.webp",
+    "thumb": "/images/places/skyline-1-480.webp",
+    "alt": "A wide view across Mumbai\u2019s skyline",
+    "credit": "Hardik Joshi"
+  },
+  {
+    "source": "apps/marketing/content/Images/Skyline/sanket-shah-uNC7v_WerqM-unsplash.jpg",
+    "src": "/images/places/skyline-2.webp",
+    "thumb": "/images/places/skyline-2-480.webp",
+    "alt": "High-rise buildings along a busy Mumbai road",
+    "credit": "Sanket Shah"
+  },
+  {
+    "source": "apps/marketing/content/Images/Skyline/vikram-sn-tKVbIjrs-unsplash.jpg",
+    "src": "/images/places/skyline-3.webp",
+    "thumb": "/images/places/skyline-3-480.webp",
+    "alt": "Mumbai\u2019s skyline illuminated at night",
+    "credit": "Vikram SN"
+  }
+]

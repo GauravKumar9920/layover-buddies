@@ -1,6 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import StructuredPage from '../components/StructuredPage.astro';
+import PlaceGuide from '../components/PlaceGuide.astro';
+import places from '../data/place-guides.json';
 import { readLegacyDocument } from '../lib/legacy';
 import { getSitePages, type SitePage } from '../lib/site-pages';
 
@@ -15,10 +17,11 @@ export async function getStaticPaths() {
 
 interface Props { page: SitePage }
 const { page } = Astro.props;
-const legacy = page.contentSource === 'local' ? await readLegacyDocument(page) : undefined;
-const structuredHead = '<link rel="stylesheet" href="/assets/site.css">';
+const isPlacePage = page.route === '/guides/places' || places.some(p => page.route === `/guides/${p.slug}`);
+const legacy = !isPlacePage && page.contentSource === 'local' ? await readLegacyDocument(page) : undefined;
+const structuredHead = isPlacePage ? '<link rel="stylesheet" href="/assets/field-note.css">' : '<link rel="stylesheet" href="/assets/site.css">';
 ---
 
 <BaseLayout page={page} retainedHead={legacy?.retainedHead || structuredHead} theme={legacy?.theme || 'light'} faqs={legacy?.faqs}>
-  {legacy ? <Fragment set:html={legacy.body} /> : <StructuredPage page={page} />}
+  {isPlacePage ? <PlaceGuide slug={page.route.slice('/guides/'.length)} /> : legacy ? <Fragment set:html={legacy.body} /> : <StructuredPage page={page} />}
 </BaseLayout>
