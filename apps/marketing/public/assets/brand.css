@@ -1,0 +1,9 @@
+/* Outlined logo assets keep the identity stable during font loading. */
+.logo .detour-logo-ink,.logo .detour-logo-paper{width:148px;height:40px;object-fit:contain;flex-shrink:0}
+.logo .detour-logo-paper{display:none}
+[data-theme="dark"] .logo .detour-logo-ink{display:none}
+[data-theme="dark"] .logo .detour-logo-paper{display:block}
+.field-nav .brand-lockup>img{width:148px;height:40px;object-fit:contain}
+/* The desktop homepage opens on a dark photographic hero in both themes. */
+.desktop-home #nav:not(.scrolled) .logo .detour-logo-ink{display:none}
+.desktop-home #nav:not(.scrolled) .logo .detour-logo-paper{display:block}

@@ -2,14 +2,15 @@
   "name": "@detour/marketing",
   "private": true,
   "version": "0.1.0",
-  "description": "Detour marketing site — Astro static generation with an optional Sanity content source.",
+  "description": "Detour marketing site \u2014 Astro static generation with an optional Sanity content source.",
   "type": "module",
   "scripts": {
     "dev": "astro dev --host 127.0.0.1 --port 8791",
     "build": "astro build",
     "preview": "astro preview --host 127.0.0.1 --port 8791",
-    "test": "node scripts/check-route-parity.mjs",
-    "test:build": "npm run build && npm run test"
+    "test": "node scripts/check-route-parity.mjs && node --test tests/*.test.mjs",
+    "test:build": "npm run build && npm run test",
+    "images:mobile": "node scripts/prepare-mobile-images.mjs"
   },
   "dependencies": {
     "astro": "^7.2.0",

@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { parse, serializeOuter } from 'parse5';
+import { parse, parseFragment, serializeOuter } from 'parse5';
 import type { SitePage } from './site-pages';
 import { resolveLegacyPath } from './legacy-path.mjs';
 
@@ -194,9 +194,28 @@ export async function readLegacyDocument(page: SitePage): Promise<LegacyDocument
 
   prepareTree(head, safeSource, true);
   prepareTree(body, safeSource, false);
+  const normalizeLogo = (node: LegacyNode): void => {
+    if (node.tagName === 'a' && hasClass(node, 'logo')) {
+      const logo = parseFragment('<img class="detour-logo-ink" src="/brand/detour-logo.svg" width="148" height="40" alt="Detour — Mumbai"><img class="detour-logo-paper" src="/brand/detour-logo-light.svg" width="148" height="40" alt="Detour — Mumbai">') as unknown as LegacyNode;
+      node.childNodes = logo.childNodes;
+      return;
+    }
+    for (const child of node.childNodes || []) normalizeLogo(child);
+  };
+  normalizeLogo(body);
+  if (page.route === '/') {
+    const deferDesktopImages = (node: LegacyNode): void => {
+      if (node.tagName === 'img' && attr(node, 'id') !== 'hero-fallback') {
+        setAttr(node, 'loading', 'lazy');
+        setAttr(node, 'fetchpriority', 'auto');
+      }
+      for (const child of node.childNodes || []) deferDesktopImages(child);
+    };
+    deferDesktopImages(body);
+  }
   return {
     retainedHead: serializeChildren(head).trim(),
-    body: serializeChildren(body),
+    body: page.route === '/' ? serializeChildren(body).replace(/<img\b[^>]*id="hero-fallback"[^>]*>/u, (img) => `<picture><source media="(max-width: 767px)" srcset="/images/mobile/blank.svg">${img}</picture>`) : serializeChildren(body),
     theme: html ? attr(html, 'data-theme') : undefined,
     faqs: extractFaqs(body),
   };
