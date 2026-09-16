@@ -13,7 +13,7 @@
     "images:mobile": "node scripts/prepare-mobile-images.mjs"
   },
   "dependencies": {
-    "astro": "^7.2.0",
+    "astro": "^7.3.2",
     "parse5": "^8.0.1"
   }
 }
