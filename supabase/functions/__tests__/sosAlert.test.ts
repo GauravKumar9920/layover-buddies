@@ -98,7 +98,7 @@ Deno.test('deliverSosAlert: emails via Resend when key + address present', async
   const { fn, calls } = fakeFetch(() => ({ status: 200 }));
   const result = await deliverSosAlert({
     ctx: CTX,
-    config: { resendApiKey: 're_123', alertEmail: 'ops@detourtrips.com' },
+    config: { resendApiKey: 're_123', alertEmail: 'admin@detourtrips.com' },
     fetchFn: fn,
   });
   assertEquals(result.delivered, ['email']);
@@ -106,7 +106,7 @@ Deno.test('deliverSosAlert: emails via Resend when key + address present', async
   const headers = calls[0].init!.headers as Record<string, string>;
   assertStringIncludes(headers.Authorization, 're_123');
   const body = JSON.parse(calls[0].init!.body as string);
-  assertEquals(body.to, ['ops@detourtrips.com']);
+  assertEquals(body.to, ['admin@detourtrips.com']);
 });
 
 Deno.test('deliverSosAlert: email requires BOTH key and address', async () => {

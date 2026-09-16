@@ -199,11 +199,11 @@ export function SafetyBar({ bookingId, contactName, insets, fallbackCoords }: Sa
   }
 
   function help() {
-    notify('Help', `Questions mid-trip? Message ${contactName} from the chat, or reach Detour at hello@detourtrips.com.`);
+    notify('Help', `Questions mid-trip? Message ${contactName} from the chat, or reach Detour at admin@detourtrips.com.`);
   }
 
   function contact() {
-    notify('Contact us', 'Detour support: hello@detourtrips.com');
+    notify('Contact us', 'Detour support: admin@detourtrips.com');
   }
 
   return (

@@ -1,4 +1,5 @@
 ---
+import MobileShell from '../../../components/mobile/MobileShell.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import FieldNav from '../../../components/FieldNav.astro';
 import places from '../../../data/place-guides.json';
@@ -21,7 +22,7 @@ const page = {
   author: 'Detour founder team',
 };
 ---
-<BaseLayout page={page} retainedHead={'<link rel="stylesheet" href="/assets/field-note.css">'} theme="light">
+<BaseLayout page={page} retainedHead={'<link rel="stylesheet" href="/assets/field-note.css"><link rel="stylesheet" href="/assets/mobile/mobile.css">'} theme="light">
   <div class="field-note gallery-page">
     <a class="skip-link" href="#main-content">Skip to content</a>
     <FieldNav />
@@ -34,4 +35,5 @@ const page = {
       <details class="gallery-credits"><summary>Photo credits</summary><p>{place.photos.map((photo,i) => `${i+1}. ${photo.credit}`).join(' · ')}</p></details>
     </main>
   </div>
+  <MobileShell />
 </BaseLayout>

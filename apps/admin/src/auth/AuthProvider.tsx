@@ -288,7 +288,7 @@ function AuthScreen() {
           {auth.stage === 'signed-out' && (
             <form className="mt-8 space-y-4" onSubmit={submitCredentials}>
               <label className="field-label">Work email
-                <input className="field-input mt-2" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@detourtrips.com" />
+                <input className="field-input mt-2" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="admin@detourtrips.com" />
               </label>
               <label className="field-label">Password
                 <input className="field-input mt-2" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••••••" />
