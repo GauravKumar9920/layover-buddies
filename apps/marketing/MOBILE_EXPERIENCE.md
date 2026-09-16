@@ -7,7 +7,7 @@ CSS controls the layout before JavaScript runs. `matchMedia('(max-width: 767px)'
 ## Mobile flow
 
 - Choose a starting layover window and interest. Save places from the homepage or their guide.
-- Preferences and editable inquiry details are saved in session storage for this tab, expiring after 12 hours since the last edit. The footer clears the draft. Successful submission clears contact and flight data. Storage failures leave the current form usable and show a notice.
+- Preferences and editable inquiry details are saved in session storage for this tab, expiring after 12 hours since the last edit. My places, then Start over, explains what is removed before a separate clear action resets the plan and draft. Successful submission clears contact and flight data. Storage failures leave the current form usable and show a notice.
 - Enter actual arrival and departure in Mumbai time. Validate chronology including overnight flights; review the computed layover and all entered details before sending.
 - The existing lead transport is shared via `window.DetourLeads.submit`. It preserves the current primary/fallback rules, attribution allowlist and consent-aware analytics. IST offsets are included in transmitted dates. Network calls time out after 20 seconds. Failed submissions remain editable and retryable.
 - Native dialogs provide keyboard focus containment, Escape dismissal, and focus return. Reduced transparency and reduced motion have fallbacks. The bottom bar uses safe-area insets and stays clear of consent controls.

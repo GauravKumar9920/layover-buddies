@@ -206,7 +206,7 @@ export async function deliverSosAlert(args: {
           Authorization: `Bearer ${config.resendApiKey}`,
         },
         body: JSON.stringify({
-          from: config.alertFrom || 'Detour SOS <sos@detourtrips.com>',
+          from: config.alertFrom || 'Detour SOS <admin@detourtrips.com>',
           to,
           subject: msg.subject,
           html: msg.html,

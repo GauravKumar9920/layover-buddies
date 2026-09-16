@@ -12,4 +12,4 @@ export const LEGAL = {
   termsUrl: 'https://detourtrips.com/terms',
   privacyUrl: 'https://detourtrips.com/privacy',
 } as const;
-export const SUPPORT_EMAIL = 'hello@detourtrips.com';
+export const SUPPORT_EMAIL = 'admin@detourtrips.com';
