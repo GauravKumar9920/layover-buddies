@@ -132,6 +132,8 @@ jobs:
           cache-dependency-path: package-lock.json
       - name: Install (workspaces)
         run: npm ci
+      - name: Type check
+        run: npm run type-check --workspace @detour/marketing
       - name: Build and validate marketing routes
         run: npm run build --workspace @detour/marketing
       - name: Check URL, metadata and generated-route parity

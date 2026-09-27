@@ -138,10 +138,10 @@ async function loadSanityPages(): Promise<SanityPage[]> {
 
 export async function getSitePages(): Promise<SitePage[]> {
   const entries = await getCollection('pages');
-  const local = entries.map((entry) => ({
+  const local: SitePage[] = entries.map((entry) => ({
     id: entry.id,
     ...entry.data,
-    contentSource: 'local' as const,
+    contentSource: 'local',
   }));
   const byRoute = new Map(local.map((entry) => [entry.route, entry]));
 

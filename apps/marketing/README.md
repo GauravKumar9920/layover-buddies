@@ -12,6 +12,7 @@ From the repository root:
 
 ```bash
 npm run dev --workspace @detour/marketing
+npm run type-check --workspace @detour/marketing
 npm run test:build --workspace @detour/marketing
 ```
 

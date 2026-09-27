@@ -8,6 +8,7 @@
     "dev": "astro dev --host 127.0.0.1 --port 8791",
     "build": "astro build",
     "preview": "astro preview --host 127.0.0.1 --port 8791",
+    "type-check": "astro sync && tsc --noEmit",
     "test": "node scripts/check-route-parity.mjs && node --test tests/*.test.mjs",
     "test:build": "npm run build && npm run test",
     "images:mobile": "node scripts/prepare-mobile-images.mjs"
@@ -15,5 +16,8 @@
   "dependencies": {
     "astro": "^7.3.3",
     "parse5": "^8.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }
