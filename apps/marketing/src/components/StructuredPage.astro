@@ -52,7 +52,7 @@ const ctaDestination = page.cta?.destination === '#booking' ? '#' : page.cta?.de
 {page.founderNote && <section class="wrap" data-secnav><h2 id="founder-note">A note from the founder</h2><p>{page.founderNote}</p></section>}
 
 <section style="padding:0 0 80px;">
-  <div class="wrap"><div class="cta-band"><h2>Let a <em>local</em> plan it.</h2><p>Share your arrival and departure times and a Mumbai student Buddy will shape a safe route around your flight.</p>{ctaDestination && ctaDestination !== '#' ? <a class="btn-primary" href={ctaDestination}>{page.cta?.label || 'Request a Detour'}</a> : <button class="btn-primary btn-trigger-booking">{page.cta?.label || 'Request a Detour'}</button>}</div></div>
+  <div class="wrap"><div class="cta-band"><h2>Let a <em>local</em> plan it.</h2><p>Share your arrival and departure times and Detour's founders will shape a safe route around your flight.</p>{ctaDestination && ctaDestination !== '#' ? <a class="btn-primary" href={ctaDestination}>{page.cta?.label || 'Request a Detour'}</a> : <button class="btn-primary btn-trigger-booking">{page.cta?.label || 'Request a Detour'}</button>}</div></div>
 </section>
 
 <footer><div class="wrap"><div class="foot-legal"><div>© 2026 Detour · Made in Mumbai with a lot of cutting chai.</div><div><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></div></div></div></footer>

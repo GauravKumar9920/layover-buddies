@@ -1,3 +1,4 @@
+import places from '../data/place-guides.json';
 import type { SitePage } from './site-pages';
 
 const SITE_URL = 'https://detourtrips.com';
@@ -22,7 +23,7 @@ export function buildStructuredData(
     areaServed: { '@type': 'City', name: 'Mumbai' },
   };
 
-  const primary =
+  const primary: Record<string, unknown> =
     page.pageType === 'article'
       ? {
           '@type': 'Article',
@@ -54,6 +55,22 @@ export function buildStructuredData(
           };
 
   const graph: Array<Record<string, unknown>> = [organization, primary];
+  const place = places.find((entry) => page.route === `/guides/${entry.slug}`);
+  if (place) {
+    const placeId = `${canonical}#place`;
+    graph.push({
+      '@type': 'TouristAttraction',
+      '@id': placeId,
+      name: place.name,
+      description: place.lead,
+      url: canonical,
+      image: place.photos.map((photo) => absolute(photo.src)),
+      geo: { '@type': 'GeoCoordinates', latitude: place.geo.lat, longitude: place.geo.lng },
+      containedInPlace: { '@type': 'City', name: 'Mumbai' },
+      hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.map)}`,
+    });
+    primary.about = { '@id': placeId };
+  }
   if (page.route.startsWith('/guides')) {
     const items = [
       { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },

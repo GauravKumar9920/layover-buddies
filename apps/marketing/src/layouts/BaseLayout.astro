@@ -19,6 +19,15 @@ const measurementId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-54QYM83DKF'
 const leadEndpoint = import.meta.env.PUBLIC_MARKETING_LEAD_ENDPOINT || '';
 const googleVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION || '';
 const bingVerification = import.meta.env.PUBLIC_BING_SITE_VERIFICATION || '';
+// Website accounts switch on only when both public Supabase values are set at build time.
+const supabaseUrl = (import.meta.env.PUBLIC_SUPABASE_URL || '').replace(/\/$/, '');
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
+const accountsEnabled = Boolean(supabaseUrl && supabaseAnonKey);
+// ADR-003: only the anon/publishable key may reach the browser. Fail the build on a secret key.
+const keyRole = (() => { try { return JSON.parse(Buffer.from(supabaseAnonKey.split('.')[1] || '', 'base64url').toString()).role; } catch { return undefined; } })();
+if (supabaseAnonKey.startsWith('sb_secret_') || keyRole === 'service_role') {
+  throw new Error('PUBLIC_SUPABASE_ANON_KEY must be the anon (publishable) key, never a secret or service-role key.');
+}
 const structuredData = buildStructuredData(page, page.faqs || faqs);
 const serializedStructuredData = serializeJsonLd(structuredData);
 ---
@@ -52,6 +61,8 @@ const serializedStructuredData = serializeJsonLd(structuredData);
     <link rel="stylesheet" href="/assets/brand.css">
     <meta name="detour-ga-id" content={measurementId}>
     <meta name="detour-lead-endpoint" content={leadEndpoint}>
+    {accountsEnabled && <meta name="detour-supabase-url" content={supabaseUrl}>}
+    {accountsEnabled && <meta name="detour-supabase-key" content={supabaseAnonKey}>}
     {googleVerification && <meta name="google-site-verification" content={googleVerification}>}
     {bingVerification && <meta name="msvalidate.01" content={bingVerification}>}
     <script type="application/ld+json" set:html={serializedStructuredData}></script>
@@ -71,6 +82,7 @@ const serializedStructuredData = serializeJsonLd(structuredData);
     <ConsentBanner />
     <script is:inline src="/assets/analytics.js" defer></script>
     <script is:inline src="/assets/utm.js" defer></script>
+    {accountsEnabled && <script is:inline src="/assets/account-lite.js" defer></script>}
     <script is:inline src="/assets/booking.js" defer></script>
     <script is:inline>
       (() => {

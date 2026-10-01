@@ -207,7 +207,7 @@ export async function getSitePages(): Promise<SitePage[]> {
       changeFrequency: remote._type === 'guide' ? 'monthly' : 'weekly',
       priority: remote._type === 'guide' ? 0.7 : 0.6,
       index: !remote.seo?.noIndex,
-      author: remote.author || 'Detour Mumbai student team',
+      author: remote.author || 'Detour founder team',
       reviewer: remote.reviewer,
       contentSource: 'sanity',
       structuredBody: remote.body,

@@ -17,7 +17,7 @@ const pages = defineCollection({
     changeFrequency: z.enum(['daily', 'weekly', 'monthly', 'yearly']).default('monthly'),
     priority: z.number().min(0).max(1).default(0.5),
     index: z.boolean().default(true),
-    author: z.string().default('Detour Mumbai student team'),
+    author: z.string().default('Detour founder team'),
     reviewer: z.string().optional(),
   }),
 });

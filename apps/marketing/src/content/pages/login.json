@@ -1,0 +1,13 @@
+{
+  "route": "/login",
+  "legacySource": "guides/index.html",
+  "pageType": "website",
+  "title": "Sign In | Detour",
+  "description": "Sign in to your Detour account to follow your layover requests, keep the Mumbai places you’ve saved and send your next request faster.",
+  "image": "/images/hero-skyline-main.jpg",
+  "updatedAt": "2026-09-26",
+  "changeFrequency": "yearly",
+  "priority": 0.1,
+  "index": false,
+  "author": "Detour founder team"
+}

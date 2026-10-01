@@ -36,3 +36,27 @@ body:has(.mw-shell) :is(.field-nav,#nav,#mobile-menu,.secnav-fab,.secnav-panel,.
 }
 
 @media(max-width:767px){body:has(.mw-shell) .detour-consent-manage{display:none!important}.mw-shell .mw-footer [data-mw-consent]{text-decoration:underline;text-underline-offset:4px}}
+
+/* Remaining places, safety and costs: parity with the desktop homepage. */
+@media(max-width:767px){
+.mw-more-places{display:grid;gap:10px;margin-top:20px}
+.mw-more-place{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:14px;align-items:center;padding:10px 12px 10px 10px;border-radius:22px}
+.mw-more-place img{width:72px;height:72px;border-radius:15px;object-fit:cover}
+.mw-shell .mw-more-place h3{font-size:18px;letter-spacing:-.4px;line-height:1.2}
+.mw-more-place h3 a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:4px}
+.mw-shell .mw-more-place p{font-size:11px;line-height:1.5}
+.mw-more-place button{border:1px solid #a9bcae!important;padding:7px 14px!important;border-radius:25px;font-size:11px}
+.mw-more-place button[aria-pressed=true]{background:#274d40;color:#fff}
+.mw-shell .mw-safety-list{list-style:none;padding:0;margin:24px 0 0}
+.mw-safety-list li{padding:18px 0 18px 30px;border-top:1px solid #c9d1c3;position:relative}
+.mw-safety-list li::before{content:'✓';position:absolute;left:2px;top:19px;font:13px 'DM Mono',monospace;color:#a84023}
+.mw-shell .mw-safety-list h3{font-size:19px;letter-spacing:-.4px;line-height:1.2}
+.mw-shell .mw-safety-list p{font-size:13px;margin-top:6px}
+.mw-cost-list{margin:22px 0 14px;padding:6px 20px;border-radius:22px;background:#e8ecdf}
+.mw-cost-list>div{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:13px 0;border-top:1px solid #c9d1c3}
+.mw-cost-list>div:first-child{border-top:0}
+.mw-cost-list dt{font-size:13px}
+.mw-cost-list dd{margin:0;font:12px 'DM Mono',monospace;color:#16332f;white-space:nowrap}
+.mw-cost-list>div:last-child dt{font-weight:700}
+}
+.mw-shell .mw-check-link{display:inline-flex;align-items:center;min-height:44px;margin-top:6px;font-size:12px;text-decoration:underline;text-underline-offset:4px;color:var(--mw-accent)}

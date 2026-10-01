@@ -1,0 +1,90 @@
+---
+import FieldNav from './FieldNav.astro';
+import places from '../data/place-guides.json';
+import checker from '../data/layover-checker.json';
+import { EXIT_MINUTES, RETURN_MINUTES, REGIONS } from '../lib/layover.mjs';
+interface Props { updatedAt?: string }
+const { updatedAt } = Astro.props;
+const updatedLabel = updatedAt ? new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${updatedAt}T00:00:00Z`)) : undefined;
+const placeData = JSON.stringify(places.map(p => ({ slug: p.slug, name: p.name, time: p.time, region: p.region })));
+const hours = (minutes: number) => minutes % 60 ? `${Math.floor(minutes / 60)}½ hours` : `${minutes / 60} hour${minutes === 60 ? '' : 's'}`;
+---
+<div class="field-note tool-page">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <FieldNav />
+  <main id="main-content">
+    <div class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span><a href="/guides">Guides</a><span aria-hidden="true">/</span><span>Layover checker</span></div>
+    <header class="opening"><div class="eyebrow">Mumbai · BOM · Layover checker</div><h1>Can I leave <em>the airport?</em></h1><p class="lead">Add your flight times and we’ll work out how long you’d really have outside, and which parts of Mumbai fit. It takes about 30 seconds.</p><small>By the Detour founders{updatedLabel && ` · Updated ${updatedLabel}`}</small></header>
+
+    <section class="checker" aria-labelledby="checker-heading" data-checker data-places={placeData}>
+      <h2 id="checker-heading" class="sr-only">Your layover</h2>
+      <form class="checker-form" data-checker-form novalidate>
+        <p class="checker-hint">Use the local times on your tickets. Both are Mumbai time (IST).</p>
+        <div class="checker-times">
+          <label>Landing at BOM<input type="datetime-local" name="arrival" required></label>
+          <label>Flying out of BOM<input type="datetime-local" name="departure" required></label>
+        </div>
+        <fieldset><legend>Your onward flight</legend>
+          <label class="choice"><input type="radio" name="onward" value="international" checked><span>International</span></label>
+          <label class="choice"><input type="radio" name="onward" value="domestic"><span>Within India</span></label>
+        </fieldset>
+        <fieldset><legend>Your bags</legend>
+          <label class="choice"><input type="radio" name="bags" value="through" checked><span>Carry-on only, or checked through</span></label>
+          <label class="choice"><input type="radio" name="bags" value="collect"><span>I need to collect them</span></label>
+        </fieldset>
+        <fieldset><legend>Can you enter India on this trip?</legend>
+          <label class="choice"><input type="radio" name="visa" value="visa" checked><span>Yes, I have a visa or e-Visa</span></label>
+          <label class="choice"><input type="radio" name="visa" value="citizen"><span>Yes, I’m an Indian citizen or OCI cardholder</span></label>
+          <label class="choice"><input type="radio" name="visa" value="no"><span>Not yet</span></label>
+        </fieldset>
+        <p class="checker-error" data-checker-error role="alert" hidden></p>
+        <button class="button" type="submit">Check my layover</button>
+      </form>
+
+      <div class="checker-result" data-checker-result aria-live="polite" tabindex="-1">
+        <div class="result-empty" data-result-empty>
+          <small>Your window</small>
+          <p>Add your two flight times to see how long you’d have outside the airport, and where that gets you.</p>
+          <noscript><p>The checker needs JavaScript. The rough rule: take your layover, subtract about 1 hour to leave arrivals and 3 hours back at the airport, and whatever’s left is your time outside, including the drive.</p></noscript>
+        </div>
+        <div class="result-body" data-result-body hidden>
+          <small>Your window</small>
+          <h3 data-result-title></h3>
+          <p data-result-text></p>
+          <ol class="result-timeline" data-result-timeline></ol>
+          <ul class="result-regions" data-result-regions></ul>
+          <ul class="result-notes" data-result-notes></ul>
+          <div class="result-places" data-result-places hidden><small>Places that fit</small><ul></ul><a data-result-all href="/guides/places">See every place that fits →</a></div>
+          <div class="result-actions"><a class="button" data-result-cta href="/#board">Plan this detour with us ↗</a><a data-result-guide href="/guides/complete-mumbai-layover-guide">Read the complete guide →</a></div>
+          <p class="result-fine">Cautious estimates, not promises. Your airline’s rules and the live traffic always come first.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="checker-maths" aria-labelledby="maths-heading">
+      <small>01 / How we do the maths</small>
+      <h2 id="maths-heading">The same sums <em>we use.</em></h2>
+      <p>We plan every Detour backwards from your departure. The checker uses the same cautious allowances as our guides.</p>
+      <table class="fact-table">
+        <thead><tr><th scope="col">Block of time</th><th scope="col">We allow</th></tr></thead>
+        <tbody>
+          <tr><td>Landing to leaving arrivals: immigration, and bags if you collect them</td><td>{hours(EXIT_MINUTES.carryOn)}, or {hours(EXIT_MINUTES.bags)} with bags</td></tr>
+          <tr><td>Back at the airport before you fly</td><td>{hours(RETURN_MINUTES.international)} for an international flight, {hours(RETURN_MINUTES.domestic)} within India</td></tr>
+          {REGIONS.map(region => <tr><td>{region.label}</td><td>{region.drive}; about {hours(region.comfortable)} outside the airport to be comfortable</td></tr>)}
+        </tbody>
+      </table>
+      <p>What’s left after leaving arrivals and getting back is your <strong>time outside</strong>, and the drive comes out of it. We call an area <strong>comfortable</strong> when cautious road times still leave room for a real visit, and <strong>tight</strong> when it only works if immigration is quick and traffic is kind.</p>
+    </section>
+
+    <section class="checker-faq" aria-labelledby="faq-heading">
+      <small>02 / Quick answers</small>
+      <h2 id="faq-heading">Before you <em>step out.</em></h2>
+      {checker.faqs.map(faq => <details class="faq-item"><summary class="faq-q">{faq.question}</summary><div class="faq-a"><p>{faq.answer}</p></div></details>)}
+      <p class="checker-links">Keep planning: <a href="/guides/mumbai-layover-visa">visa guide</a> · <a href="/guides/mumbai-airport-luggage-storage">luggage storage</a> · <a href="/guides/short-layover-mumbai">5–6 hour layovers</a> · <a href="/guides/8-hour-layover-mumbai">8 hours</a> · <a href="/guides/12-hour-layover-mumbai">12 hours</a> · <a href="/guides/overnight-layover-mumbai">overnight</a></p>
+    </section>
+
+    <section class="end"><small>Take a detour</small><h2>Your layover. A local’s <em>Mumbai.</em></h2><p>Explore with Gaurav and his co-founder. Share your flight timings so we can help shape a realistic route.</p><a class="button" href="/#board">Plan with the founders ↗</a></section>
+  </main>
+  <footer><a href="/">Detour</a><a href="/guides">Layover guides</a><a href="/guides/places">Places to explore</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><span>Made in Mumbai.</span></footer>
+</div>
+<script src="../scripts/layover-checker.js"></script>

@@ -7,3 +7,7 @@
 /* The desktop homepage opens on a dark photographic hero in both themes. */
 .desktop-home #nav:not(.scrolled) .logo .detour-logo-ink{display:none}
 .desktop-home #nav:not(.scrolled) .logo .detour-logo-paper{display:block}
+/* The desktop footer is dark navy in both themes, so it always uses the light logo. */
+.desktop-home footer .logo .detour-logo-ink{display:none}
+.desktop-home footer .logo .detour-logo-paper{display:block}
+[data-account-link][hidden]{display:none!important}

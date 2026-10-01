@@ -2,7 +2,7 @@
   "name": "@detour/marketing",
   "private": true,
   "version": "0.1.0",
-  "description": "Detour marketing site \u2014 Astro static generation with an optional Sanity content source.",
+  "description": "Detour marketing site — Astro static generation with an optional Sanity content source.",
   "type": "module",
   "scripts": {
     "dev": "astro dev --host 127.0.0.1 --port 8791",
@@ -13,7 +13,9 @@
     "images:mobile": "node scripts/prepare-mobile-images.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
     "astro": "^7.3.3",
+    "leaflet": "^1.9.4",
     "parse5": "^8.0.1"
   }
 }

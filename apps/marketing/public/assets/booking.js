@@ -55,6 +55,47 @@
     }
   });
 
+  // Place field notes link to /?place=<slug>#board and the layover checker to
+  // /?arrive=…&depart=…#board, so a desktop request starts with those details.
+  // Mobile handles the same links in mobile.js (shortlist and planner fields).
+  (function prefillRequest() {
+    var into = document.getElementById('bf-into');
+    if (!into || !location.search || typeof URLSearchParams !== 'function') return;
+    if (matchMedia('(max-width: 767px)').matches) return;
+    var params = new URLSearchParams(location.search);
+    var opened = false;
+    var shell = document.querySelector('[data-mw-places]');
+    var slug = params.get('place');
+    var match = slug && shell ? JSON.parse(shell.getAttribute('data-mw-places')).filter(function (place) { return place.slug === slug; })[0] : null;
+    if (match) {
+      if (!into.value) into.value = 'I would like to see ' + match.name + '.';
+      opened = true;
+    }
+    var pattern = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    [['arrive', 'bf-arrive'], ['depart', 'bf-depart']].forEach(function (pair) {
+      var parts = pattern.exec(params.get(pair[0]) || '');
+      var field = document.getElementById(pair[1]);
+      if (!parts || !field || field.value || !months[Number(parts[2]) - 1]) return;
+      field.value = Number(parts[3]) + ' ' + months[Number(parts[2]) - 1] + ' ' + parts[1] + ', ' + parts[4] + ':' + parts[5];
+      opened = true;
+    });
+    if (!opened) return;
+    openModal('booking-modal');
+    track('booking_form_open', { form_type: 'detour', page_path: location.pathname });
+  })();
+
+  // Signed in: start the desktop request form with the account's name and email.
+  (function prefillAccount() {
+    var account = typeof window !== 'undefined' && window.DetourAccount;
+    if (!account || !account.signedIn()) return;
+    var user = account.user();
+    [['bf-name', user.name], ['bf-email', user.email]].forEach(function (pair) {
+      var field = document.getElementById(pair[0]);
+      if (field && pair[1] && !field.value) field.value = pair[1];
+    });
+  })();
+
   function attribution(source) {
     if (!source || typeof source !== 'object') return undefined;
     var allowed = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'captured_at', 'landing_page', 'referrer'];
@@ -96,12 +137,16 @@
       missingEndpoint.fallbackEligible = true;
       throw missingEndpoint;
     }
+    var headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
+    // Signed in on the website: send the access token so the request is linked to the account.
+    var token = typeof window !== 'undefined' && window.DetourAccount && window.DetourAccount.signedIn() ? await window.DetourAccount.accessToken().catch(function () { return null; }) : null;
+    if (token) headers.Authorization = 'Bearer ' + token;
     var response;
     try {
       response = await fetch(primaryEndpoint, {
         signal: AbortSignal.timeout(20000),
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: headers,
         body: JSON.stringify(payload),
       });
     } catch (networkError) {

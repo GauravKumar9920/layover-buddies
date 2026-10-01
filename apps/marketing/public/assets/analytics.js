@@ -46,7 +46,7 @@
     try { dispatchEvent(new CustomEvent('detour:analytics-consent', { detail: { status: next } })); } catch (error) {}
   }
 
-  var allowedEvents = ['booking_form_open', 'form_start', 'generate_lead', 'cheat_sheet_download', 'app_store_click'];
+  var allowedEvents = ['booking_form_open', 'form_start', 'generate_lead', 'cheat_sheet_download', 'app_store_click', 'layover_check', 'login', 'sign_up'];
   var allowedParameters = ['form_type', 'request_type', 'page_path', 'link_type', 'store'];
   function track(eventName, parameters) {
     if (allowedEvents.indexOf(eventName) === -1 || consent !== 'granted') return;

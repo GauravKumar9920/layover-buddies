@@ -4,27 +4,39 @@
     "src": "/images/places/skyline-0.webp",
     "thumb": "/images/places/skyline-0-480.webp",
     "alt": "Mumbai towers above low-rise neighbourhoods",
-    "credit": "Drone Master"
+    "credit": "Drone Master",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "sourceUrl": "https://unsplash.com/photos/qrj4LiT9NRQ"
   },
   {
     "source": "apps/marketing/content/Images/Skyline/hardik-joshi-niUei6OnuiA-unsplash.jpg",
     "src": "/images/places/skyline-1.webp",
     "thumb": "/images/places/skyline-1-480.webp",
-    "alt": "A wide view across Mumbai\u2019s skyline",
-    "credit": "Hardik Joshi"
+    "alt": "A wide view across Mumbai’s skyline",
+    "credit": "Hardik Joshi",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "sourceUrl": "https://unsplash.com/photos/niUei6OnuiA"
   },
   {
     "source": "apps/marketing/content/Images/Skyline/sanket-shah-uNC7v_WerqM-unsplash.jpg",
     "src": "/images/places/skyline-2.webp",
     "thumb": "/images/places/skyline-2-480.webp",
     "alt": "High-rise buildings along a busy Mumbai road",
-    "credit": "Sanket Shah"
+    "credit": "Sanket Shah",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "sourceUrl": "https://unsplash.com/photos/uNC7v_WerqM"
   },
   {
     "source": "apps/marketing/content/Images/Skyline/vikram-sn-tKVbIjrs-unsplash.jpg",
     "src": "/images/places/skyline-3.webp",
     "thumb": "/images/places/skyline-3-480.webp",
-    "alt": "Mumbai\u2019s skyline illuminated at night",
-    "credit": "Vikram SN"
+    "alt": "Mumbai’s skyline illuminated at night",
+    "credit": "Vikram SN",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "sourceUrl": "https://unsplash.com/photos/sn-tKVbIjrs"
   }
 ]

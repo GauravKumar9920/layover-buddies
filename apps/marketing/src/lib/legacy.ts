@@ -165,8 +165,9 @@ function prepareTree(node: LegacyNode, source: string, inHead = false): void {
 function extractFaqs(body: LegacyNode): Array<{ question: string; answer: string }> {
   const results: Array<{ question: string; answer: string }> = [];
   const visit = (node: LegacyNode): void => {
-    if (node.tagName === 'div' && hasClass(node, 'faq-item')) {
-      const questionNode = findFirst(node, (candidate) => candidate.tagName === 'button' && hasClass(candidate, 'faq-q'));
+    // Homepage FAQs are div/button accordions; guide FAQs use native details/summary.
+    if ((node.tagName === 'div' || node.tagName === 'details') && hasClass(node, 'faq-item')) {
+      const questionNode = findFirst(node, (candidate) => (candidate.tagName === 'button' || candidate.tagName === 'summary') && hasClass(candidate, 'faq-q'));
       const answerNode = findFirst(node, (candidate) => candidate.tagName === 'div' && hasClass(candidate, 'faq-a-inner'));
       const question = questionNode ? normalizeText(questionNode) : '';
       const answer = answerNode ? normalizeText(answerNode) : '';
