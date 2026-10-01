@@ -73,7 +73,7 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:turbo@2"
+        "npm:turbo@^2.10.13"
       ],
       "overrides": {
         "tar": "7.5.22",
@@ -82,12 +82,13 @@
         "@babel/plugin-transform-modules-systemjs": "7.29.4",
         "ws": "8.21.3",
         "uuid": "11.1.1",
-        "postcss": "8.5.26",
+        "postcss": "8.5.28",
         "nanoid": "3.3.18",
-        "js-yaml@^3.0.0": "3.15.1",
-        "js-yaml@^4.0.0": "4.3.1",
-        "react-router": "7.18.2",
-        "turbo-stream": "3.2.1"
+        "js-yaml@^3.0.0": "3.15.2",
+        "js-yaml@^4.0.0": "4.3.2",
+        "react-router": "7.18.4",
+        "turbo-stream": "3.2.1",
+        "decode-uri-component": "0.5.0"
       }
     },
     "members": {
@@ -96,26 +97,28 @@
           "dependencies": [
             "npm:@detour/config@*",
             "npm:@detour/database@*",
-            "npm:@supabase/supabase-js@^2.45.0",
+            "npm:@supabase/supabase-js@^2.116.0",
             "npm:@types/react-dom@^18.3.0",
             "npm:@types/react@^18.3.3",
-            "npm:@vitejs/plugin-react@^6.0.2",
-            "npm:autoprefixer@^10.4.19",
-            "npm:postcss@^8.5.26",
+            "npm:@vitejs/plugin-react@^6.1.1",
+            "npm:autoprefixer@^10.6.1",
+            "npm:postcss@^8.5.28",
             "npm:react-dom@^18.3.1",
-            "npm:react-router-dom@^7.18.2",
+            "npm:react-router-dom@^7.18.4",
             "npm:react@^18.3.1",
             "npm:tailwindcss@^3.4.7",
             "npm:typescript@^5.5.4",
-            "npm:vite@^8.0.16"
+            "npm:vite@^8.3.0"
           ]
         }
       },
       "apps/marketing": {
         "packageJson": {
           "dependencies": [
-            "npm:astro@^7.2.0",
-            "npm:parse5@^7.3.0"
+            "npm:@supabase/supabase-js@^2.116.0",
+            "npm:astro@^7.3.3",
+            "npm:leaflet@^1.9.4",
+            "npm:parse5@^8.0.1"
           ]
         }
       },
@@ -131,9 +134,9 @@
             "npm:@expo-google-fonts/plus-jakarta-sans@~0.4.2",
             "npm:@react-native-async-storage/async-storage@1.23.1",
             "npm:@react-native-community/datetimepicker@8.2.0",
-            "npm:@supabase/supabase-js@^2.47.0",
+            "npm:@supabase/supabase-js@^2.116.0",
             "npm:@types/jest@^29.5.14",
-            "npm:@types/node@20",
+            "npm:@types/node@^22.20.3",
             "npm:@types/react@18.3",
             "npm:ajv@^8.18.0",
             "npm:date-fns@^3.6.0",
@@ -156,12 +159,12 @@
             "npm:expo-system-ui@4.0",
             "npm:expo@52.0",
             "npm:jest@^29.7.0",
-            "npm:nativewind@^4.1.23",
-            "npm:prettier@^3.3.0",
+            "npm:nativewind@^4.2.7",
+            "npm:prettier@^3.9.8",
             "npm:react-dom@^18.3.1",
             "npm:react-native-gesture-handler@2.20",
             "npm:react-native-maps@1.18.0",
-            "npm:react-native-qrcode-svg@^6.3.21",
+            "npm:react-native-qrcode-svg@^6.3.24",
             "npm:react-native-razorpay@^2.3.1",
             "npm:react-native-reanimated@3.16",
             "npm:react-native-safe-area-context@4.12.0",
