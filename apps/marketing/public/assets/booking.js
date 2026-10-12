@@ -7,6 +7,7 @@
   var FALLBACK_ENDPOINT = 'https://formsubmit.co/ajax/admin@detourtrips.com';
   var endpointMeta = document.querySelector('meta[name="detour-lead-endpoint"]');
   var primaryEndpoint = endpointMeta ? endpointMeta.getAttribute('content') : '';
+  var modalOpeners = {};
 
   function track(eventName, parameters) {
     if (window.DetourAnalytics && typeof window.DetourAnalytics.track === 'function') {
@@ -17,6 +18,7 @@
   function openModal(id) {
     var modal = document.getElementById(id);
     if (!modal) return;
+    if (!modal.classList.contains('open')) modalOpeners[id] = document.activeElement;
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
@@ -24,22 +26,34 @@
     if (focusable.length) focusable[0].focus();
   }
 
-  function closeModal(id) {
+  function closeModal(id, returnFocus) {
     var modal = document.getElementById(id);
     if (!modal) return;
+    var wasOpen = modal.classList.contains('open');
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    var opener = modalOpeners[id];
+    if (wasOpen && returnFocus !== false && opener && opener.isConnected && opener.getClientRects().length) opener.focus();
   }
 
   document.querySelectorAll('.btn-trigger-booking').forEach(function (button) {
     button.addEventListener('click', function (event) {
+      // Shared navigation links fall through to the homepage on pages without
+      // a desktop request modal; phone requests use the mobile planner.
+      if (!document.getElementById('booking-modal')) return;
       event.preventDefault();
-      closeModal('route-modal');
+      prefillShortlist();
+      closeModal('route-modal', false);
       openModal('booking-modal');
       track('booking_form_open', { form_type: 'detour', page_path: location.pathname });
     });
   });
+  function prefillShortlist() {
+    var into = document.getElementById('bf-into');
+    var names = window.DetourPlan && window.DetourPlan.places();
+    if (into && !into.value && names && names.length) into.value = 'Places I would like to see: ' + names.join(', ') + '.';
+  }
   document.querySelectorAll('.modal-close').forEach(function (button) {
     button.addEventListener('click', function () {
       var modal = button.closest('.modal-overlay');
@@ -60,10 +74,11 @@
   // Mobile handles the same links in mobile.js (shortlist and planner fields).
   (function prefillRequest() {
     var into = document.getElementById('bf-into');
-    if (!into || !location.search || typeof URLSearchParams !== 'function') return;
+    if (!into || typeof URLSearchParams !== 'function') return;
     if (matchMedia('(max-width: 767px)').matches) return;
     var params = new URLSearchParams(location.search);
-    var opened = false;
+    var opened = ['#board', '#booking'].includes(location.hash);
+    prefillShortlist();
     var shell = document.querySelector('[data-mw-places]');
     var slug = params.get('place');
     var match = slug && shell ? JSON.parse(shell.getAttribute('data-mw-places')).filter(function (place) { return place.slug === slug; })[0] : null;

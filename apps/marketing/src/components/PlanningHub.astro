@@ -1,0 +1,93 @@
+---
+import { getSiteContent, type ContentItem } from '../lib/site-content';
+import type { SitePage } from '../lib/site-pages';
+
+interface Props { page?: SitePage; items?: ContentItem[] }
+const { page, items: providedItems } = Astro.props;
+const items = providedItems ?? await getSiteContent();
+const planning = items.filter(item => item.section === 'plan' && item.searchable && item.route !== '/guides' && !['gallery', 'resource'].includes(item.kind));
+const checker = planning.find(item => item.kind === 'tool');
+const completeGuide = planning.find(item => item.route === '/guides/complete-mumbai-layover-guide');
+const resources = items.filter(item => item.section === 'plan' && item.kind === 'resource' && item.searchable);
+const definitions = [
+  { key: 'by-time', title: 'A plan for your time.', summary: 'These refer to your total layover, including airport formalities and the return buffer.' },
+  { key: 'airport-essentials', title: 'Before you leave the airport.', summary: 'Entry requirements, your bags, the drive, and a good plan if you stay airside.' },
+  { key: 'practical-travel', title: 'The useful details.', summary: 'A little preparation for being out in a new city.' },
+  { key: 'conditions-and-preparation', title: 'Plan around the conditions.', summary: 'Weather and other things that can change what fits.' },
+  { key: 'pace-and-needs', title: 'At your own pace.', summary: 'Make room for the people travelling with you and the way you like to explore.' },
+];
+const displayed = new Set([checker?.route, completeGuide?.route].filter(Boolean));
+const groups = definitions.map(group => ({ ...group, entries: planning.filter(item => item.group === group.key && !displayed.has(item.route)) })).filter(group => group.entries.length);
+const knownGroups = new Set(definitions.map(group => group.key));
+const extraGroupKeys = [...new Set(planning.filter(item => !knownGroups.has(item.group) && !displayed.has(item.route)).map(item => item.group))];
+for (const key of extraGroupKeys) {
+  const entries = planning.filter(item => item.group === key && !displayed.has(item.route));
+  groups.push({ key, title: entries[0]?.groupLabel || 'More planning advice', summary: 'More useful answers for your Mumbai stopover.', entries });
+}
+const exploreCount = items.filter(item => item.section === 'explore' && item.kind === 'place' && item.searchable).length;
+const durationGroup = groups.find(group => group.key === 'by-time');
+durationGroup?.entries.sort((a, b) => (parseFloat(a.navigationTitle) || Infinity) - (parseFloat(b.navigationTitle) || Infinity));
+---
+
+<div class="guide-body discovery-body">
+  <main id="main-content" class="discovery-main planning-hub">
+    <header class="discovery-opening">
+      <span class="discovery-eyebrow">Mumbai · Your time between flights</span>
+      <h1>A little planning.<br>A lot more <em>city.</em></h1>
+      <p>Work out what fits, sort the airport essentials, then choose a little Mumbai to explore. Every guide has a clear place here.</p>
+      <form class="discovery-quick-search" action="/search" method="get" role="search">
+        <label class="discovery-sr-only" for="planning-search">Search planning guides</label>
+        <input id="planning-search" name="q" type="search" placeholder="Find luggage, visas, an overnight plan…" />
+        <input type="hidden" name="section" value="plan" />
+        <button type="submit">Find a guide <span aria-hidden="true">→</span></button>
+      </form>
+    </header>
+
+    <section class="discovery-start" aria-label="Start planning">
+      {checker && <a class="discovery-checker" href={checker.route}>
+        <span class="discovery-eyebrow">Start with your flight times</span>
+        <h2>How much time<br>is really <em>yours?</em></h2>
+        <p>The layover checker makes room for arrivals, bags, the drive and getting back for your flight.</p>
+        <span class="discovery-link-action">Check my layover time <span aria-hidden="true">↗</span></span>
+      </a>}
+      {completeGuide && <a class="discovery-complete" href={completeGuide.route}>
+        {completeGuide.image && <img src={completeGuide.image} alt="" width="720" height="420" loading="lazy" />}
+        <div><span class="discovery-eyebrow">The whole picture</span><h2>{completeGuide.navigationTitle || completeGuide.title}</h2><p>{completeGuide.summary}</p><span class="discovery-link-action">Read the complete guide <span aria-hidden="true">↗</span></span></div>
+      </a>}
+    </section>
+
+    <div class="discovery-jumps" aria-label="Planning sections">
+      <span>Jump to</span>
+      {groups.map(group => <a href={`#${group.key}`}>{group.entries[0]?.groupLabel || group.title}</a>)}
+      {resources.length > 0 && <a href="#resources">Quick reference</a>}
+    </div>
+
+    {groups.map((group, index) => <section id={group.key} class="discovery-section" aria-labelledby={`heading-${group.key}`}>
+      <div class="discovery-section-heading"><span class="discovery-eyebrow">{String(index + 1).padStart(2, '0')} / {group.entries[0]?.groupLabel || 'Planning'}</span><h2 id={`heading-${group.key}`}>{group.title}</h2><p>{group.summary}</p></div>
+      <div class="discovery-guide-grid">{group.entries.map(item => <a class="discovery-guide-card" href={item.route}>
+        <span class="discovery-eyebrow">{item.kind === 'tool' ? 'Planning tool' : item.kind === 'hub' ? 'More planning resources' : 'A practical guide'}</span>
+        <h3>{item.navigationTitle || item.title}</h3><p>{item.summary}</p><span class="discovery-link-action">{item.kind === 'tool' ? 'Open the tool' : item.kind === 'hub' ? 'Browse the collection' : 'Read the guide'} <span aria-hidden="true">↗</span></span>
+      </a>)}</div>
+    </section>)}
+
+    {resources.length > 0 && <section id="resources" class="discovery-resource discovery-section" aria-labelledby="resources-heading">
+      <div><span class="discovery-eyebrow">Keep it handy</span><h2 id="resources-heading">The useful bits,<br><em>on one page.</em></h2><p>Our Mumbai layover cheat sheet brings together visa steps, luggage storage and the time you really need. Leave your email to get the one-page PDF.</p></div>
+      <div class="discovery-resource-form">
+        <form id="capture-form" class="discovery-capture-form" novalidate>
+          <label for="resource-email">Your email address</label>
+          <input id="resource-email" name="email" type="email" autocomplete="email" placeholder="you@email.com" required />
+          <input name="_honey" type="text" class="discovery-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <button type="submit">Send me the cheat sheet <span aria-hidden="true">→</span></button>
+          <p>Submitting shares your email with Detour. <a href="/privacy">Privacy policy</a></p>
+        </form>
+        <div id="capture-done" class="discovery-capture-done" style="display:none" role="status"><p>You're on the list. Your cheat sheet is ready.</p>{resources.map(item => <a class="discovery-button" href={item.route} download>Download {item.navigationTitle || item.title} <span aria-hidden="true">↓</span></a>)}</div>
+        <noscript><p><a href="mailto:admin@detourtrips.com?subject=Mumbai%20layover%20cheat%20sheet">Email us for the cheat sheet →</a></p></noscript>
+      </div>
+    </section>}
+
+    <section class="discovery-next" aria-label="Your next step">
+      <a href="/guides/places"><span class="discovery-eyebrow">Now choose your kind of city</span><h2>Explore Mumbai <span aria-hidden="true">↗</span></h2><p>{exploreCount} place field notes, plus walks, food and culture.</p></a>
+      <a href="/guides/what-to-expect-on-a-detour"><span class="discovery-eyebrow">A local host, a shared plan</span><h2>How Detour works <span aria-hidden="true">↗</span></h2><p>Meet the founder-hosted experience and understand what happens after you send a request.</p></a>
+    </section>
+  </main>
+</div>

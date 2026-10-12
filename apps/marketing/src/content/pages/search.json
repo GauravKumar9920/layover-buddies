@@ -1,0 +1,13 @@
+{
+  "route": "/search",
+  "legacySource": "search.html",
+  "pageType": "collection",
+  "title": "Search Mumbai Places & Layover Guides | Detour",
+  "description": "Find Mumbai places, photo galleries, walks, layover plans, airport advice and Detour answers in one organised library.",
+  "image": "/images/hero-skyline-main.jpg",
+  "updatedAt": "2026-10-12",
+  "changeFrequency": "weekly",
+  "priority": 0.2,
+  "index": false,
+  "author": "Detour founder team"
+}

@@ -2,28 +2,18 @@
 import type { SitePage } from '../lib/site-pages';
 import { portableTextToHtml } from '../lib/portable-text';
 import BookingModal from './BookingModal.astro';
+import { articleHtmlWithNavigation } from '../lib/article-navigation.mjs';
 
 interface Props { page: SitePage }
 const { page } = Astro.props;
-const content = portableTextToHtml(page.structuredBody);
+const content = articleHtmlWithNavigation(portableTextToHtml(page.structuredBody));
 const updated = new Intl.DateTimeFormat('en', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(page.updatedAt));
 const safeExternalUrl = (value: string) => /^https:\/\//i.test(value) ? value : undefined;
 const ctaDestination = page.cta?.destination === '#booking' ? '#' : page.cta?.destination;
 ---
 
-<nav id="nav">
-  <a class="logo" href="/">
-    <div><div class="wm">Det<em>ou</em>r</div><div class="tag">Mumbai · BOM</div></div>
-  </a>
-  <div class="nav-cta">
-    <a href="/guides">Layover guides</a>
-    <button class="btn-primary btn-trigger-booking">Request a Detour</button>
-  </div>
-</nav>
-
 <header class="guide-hero">
   <div class="wrap">
-    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> <span>›</span> <a href="/guides">Guides</a></nav>
     <span class="eyebrow">{page.eyebrow || 'Written in Mumbai'}</span>
     <h1>{page.title.replace(/ \| Detour$/, '')}</h1>
     <p class="lead">{page.description}</p>
@@ -55,5 +45,4 @@ const ctaDestination = page.cta?.destination === '#booking' ? '#' : page.cta?.de
   <div class="wrap"><div class="cta-band"><h2>Let a <em>local</em> plan it.</h2><p>Share your arrival and departure times and Detour's founders will shape a safe route around your flight.</p>{ctaDestination && ctaDestination !== '#' ? <a class="btn-primary" href={ctaDestination}>{page.cta?.label || 'Request a Detour'}</a> : <button class="btn-primary btn-trigger-booking">{page.cta?.label || 'Request a Detour'}</button>}</div></div>
 </section>
 
-<footer><div class="wrap"><div class="foot-legal"><div>© 2026 Detour · Made in Mumbai with a lot of cutting chai.</div><div><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></div></div></div></footer>
 <BookingModal />

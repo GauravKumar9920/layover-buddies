@@ -19,6 +19,17 @@ const pages = defineCollection({
     index: z.boolean().default(true),
     author: z.string().default('Detour founder team'),
     reviewer: z.string().optional(),
+    discovery: z.object({
+      section: z.enum(['explore', 'plan', 'detour', 'utility']),
+      group: z.string(),
+      kind: z.enum(['guide', 'hub', 'company']).optional(),
+      navigationTitle: z.string().max(100).optional(),
+      parentRoute: z.string().startsWith('/').optional(),
+      tags: z.array(z.string()).default([]),
+      aliases: z.array(z.string()).default([]),
+      relatedRoutes: z.array(z.string().startsWith('/')).default([]),
+      searchable: z.boolean().optional(),
+    }).optional(),
   }),
 });
 

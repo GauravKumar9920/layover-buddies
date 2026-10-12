@@ -1,7 +1,7 @@
 ---
 import places from '../data/place-guides.json';
 import cityPhotos from '../data/city-photos.json';
-import FieldNav from './FieldNav.astro';
+import ExploreDiscovery from './ExploreDiscovery.astro';
 import { OUTSIDE_OPTIONS } from '../lib/layover.mjs';
 interface Props { slug?: string; updatedAt?: string }
 const { slug, updatedAt } = Astro.props;
@@ -31,10 +31,7 @@ const themes = [
 const mapPlaces = JSON.stringify(places.map(p => ({ slug: p.slug, name: p.name, area: p.area, time: p.time, region: p.region, themes: p.themes, lat: p.geo.lat, lng: p.geo.lng })));
 ---
 <div class="field-note">
-  <a class="skip-link" href="#main-content">Skip to content</a>
-  <FieldNav />
   <main id="main-content">
-    <div class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span><a href="/guides">Guides</a><span aria-hidden="true">/</span>{place ? <><a href="/guides/places">Places to explore</a><span aria-hidden="true">/</span><span>{place.name}</span></> : <span>Places to explore</span>}</div>
     {place ? <>
       <header class="opening"><div class="eyebrow">{place.area} · Mumbai field notes</div><h1>{place.name.split(' ').slice(0,-1).join(' ')} <em>{place.name.split(' ').at(-1)}.</em></h1><p class="lead">{place.lead}</p><small>By the Detour founders{updatedLabel && ` · Updated ${updatedLabel}`}</small></header>
       <section id="photos" class="photo-browser" aria-label={`${place.name} photographs`} aria-roledescription="carousel">
@@ -48,13 +45,14 @@ const mapPlaces = JSON.stringify(places.map(p => ({ slug: p.slug, name: p.name, 
       <div class="body"><article><small>01 / Why make the detour</small><h2>{heading('why', ['A place to', 'pause.'])[0]} <em>{heading('why', ['A place to', 'pause.'])[1]}</em></h2><p>{place.why}</p>
         <section class="place-context" aria-labelledby="context-heading"><small>A little context</small><h2 id="context-heading">{heading('context', ['Behind the', 'place.'])[0]} <em>{heading('context', ['Behind the', 'place.'])[1]}</em></h2><div class="context-cards">{place.notes.map(note => <div class="context-card"><h3>{note.title}</h3><p>{note.summary}</p><details><summary><span class="when-closed">Read more</span><span class="when-open">Read less</span></summary><div class="context-copy"><p>{note.text}</p><a href={note.url} target="_blank" rel="noopener">Continue reading at {note.sourceLabel} ↗</a></div></details></div>)}</div></section>
         <section class="local-notes"><small>02 / On the ground</small><h2>{heading('practical', ['The useful', 'details.'])[0]} <em>{heading('practical', ['The useful', 'details.'])[1]}</em></h2><p>{place.practical}</p>{place.nearby && <><h3>A pause nearby</h3><p>{place.nearby}</p></>}</section>
-      </article><aside class="note"><small>Before you go</small><h3>Make room for the return.</h3><p>{place.layover}</p>{place.mapLabel && <p><strong>Directions: {place.mapLabel}</strong></p>}<a class="button" href={maps(place.map)} target="_blank" rel="noopener">Open in Google Maps ↗</a><button type="button" class="save-place" data-save-place={place.slug} aria-pressed="false" hidden>Save this place</button><p><a href={directions(place.map)} target="_blank" rel="noopener">Directions from your location ↗</a></p><a href="/guides/complete-mumbai-layover-guide">Plan your airport buffer →</a></aside></div>
+      </article><aside class="note"><small>Before you go</small><h3>Make room for the return.</h3><p>{place.layover}</p>{place.mapLabel && <p><strong>Directions: {place.mapLabel}</strong></p>}<a class="button" href={maps(place.map)} target="_blank" rel="noopener">Open in Google Maps ↗</a><button type="button" class="save-place" data-mw-place={place.slug} aria-pressed="false">Save this place</button><p><a href={directions(place.map)} target="_blank" rel="noopener">Directions from your location ↗</a></p><a href="/guides/complete-mumbai-layover-guide">Plan your airport buffer →</a></aside></div>
         <section class="compact-route" aria-labelledby="route-heading"><small>03 / A route at your pace</small><h2 id="route-heading">{heading('route', ['A little room to', 'wander.'])[0]} <em>{heading('route', ['A little room to', 'wander.'])[1]}</em></h2><p class="muted">Suggested time at each stop; travel to and from the area is additional.</p><div class="route-grid">{place.route.map(([time,title,text],i) => <div class="stop"><small>{String(i+1).padStart(2,'0')} · {time}</small><h3>{title}</h3><p>{text}</p></div>)}</div></section>
 
       <section class="related"><small>Keep exploring</small><h2>Another <em>detour.</em></h2><div class="place-cards">{related.map(p => <a class="place-card" href={`/guides/${p.slug}`}><img src={p.photos[0].thumb} style={`object-position: ${p.photos[0].focus || "50% 50%"}`} alt={p.photos[0].alt} loading="lazy" width="480" height="320" /><small>{p.area}</small><h3>{p.name}</h3><p>{p.time}</p><span>Read field note ↗</span></a>)}</div><p><a href="/guides/places">See all places →</a></p></section>
     </> : <>
       <header class="opening"><div class="eyebrow">Mumbai / The place library</div><h1>A little closer<br>to the <em>city.</em></h1><p class="lead">Harbour air, heritage streets, a pause by the sea. Choose a place to explore through photographs, local context and a practical route.</p><small>{places.length} field notes · By the Detour founders</small></header>
       <div class="directory-intro"><p><strong>Still planning your layover?</strong> <a href="/guides/can-i-leave-mumbai-airport">Check how much time you’ll have outside the airport</a>, then choose a place that fits. Visas, luggage and your airport buffer are covered in our <a href="/guides">layover guides</a>.</p></div>
+      <ExploreDiscovery />
       <section class="place-finder" aria-labelledby="finder-heading" data-place-finder hidden>
         <h2 id="finder-heading" class="sr-only">Filter places</h2>
         <div class="finder-controls">
@@ -70,8 +68,6 @@ const mapPlaces = JSON.stringify(places.map(p => ({ slug: p.slug, name: p.name, 
     </>}
     <section class="end"><small>Take a detour</small><h2>Your layover. A local’s <em>Mumbai.</em></h2><p>Explore with Gaurav and his co-founder. Share your flight timings so we can help shape a realistic route.</p><a class="button" href={place ? `/?place=${place.slug}#board` : '/#board'}>{place ? `Plan a detour to ${place.name} ↗` : 'Plan with the founders ↗'}</a></section>
   </main>
-  <footer><a href="/">Detour</a><a href="/guides">Layover guides</a><a href="/guides/places">Places to explore</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><span>Made in Mumbai.</span></footer>
 </div>
 <script src="../scripts/field-note.js"></script>
 <script src="../scripts/place-finder.js"></script>
-<script src="../scripts/save-place.js"></script>

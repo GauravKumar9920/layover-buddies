@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { cmsContentCanPublish, normalizeContentRoute, normalizeDiscovery, normalizeCmsDocument } from './content-registry.mjs';
 
 export type PortableTextSpan = {
   _key?: string;
@@ -30,9 +31,10 @@ export type SitePage = CollectionEntry<'pages'>['data'] & {
   cta?: { label: string; destination: string };
   featuredContent?: Array<{ title: string; route: string }>;
   sourceLinks?: Array<{ label: string; url: string; checkedAt?: string }>;
+  previewDraft?: boolean;
 };
 
-type SanityPage = {
+export type SanityPage = {
   _id: string;
   _type: 'guide' | 'landingPage';
   route?: string;
@@ -52,6 +54,7 @@ type SanityPage = {
   cta?: { label?: string; destination?: string };
   featuredContent?: Array<{ title?: string; slug?: string }>;
   sourceLinks?: Array<{ label?: string; url?: string; checkedAt?: string }>;
+  discovery?: unknown;
   seo?: {
     title?: string;
     description?: string;
@@ -67,10 +70,8 @@ type SanityPage = {
 const CODE_CONTROLLED_ROUTES = new Set(['/privacy', '/terms']);
 
 function normalizeRoute(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  const withSlash = value.startsWith('/') ? value : `/${value}`;
-  if (!/^\/[a-z0-9/_-]*$/i.test(withSlash)) return undefined;
-  return withSlash.length > 1 ? withSlash.replace(/\/$/, '') : withSlash;
+  const route = normalizeContentRoute(value);
+  return route && !route.includes('.') ? route : undefined;
 }
 
 async function loadSanityPages(): Promise<SanityPage[]> {
@@ -102,6 +103,7 @@ async function loadSanityPages(): Promise<SanityPage[]> {
     eyebrow,
     author,
     reviewer,
+    discovery{section, group, kind, navigationTitle, parentRoute, tags, aliases, relatedRoutes, searchable},
     "heroMedia": {"url": heroMedia.image.asset->url, "alt": heroMedia.alt, "caption": heroMedia.caption, "credit": heroMedia.credit},
     body[]{..., _type == "image" => {"asset": {"url": asset->url, "alt": coalesce(alt, "")}}},
     faqs[]{question, answer},
@@ -128,7 +130,7 @@ async function loadSanityPages(): Promise<SanityPage[]> {
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = (await response.json()) as { result?: SanityPage[] };
-    return Array.isArray(payload.result) ? payload.result : [];
+    return Array.isArray(payload.result) ? payload.result.map(normalizeCmsDocument).filter((page): page is SanityPage => page !== undefined) : [];
   } catch (error) {
     if (previewDrafts) throw error;
     console.warn(`[marketing] Sanity content unavailable; using local fallback (${String(error)}).`);
@@ -136,14 +138,14 @@ async function loadSanityPages(): Promise<SanityPage[]> {
   }
 }
 
-export async function getSitePages(): Promise<SitePage[]> {
+async function resolveSitePages(): Promise<SitePage[]> {
   const entries = await getCollection('pages');
-  const local = entries.map((entry) => ({
+  const local: SitePage[] = entries.map((entry) => ({
     id: entry.id,
     ...entry.data,
     contentSource: 'local' as const,
   }));
-  const byRoute = new Map(local.map((entry) => [entry.route, entry]));
+  const byRoute = new Map<string, SitePage>(local.map((entry) => [entry.route, entry]));
 
   function safeDestination(value: string | undefined): string | undefined {
     if (!value || /^(?:\/\/|\\)/.test(value)) return undefined;
@@ -151,10 +153,13 @@ export async function getSitePages(): Promise<SitePage[]> {
   }
 
   for (const remote of await loadSanityPages()) {
+    if (!remote || typeof remote !== 'object' || typeof remote._id !== 'string') continue;
     const route = normalizeRoute(remote.route);
     if (!route || CODE_CONTROLLED_ROUTES.has(route)) continue;
 
     const fallback = byRoute.get(route);
+    if (!cmsContentCanPublish(remote, fallback, { previewDrafts: process.env.SANITY_PREVIEW_DRAFTS === 'true' })) continue;
+    const discovery = normalizeDiscovery(remote.discovery);
     const faqs = (remote.faqs || []).filter(
       (item): item is { question: string; answer: string } => Boolean(item.question && item.answer),
     );
@@ -169,6 +174,7 @@ export async function getSitePages(): Promise<SitePage[]> {
       publishedAt: remote.publishedAt,
       updatedAt: remote.updatedAt,
       index: remote.seo?.noIndex === undefined ? undefined : !remote.seo.noIndex,
+      discovery,
     };
 
     if (fallback) {
@@ -176,6 +182,7 @@ export async function getSitePages(): Promise<SitePage[]> {
         ...fallback,
         ...Object.fromEntries(Object.entries(overrides).filter(([, value]) => value !== undefined)),
         contentSource: remote.body?.length ? 'sanity' : 'local',
+        previewDraft: remote._id.startsWith('drafts.'),
         structuredBody: remote.body?.length ? remote.body : undefined,
         faqs: faqs.length ? faqs : undefined,
         eyebrow: remote.eyebrow,
@@ -185,7 +192,7 @@ export async function getSitePages(): Promise<SitePage[]> {
         ),
         founderNote: remote.founderNote,
         cta: remote.cta?.label && safeDestination(remote.cta.destination) ? { label: remote.cta.label, destination: safeDestination(remote.cta.destination)! } : undefined,
-        featuredContent: (remote.featuredContent || []).filter((item) => item.title && item.slug).map((item) => ({ title: item.title!, route: `/guides/${item.slug}` })),
+        featuredContent: (remote.featuredContent || []).filter((item) => item.title && item.slug && normalizeRoute(`/guides/${item.slug}`)).map((item) => ({ title: item.title!, route: `/guides/${item.slug}` })),
         sourceLinks: (remote.sourceLinks || []).filter((item) => item.label && safeDestination(item.url)).map((item) => ({ label: item.label!, url: safeDestination(item.url)!, checkedAt: item.checkedAt })),
       });
       continue;
@@ -210,6 +217,8 @@ export async function getSitePages(): Promise<SitePage[]> {
       author: remote.author || 'Detour founder team',
       reviewer: remote.reviewer,
       contentSource: 'sanity',
+      discovery,
+      previewDraft: remote._id.startsWith('drafts.'),
       structuredBody: remote.body,
       faqs: faqs.length ? faqs : undefined,
       eyebrow: remote.eyebrow,
@@ -219,13 +228,22 @@ export async function getSitePages(): Promise<SitePage[]> {
       ),
       founderNote: remote.founderNote,
       cta: remote.cta?.label && safeDestination(remote.cta.destination) ? { label: remote.cta.label, destination: safeDestination(remote.cta.destination)! } : undefined,
-      featuredContent: (remote.featuredContent || []).filter((item) => item.title && item.slug).map((item) => ({ title: item.title!, route: `/guides/${item.slug}` })),
+      featuredContent: (remote.featuredContent || []).filter((item) => item.title && item.slug && normalizeRoute(`/guides/${item.slug}`)).map((item) => ({ title: item.title!, route: `/guides/${item.slug}` })),
       sourceLinks: (remote.sourceLinks || []).filter((item) => item.label && safeDestination(item.url)).map((item) => ({ label: item.label!, url: safeDestination(item.url)!, checkedAt: item.checkedAt })),
     });
   }
 
-  const pages = [...byRoute.values()].sort((a, b) => a.route.localeCompare(b.route));
+  const pages = [...byRoute.values()].map((page) => ({
+    ...page,
+    featuredContent: page.featuredContent?.filter((item) => byRoute.has(item.route)),
+  })).sort((a, b) => a.route.localeCompare(b.route));
   return process.env.SANITY_PREVIEW_DRAFTS === 'true'
     ? pages.map((page) => ({ ...page, index: false }))
     : pages;
+}
+
+let pagesPromise: Promise<SitePage[]> | undefined;
+export function getSitePages(): Promise<SitePage[]> {
+  if (import.meta.env.DEV) return resolveSitePages();
+  return pagesPromise ??= resolveSitePages();
 }

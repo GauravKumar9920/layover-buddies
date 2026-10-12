@@ -1,0 +1,27 @@
+---
+import { getSiteContent, type ContentItem } from '../lib/site-content';
+interface Props { items?: ContentItem[] }
+const items = Astro.props.items ?? await getSiteContent();
+const editorials = items.filter(item => item.section === 'explore' && item.searchable && item.route !== '/guides/places' && !['place', 'gallery'].includes(item.kind));
+const groups = [...new Set(editorials.map(item => item.group))].map(key => ({ key, label: editorials.find(item => item.group === key)?.groupLabel || 'City guides', entries: editorials.filter(item => item.group === key) }));
+const areas = [
+  { key: 'near-airport', label: 'Close to the airport' },
+  { key: 'central', label: 'Central Mumbai' },
+  { key: 'south', label: 'South Mumbai' },
+  { key: 'further', label: 'Further afield' },
+].map(area => ({ ...area, count: items.filter(item => item.kind === 'place' && item.searchable && item.region === area.key).length })).filter(area => area.count);
+---
+
+<div class="explore-discovery">
+  <div class="explore-shortcuts" aria-label="Explore Mumbai shortcuts">
+    <div><span class="discovery-eyebrow">Find your way around</span><div class="explore-area-links">{areas.map(area => <a href={`#region-${area.key}`}>{area.label}<span>{area.count} places</span></a>)}</div></div>
+    <form class="discovery-quick-search" action="/search" method="get" role="search"><label class="discovery-sr-only" for="explore-search">Search Mumbai places and guides</label><input id="explore-search" name="q" type="search" placeholder="A place, a walk, something to eat…" /><input type="hidden" name="section" value="explore" /><button type="submit">Find it <span aria-hidden="true">→</span></button></form>
+  </div>
+  {groups.map(group => <section id={group.key} class="explore-editorial-section" aria-labelledby={`explore-heading-${group.key}`}>
+    <div class="explore-editorial-heading"><span class="discovery-eyebrow">More ways to explore</span><h2 id={`explore-heading-${group.key}`}>{group.label}</h2></div>
+    <div class="explore-editorial-grid">{group.entries.map(item => <a class="explore-editorial-card" href={item.route}>
+      {item.image && <img src={item.image} alt="" width="360" height="240" loading="lazy" />}
+      <div><span class="discovery-eyebrow">{item.kind === 'hub' ? 'City collection' : group.key === 'self-guided-walks' ? 'Self-guided walk' : group.key === 'food-and-culture' ? 'Food & culture guide' : 'City guide'}</span><h3>{item.navigationTitle || item.title}</h3><p>{item.summary}</p><span class="discovery-link-action">{item.kind === 'hub' ? 'Browse the collection' : 'Explore the guide'} <span aria-hidden="true">↗</span></span></div>
+    </a>)}</div>
+  </section>)}
+</div>

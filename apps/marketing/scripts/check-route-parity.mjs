@@ -9,7 +9,7 @@ const appRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const distRoot = path.join(appRoot, 'dist');
 const manifestRoot = path.join(appRoot, 'src/content/pages');
 const expectedRoutes = [
-  '/', '/careers', '/privacy', '/terms', '/guides',
+  '/', '/careers', '/privacy', '/terms', '/guides', '/search',
   '/guides/complete-mumbai-layover-guide', '/guides/mumbai-layover-visa',
   '/guides/8-hour-layover-mumbai', '/guides/12-hour-layover-mumbai',
   '/guides/mumbai-airport-luggage-storage', '/guides/is-mumbai-safe-on-a-layover',
@@ -239,8 +239,8 @@ assert.ok(
   'generate_lead must run only after the primary Detour endpoint confirms the request',
 );
 
-assert.match(homeHtml, /href="\/privacy" class="trigger-privacy"/i, 'privacy must remain a real no-JS internal link');
-assert.match(homeHtml, /href="\/terms" class="trigger-terms"/i, 'terms must remain a real no-JS internal link');
+assert.match(homeHtml, /<a\b[^>]*href="\/privacy"/i, 'privacy must remain a real no-JS internal link');
+assert.match(homeHtml, /<a\b[^>]*href="\/terms"/i, 'terms must remain a real no-JS internal link');
 
 const privacyHtml = await readFile(path.join(distRoot, 'privacy/index.html'), 'utf8');
 for (const disclosure of ['Supabase', 'Resend', 'FormSubmit', '90 days', '30 days']) {

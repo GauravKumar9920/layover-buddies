@@ -1,4 +1,5 @@
 import { defineArrayMember, defineField, defineType } from 'sanity';
+import { discoveryField } from './guide';
 
 const CODE_CONTROLLED_PATHS = new Set(['/privacy', '/terms']);
 
@@ -14,7 +15,7 @@ export const landingPage = defineType({
   name: 'landingPage',
   title: 'Landing page',
   type: 'document',
-  groups: [{ name: 'content', title: 'Content', default: true }, { name: 'search', title: 'Search and social' }],
+  groups: [{ name: 'content', title: 'Content', default: true }, { name: 'search', title: 'Search and social' }, { name: 'discovery', title: 'Website organisation' }],
   fields: [
     defineField({ name: 'title', type: 'string', group: 'content', validation: (rule) => rule.required().max(120) }),
     defineField({ name: 'path', title: 'Clean URL path', type: 'string', group: 'content', description: 'For example / or /mumbai-layover-tour. Privacy and terms remain code-controlled.', validation: (rule) => rule.required().regex(/^\/[a-z0-9/_-]*$/).custom(isEditablePath) }),
@@ -38,13 +39,14 @@ export const landingPage = defineType({
     defineField({ name: 'faqs', type: 'array', of: [{ type: 'faq' }], group: 'content' }),
     defineField({ name: 'testimonials', type: 'array', of: [{ type: 'testimonial' }], group: 'content' }),
     defineField({ name: 'founderNote', title: 'Founder note', type: 'text', rows: 5, group: 'content' }),
-    defineField({ name: 'author', type: 'string', group: 'content', initialValue: 'Detour Mumbai student team' }),
+    defineField({ name: 'author', type: 'string', group: 'content', initialValue: 'Detour founder team' }),
     defineField({ name: 'reviewer', type: 'string', group: 'content' }),
     defineField({ name: 'sourceLinks', title: 'Sources', type: 'array', of: [{ type: 'sourceLink' }], group: 'content' }),
     defineField({ name: 'publishedAt', type: 'datetime', group: 'content' }),
     defineField({ name: 'featuredContent', type: 'array', of: [{ type: 'reference', to: [{ type: 'guide' }] }], group: 'content' }),
     defineField({ name: 'updatedAt', title: 'Content reviewed at', type: 'datetime', group: 'content', validation: (rule) => rule.required() }),
     defineField({ name: 'seo', type: 'seo', group: 'search' }),
+    discoveryField(),
   ],
   preview: { select: { title: 'title', subtitle: 'path', media: 'heroMedia.image' } },
 });

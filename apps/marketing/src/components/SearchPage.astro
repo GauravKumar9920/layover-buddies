@@ -1,0 +1,48 @@
+---
+import { getSiteContent, type ContentItem } from '../lib/site-content';
+import { serializeJsonLd } from '../lib/json-ld.mjs';
+interface Props { items?: ContentItem[] }
+const items = Astro.props.items ?? await getSiteContent();
+const kindLabels: Record<string, string> = { place: 'Place field note', gallery: 'Photographs', guide: 'Written guide', walk: 'Self-guided walk', 'time-plan': 'Time plan', 'service-answer': 'Detour answer', tool: 'Planning tool', hub: 'Collection', home: 'Homepage', company: 'Company', legal: 'Legal information', resource: 'PDF resource' };
+const sectionLabels: Record<string, string> = { explore: 'Explore Mumbai', plan: 'Plan your layover', detour: 'How Detour works', utility: 'Company & information' };
+const results = items.filter(item => item.searchable && item.kind !== 'gallery');
+const sectionOrder = ['explore', 'plan', 'detour', 'utility'];
+results.sort((a, b) => sectionOrder.indexOf(a.section) - sectionOrder.indexOf(b.section) || a.title.localeCompare(b.title));
+const galleries = items.filter(item => item.kind === 'gallery' && results.some(parent => parent.route === item.parentRoute));
+const children = new Map(results.map(parent => [parent.route, galleries.filter(item => item.parentRoute === parent.route)]));
+const kinds = [...new Set(results.map(item => item.kind as string))];
+if (results.some(item => item.group === 'self-guided-walks')) kinds.push('walk');
+if (results.some(item => item.group === 'by-time')) kinds.push('time-plan');
+if (results.some(item => item.section === 'detour' && item.kind === 'guide')) kinds.push('service-answer');
+const sections = [...new Set(results.map(item => item.section))];
+const serializedIndex = serializeJsonLd([...results, ...galleries].map(({ route, title, navigationTitle, summary, section, group, kind, parentRoute, tags, aliases }) => ({ route, title, navigationTitle, summary, section, group, kind, parentRoute, tags, aliases })));
+---
+
+<div class="guide-body discovery-body">
+  <main id="main-content" class="discovery-main search-page" data-content-search>
+    <header class="discovery-opening"><span class="discovery-eyebrow">The whole Detour library</span><h1>What are you<br>looking <em>for?</em></h1><p>Find a place, practical answer, walking route or quick reference. Try a name, a topic or the hours between your flights.</p></header>
+    <form action="/search" method="get" class="content-search-form" data-search-form role="search">
+      <label for="site-content-query">Search places and guides</label>
+      <div class="content-search-query"><input id="site-content-query" name="q" type="search" placeholder="Marine Drive, bags, eight hours…" autocomplete="off" data-search-query /><button type="submit">Search <span aria-hidden="true">→</span></button></div>
+      <div class="content-search-filters" data-search-filters hidden>
+        <label for="search-section">Website area<select id="search-section" name="section" data-search-section><option value="">All website areas</option>{sections.map(section => <option value={section}>{sectionLabels[section]}</option>)}</select></label>
+        <label for="search-kind">Content type<select id="search-kind" name="kind" data-search-kind><option value="">All types</option>{kinds.map(kind => <option value={kind}>{kindLabels[kind] || kind}</option>)}{galleries.length > 0 && <option value="gallery">Photographs</option>}</select></label>
+        <button class="content-search-clear" type="button" data-search-clear>Clear search</button>
+      </div>
+    </form>
+    <noscript><div class="search-no-script"><p>Live search needs JavaScript. You can browse every public entry below, or use <a href="/guides/places">Explore Mumbai</a> and <a href="/guides">Plan your layover</a>.</p></div></noscript>
+    <p class="content-search-status" aria-live="polite" aria-atomic="true" data-search-status>{results.length} public entries · Place photographs are grouped with their field note.</p>
+    <div class="content-search-empty" data-search-empty hidden><h2>No matches just yet.</h2><p>Try a shorter place name or a broader topic, such as “luggage” or “heritage”.</p><div><button type="button" data-search-reset>Show everything</button><a href="/guides/places">Explore Mumbai →</a><a href="/guides">Plan your layover →</a></div></div>
+    <ul class="content-search-results" data-search-results aria-label="Search results">
+      {results.map(item => <li class="content-search-result" data-search-route={item.route}>
+        <a class="content-search-result-link" href={item.kind === 'resource' ? '/guides#resources' : item.route}>
+          <div class="content-search-meta"><span>{item.group === 'self-guided-walks' ? 'Self-guided walk' : item.group === 'by-time' ? 'Time plan' : item.section === 'detour' && item.kind === 'guide' ? 'Detour answer' : kindLabels[item.kind] || 'Guide'}</span><span>{sectionLabels[item.section]}</span></div>
+          <h2>{item.navigationTitle || item.title}<span aria-hidden="true">↗</span></h2><p>{item.summary}</p>
+        </a>
+        {(children.get(item.route) || []).length > 0 && <div class="content-search-media">{children.get(item.route)!.map(child => <a href={child.route}>View photographs <span aria-hidden="true">↗</span></a>)}</div>}
+      </li>)}
+    </ul>
+    <script type="application/json" data-content-search-index set:html={serializedIndex}></script>
+  </main>
+</div>
+<script src="../scripts/content-search.js"></script>

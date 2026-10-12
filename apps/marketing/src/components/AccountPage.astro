@@ -1,5 +1,4 @@
 ---
-import FieldNav from './FieldNav.astro';
 import places from '../data/place-guides.json';
 interface Props { view: 'login' | 'account' }
 const { view } = Astro.props;
@@ -7,8 +6,6 @@ const enabled = Boolean(import.meta.env.PUBLIC_SUPABASE_URL && import.meta.env.P
 const placeData = JSON.stringify(places.map(p => ({ slug: p.slug, name: p.name, area: p.area, thumb: p.photos[0].thumb, alt: p.photos[0].alt, focus: p.photos[0].focus || '50% 50%' })));
 ---
 <div class="field-note tool-page account-page">
-  <a class="skip-link" href="#main-content">Skip to content</a>
-  <FieldNav />
   <main id="main-content">
     {view === 'login' ? <>
       <header class="opening"><div class="eyebrow">Your Detour account</div><h1>Welcome <em>back.</em></h1><p class="lead">Sign in to follow your requests, keep the places you’ve saved and send your next request in a few taps. When the Detour app launches, the same account will work there too.</p></header>
@@ -106,6 +103,5 @@ const placeData = JSON.stringify(places.map(p => ({ slug: p.slug, name: p.name, 
       {!enabled && <div class="auth-off"><p><strong>Accounts are opening soon.</strong> You don’t need one to plan a detour: <a href="/#board">send us your flight times</a> and we’ll reply by email.</p></div>}
     </>}
   </main>
-  <footer><a href="/">Detour</a><a href="/guides">Layover guides</a><a href="/guides/places">Places to explore</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><span>Made in Mumbai.</span></footer>
 </div>
 <script src="../scripts/account.js"></script>

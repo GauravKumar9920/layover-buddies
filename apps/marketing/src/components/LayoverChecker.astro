@@ -1,5 +1,4 @@
 ---
-import FieldNav from './FieldNav.astro';
 import places from '../data/place-guides.json';
 import checker from '../data/layover-checker.json';
 import { EXIT_MINUTES, RETURN_MINUTES, REGIONS } from '../lib/layover.mjs';
@@ -10,10 +9,7 @@ const placeData = JSON.stringify(places.map(p => ({ slug: p.slug, name: p.name, 
 const hours = (minutes: number) => minutes % 60 ? `${Math.floor(minutes / 60)}½ hours` : `${minutes / 60} hour${minutes === 60 ? '' : 's'}`;
 ---
 <div class="field-note tool-page">
-  <a class="skip-link" href="#main-content">Skip to content</a>
-  <FieldNav />
   <main id="main-content">
-    <div class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span><a href="/guides">Guides</a><span aria-hidden="true">/</span><span>Layover checker</span></div>
     <header class="opening"><div class="eyebrow">Mumbai · BOM · Layover checker</div><h1>Can I leave <em>the airport?</em></h1><p class="lead">Add your flight times and we’ll work out how long you’d really have outside, and which parts of Mumbai fit. It takes about 30 seconds.</p><small>By the Detour founders{updatedLabel && ` · Updated ${updatedLabel}`}</small></header>
 
     <section class="checker" aria-labelledby="checker-heading" data-checker data-places={placeData}>
@@ -85,6 +81,5 @@ const hours = (minutes: number) => minutes % 60 ? `${Math.floor(minutes / 60)}½
 
     <section class="end"><small>Take a detour</small><h2>Your layover. A local’s <em>Mumbai.</em></h2><p>Explore with Gaurav and his co-founder. Share your flight timings so we can help shape a realistic route.</p><a class="button" href="/#board">Plan with the founders ↗</a></section>
   </main>
-  <footer><a href="/">Detour</a><a href="/guides">Layover guides</a><a href="/guides/places">Places to explore</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><span>Made in Mumbai.</span></footer>
 </div>
 <script src="../scripts/layover-checker.js"></script>
