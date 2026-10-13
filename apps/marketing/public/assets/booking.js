@@ -146,6 +146,16 @@
     return payload;
   }
 
+  // AbortSignal.timeout needs Safari 16. Without this fallback every request
+  // from iOS 15 throws before it is sent, and both transports report failure.
+  function timeoutSignal(ms) {
+    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') return AbortSignal.timeout(ms);
+    if (typeof AbortController !== 'function') return undefined;
+    var controller = new AbortController();
+    setTimeout(function () { controller.abort(); }, ms);
+    return controller.signal;
+  }
+
   async function submitPrimary(payload) {
     if (!primaryEndpoint) {
       var missingEndpoint = new Error('primary endpoint is not configured');
@@ -159,7 +169,7 @@
     var response;
     try {
       response = await fetch(primaryEndpoint, {
-        signal: AbortSignal.timeout(20000),
+        signal: timeoutSignal(20000),
         method: 'POST',
         headers: headers,
         body: JSON.stringify(payload),
@@ -193,7 +203,7 @@
     fields._subject = requestType === 'detour' ? 'Detour request (temporary fallback)' : 'Cheat sheet request (temporary fallback)';
     fields._template = 'table';
     var response = await fetch(FALLBACK_ENDPOINT, {
-      signal: AbortSignal.timeout(20000),
+      signal: timeoutSignal(20000),
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(fields),

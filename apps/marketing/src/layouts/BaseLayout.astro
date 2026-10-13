@@ -4,6 +4,7 @@ import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import PageBreadcrumbs from '../components/PageBreadcrumbs.astro';
 import PageContinuity from '../components/PageContinuity.astro';
+import { assetUrl, versionAssetUrls } from '../lib/asset-url.mjs';
 import { serializeJsonLd } from '../lib/json-ld.mjs';
 import type { SitePage } from '../lib/site-pages';
 import { buildStructuredData } from '../lib/structured-data';
@@ -62,7 +63,7 @@ const serializedStructuredData = serializeJsonLd(structuredData);
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
     <link rel="icon" type="image/svg+xml" href="/brand/detour-mark.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="stylesheet" href="/assets/brand.css">
+    <link rel="stylesheet" href={assetUrl('/assets/brand.css')}>
     <meta name="detour-ga-id" content={measurementId}>
     <meta name="detour-lead-endpoint" content={leadEndpoint}>
     {accountsEnabled && <meta name="detour-supabase-url" content={supabaseUrl}>}
@@ -76,10 +77,10 @@ const serializedStructuredData = serializeJsonLd(structuredData);
       @font-face{font-family:'DM Mono';font-style:normal;font-weight:400;font-display:optional;src:url('/fonts/dm-mono-latin.woff2') format('woff2')}
       @font-face{font-family:'Instrument Serif';font-style:italic;font-weight:400;font-display:optional;src:url('/fonts/instrument-serif-italic-latin.woff2') format('woff2')}
     </style>
-    <Fragment set:html={retainedHead} />
-    <link rel="stylesheet" href="/assets/site-navigation.css">
-    <link rel="stylesheet" href="/assets/content-discovery.css">
-    <link rel="stylesheet" href="/assets/page-context.css">
+    <Fragment set:html={versionAssetUrls(retainedHead)} />
+    <link rel="stylesheet" href={assetUrl('/assets/site-navigation.css')}>
+    <link rel="stylesheet" href={assetUrl('/assets/content-discovery.css')}>
+    <link rel="stylesheet" href={assetUrl('/assets/page-context.css')}>
     <script is:inline>
       try { const saved = localStorage.getItem('detour-theme'); if (saved) document.documentElement.setAttribute('data-theme', saved); } catch {}
     </script>
@@ -93,11 +94,11 @@ const serializedStructuredData = serializeJsonLd(structuredData);
     </div>
     <SiteFooter route={page.route} accountsEnabled={accountsEnabled} />
     <ConsentBanner />
-    <script is:inline src="/assets/analytics.js" defer></script>
-    <script is:inline src="/assets/utm.js" defer></script>
-    {accountsEnabled && <script is:inline src="/assets/account-lite.js" defer></script>}
-    <script is:inline src="/assets/booking.js" defer></script>
-    <script is:inline src="/assets/site-navigation.js" defer></script>
+    <script is:inline src={assetUrl('/assets/analytics.js')} defer></script>
+    <script is:inline src={assetUrl('/assets/utm.js')} defer></script>
+    {accountsEnabled && <script is:inline src={assetUrl('/assets/account-lite.js')} defer></script>}
+    <script is:inline src={assetUrl('/assets/booking.js')} defer></script>
+    <script is:inline src={assetUrl('/assets/site-navigation.js')} defer></script>
     <script is:inline>
       (() => {
         let applied = false;
