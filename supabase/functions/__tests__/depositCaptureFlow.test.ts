@@ -32,64 +32,27 @@ interface DbState {
  * Build a mock Supabase-like client backed by the given in-memory state.
  * This deliberately mirrors only the query shapes used by depositCapture.ts.
  */
-function makeDb(state: DbState) {
+function makeDb(state: DbState, beforeUpdate?: (table: string, patch: Record<string, unknown>) => void) {
   return {
     from(table: 'bookings' | 'deposits' | 'payment_events') {
       const store = state[table] as Map<string, any>;
-      return {
-        // ─── SELECT chain ────────────────────────────────────────────────────
-        select(_cols: string) {
-          return {
-            eq(k1: string, v1: string) {
-              const filtered = [...store.values()].filter((r: any) => r[k1] === v1);
-              return {
-                eq(k2: string, v2: string) {
-                  const result = filtered.filter((r: any) => r[k2] === v2);
-                  return Promise.resolve({ data: result, error: null });
-                },
-                maybeSingle() {
-                  return Promise.resolve({ data: filtered[0] ?? null, error: null });
-                },
-                // Support direct iteration (used by deposits list in step 4)
-                then(resolve: (v: { data: any[]; error: null }) => void) {
-                  return Promise.resolve({ data: filtered, error: null }).then(resolve);
-                },
-              };
-            },
-          };
-        },
-        // ─── UPDATE chain ────────────────────────────────────────────────────
-        update(patch: Record<string, unknown>) {
-          return {
-            eq(k1: string, v1: string) {
-              const filtered = [...store.values()].filter((r: any) => r[k1] === v1);
-
-              // Two-arg eq variant (e.g. .eq(k1,v1).eq(k2,v2))
-              const chainResult = {
-                eq(k2: string, v2: string) {
-                  const rows = filtered.filter((r: any) => r[k2] === v2);
-                  rows.forEach((r: any) => Object.assign(r, patch));
-                  return Promise.resolve({ data: rows, error: null });
-                },
-                // Direct await (one-arg eq — used for bookings.update().eq('id', ...))
-                then(resolve: (v: { data: any[]; error: null }) => void) {
-                  filtered.forEach((r: any) => Object.assign(r, patch));
-                  return Promise.resolve({ data: filtered, error: null }).then(resolve);
-                },
-              };
-
-              // Make the outer eq itself awaitable (for `await db.from(...).update(...).eq(k1,v1)`)
-              (chainResult as any)[Symbol.toStringTag] = 'Promise';
-              (chainResult as any).then = (resolve: (v: any) => void) => {
-                filtered.forEach((r: any) => Object.assign(r, patch));
-                return Promise.resolve({ data: filtered, error: null }).then(resolve);
-              };
-
-              return chainResult;
-            },
-          };
+      const filters: ((row: any) => boolean)[] = [];
+      let patch: Record<string, unknown> | null = null;
+      let single = false;
+      const query = {
+        select(_columns: string) { return query; },
+        update(value: Record<string, unknown>) { patch = value; return query; },
+        eq(key: string, value: string) { filters.push((row) => row[key] === value); return query; },
+        in(key: string, values: string[]) { filters.push((row) => values.includes(row[key])); return query; },
+        maybeSingle() { single = true; return query; },
+        then(resolve: (result: any) => void) {
+          if (patch) beforeUpdate?.(table, patch);
+          const rows = [...store.values()].filter((row) => filters.every((filter) => filter(row)));
+          if (patch) rows.forEach((row) => Object.assign(row, patch));
+          return Promise.resolve({ data: single ? rows[0] ?? null : rows, error: null }).then(resolve);
         },
       };
+      return query;
     },
   };
 }
@@ -214,6 +177,7 @@ Deno.test('re-firing same payment.captured is idempotent', async () => {
   const peT = [...state.payment_events.values()].find(pe => pe.razorpay_order_id === ORDER_T)!;
   peT.status             = 'captured';
   peT.razorpay_payment_id = PAYMENT_T;
+  state.deposits.get('dep-traveler')!.status = 'held';
 
   const db      = makeDb(state);
   const outcome = await handleDepositCaptured(db as any, travelerPayload(PAYMENT_T));
@@ -223,12 +187,76 @@ Deno.test('re-firing same payment.captured is idempotent', async () => {
     assertEquals(outcome.type, 'idempotent');
   }
 
-  // Deposit row is still pending (no second write occurred)
+  // A fully applied capture is unchanged on replay.
   const depT = [...state.deposits.values()].find(d => d.side === 'traveler')!;
-  assertEquals(depT.status, 'pending');
+  assertEquals(depT.status, 'held');
 
   // Booking unchanged
   assertEquals(state.bookings.get(BOOKING_ID)!.status, 'awaiting_deposits');
+});
+
+Deno.test('replaying a capture finishes a deposit write that failed after the ledger write', async () => {
+  const state = makeInitialState();
+  const payment = state.payment_events.get('pe-traveler')!;
+  payment.status = 'captured';
+  payment.razorpay_payment_id = PAYMENT_T;
+  const outcome = await handleDepositCaptured(makeDb(state), travelerPayload());
+  assertEquals(outcome.ok, true);
+  assertEquals(state.deposits.get('dep-traveler')!.status, 'held');
+});
+
+Deno.test('replaying a capture finishes both interrupted booking transitions', async () => {
+  for (const status of ['awaiting_deposits', 'deposits_held']) {
+    const state = makeInitialState();
+    state.bookings.get(BOOKING_ID)!.status = status;
+    for (const deposit of state.deposits.values()) deposit.status = 'held';
+    const payment = state.payment_events.get('pe-buddy')!;
+    payment.status = 'captured';
+    payment.razorpay_payment_id = PAYMENT_B;
+    const outcome = await handleDepositCaptured(makeDb(state), buddyPayload());
+    assertEquals(outcome.ok, true);
+    assertEquals(state.bookings.get(BOOKING_ID)!.status, 'awaiting_balance');
+  }
+});
+
+Deno.test('a replay after refund leaves the ledger and returned deposit unchanged', async () => {
+  const state = makeInitialState();
+  const payment = state.payment_events.get('pe-traveler')!;
+  payment.status = 'refunded';
+  payment.razorpay_payment_id = PAYMENT_T;
+  state.deposits.get('dep-traveler')!.status = 'refunded';
+  state.bookings.get(BOOKING_ID)!.status = 'cancelled_no_pay';
+  const outcome = await handleDepositCaptured(makeDb(state), travelerPayload());
+  assertEquals(outcome, { ok: true, type: 'idempotent' });
+  assertEquals(payment.status, 'refunded');
+  assertEquals(state.deposits.get('dep-traveler')!.status, 'refunded');
+});
+
+Deno.test('a refund during capture recovery cannot restore the returned deposit or ledger', async () => {
+  const state = makeInitialState();
+  const payment = state.payment_events.get('pe-buddy')!;
+  payment.status = 'captured';
+  payment.razorpay_payment_id = PAYMENT_B;
+  for (const deposit of state.deposits.values()) deposit.status = 'held';
+  const db = makeDb(state, (table) => {
+    if (table === 'deposits') {
+      payment.status = 'refunded';
+      state.deposits.get('dep-buddy')!.status = 'refunded';
+    }
+  });
+  assertEquals(await handleDepositCaptured(db, buddyPayload()), { ok: false, error: 'deposit_changed_during_capture' });
+  assertEquals(payment.status, 'refunded');
+  assertEquals(state.deposits.get('dep-buddy')!.status, 'refunded');
+});
+
+Deno.test('a concurrent cancellation cannot be overwritten or reported as deposits held', async () => {
+  const state = makeInitialState();
+  state.deposits.get('dep-traveler')!.status = 'held';
+  const db = makeDb(state, (table) => {
+    if (table === 'bookings') state.bookings.get(BOOKING_ID)!.status = 'cancelled_no_deposit';
+  });
+  assertEquals(await handleDepositCaptured(db, buddyPayload()), { ok: false, error: 'booking_changed_during_capture' });
+  assertEquals(state.bookings.get(BOOKING_ID)!.status, 'cancelled_no_deposit');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

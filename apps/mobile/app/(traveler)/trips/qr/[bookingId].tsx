@@ -6,7 +6,7 @@
 // Route: /(traveler)/trips/qr/[bookingId]
 // ============================================================================
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

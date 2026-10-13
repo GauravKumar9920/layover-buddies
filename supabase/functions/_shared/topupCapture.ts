@@ -1,109 +1,60 @@
-// ============================================================================
-// TOP-UP CAPTURE — Phase 4 shared handler
-// ============================================================================
-// Called by razorpay-webhook when notes.kind === 'top_up' and the payment
-// is captured. Does NOT change the booking status — top-ups are invisible
-// to the state machine. They only affect reconciliation math via the
-// payment_events aggregation in compute_reconciliation_tx.
-//
-// Idempotent: re-running on the same razorpay_payment_id is a no-op.
-// ============================================================================
-
-import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+// TOP-UP CAPTURE — top-ups affect reconciliation, never booking.status.
+// The ledger is created before checkout is offered. A missing ledger or failed
+// dependent write requests a webhook retry instead of acknowledging lost money.
 
 export interface TopUpCapturePayload {
   razorpay_payment_id: string;
-  razorpay_order_id:   string;
-  amount_paise:        number;
-  booking_id:          string;
-  top_up_request_id:   string;
+  razorpay_order_id: string;
+  amount_paise: number;
+  booking_id: string;
+  top_up_request_id: string;
 }
 
 export interface TopUpCaptureOutcome {
-  ok:            boolean;
-  idempotent?:   boolean;
+  ok: boolean;
+  idempotent?: boolean;
   payment_event_id?: string;
 }
 
 export async function handleTopUpCaptured(
-  db: SupabaseClient,
+  db: { from(table: string): any },
   payload: TopUpCapturePayload,
 ): Promise<TopUpCaptureOutcome> {
-  const {
-    razorpay_payment_id,
-    razorpay_order_id,
-    amount_paise,
-    booking_id,
-    top_up_request_id,
-  } = payload;
+  const { razorpay_payment_id, razorpay_order_id, amount_paise, booking_id, top_up_request_id } = payload;
+  const { data: existing, error: readError } = await db.from('payment_events')
+    .select('id,status,booking_id,kind,amount_paise,razorpay_payment_id')
+    .eq('razorpay_order_id', razorpay_order_id).maybeSingle();
+  if (readError || !existing) throw new Error('topup payment ledger unavailable');
+  if (existing.booking_id !== booking_id || existing.kind !== 'top_up'
+    || existing.amount_paise !== amount_paise || !Number.isSafeInteger(amount_paise) || amount_paise <= 0) {
+    throw new Error('topup capture does not match the recorded order');
+  }
+  if (existing.status === 'refunded') return { ok: true, idempotent: true, payment_event_id: existing.id };
 
-  // ── 1. Idempotency check ────────────────────────────────────────────────────
-  const { data: existing } = await db
-    .from('payment_events')
-    .select('id')
-    .eq('razorpay_payment_id', razorpay_payment_id)
-    .eq('status', 'captured')
-    .maybeSingle();
-
-  if (existing) {
-    return { ok: true, idempotent: true, payment_event_id: existing.id };
+  const alreadyCaptured = existing.status === 'captured';
+  if (alreadyCaptured && existing.razorpay_payment_id !== razorpay_payment_id) {
+    throw new Error('topup order already has a different captured payment');
+  }
+  if (!alreadyCaptured) {
+    const { data: captured, error } = await db.from('payment_events').update({
+      status: 'captured', razorpay_payment_id, failed_reason: null, captured_at: new Date().toISOString(),
+    }).eq('id', existing.id).in('status', ['initiated', 'failed']).select('id').maybeSingle();
+    if (error || !captured) throw new Error('topup capture ledger write failed');
   }
 
-  // ── 2. Mark payment_events row as captured ──────────────────────────────────
-  // Match on razorpay_order_id (set when the order was created).
-  const { data: updatedEvent, error: updErr } = await db
-    .from('payment_events')
-    .update({
-      status:              'captured',
-      razorpay_payment_id,
-      captured_at:         new Date().toISOString(),
-    })
-    .eq('razorpay_order_id', razorpay_order_id)
-    .eq('status', 'initiated')
-    .select('id')
-    .single();
-
-  if (updErr || !updatedEvent) {
-    // Row might not exist yet if webhook arrived before Edge fn response.
-    // Insert it directly so we never lose a captured payment.
-    const { data: inserted, error: insErr } = await db
-      .from('payment_events')
-      .insert({
-        booking_id,
-        kind:                'top_up',
-        status:              'captured',
-        amount_paise,
-        razorpay_order_id,
-        razorpay_payment_id,
-        captured_at:         new Date().toISOString(),
-      })
-      .select('id')
-      .single();
-
-    if (insErr) throw new Error(`topup capture insert failed: ${insErr.message}`);
-
-    // Also flip the top_up_request — same update needed in this fallback path.
-    await db
-      .from('top_up_requests')
-      .update({
-        status:           'captured',
-        payment_event_id: inserted.id,
-      })
-      .eq('id', top_up_request_id)
-      .in('status', ['approved', 'pending']);
-
-    return { ok: true, payment_event_id: inserted.id };
+  // A previous invocation may have recorded the capture then failed here.
+  // Complete this step even when the ledger already records the payment.
+  const { data: request, error: requestError } = await db.from('top_up_requests').update({
+    status: 'captured', payment_event_id: existing.id, razorpay_payment_id,
+  }).eq('id', top_up_request_id).eq('booking_id', booking_id)
+    .in('status', ['approved', 'pending']).select('id').maybeSingle();
+  if (requestError) throw new Error('topup request capture write failed');
+  if (!request) {
+    const { data: completed, error } = await db.from('top_up_requests').select('status,payment_event_id')
+      .eq('id', top_up_request_id).eq('booking_id', booking_id).maybeSingle();
+    if (error || completed?.status !== 'captured' || completed.payment_event_id !== existing.id) {
+      throw new Error('topup request is not captured');
+    }
   }
-
-  // ── 3. Flip top_up_requests.status to 'captured' ────────────────────────────
-  await db
-    .from('top_up_requests')
-    .update({
-      status:           'captured',
-      payment_event_id: updatedEvent.id,
-    })
-    .eq('id', top_up_request_id)
-    .in('status', ['approved', 'pending']); // idempotent — won't flip captured→captured
-
-  return { ok: true, payment_event_id: updatedEvent.id };
+  return { ok: true, ...(alreadyCaptured ? { idempotent: true } : {}), payment_event_id: existing.id };
 }

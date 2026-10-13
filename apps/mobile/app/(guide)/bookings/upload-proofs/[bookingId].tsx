@@ -33,7 +33,6 @@ import { submitProofs } from '@/lib/api/tripLifecycle';
 import { formatPaise } from '@/lib/booking/money';
 import { financialCopy } from '@/lib/copy/financial';
 import { theme } from '@/config/theme';
-import { GUIDE_CATEGORIES } from '@/config/constants';
 import type { ExpenseProof } from '@/lib/api/expenseProofs';
 
 // ── Inline category selector ─────────────────────────────────────────────────

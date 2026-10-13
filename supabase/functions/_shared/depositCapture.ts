@@ -23,6 +23,7 @@ import {
   type BookingState,
   type GuardContext,
 } from './stateMachine.ts';
+import { handlePaymentFailed } from './paymentFailure.ts';
 
 export interface DepositNotes {
   booking_id: string;
@@ -48,22 +49,7 @@ export interface FailedPayload {
 
 /** Subset of supabase-js used by this module. Keeps the test mock simple. */
 export interface SupabaseLike {
-  from(table: string): {
-    select: (cols: string) => {
-      eq: (k: string, v: string) => {
-        eq?: (k: string, v: string) => unknown;
-        maybeSingle?: () => Promise<{ data: unknown; error: unknown }>;
-        order?: (col: string) => unknown;
-      };
-    };
-    update: (
-      patch: Record<string, unknown>,
-    ) => {
-      eq: (k: string, v: string) => {
-        eq?: (k: string, v: string) => Promise<{ data: unknown; error: unknown }>;
-      } & Promise<{ data: unknown; error: unknown }>;
-    };
-  };
+  from(table: string): any;
 }
 
 export type CaptureOutcome =
@@ -84,27 +70,49 @@ export async function handleDepositCaptured(
   // ── 1. Idempotency check ─────────────────────────────────────────────────
   const existing = await db
     .from('payment_events')
-    .select('id, status')
-    .eq('razorpay_payment_id', payload.paymentId)
+    .select('id, status, razorpay_payment_id')
+    .eq('razorpay_order_id', payload.orderId)
     .maybeSingle();
 
   if (existing.error) return { ok: false, error: `db_error: ${existing.error.message}` };
-  if (existing.data?.status === 'captured') {
-    return { ok: true, type: 'idempotent' };
+  if (!existing.data) return { ok: false, error: 'payment_event_not_found' };
+  if (existing.data.status === 'refunded') return { ok: true, type: 'idempotent' };
+  const alreadyCaptured = existing.data.status === 'captured';
+  if (alreadyCaptured) {
+    if (existing.data.razorpay_payment_id !== payload.paymentId) return { ok: false, error: 'order_already_captured' };
+    const [deposits, booking] = await Promise.all([
+      db.from('deposits').select('side, status').eq('booking_id', payload.notes.booking_id),
+      db.from('bookings').select('status').eq('id', payload.notes.booking_id).maybeSingle(),
+    ]);
+    if (deposits.error || booking.error) return { ok: false, error: 'capture_recovery_unavailable' };
+    if (!booking.data) return { ok: false, error: 'booking_not_found' };
+    // A ledger write can succeed before a later write fails. Replayed webhooks
+    // must finish those writes, while leaving completed/refunded trips alone.
+    const ownHeld = deposits.data?.some((row: { side: string; status: string }) => row.side === payload.notes.side && row.status === 'held');
+    const bothHeld = deposits.data?.filter((row: { status: string }) => row.status === 'held').length === 2;
+    if (!['awaiting_deposits', 'deposits_held'].includes(booking.data.status)
+      || (booking.data.status === 'awaiting_deposits' && ownHeld && !bothHeld)) {
+      return { ok: true, type: 'idempotent' };
+    }
   }
 
   // ── 2. Mark payment_events captured ──────────────────────────────────────
-  const peUpdate = await db
+  const peUpdate = alreadyCaptured ? { data: existing.data, error: null } : await db
     .from('payment_events')
     .update({
       status:               'captured',
       razorpay_payment_id:  payload.paymentId,
       razorpay_signature:   payload.signature,
       captured_at:          payload.capturedAtIso,
+      failed_reason:        null,
     })
-    .eq('razorpay_order_id', payload.orderId);
+    .eq('id', existing.data.id)
+    .in('status', ['initiated', 'failed'])
+    .select('id')
+    .maybeSingle();
 
   if (peUpdate.error) return { ok: false, error: `db_error: ${peUpdate.error.message}` };
+  if (!peUpdate.data) return { ok: false, error: 'payment_changed_during_capture' };
 
   // ── 3. Mark deposit held ─────────────────────────────────────────────────
   const depositUpdate = await db
@@ -114,12 +122,17 @@ export async function handleDepositCaptured(
       razorpay_payment_id: payload.paymentId,
       held_at:             payload.capturedAtIso,
     })
+    .eq('id', payload.notes.deposit_id)
     .eq('booking_id', payload.notes.booking_id)
-    .eq('side', payload.notes.side);
+    .eq('side', payload.notes.side)
+    .in('status', ['pending', 'held'])
+    .select('id')
+    .maybeSingle();
 
   if (depositUpdate.error) {
     return { ok: false, error: `db_error: ${depositUpdate.error.message}` };
   }
+  if (!depositUpdate.data) return { ok: false, error: 'deposit_changed_during_capture' };
 
   // ── 4. Re-read both deposits → compute bothDepositsHeld ──────────────────
   const depositsList = await db
@@ -147,7 +160,9 @@ export async function handleDepositCaptured(
   if (!bookingRead.data) return { ok: false, error: 'booking_not_found' };
 
   const currentStatus = bookingRead.data.status as BookingState;
-  const event: BookingEvent = { kind: 'deposit_captured', side: payload.notes.side };
+  const event: BookingEvent = currentStatus === 'deposits_held'
+    ? { kind: 'deposits_recovered' }
+    : { kind: 'deposit_captured', side: payload.notes.side };
   const ctx: GuardContext = { bothDepositsHeld, bothSignaturesPresent: true };
   const result = transition(currentStatus, event, ctx);
 
@@ -166,19 +181,28 @@ export async function handleDepositCaptured(
   // deposits_held with no outgoing events. The cron_deposits_held_sweep job
   // (migration 20260613_deposits_held_sweep) advances any booking stuck in
   // deposits_held >2 min with both deposits genuinely held.
-  const w1 = await db
-    .from('bookings')
-    .update({ status: 'deposits_held' })
-    .eq('id', payload.notes.booking_id);
-
-  if (w1.error) return { ok: false, error: `db_error: ${w1.error.message}` };
+  if (currentStatus === 'awaiting_deposits') {
+    const w1 = await db
+      .from('bookings')
+      .update({ status: 'deposits_held' })
+      .eq('id', payload.notes.booking_id)
+      .eq('status', 'awaiting_deposits')
+      .select('id')
+      .maybeSingle();
+    if (w1.error) return { ok: false, error: `db_error: ${w1.error.message}` };
+    if (!w1.data) return { ok: false, error: 'booking_changed_during_capture' };
+  }
 
   const w2 = await db
     .from('bookings')
     .update({ status: 'awaiting_balance' })
-    .eq('id', payload.notes.booking_id);
+    .eq('id', payload.notes.booking_id)
+    .eq('status', 'deposits_held')
+    .select('id')
+    .maybeSingle();
 
   if (w2.error) return { ok: false, error: `db_error: ${w2.error.message}` };
+  if (!w2.data) return { ok: false, error: 'booking_changed_during_capture' };
 
   return { ok: true, type: 'both_deposits_held', bookingStatus: 'awaiting_balance' };
 }
@@ -192,15 +216,5 @@ export async function handleDepositFailed(
   db: SupabaseLike,
   payload: FailedPayload,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const r = await db
-    .from('payment_events')
-    .update({
-      status:               'failed',
-      razorpay_payment_id:  payload.paymentId,
-      failed_reason:        payload.reason,
-    })
-    .eq('razorpay_order_id', payload.orderId);
-
-  if (r.error) return { ok: false, error: `db_error: ${r.error.message}` };
-  return { ok: true };
+  return await handlePaymentFailed(db, payload);
 }

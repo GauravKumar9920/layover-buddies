@@ -304,14 +304,16 @@ export default function BookingScreen() {
         setItineraries(it);
         // Casual inquiries don't auto-pick a tour; package inquiries default to
         // the first (or the pre-selected) tour.
-        if (!isCasual && !selectedItinId && it.length > 0) setSelectedItinId(it[0].id);
+        if (!isCasual && it.length > 0) {
+          setSelectedItinId((current) => current || it[0].id);
+        }
 
       })
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : 'Failed to load guide details.');
       })
       .finally(() => setLoading(false));
-  }, [guideId]);
+  }, [guideId, isCasual]);
 
   const selectedItin = itineraries.find((i) => i.id === selectedItinId);
   // Mirrors createBooking (lib/api/bookings.ts) line for line. If these drift,

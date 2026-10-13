@@ -11,7 +11,7 @@
 
 import { useState } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, ActivityIndicator,
+  View, Text, TextInput, StyleSheet,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -21,7 +21,7 @@ import { Header } from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
 import { theme } from '@/config/theme';
-import { notify, confirmAsync } from '@/lib/ui/alert';
+import { notify } from '@/lib/ui/alert';
 
 // Basic VPA validation: must contain @
 function isValidVpa(vpa: string): boolean {

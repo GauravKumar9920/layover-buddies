@@ -13,7 +13,6 @@ import { Image } from 'expo-image';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Loading } from '@/components/ui/Loading';
 import { theme } from '@/config/theme';
-import { TimeFitChip } from '@/components/ui/TimeFitChip';
 import { useTravelerTrip } from '@/lib/hooks/useTravelerTrip';
 import { formatFromPrice } from '@/lib/booking/tourPricing';
 import { getItineraryPhoto } from '@/config/photoLibrary';
@@ -39,13 +38,9 @@ export default function SavedScreen() {
   // (load → useEffect → setLoading → re-render → new array → repeat).
   const favoriteIdsSet = useFavoritesStore((s) => s.ids);
   const hydrated = useFavoritesStore((s) => s.hydrated);
-  // Derive a stable array via useMemo keyed on the Set's size+contents.  We
-  // intentionally key on a string hash so reordering still triggers reload
-  // but identity-preserving updates don't.
-  const favoriteIdsKey = useMemo(() => {
-    return Array.from(favoriteIdsSet).sort().join(',');
-  }, [favoriteIdsSet]);
-  const favoriteIds = useMemo(() => Array.from(favoriteIdsSet), [favoriteIdsKey]);
+  // The store replaces its Set when favorites change; unrelated renders keep
+  // this array stable without hiding a dependency from React.
+  const favoriteIds = useMemo(() => Array.from(favoriteIdsSet), [favoriteIdsSet]);
 
   const [items, setItems] = useState<Itinerary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +57,7 @@ export default function SavedScreen() {
     setItems(
       fetched.filter((i): i is Itinerary => i !== null),
     );
-  }, [favoriteIdsKey]);
+  }, [favoriteIds]);
 
   useEffect(() => {
     // Wait for the favorites store to hydrate from Supabase before showing

@@ -109,7 +109,6 @@ export function computeCancellationResolution(
   inputs: CancellationInputs,
 ): CancellationResolution {
   const {
-    currentStatus,
     trigger,
     triggerActor,
     hoursUntilTrip,

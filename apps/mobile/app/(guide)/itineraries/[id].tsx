@@ -111,7 +111,7 @@ export default function EditItineraryScreen() {
         setCoverImageUrl(normalized.cover_image_url ?? null);
 
         const rawStops = Array.isArray((data as Record<string, unknown>).stops)
-          ? ((data as Record<string, unknown>).stops as Array<Record<string, unknown>>)
+          ? ((data as Record<string, unknown>).stops as Record<string, unknown>[])
           : [];
         const parsedStops: EditableStop[] = rawStops
           .map((s) => ({

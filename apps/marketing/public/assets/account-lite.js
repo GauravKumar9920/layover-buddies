@@ -22,20 +22,35 @@
   var refreshing = null;
   function refresh(session) {
     if (!refreshing) {
+      var invalidRefresh = false;
+      function stillCurrent() {
+        var current = read();
+        return current && current.access_token === session.access_token && current.refresh_token === session.refresh_token;
+      }
       refreshing = fetch(base + '/auth/v1/token?grant_type=refresh_token', {
         method: 'POST',
         headers: { apikey: anonKey, 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh_token: session.refresh_token }),
       }).then(function (response) {
-        if (!response.ok) throw new Error('refresh failed');
+        if (!response.ok) {
+          invalidRefresh = response.status === 400 || response.status === 401 || response.status === 403;
+          throw new Error('refresh failed');
+        }
         return response.json();
       }).then(function (next) {
+        // Another tab may have signed out or switched accounts while we waited.
+        // Never restore or replace that tab's newer session with this response.
+        if (!stillCurrent()) return null;
+        if (!next || !next.access_token || !next.refresh_token || !next.user) throw new Error('invalid refresh response');
         if (!next.expires_at && next.expires_in) next.expires_at = Math.round(Date.now() / 1000) + next.expires_in;
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (error) {}
         return next;
       }).catch(function () {
-        // A refresh token that no longer works means the person is signed out.
-        try { localStorage.removeItem(STORAGE_KEY); } catch (error) {}
+        // A network outage, rate limit or server error can be retried. Only a
+        // rejected refresh token signs out the session that started this request.
+        if (invalidRefresh && stillCurrent()) {
+          try { localStorage.removeItem(STORAGE_KEY); } catch (error) {}
+        }
         return null;
       }).then(function (result) { refreshing = null; return result; });
     }
@@ -79,6 +94,7 @@
     savePlace: function (slug) {
       if (!slugPattern.test(slug)) return Promise.reject(new Error('invalid place'));
       var user = window.DetourAccount.user();
+      if (!user) return Promise.reject(Object.assign(new Error('signed out'), { code: 'signed_out' }));
       return rest('saved_places?on_conflict=user_id,place_slug', {
         method: 'POST',
         headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' },
