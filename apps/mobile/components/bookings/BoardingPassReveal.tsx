@@ -4,7 +4,7 @@
  * then it auto-advances to the trip screen (or on tap). Pure presentational —
  * the caller owns the booking data and the onDone navigation.
  */
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Modal, View, Text, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import Animated, {
@@ -64,6 +64,11 @@ export function BoardingPassReveal({
   const ticketOp = useSharedValue(0);
   const stampScale = useSharedValue(1.6);
   const stampOp = useSharedValue(0);
+  const onDoneRef = useRef(onDone);
+
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
 
   useEffect(() => {
     if (!visible) return;
@@ -81,9 +86,9 @@ export function BoardingPassReveal({
       ),
     );
     // Auto-advance
-    const t = setTimeout(() => onDone(), 2100);
+    const t = setTimeout(() => onDoneRef.current(), 2100);
     return () => clearTimeout(t);
-  }, [visible]);
+  }, [visible, scrim, ticketOp, ticketY, ticketScale, stampOp, stampScale]);
 
   const scrimStyle = useAnimatedStyle(() => ({ opacity: scrim.value }));
   const ticketStyle = useAnimatedStyle(() => ({

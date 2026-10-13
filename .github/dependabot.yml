@@ -12,6 +12,29 @@ updates:
     # available, but make minor/major platform changes through a coordinated
     # Expo SDK upgrade instead of independent Dependabot PRs.
     ignore:
+      # React 19 requires a coordinated Expo/React Native and web-renderer
+      # migration. Expo 52 validates React/react-dom 18.3.1 and React 18 types.
+      # Only version-update majors are ignored; security updates remain enabled.
+      - dependency-name: "react"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "react-dom"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "@types/react"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "@types/react-dom"
+        update-types:
+          - "version-update:semver-major"
+      # Expo 52's Babel preset and native plugins target Babel 7. ESLint 9+
+      # needs a flat-config migration from apps/mobile/.eslintrc.json.
+      - dependency-name: "@babel/core"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "eslint"
+        update-types:
+          - "version-update:semver-major"
       # Major toolchain/API migrations need a dedicated compatibility task.
       # Continue automated patch/minor updates for these current app versions.
       - dependency-name: "jest"
@@ -60,3 +83,12 @@ updates:
         update-types:
           - patch
           - minor
+  # Keep immutable workflow action pins current through reviewed PRs.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: Asia/Kolkata
+    open-pull-requests-limit: 5

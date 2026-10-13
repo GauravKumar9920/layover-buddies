@@ -44,7 +44,7 @@ function TabIcon({
       scale.value = withSpring(1, { damping: 10, stiffness: 150 });
     }
     return () => cancelAnimation(scale);
-  }, [focused, bouncyOnFocus]);
+  }, [focused, bouncyOnFocus, scale]);
 
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 

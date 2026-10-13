@@ -20,6 +20,7 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient } from '../_shared/supabaseAdmin.ts';
 import { verifyRazorpaySignature } from '../_shared/razorpaySignature.ts';
+import { handlePaymentFailed } from '../_shared/paymentFailure.ts';
 import {
   handleDepositCaptured,
   handleDepositFailed,
@@ -190,10 +191,12 @@ serve(async (req: Request) => {
 
     if (event.event === 'payment.failed') {
       // Mark initiated row as failed; booking stays in awaiting_balance/late_fee_due.
-      await db
-        .from('payment_events')
-        .update({ status: 'failed', failed_reason: payment.error_description ?? 'unknown' })
-        .eq('razorpay_order_id', payment.order_id);
+      const result = await handlePaymentFailed(db, {
+        paymentId: payment.id,
+        orderId: payment.order_id,
+        reason: payment.error_description ?? payment.error_reason ?? 'unknown',
+      });
+      if (!result.ok) return errorResponse(result.error, 500);
       return jsonResponse({ ok: true, outcome: 'balance_failed_recorded' });
     }
   }
@@ -208,7 +211,7 @@ serve(async (req: Request) => {
       const result = await handleTopUpCaptured(db, {
         razorpay_payment_id: payment.id,
         razorpay_order_id:   payment.order_id,
-        amount_paise:        Math.round(Number(payment.amount ?? 0)),
+        amount_paise:        Number(payment.amount ?? 0),
         booking_id:          n.booking_id,
         top_up_request_id:   n.top_up_request_id,
       } as TopUpCapturePayload);
@@ -216,16 +219,14 @@ serve(async (req: Request) => {
     }
 
     if (event.event === 'payment.failed') {
-      // Mark top-up as failed so buddy can retry.
-      await db
-        .from('top_up_requests')
-        .update({ status: 'declined' })
-        .eq('id', n.top_up_request_id)
-        .in('status', ['approved', 'pending']);
-      await db
-        .from('payment_events')
-        .update({ status: 'failed', failed_reason: payment.error_description ?? 'unknown' })
-        .eq('razorpay_order_id', payment.order_id);
+      // Approval is the traveler's decision, independent of checkout failures.
+      // Keep it approved so create-topup-order can offer a retry.
+      const result = await handlePaymentFailed(db, {
+        paymentId: payment.id,
+        orderId: payment.order_id,
+        reason: payment.error_description ?? payment.error_reason ?? 'unknown',
+      });
+      if (!result.ok) return errorResponse(result.error, 500);
       return jsonResponse({ ok: true, outcome: 'topup_failed_recorded' });
     }
   }

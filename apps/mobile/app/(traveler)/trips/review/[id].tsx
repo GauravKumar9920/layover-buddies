@@ -16,8 +16,6 @@ import Animated, {
   useAnimatedStyle,
   withSequence,
   withSpring,
-  withDelay,
-  withTiming,
 } from 'react-native-reanimated';
 import { Header } from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
@@ -50,7 +48,7 @@ function SuccessView({ guideName, tripId }: { guideName: string; tripId: string 
       withSpring(1.3, { damping: 8, stiffness: 200 }),
       withSpring(1, { damping: 12, stiffness: 120 }),
     );
-  }, []);
+  }, [starScale]);
 
   const starStyle = useAnimatedStyle(() => ({ transform: [{ scale: starScale.value }] }));
 

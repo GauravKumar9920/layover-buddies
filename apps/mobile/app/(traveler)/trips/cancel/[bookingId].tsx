@@ -18,24 +18,7 @@ import { Card } from '@/components/ui/Card';
 import { cancelBooking } from '@/lib/api/cancellation';
 import { fetchBookingById } from '@/lib/api/bookings';
 import { theme } from '@/config/theme';
-import type { AmountFate } from '@/lib/booking/cancellationSnapshot';
 import type { Booking } from '@/types';
-
-const FATE_LABELS: Record<AmountFate, string> = {
-  refunded:  'Cash refund',
-  forfeited: 'Forfeited',
-  voucher:   'Platform voucher',
-  waived:    'Waived',
-  not_paid:  'Not charged',
-};
-
-const FATE_COLORS: Record<AmountFate, string> = {
-  refunded:  '#166534',
-  forfeited: '#991B1B',
-  voucher:   '#854D0E',
-  waived:    '#64748B',
-  not_paid:  '#64748B',
-};
 
 export default function CancelBookingScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();

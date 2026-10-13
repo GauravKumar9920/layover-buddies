@@ -14,7 +14,10 @@
 //   - Canonical math fixture assertions (§2 worked example)
 // ============================================================================
 
-import { transition, canTransition } from '../stateMachine';
+import {
+  transition, canTransition, isUpcomingBookingState, isActiveBookingState,
+  PAST_BOOKING_STATES, TERMINAL_BOOKING_STATES,
+} from '../stateMachine';
 import type { BookingState, BookingEvent, GuardContext } from '../stateMachine';
 import { formatPaise, paiseToRupees, rupeesToPaise } from '../money';
 import {
@@ -611,12 +614,6 @@ describe('Legacy state shims', () => {
 // State-classification helpers (added 2026-05-14 review fix #19-21)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import {
-  isUpcomingBookingState,
-  isActiveBookingState,
-  PAST_BOOKING_STATES,
-  TERMINAL_BOOKING_STATES,
-} from '../stateMachine';
 
 describe('isUpcomingBookingState / isActiveBookingState', () => {
   test.each([

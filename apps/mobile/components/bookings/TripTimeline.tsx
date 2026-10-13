@@ -58,7 +58,7 @@ function StageDot({ state }: { state: 'done' | 'current' | 'todo' }) {
     if (state === 'current') {
       scale.value = withDelay(250, withSpring(1, { damping: 15, stiffness: 150 }));
     }
-  }, [state]);
+  }, [state, scale]);
 
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
@@ -114,7 +114,7 @@ function ProgressRail({ currentIndex, complete }: { currentIndex: number; comple
 
   useEffect(() => {
     progress.value = withTiming(fraction, { duration: 650 });
-  }, [fraction]);
+  }, [fraction, progress]);
 
   const fillStyle = useAnimatedStyle(() => ({ width: `${progress.value * 100}%` }));
 

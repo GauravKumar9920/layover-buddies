@@ -8,6 +8,8 @@ name: CI
 # application workspace plus packages/* from the root package-lock.json, then
 # each job runs the relevant workspace script via `npm run <task> -w <name>`.
 # Sanity Studio is intentionally isolated with its own React 19 lockfile.
+# Node 22.19 is the minimum supported runtime for the patched Undici 8 tree.
+# Action releases are pinned to reviewed commits and use current runtimes.
 #
 # What this catches:
 #   - TypeScript errors (wrong field names, missing imports, type mismatches)
@@ -40,10 +42,12 @@ jobs:
     name: mobile · typecheck + lint + test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: '22.12'
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.19'
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - name: Reject committed Google API keys
@@ -54,13 +58,15 @@ jobs:
           fi
       - name: Install (workspaces)
         run: npm ci
+      - name: Verify patched dependency security guards
+        run: npm run test:dependency-security
+      - name: Audit dependency advisories
+        run: npm run security:dependencies
       - name: Verify Expo SDK dependency alignment
         working-directory: apps/mobile
         env:
           CI: "1"
         run: npx --no-install expo install --check --npm
-      - name: Verify patched untrusted-image parser guards
-        run: npm run test:dependency-security
       - name: Type check
         run: npm run type-check --workspace @detour/mobile
       - name: Lint
@@ -74,10 +80,12 @@ jobs:
     name: admin · build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: '22.12'
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.19'
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - name: Install (workspaces)
@@ -98,12 +106,16 @@ jobs:
     # verification, deposit-capture flow, push send + copy. No DB needed —
     # these are pure-logic tests over the function helpers.
     steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: v2.x
-      - name: Type check admin and growth boundaries
+      - name: Type check payment, admin and growth boundaries
         run: |
+          deno check supabase/functions/razorpay-webhook/index.ts
+          deno check supabase/functions/create-topup-order/index.ts
           deno check supabase/functions/booking-support/index.ts
           deno check supabase/functions/cancel-booking/index.ts
           deno check supabase/functions/submit-proofs/index.ts
@@ -124,10 +136,12 @@ jobs:
     # The marketing workspace produces the static site deployed by Vercel.
     # The build also validates Astro content and route generation.
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: '22.12'
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.19'
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - name: Install (workspaces)
@@ -144,14 +158,20 @@ jobs:
       run:
         working-directory: apps/studio
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: '22.12'
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.19'
           cache: 'npm'
           cache-dependency-path: apps/studio/package-lock.json
       - name: Install isolated Studio dependencies
         run: npm ci
+      - name: Verify patched dependency security guards
+        run: node ../../scripts/test-unreleased-security.mjs .
+      - name: Audit isolated Studio dependency advisories
+        run: npm run security:dependencies
       - name: Type check
         run: npm run type-check
       - name: Validate schemas
@@ -167,9 +187,11 @@ jobs:
     # references a column that doesn't exist, or conflicts with a previous
     # migration, this step fails loudly.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install Supabase CLI
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
           version: latest
       - name: Start Supabase (applies migrations to fresh DB)

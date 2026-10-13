@@ -29,8 +29,6 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchGuideById, fetchItineraryById } from '@/lib/api/guides';
 import { safeBack } from '@/lib/navigation';
 import { theme } from '@/config/theme';
-import { TimeFitChip } from '@/components/ui/TimeFitChip';
-import { useTravelerTrip } from '@/lib/hooks/useTravelerTrip';
 import { formatFromPrice } from '@/lib/booking/tourPricing';
 import { getGuideHeroPhoto, getItineraryPhoto } from '@/config/photoLibrary';
 import { hapticImpactLight, hapticImpactMedium } from '@/lib/haptics';
@@ -169,7 +167,6 @@ function buildFallbackContent(itinerary: Itinerary, guide: GuideProfile | null):
 }
 
 export default function ItineraryDetailScreen() {
-  const { layoverHours } = useTravelerTrip();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();

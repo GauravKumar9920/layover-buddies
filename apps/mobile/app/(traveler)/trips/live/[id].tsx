@@ -101,15 +101,12 @@ export default function LiveTourScreen() {
 
   // Phase 4 — top-up approval
   const { activeRequest } = useTopUpRequest(id ?? null);
+  const activeRequestId = activeRequest?.id;
 
   // Auto-open modal when a top-up request arrives.
   useEffect(() => {
-    if (activeRequest) {
-      setTopUpModalVisible(true);
-    } else {
-      setTopUpModalVisible(false);
-    }
-  }, [activeRequest?.id]);
+    setTopUpModalVisible(!!activeRequestId);
+  }, [activeRequestId]);
 
   useEffect(() => {
     if (!id) return;

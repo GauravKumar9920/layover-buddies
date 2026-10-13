@@ -1,5 +1,5 @@
 import { BookingSupport } from '@/components/bookings/BookingSupport';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, Alert, RefreshControl } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,7 +38,7 @@ export default function TripDetailScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
-  async function loadBooking(showLoader = true) {
+  const loadBooking = useCallback(async (showLoader = true) => {
     if (!id) return;
 
     try {
@@ -50,7 +50,7 @@ export default function TripDetailScreen() {
     } finally {
       if (showLoader) setLoading(false);
     }
-  }
+  }, [id]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
@@ -69,7 +69,7 @@ export default function TripDetailScreen() {
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [id]);
+  }, [id, loadBooking]);
 
   async function handleRefresh() {
     setRefreshing(true);

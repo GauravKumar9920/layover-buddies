@@ -74,7 +74,7 @@ export function GuideCard({
     const delay = index * 100;
     translateY.value = withDelay(delay, withSpring(0, { damping: 20, stiffness: 90 }));
     opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.bezier(0.25, 0.1, 0.25, 1) }));
-  }, [index]);
+  }, [index, translateY, opacity]);
 
   const entranceStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
