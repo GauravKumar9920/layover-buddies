@@ -1,0 +1,23 @@
+---
+import { getSiteContent } from '../lib/site-content';
+interface Props { route: string }
+const { route } = Astro.props;
+const content = await getSiteContent();
+const item = content.find(entry => entry.route === route);
+const eligible = content.filter(entry => entry.searchable && entry.route !== route && !['gallery','hub','home','resource'].includes(entry.kind) && !(item?.kind === 'place' && entry.kind === 'place'));
+const explicit = (item?.relatedRoutes || []).map(route => eligible.find(entry => entry.route === route)).filter(Boolean);
+const practicalRoutes = item?.kind === 'place' || item?.kind === 'gallery'
+  ? [item.region === 'near-airport' ? '/guides/short-layover-mumbai' : item.region === 'further' ? '/guides/12-hour-layover-mumbai' : '/guides/8-hour-layover-mumbai', '/guides/mumbai-airport-to-city']
+  : [];
+const practical = practicalRoutes.map(route => eligible.find(entry => entry.route === route)).filter(Boolean);
+const useful = item?.kind === 'place' || item?.kind === 'gallery'
+  ? eligible.filter(entry => entry.kind === 'guide' && entry.section === 'explore' && entry.tags.some(tag => item.tags.includes(tag)))
+  : eligible.filter(entry => entry.section === item?.section && entry.kind === 'guide');
+const related = [...new Map([...explicit, ...practical, ...useful].map(entry => [entry!.route, entry!])).values()].slice(0, 4);
+const display = item && ['guide','place','gallery','company'].includes(item.kind);
+---
+{display && <section class="site-continuity" aria-labelledby="site-next-title" data-site-continuity>
+  <div class="site-continuity-heading"><span>KEEP GOING</span><h2 id="site-next-title">A little more to explore.</h2><p>Connect what you’ve read with the next part of your layover.</p></div>
+  {related.length > 0 && <div class="site-related-grid">{related.map(entry => <a class="site-related-card" href={entry.route}><small>{entry.groupLabel}</small><h3>{entry.navigationTitle || entry.title}</h3><p>{entry.summary}</p><span>{entry.kind === 'tool' ? 'Open the checker' : entry.kind === 'place' ? 'Read the field note' : 'Read the guide'} →</span></a>)}</div>}
+  <div class="site-next-steps"><a href="/guides/can-i-leave-mumbai-airport">Check your time outside the airport ↗</a><a href={item.section === 'explore' ? '/guides' : '/guides/places'}>{item.section === 'explore' ? 'Plan your layover' : 'Explore Mumbai'} ↗</a><a href="/#board" class="btn-trigger-booking" data-site-inquiry>Plan with the founders ↗</a></div>
+</section>}

@@ -1,0 +1,13 @@
+{
+  "route": "/account",
+  "legacySource": "guides/index.html",
+  "pageType": "website",
+  "title": "Your Account | Detour",
+  "description": "Your Detour account: layover requests, trips booked with a host, saved places and account settings.",
+  "image": "/images/hero-skyline-main.jpg",
+  "updatedAt": "2026-09-26",
+  "changeFrequency": "yearly",
+  "priority": 0.1,
+  "index": false,
+  "author": "Detour founder team"
+}

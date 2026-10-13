@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getSitePages } from '../lib/site-pages';
+import { getSiteContent } from '../lib/site-content';
 
 export const prerender = true;
 
@@ -11,7 +11,7 @@ function escapeXml(value: string): string {
 
 export const GET: APIRoute = async ({ site }) => {
   const origin = site || new URL('https://detourtrips.com');
-  const pages = (await getSitePages()).filter((page) => page.index && page.route !== '/404');
+  const pages = (await getSiteContent()).filter((page) => page.index);
   const urls = pages.map((page) => `  <url>
     <loc>${escapeXml(new URL(page.route, origin).toString())}</loc>
     <lastmod>${escapeXml(page.updatedAt.slice(0, 10))}</lastmod>

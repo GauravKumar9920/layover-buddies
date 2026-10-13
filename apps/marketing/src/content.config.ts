@@ -17,8 +17,19 @@ const pages = defineCollection({
     changeFrequency: z.enum(['daily', 'weekly', 'monthly', 'yearly']).default('monthly'),
     priority: z.number().min(0).max(1).default(0.5),
     index: z.boolean().default(true),
-    author: z.string().default('Detour Mumbai student team'),
+    author: z.string().default('Detour founder team'),
     reviewer: z.string().optional(),
+    discovery: z.object({
+      section: z.enum(['explore', 'plan', 'detour', 'utility']),
+      group: z.string(),
+      kind: z.enum(['guide', 'hub', 'company']).optional(),
+      navigationTitle: z.string().max(100).optional(),
+      parentRoute: z.string().startsWith('/').optional(),
+      tags: z.array(z.string()).default([]),
+      aliases: z.array(z.string()).default([]),
+      relatedRoutes: z.array(z.string().startsWith('/')).default([]),
+      searchable: z.boolean().optional(),
+    }).optional(),
   }),
 });
 

@@ -1,0 +1,107 @@
+---
+import places from '../data/place-guides.json';
+interface Props { view: 'login' | 'account' }
+const { view } = Astro.props;
+const enabled = Boolean(import.meta.env.PUBLIC_SUPABASE_URL && import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
+const placeData = JSON.stringify(places.map(p => ({ slug: p.slug, name: p.name, area: p.area, thumb: p.photos[0].thumb, alt: p.photos[0].alt, focus: p.photos[0].focus || '50% 50%' })));
+---
+<div class="field-note tool-page account-page">
+  <main id="main-content">
+    {view === 'login' ? <>
+      <header class="opening"><div class="eyebrow">Your Detour account</div><h1>Welcome <em>back.</em></h1><p class="lead">Sign in to follow your requests, keep the places you’ve saved and send your next request in a few taps. When the Detour app launches, the same account will work there too.</p></header>
+      {enabled ? <div class="auth-layout" data-auth>
+        <section class="auth-card" aria-label="Sign in or create an account">
+          <div class="auth-tabs" role="tablist" aria-label="Account">
+            <button type="button" role="tab" id="tab-signin" aria-controls="panel-signin" aria-selected="true" data-auth-tab="signin">Sign in</button>
+            <button type="button" role="tab" id="tab-signup" aria-controls="panel-signup" aria-selected="false" tabindex="-1" data-auth-tab="signup">Create an account</button>
+          </div>
+          <form id="panel-signin" role="tabpanel" aria-labelledby="tab-signin" data-auth-form="signin" novalidate>
+            <label>Email<input type="email" name="email" autocomplete="email" required maxlength="254"></label>
+            <label>Password<input type="password" name="password" autocomplete="current-password" required minlength="8" maxlength="128"></label>
+            <button class="button" type="submit">Sign in</button>
+            <button class="auth-link" type="button" data-auth-show="reset">Forgot your password?</button>
+          </form>
+          <form id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" data-auth-form="signup" novalidate hidden>
+            <label>Your name<input type="text" name="name" autocomplete="name" required maxlength="120"></label>
+            <label>Email<input type="email" name="email" autocomplete="email" required maxlength="254"></label>
+            <label>Password <span>At least 8 characters</span><input type="password" name="password" autocomplete="new-password" required minlength="8" maxlength="128"></label>
+            <button class="button" type="submit">Create my account</button>
+            <p class="auth-fine">By creating an account you agree to our <a href="/terms">terms</a> and <a href="/privacy">privacy policy</a>.</p>
+          </form>
+          <form data-auth-form="reset" novalidate hidden>
+            <h2>Reset your <em>password.</em></h2>
+            <p>Enter the email on your account and we’ll send you a link to choose a new password.</p>
+            <label>Email<input type="email" name="email" autocomplete="email" required maxlength="254"></label>
+            <button class="button" type="submit">Send the reset link</button>
+            <button class="auth-link" type="button" data-auth-show="signin">Back to sign in</button>
+          </form>
+          <p class="auth-message" data-auth-message role="status" aria-live="polite" hidden></p>
+        </section>
+        <aside class="auth-why">
+          <small>Why sign in</small>
+          <ul>
+            <li><strong>Every request in one place.</strong> See what you’ve sent us and where it stands.</li>
+            <li><strong>Places you’ve saved.</strong> Keep a shortlist from the field notes, on any device.</li>
+            <li><strong>Faster requests.</strong> Your name and email are filled in for you.</li>
+          </ul>
+          <p class="muted">You never need an account to plan a detour. <a href="/#board">Send a request without one ↗</a></p>
+        </aside>
+      </div> : <div class="auth-off"><p><strong>Accounts are opening soon.</strong> You don’t need one to plan a detour: <a href="/#board">send us your flight times</a> and we’ll reply by email.</p></div>}
+    </> : <>
+      <div class="account-loading" data-account-loading><p>Loading your account…</p></div>
+      <div class="account-view" data-account hidden={enabled ? undefined : true} data-places={placeData}>
+        <header class="opening"><div class="eyebrow">Your Detour account</div><h1>Hello, <em data-account-name>traveller.</em></h1><p class="lead" data-account-email></p></header>
+        <form class="account-panel new-password" data-new-password hidden>
+          <h2>Choose a new <em>password.</em></h2>
+          <label>New password <span>At least 8 characters</span><input type="password" name="password" autocomplete="new-password" required minlength="8" maxlength="128"></label>
+          <button class="button" type="submit">Save my new password</button>
+          <p class="auth-message" data-new-password-message role="status" hidden></p>
+        </form>
+        <div class="account-grid">
+          <section class="account-panel" aria-labelledby="requests-heading">
+            <small>01 / Your requests</small>
+            <h2 id="requests-heading">What you’ve <em>asked us.</em></h2>
+            <ul class="account-list" data-account-requests></ul>
+            <p class="account-empty" data-requests-empty hidden>No requests yet. Requests you send while signed in appear here. <a href="/#board">Plan a detour ↗</a></p>
+          </section>
+          <section class="account-panel" aria-labelledby="trips-heading">
+            <small>02 / Your trips</small>
+            <h2 id="trips-heading">Booked with <em>a host.</em></h2>
+            <ul class="account-list" data-account-trips></ul>
+            <p class="account-empty" data-trips-empty hidden>No trips yet. Once a request becomes a booking, it shows up here.</p>
+          </section>
+        </div>
+        <section class="account-panel account-saved" aria-labelledby="saved-heading">
+          <small>03 / Saved places</small>
+          <h2 id="saved-heading">Your Mumbai <em>shortlist.</em></h2>
+          <div class="place-cards" data-account-saved></div>
+          <p class="account-empty" data-saved-empty hidden>Nothing saved yet. Open any <a href="/guides/places">field note</a> and choose “Save this place”.</p>
+        </section>
+        <section class="account-panel account-settings" aria-labelledby="settings-heading">
+          <small>04 / Settings</small>
+          <h2 id="settings-heading">Your <em>details.</em></h2>
+          <div class="settings-grid">
+            <form data-account-name-form>
+              <label>Your name<input type="text" name="name" autocomplete="name" required maxlength="120"></label>
+              <button class="button secondary" type="submit">Save name</button>
+            </form>
+            <form data-account-password-form>
+              <label>New password <span>At least 8 characters</span><input type="password" name="password" autocomplete="new-password" required minlength="8" maxlength="128"></label>
+              <button class="button secondary" type="submit">Change password</button>
+            </form>
+          </div>
+          <p class="auth-message" data-settings-message role="status" aria-live="polite" hidden></p>
+          <div class="settings-actions">
+            <button class="button secondary" type="button" data-sign-out>Sign out</button>
+            <details class="danger-zone"><summary>Delete my account</summary>
+              <p>This permanently removes your account, your saved places and your personal details. Completed bookings are kept in anonymised form so payment records stay accurate. If you have a trip in progress, finish or cancel it first.</p>
+              <button class="button danger" type="button" data-delete-account>Delete my account permanently</button>
+            </details>
+          </div>
+        </section>
+      </div>
+      {!enabled && <div class="auth-off"><p><strong>Accounts are opening soon.</strong> You don’t need one to plan a detour: <a href="/#board">send us your flight times</a> and we’ll reply by email.</p></div>}
+    </>}
+  </main>
+</div>
+<script src="../scripts/account.js"></script>

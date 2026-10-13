@@ -266,3 +266,20 @@ body{transition:background-color .4s ease,color .4s ease;}
 @media(max-width:600px){.secnav-fab{right:16px;bottom:16px;padding:12px 15px;}.secnav-panel{right:16px;bottom:74px;width:214px;}}
 @media print{.secnav-fab,.secnav-panel,.secnav-scrim{display:none !important;}}
 @media (prefers-reduced-motion:reduce){.secnav-fab,.secnav-panel{transition:opacity .2s ease,visibility .2s ease;}}
+/* Guide FAQs: native details/summary, picked up by legacy.ts for FAQPage structured data. */
+.guide-faq{display:flex;flex-direction:column;gap:10px;margin:20px 0 8px;}
+.guide-faq .faq-item{background:var(--paper-2);border:1.5px solid var(--line);border-radius:14px;overflow:hidden;}
+.guide-faq .faq-item[open]{border-color:var(--ink);}
+.guide-faq .faq-q{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 20px;font-family:var(--display);font-weight:700;font-size:17px;line-height:1.3;color:var(--ink);}
+.guide-faq .faq-q::-webkit-details-marker{display:none;}
+.guide-faq .faq-q::after{content:'+';flex-shrink:0;font-family:var(--mono);font-size:18px;color:var(--terracotta);transition:transform .2s var(--ease);}
+.guide-faq .faq-item[open] .faq-q::after{transform:rotate(45deg);}
+.guide-faq .faq-q:focus-visible{outline:3px solid var(--terracotta);outline-offset:-3px;}
+.guide-faq .faq-a-inner{padding:0 20px 18px;font-size:15.5px;line-height:1.65;color:var(--ink-2);}
+/* Three-column fact tables become stacked rows on phones so labels don't break mid-word. */
+@media(max-width:600px){
+.fact-table.stack tr:first-child{display:none;}
+.fact-table.stack tr{display:block;padding:12px 0;border-bottom:1px solid var(--line-soft);}
+.fact-table.stack td{display:block;border:0;padding:2px 4px;}
+.fact-table.stack td:first-child{font-weight:700;color:var(--ink);padding-bottom:4px;}
+}

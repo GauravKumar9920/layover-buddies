@@ -1,0 +1,24 @@
+{
+  "faqs": [
+    {
+      "question": "Can I leave Mumbai airport during a layover?",
+      "answer": "Yes, if you can enter India and you have enough time. Leaving means clearing immigration, so you need a valid Indian visa or e-Visa unless you are an Indian citizen or OCI cardholder. Then allow for the drive each way and around 3 hours back at the airport before an international departure."
+    },
+    {
+      "question": "How long a layover do I need to leave the airport?",
+      "answer": "As a rough rule, at least 6 hours on the ground, and ideally 8 or more. With 6 hours and carry-on bags only, a short outing near the airport can work if your inbound flight lands on time. With 8 hours, South Mumbai comes within reach."
+    },
+    {
+      "question": "Do I need a visa if I stay inside the airport?",
+      "answer": "If you connect from one international flight to another inside the international transit area, without passing through passport control, you don’t need an Indian visa. You just can’t leave the airport."
+    },
+    {
+      "question": "What if my inbound flight lands late?",
+      "answer": "Run the numbers again with the new landing time. If the window drops below what a place needs, stay airside. Detour routes are built backwards from your departure, so stops get trimmed, never the time you need for your flight."
+    },
+    {
+      "question": "What do I do with my bags?",
+      "answer": "If your bags are checked through to your final destination, you don’t need to touch them. If you have to collect them, the airport has a left-luggage cloakroom; allow a few extra minutes at each end."
+    }
+  ]
+}

@@ -9,20 +9,87 @@ const appRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const distRoot = path.join(appRoot, 'dist');
 const manifestRoot = path.join(appRoot, 'src/content/pages');
 const expectedRoutes = [
-  '/', '/careers', '/privacy', '/terms', '/guides',
+  '/', '/careers', '/privacy', '/terms', '/guides', '/search',
   '/guides/complete-mumbai-layover-guide', '/guides/mumbai-layover-visa',
   '/guides/8-hour-layover-mumbai', '/guides/12-hour-layover-mumbai',
   '/guides/mumbai-airport-luggage-storage', '/guides/is-mumbai-safe-on-a-layover',
+  '/guides/mumbai-airport-to-city', '/guides/short-layover-mumbai', '/guides/overnight-layover-mumbai',
+  '/guides/mumbai-street-food-layover', '/guides/monsoon-layover-mumbai',
   '/guides/places', '/guides/gateway-of-india-mumbai', '/guides/marine-drive-mumbai',
   '/guides/csmt-heritage-quarter-mumbai', '/guides/bmc-headquarters-mumbai',
   '/guides/asiatic-library-town-hall-mumbai', '/guides/fort-kala-ghoda-mumbai',
   '/guides/bandra-worli-sea-link-mumbai',
+  '/guides/juhu-beach-mumbai',
+  '/guides/bandra-fort-bandstand-mumbai',
+  '/guides/mount-mary-basilica-mumbai',
+  '/guides/haji-ali-dargah-mumbai',
+  '/guides/worli-sea-face-mumbai',
+  '/guides/siddhivinayak-temple-mumbai',
+  '/guides/dhobi-ghat-mumbai',
+  '/guides/bhau-daji-lad-museum-mumbai',
+  '/guides/colaba-causeway-mumbai',
+  '/guides/csmvs-museum-mumbai',
+  '/guides/girgaon-chowpatty-mumbai',
+  '/guides/banganga-tank-mumbai',
+  '/guides/crawford-market-mumbai',
+  '/guides/oval-maidan-mumbai',
+  '/guides/hanging-gardens-mumbai',
+  '/guides/mani-bhavan-mumbai',
+  '/guides/chor-bazaar-mumbai',
+  '/guides/elephanta-caves-mumbai',
+  '/guides/kanheri-caves-mumbai',
+  '/guides/can-i-leave-mumbai-airport',
+  '/login',
+  '/account',
+  '/guides/what-if-my-layover-changes',
+  '/guides/mumbai-airport-transit-layover',
+  '/guides/money-on-a-mumbai-layover',
+  '/guides/phone-internet-mumbai-layover',
+  '/guides/eating-safely-mumbai-layover',
+  '/guides/mumbai-festivals-layover',
+  '/guides/mumbai-etiquette-what-to-wear',
+  '/guides/mumbai-souvenirs-layover',
+  '/guides/family-layover-mumbai',
+  '/guides/what-to-expect-on-a-detour',
+  '/guides/fort-kala-ghoda-heritage-walk',
+  '/guides/bandra-village-walk',
+  '/guides/powai-lake-mumbai',
+  '/guides/iskcon-juhu-mumbai',
+  '/guides/carter-road-mumbai',
+  '/guides/mahakali-caves-mumbai',
+  '/guides/nehru-science-centre-mumbai',
+  '/guides/global-vipassana-pagoda-mumbai',
   '/404',
 ].sort();
 const expectedGalleryRoutes = [
   'gateway-of-india-mumbai', 'marine-drive-mumbai', 'csmt-heritage-quarter-mumbai',
   'bmc-headquarters-mumbai', 'asiatic-library-town-hall-mumbai', 'fort-kala-ghoda-mumbai',
   'bandra-worli-sea-link-mumbai',
+  'juhu-beach-mumbai',
+  'bandra-fort-bandstand-mumbai',
+  'mount-mary-basilica-mumbai',
+  'haji-ali-dargah-mumbai',
+  'worli-sea-face-mumbai',
+  'siddhivinayak-temple-mumbai',
+  'dhobi-ghat-mumbai',
+  'bhau-daji-lad-museum-mumbai',
+  'colaba-causeway-mumbai',
+  'csmvs-museum-mumbai',
+  'girgaon-chowpatty-mumbai',
+  'banganga-tank-mumbai',
+  'crawford-market-mumbai',
+  'oval-maidan-mumbai',
+  'hanging-gardens-mumbai',
+  'mani-bhavan-mumbai',
+  'chor-bazaar-mumbai',
+  'elephanta-caves-mumbai',
+  'kanheri-caves-mumbai',
+  'powai-lake-mumbai',
+  'iskcon-juhu-mumbai',
+  'carter-road-mumbai',
+  'mahakali-caves-mumbai',
+  'nehru-science-centre-mumbai',
+  'global-vipassana-pagoda-mumbai',
 ].map((slug) => `/guides/${slug}/photos`);
 
 const manifestFiles = (await readdir(manifestRoot)).filter((file) => file.endsWith('.json'));
@@ -108,6 +175,16 @@ for (const htmlFile of htmlFiles) {
   }
 }
 
+// Account pages are private: never indexed, never in the sitemap.
+const sitemapXml = await readFile(path.join(distRoot, 'sitemap.xml'), 'utf8');
+for (const route of ['/login', '/account']) {
+  assert.match(await readFile(outputPath(route), 'utf8'), /<meta name="robots" content="noindex,nofollow">/, `${route} must be noindex`);
+  assert.doesNotMatch(sitemapXml, new RegExp(`<loc>${canonicalFor(route)}</loc>`), `${route} must stay out of the sitemap`);
+}
+const checkerHtml = await readFile(outputPath('/guides/can-i-leave-mumbai-airport'), 'utf8');
+assert.match(checkerHtml, /"@type":"FAQPage"/, 'layover checker must publish its visible FAQs as FAQPage');
+assert.match(await readFile(outputPath('/guides/gateway-of-india-mumbai'), 'utf8'), /"@type":"TouristAttraction"/, 'place pages must describe the place as a TouristAttraction');
+
 const homeHtml = await readFile(path.join(distRoot, 'index.html'), 'utf8');
 assert.doesNotMatch(homeHtml, /fonts\.(?:googleapis|gstatic)\.com/i, 'public fonts must be self-hosted to keep first paint deterministic');
 for (const font of [
@@ -162,8 +239,8 @@ assert.ok(
   'generate_lead must run only after the primary Detour endpoint confirms the request',
 );
 
-assert.match(homeHtml, /href="\/privacy" class="trigger-privacy"/i, 'privacy must remain a real no-JS internal link');
-assert.match(homeHtml, /href="\/terms" class="trigger-terms"/i, 'terms must remain a real no-JS internal link');
+assert.match(homeHtml, /<a\b[^>]*href="\/privacy"/i, 'privacy must remain a real no-JS internal link');
+assert.match(homeHtml, /<a\b[^>]*href="\/terms"/i, 'terms must remain a real no-JS internal link');
 
 const privacyHtml = await readFile(path.join(distRoot, 'privacy/index.html'), 'utf8');
 for (const disclosure of ['Supabase', 'Resend', 'FormSubmit', '90 days', '30 days']) {

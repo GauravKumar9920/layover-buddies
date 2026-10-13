@@ -8,7 +8,9 @@
   const names = JSON.parse(shell.dataset.mwPlaces);
   const moods = {coast:['Sea & slow moments','A little city, a little sea','A waterfront pause and time to slow down.'],food:['Chai & local bites','Follow the chai','A café pause and local flavours, shaped around you.'],culture:['Streets & stories','Streets with soul','Architecture and everyday stories, with time to look around.']};
   let state = {hours:8,mood:'coast',places:[],fields:{},checks:[]};
-  // Session storage is local to this browser tab. No analytics or backend draft writes.
+  function syncPlace(slug,on){const a=window.DetourAccount;if(a&&a.signedIn())(on?a.savePlace(slug):a.removePlace(slug)).catch(()=>{})}
+  // Session storage is local to this browser tab. No analytics or backend draft writes;
+  // only a signed-in traveller's shortlist is mirrored to their account's saved places.
   try {
     const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
     if (saved && Date.now()-saved.updated < 12*60*60*1000) {
@@ -19,7 +21,11 @@
       state.checks=Array.isArray(saved.checks)?saved.checks.filter(c=>['entry','flight','bags'].includes(c)):[];
     } else if(saved) sessionStorage.removeItem(storageKey);
   } catch {}
-  document.querySelector('[data-mw-consent]').addEventListener('click',()=>document.querySelector('[data-consent-manage]')?.click());
+  // Place field notes link to /?place=<slug>#board; add that place to the shortlist.
+  const linkedPlace=new URLSearchParams(location.search).get('place');
+  if(linkedPlace&&names.some(p=>p.slug===linkedPlace)&&!state.places.includes(linkedPlace))state.places=[...state.places,linkedPlace];
+  // The layover checker links to /?arrive=…&depart=…#board; fill the planner's empty time fields.
+  for(const [param,id] of [['arrive','mw-arrival'],['depart','mw-departure']]){const value=new URLSearchParams(location.search).get(param);if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value||'')&&!state.fields[id])state.fields[id]=value}
   const fieldIds=['mw-name','mw-email','mw-arrival','mw-departure','mw-flights','mw-notes'];
   fieldIds.forEach(id=>{if(typeof state.fields[id]==='string') $(id).value=state.fields[id]});
   function save(){
@@ -43,7 +49,7 @@
     }
     document.querySelectorAll('[data-mw-saved-badge]').forEach(b=>b.textContent=String(state.places.length));
     const list=$('mw-saved-list');list.replaceChildren();$('mw-saved-empty').hidden=state.places.length>0;
-    state.places.forEach(slug=>{const place=names.find(p=>p.slug===slug);const row=document.createElement('div'),link=document.createElement('a'),remove=document.createElement('button');link.href='/guides/'+slug;link.textContent=place.name;remove.type='button';remove.textContent='Remove';remove.setAttribute('aria-label','Remove '+place.name+' from shortlist');remove.addEventListener('click',()=>{state.places=state.places.filter(p=>p!==slug);update();save();toast(place.name+' removed');(list.querySelector('button')||$('mw-saved').querySelector('[data-mw-close]')).focus()});row.append(link,remove);list.append(row)});
+    state.places.forEach(slug=>{const place=names.find(p=>p.slug===slug);const row=document.createElement('div'),link=document.createElement('a'),remove=document.createElement('button');link.href='/guides/'+slug;link.textContent=place.name;remove.type='button';remove.textContent='Remove';remove.setAttribute('aria-label','Remove '+place.name+' from shortlist');remove.addEventListener('click',()=>{state.places=state.places.filter(p=>p!==slug);syncPlace(slug,false);update();save();toast(place.name+' removed');(list.querySelector('button')||$('mw-saved').querySelector('[data-mw-close]')).focus()});row.append(link,remove);list.append(row)});
     document.querySelectorAll('[data-mw-check]').forEach(c=>c.checked=state.checks.includes(c.dataset.mwCheck));
     if($('mw-check-progress'))$('mw-check-progress').textContent=state.checks.length+' of 3 preparation steps checked.';
     document.querySelectorAll('.mw-dock [data-mw-open]').forEach(b=>b.textContent=fieldIds.some(id=>$(id).value)?'Continue my plan':'Plan my detour');
@@ -51,17 +57,16 @@
   }
   document.querySelectorAll('[data-mw-hours]').forEach(b=>b.addEventListener('click',()=>{state.hours=+b.dataset.mwHours;update();save()}));
   document.querySelectorAll('[data-mw-mood]').forEach(b=>b.addEventListener('click',()=>{state.mood=b.dataset.mwMood;update();save()}));
-  document.querySelectorAll('[data-mw-place]').forEach(b=>b.addEventListener('click',()=>{const slug=b.dataset.mwPlace;state.places=state.places.includes(slug)?state.places.filter(s=>s!==slug):[...state.places,slug];update();save()}));
-  const form=$('mw-form'), inquiry=$('mw-inquiry'), menu=$('mw-menu'), savedDialog=$('mw-saved');
-  document.querySelectorAll('[data-mw-saved-open]').forEach(b=>b.addEventListener('click',()=>{menu.close();update();savedDialog.showModal()}));
+  document.querySelectorAll('[data-mw-place]').forEach(b=>b.addEventListener('click',()=>{const slug=b.dataset.mwPlace;state.places=state.places.includes(slug)?state.places.filter(s=>s!==slug):[...state.places,slug];syncPlace(slug,state.places.includes(slug));update();save()}));
+  const form=$('mw-form'), inquiry=$('mw-inquiry'), savedDialog=$('mw-saved');
+  function closeSiteMenu(){const menu=document.querySelector('[data-site-mobile-menu]');if(menu?.open){menu.querySelector(':scope > summary')?.focus();menu.open=false;}}
+  document.querySelectorAll('[data-mw-saved-open], [data-site-saved]').forEach(b=>b.addEventListener('click',event=>{event.preventDefault();closeSiteMenu();update();savedDialog.showModal()}));
   document.querySelectorAll('[data-mw-check]').forEach(c=>c.addEventListener('change',()=>{state.checks=c.checked?[...new Set([...state.checks,c.dataset.mwCheck])]:state.checks.filter(x=>x!==c.dataset.mwCheck);update();save()}));
   let reviewing=false, sending=false;
   function edit(){$('mw-form-error').hidden=true;reviewing=false;$('mw-details').hidden=false;$('mw-review').hidden=true;$('mw-edit').hidden=true;$('mw-submit').textContent='Review my request';$('mw-progress').textContent='YOUR DETOUR / STEP 1 OF 2'}
-  function open(){if(!media.matches)return;menu.close();savedDialog.close();if(reviewing&&!form.hidden&&!sending)edit();update();inquiry.showModal();$('mw-inquiry-title').focus();window.DetourAnalytics?.track('booking_form_open',{form_type:'detour',page_path:location.pathname});}
+  function open(){closeSiteMenu();savedDialog.close();if(!media.matches){if(document.getElementById('booking-modal'))document.querySelector('[data-site-inquiry]')?.click();else location.href='/#board';return;}if(reviewing&&!form.hidden&&!sending)edit();update();inquiry.showModal();$('mw-inquiry-title').focus();window.DetourAnalytics?.track('booking_form_open',{form_type:'detour',page_path:location.pathname});}
   document.querySelectorAll('[data-mw-open]').forEach(b=>b.addEventListener('click',open));
-  document.querySelector('[data-mw-menu-open]').addEventListener('click',()=>menu.showModal());
   document.querySelectorAll('[data-mw-close]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
-  menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>menu.close()));
   $('mw-edit').addEventListener('click',()=>{edit();$('mw-name').focus()});
   form.addEventListener('input',()=>{$('mw-form-error').hidden=true;$('mw-departure').setCustomValidity('');$('mw-name').setCustomValidity('');save()});
   function dates(){return [new Date($('mw-arrival').value+':00+05:30'),new Date($('mw-departure').value+':00+05:30')]}
@@ -100,11 +105,16 @@
   $('mw-new-request').addEventListener('click',()=>{resetRequest();$('mw-inquiry-title').focus()});
   document.querySelector('[data-mw-clear]').addEventListener('click',()=>{if(sending){toast('Please wait for your request to finish sending.');return;}state={hours:8,mood:'coast',places:[],fields:{},checks:[]};resetRequest();document.querySelector('.mw-reset').open=false;document.querySelector('.mw-reset summary').focus();toast('Your plan and draft have been cleared.')});
   // Layout follows available width, not a guessed phone model. Changes preserve the draft.
-  function syncLayout(){if(media.matches){document.querySelectorAll('.modal-overlay.open').forEach(el=>{el.classList.remove('open');el.setAttribute('aria-hidden','true')});document.body.style.overflow='';}document.documentElement.dataset.presentation=media.matches?'mobile':'desktop';if(!media.matches){inquiry.close();menu.close();savedDialog.close()}document.querySelectorAll('.desktop-home video').forEach(v=>{if(media.matches)v.pause()});}
+  function syncLayout(){if(media.matches){document.querySelectorAll('.modal-overlay.open').forEach(el=>{el.classList.remove('open');el.setAttribute('aria-hidden','true')});document.body.style.overflow='';}document.documentElement.dataset.presentation=media.matches?'mobile':'desktop';if(!media.matches){inquiry.close();savedDialog.close()}document.querySelectorAll('.desktop-home video').forEach(v=>{if(media.matches)v.pause()});}
   addEventListener('pageshow',event=>{if(event.persisted) location.reload()});
   media.addEventListener('change',syncLayout);syncLayout();update();
+  window.DetourPlan={places:()=>state.places.map(slug=>names.find(p=>p.slug===slug)?.name).filter(Boolean)};
   // Existing guide links can keep using the desktop homepage inquiry anchor.
   if(media.matches&&['#board','#booking'].includes(location.hash))open();
   // Guide-page request buttons use the same independent mobile planner.
   document.addEventListener('click',event=>{if(!media.matches)return;const b=event.target.closest('.btn-trigger-booking');if(!b)return;event.preventDefault();event.stopImmediatePropagation();open();},true);
+  // Signed in: start the form with the account's name and email, and merge the
+  // shortlist with the account's saved places (both ways).
+  function withAccount(run){const go=()=>{const a=window.DetourAccount;if(a&&a.signedIn())run(a)};window.DetourAccount?go():addEventListener('detour:account-ready',go,{once:true})}
+  withAccount(a=>{const u=a.user();[['mw-name',u.name],['mw-email',u.email]].forEach(([id,v])=>{if(v&&!$(id).value)$(id).value=v});a.savedPlaces().then(slugs=>{const known=slugs.filter(s=>names.some(p=>p.slug===s));state.places.filter(s=>!known.includes(s)).forEach(s=>syncPlace(s,true));state.places=[...new Set([...state.places,...known])];update();save()}).catch(()=>{})});
 })();

@@ -1,195 +1,115 @@
-# Detour — Claude Context
+# CLAUDE.md
 
-> Last verified: 2026-09-08 (application handoff completion).
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+> Last verified: 2026-09-26. `AGENTS.md` mirrors this file for other agents. When you change one, update the other.
 
 ## What This Project Is
-A marketplace for Mumbai layover experiences. The current launch is founder-hosted; student buddies are planned for January 2027.
+Detour is a marketplace for Mumbai layover experiences. The current launch is founder-hosted, and student buddies are planned for January 2027.
 
-This is an **npm-workspaces monorepo** (Turborepo for task orchestration). Packages:
-- **Mobile app**: React Native + Expo 52, file-based routing via Expo Router — `apps/mobile/` (`@detour/mobile`)
-- **Admin console**: Admin 2.0 — hosted Vite 8 + React 18 + Tailwind operations console, deployed at `detour-admin.vercel.app` — `apps/admin/` (`@detour/admin`)
-- **Marketing site**: Astro 7 static site with bounded Sanity content — `apps/marketing/` (`@detour/marketing`) → deploys to detourtrips.com
-- **Content Studio**: isolated Sanity + React 19 application — `apps/studio/`; its own lockfile prevents React 19 from being hoisted into Expo/admin
-- **Backend**: Supabase (auth + database + storage + Deno edge functions) — `supabase/` at the repo root (CLI expects `./supabase`)
-- **Shared models**: `packages/types` (`@detour/types`), with one canonical reducer in `supabase/functions/_shared/domain/stateMachine.ts`.
-- **Shared libraries**: `packages/config` (`@detour/config`) and `packages/database` (`@detour/database`)
-- **Design system**: `design/brand/detour-design-philosophy.md` (current v3) and `design/brand/design-handoff-spec.md`; `design/brand/design-system.md` is the superseded v2 saffron palette
+The repo is an **npm-workspaces monorepo** orchestrated by Turborepo. The root workspaces are `apps/admin`, `apps/marketing`, `apps/mobile` and `packages/*`.
 
-`apps/mobile`, `apps/admin`, and `apps/marketing` share **one Supabase project**. All browser
-clients use an anon key. Admin-only reads and commands run behind authenticated,
-role-checked Edge Functions (`admin-api`, `admin-growth-report`); never put a
-service-role or Google credential in a `VITE_*` / `EXPO_PUBLIC_*` variable. See
-`docs/technical/ADR-003-admin-control-plane-growth-publishing.md`.
+| Path | Package | What |
+|---|---|---|
+| `apps/mobile/` | `@detour/mobile` | React Native 0.76 + Expo 52 + Expo Router 4, NativeWind 4, Zustand, Reanimated |
+| `apps/admin/` | `@detour/admin` | "Admin 2.0" ops console: Vite 8 + React 18 + React Router 7 + Tailwind → `detour-admin.vercel.app` |
+| `apps/marketing/` | `@detour/marketing` | Astro 7 static site with optional Sanity content → detourtrips.com |
+| `apps/studio/` | (not a workspace) | Sanity 6 Studio on **React 19**, with its **own lockfile** so React 19 is never hoisted into Expo or admin |
+| `packages/types` | `@detour/types` | Shared domain models |
+| `packages/config` | `@detour/config` | v3 theme tokens + business constants (commission, fees) |
+| `packages/database` | `@detour/database` | Browser-safe re-export of generated DB types |
+| `supabase/` | — | Postgres migrations (60+), `seed.sql`, 25 Deno edge functions. Kept at the root because the Supabase CLI expects `./supabase` |
 
----
+## Commands
 
-## How To Run The App
-
-Install the React 18 workspaces at the root, then the isolated React 19 Studio:
+Install the root workspaces first, then the isolated Studio:
 ```bash
 npm install
 npm install --prefix apps/studio
 ```
+`postinstall` runs `scripts/patch-image-size.mjs`, a security patch that `npm run test:dependency-security` verifies.
 
-### iOS Simulator
+### Run
 ```bash
-npm run mobile:ios          # = expo start --ios in apps/mobile
-# OR: npm run mobile  then press `i`
-```
-Open iOS Simulator first from Xcode, or run: `open -a Simulator`
-
-### Android Emulator
-```bash
-# First add SDK paths to shell:
-export ANDROID_HOME=$HOME/Library/Android/sdk
-export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH
-
-npm run mobile:android      # = expo start --android in apps/mobile
-# OR: npm run mobile  then press `a`
-```
-Start an emulator from Android Studio → Device Manager first.
-
-### Admin console
-```bash
-npm run admin               # Vite dev server at http://127.0.0.1:5174
-```
-
-### Marketing site
-```bash
-npm run dev --workspace @detour/marketing   # Astro at http://127.0.0.1:8791
-```
-
-### Sanity Studio
-```bash
+npm run mobile              # Expo dev server (press i / a / w)
+npm run mobile:ios          # needs Simulator open (`open -a Simulator`)
+npm run mobile:android      # needs ANDROID_HOME + an emulator running
+npm run start:web --workspace @detour/mobile   # fastest for local testing
+npm run admin               # http://127.0.0.1:5174
+npm run dev --workspace @detour/marketing       # http://127.0.0.1:8791
 npm run studio              # http://127.0.0.1:3333
-npm run studio:test
-npm run studio:build
+npx supabase start          # local backend, Docker required, API on :54321
+npx supabase db reset       # re-apply all migrations + seed.sql (seed accounts: docs/technical/RUNBOOK.md)
 ```
 
-### Repo-wide checks (Turborepo)
+### Check
 ```bash
-npm run type-check          # tsc across workspaces
-npm run lint
-npm run test                # mobile Jest suite
-npm run test:edge           # Deno tests for supabase/functions
-npm run build               # production builds
-npm run security:admin-bundle   # scan built admin bundle for secrets (pre-release gate)
+npm run type-check          # turbo: tsc in every workspace
+npm run lint                # mobile ESLint; admin "lint" is tsc -b
+npm run test                # turbo: mobile Jest + admin node --test + marketing route parity
+npm run test:edge           # Deno tests in supabase/functions/__tests__/
+npm run build
+npm run studio:test         # Studio type-check + schema contract
+npm run security:admin-bundle   # pre-release gate; build admin first
 ```
 
----
+### Run a single test
+```bash
+# Mobile Jest (roots: lib/, config/; files match **/__tests__/**/*.test.ts)
+npm test --workspace @detour/mobile -- lib/booking/__tests__/tripStages.test.ts
+npm test --workspace @detour/mobile -- -t "name of test"
 
-## Current Priorities
+# One Deno edge-function test
+deno test --allow-env --no-check supabase/functions/__tests__/stateMachineParity.test.ts
 
-The April-era TODOs (schema fixes, seed data, smoke test, booking UI, business
-constants) are all **done** — see git history and `docs/project/SMOKE_TEST_RESULTS.md`.
-The live roadmap is **`docs/project/NEXT_TASKS.md`**; deferred items with
-runbooks are in `docs/project/DEFERRED.md`. Headline open items:
-
-1. **Application handoff completed** — PR #55 merged; reviewed no-shows, support resolution, shared types/state machine and lazy admin routes implemented. See `docs/technical/BOOKING_SUPPORT_RUNBOOK.md`.
-2. **Admin 2.0 config** — 10 provider steps in `docs/technical/ADMIN2_PROVIDER_SETUP_RUNBOOK.md`.
-3. **16 SEO place pages** on `archive/static-marketing-seo` → port into Astro (route parity 12→28).
-4. **Commission rate** — 25% in code vs 15% in old docs: **undecided, owner decision needed** before real users (agreement snapshots freeze rates at signing).
-5. **Pre-launch decisions/config** — Razorpay live keys, push credentials, store accounts, commission decision and proposed seven-day reporting window. Marketing work remains separate.
-
-### Notes that are still true
-- `apps/mobile/app/(traveler)/trips/live/[id].native.tsx` is the native map variant; web falls back via a Metro stub (`apps/mobile/metro.config.js`). Native maps need `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`.
-- Razorpay checkout is wired via `apps/mobile/lib/api/razorpayCheckout.ts` (native sheet wrapper; orders created server-side by edge functions; used by `deposits.ts`/`balance.ts`/`topUp.ts`). Remaining: live keys + payouts (see `docs/project/DEFERRED.md`).
-- `@detour/config` supplies theme/constants; `@detour/types` supplies models. Mobile and edge facades load the canonical reducer in `supabase/functions/_shared/domain/stateMachine.ts`, kept inside the edge deployment tree. Generated database types also have one canonical source in `_shared/database.types.ts`.
-
----
-
-## Project Structure
-```
-detour/                          # npm-workspaces monorepo root (package.json + turbo.json)
-├── apps/
-│   ├── mobile/                  # @detour/mobile — React Native + Expo app
-│   │   ├── app/                 # Expo Router screens
-│   │   │   ├── _layout.tsx      # Root auth routing logic
-│   │   │   ├── (auth)/          # Login, signup, forgot-password
-│   │   │   ├── (traveler)/      # Browse, search, book, trips, live map
-│   │   │   ├── (guide)/         # Dashboard, requests, profile, itineraries
-│   │   │   └── (shared)/        # Messages
-│   │   ├── components/          # ui/, guides/, bookings/
-│   │   ├── lib/api/             # guides.ts, bookings.ts, deposits.ts, razorpayCheckout.ts, earnings.ts, …
-│   │   ├── lib/booking/         # state-machine facade + financial snapshots
-│   │   ├── config/              # re-export shims → @detour/config (+ app-local LEGAL URLs)
-│   │   ├── types/index.ts       # facade to @detour/types
-│   │   ├── metro.config.js      # monorepo-aware Metro (watchFolders + nodeModulesPaths)
-│   │   └── .env.local.example   # EXPO_PUBLIC_SUPABASE_* etc.
-│   ├── admin/                   # @detour/admin — hosted Vite+React+Tailwind console
-│   │   ├── src/pages/           # Overview, Operations, Marketplace, TrustSafety, Money, Growth, Platform
-│   │   ├── src/lib/             # anon Supabase Auth client + typed admin API
-│   │   ├── tests/               # security-boundary test (node --test)
-│   │   └── .env.local.example   # VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY
-│   ├── marketing/               # @detour/marketing — Astro static site → detourtrips.com
-│   │   ├── src/pages/           # [...slug].astro, 404.astro, sitemap.xml.ts
-│   │   ├── src/content/pages/   # JSON page manifests (12 routes)
-│   │   ├── src/legacy/          # checked-in legacy HTML parity sources
-│   │   ├── public/              # optimized media and static downloads
-│   │   ├── scripts/check-route-parity.mjs
-│   │   └── vercel.json          # static deploy config
-│   └── studio/                  # @detour/studio — Sanity Studio, React 19, own lockfile
-│       ├── schemaTypes/         # guide + landingPage documents; faq/media/seo/sourceLink/testimonial objects
-│       └── docs/publishing.md
-├── packages/
-│   ├── config/                  # @detour/config — theme (v3) + business constants
-│   └── database/                # @detour/database — generated DB types (browser-safe re-export)
-├── supabase/                    # migrations (60+), 24 edge functions (Deno), seed.sql — shared backend
-├── marketing-ops/               # marketing strategy, templates, SEO docs (non-code)
-├── design/                      # brand system, design tokens, UI mockups
-├── docs/                        # project / technical / business / financial / legal / product docs
-├── scripts/                     # one-off operational SQL + repo utility scripts
-├── package.json                 # workspaces + turbo + consolidated overrides
-├── turbo.json
-└── CLAUDE.md                    # This file
+# Admin / marketing (node:test)
+node --test apps/admin/tests/<file>.test.mjs
+npm run test:build --workspace @detour/marketing   # marketing parity checks need a fresh build
 ```
 
-### Admin console (`apps/admin/`)
-- Runs on `127.0.0.1:5174` locally; production at `https://detour-admin.vercel.app` (permanent domain `admin.detourtrips.com` pending DNS — runbook step 2).
-- Uses Supabase Auth, TOTP MFA (code-complete; `ADMIN_REQUIRE_MFA=false` until runbook step 3), and `admin_memberships` roles (`owner` / `operations` / `finance` / `growth`). The browser has only the anon key; privileged access stays inside Edge Functions and audited RPCs.
-- Navigation: Overview, Operations, Marketplace, Trust & Safety, Money, Growth, Platform.
-- No guide-approval queue — guides auto-approve per product spec.
+CI (`.github/workflows/ci.yml`) runs separate jobs per workspace. The mobile job also runs `expo install --check` for SDK alignment and fails the build if a Google API key (`AIza…`) is committed. Production migrations are deployed only by hand, through `deploy-migrations.yml` (`workflow_dispatch`, dry-run by default).
 
-Run: `npm install` (root) then `cp apps/admin/.env.local.example apps/admin/.env.local`, fill env vars, and `npm run admin`.
+## Architecture
 
----
+### Security boundary (ADR-003)
+- Every browser client (mobile, admin, marketing) uses the **anon key** against one shared Supabase project. A service-role key, Google credential or deploy token must never go in a `VITE_*` or `EXPO_PUBLIC_*` variable.
+- Admin privileges live server-side only. The admin SPA calls the `admin-api` and `admin-growth-report` edge functions, which check Supabase Auth, an optional TOTP MFA (`ADMIN_REQUIRE_MFA`), and the `admin_memberships` role (`owner`/`operations`/`finance`/`growth`). Sensitive mutations append to `admin_action_log`. Admin surfaces whose provider config is missing fail closed.
+- Server secrets belong in `supabase/.env.local` (see its `.example`) and `supabase secrets set`.
+- `apps/admin/tests/` enforces this contract, and `scripts/assert-no-client-secrets.mjs` scans the built bundle.
 
-## Design System Quick Reference
+### Single sources of truth, re-exported outward
+- **Booking state machine**: the canonical reducer is `supabase/functions/_shared/domain/stateMachine.ts`. The chain `packages/types/stateMachine.ts` → `apps/mobile/lib/booking/stateMachine.ts` only re-exports it, and edge functions import it through `_shared/stateMachine.ts`. It lives inside the edge tree because Supabase deploys `supabase/functions` in isolation, so canonical code must not live outside it. `stateMachineParity.test.ts` guards the mirror.
+- **DB types**: generated into `supabase/functions/_shared/database.types.ts`, then re-exported by `@detour/database` for browsers.
+- **Theme/constants**: `packages/config` (`theme.ts`, `constants.ts`). The files in `apps/mobile/config/` are re-export shims, plus app-local LEGAL URLs.
+- Mobile booking money logic is pure and unit-tested in `apps/mobile/lib/booking/`: agreement/cancellation/reconciliation snapshots, late fees, CTA mapping, trip stages. Agreement snapshots freeze rates at signing.
 
-**Colors (v3 "Warm Editorial" — paper/ink, shared by the app and detourtrips.com):**
-- Canvas: Paper `#F4EDDD` / Paper Light `#FCF7EA` (cards) / Paper Deep `#EBE0C5` (insets) / hairline `#C5BA9C`
-- Text: Ink `#0E1929` / Ink Muted `#445169` / Ink Soft `#7C8597`
-- Primary CTA: Terracotta `#C8542A` / Dark `#9E3A1F` / Light tint `#F7DECC`
-- Secondary: Sea `#2D7BA9` (links/info) · Marigold `#E89F2C` (ratings/warnings)
-- Success `#3D8B5A` · Error `#C0392B` · Purple (badges) `#6C5CE7`
+### Edge functions
+Each directory under `supabase/functions/` is one function. Shared logic goes in `_shared/`: Razorpay client and signatures, deposit/balance/top-up capture, refund dispatch, push, SOS, admin auth/contract, and the API envelope. Tests go in `__tests__/`. Payments work like this: the mobile app calls `create-*-order` functions, which create Razorpay orders server-side. `razorpayCheckout.ts` then opens the native sheet, and `razorpay-webhook` / `confirm-payment` capture the payment. Live payouts and refunds stay gated behind `RAZORPAY_LIVE_FEATURES_ENABLED`. Push notifications are queued as `notifications` rows and delivered by `send-push`.
 
-**Fonts:** Display — Bricolage Grotesque · Body — Plus Jakarta Sans · Editorial pull quotes — Instrument Serif · Eyebrows/Prices — DM Mono
+### Mobile
+- Expo Router groups: `(auth)`, `(traveler)`, `(guide)`, `(shared)`. The root `app/_layout.tsx` routes by auth state and role.
+- API calls go through `lib/api/*`. The `@/` alias maps to the `apps/mobile` root.
+- `app/(traveler)/trips/live/[id].native.tsx` is the native map variant. On web, a stub in `metro.config.js` replaces it. `metro.config.js` is also monorepo-aware (watchFolders + nodeModulesPaths).
+- Native maps need `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`.
+- Env vars live in `apps/mobile/.env.local` (see `.env.local.example`).
 
-**Animation (spring):** Button press `scale(0.96)` `damping:15, stiffness:150`; Card tap `scale(0.97)`, `translateY(-2px)`.
+### Marketing
+Pages are JSON manifests in `src/content/pages/`, rendered by `src/pages/[...slug].astro` and checked against the legacy HTML in `src/legacy/`. `scripts/check-route-parity.mjs` enforces the expected route list (currently 97), so extend it whenever you add routes. The homepage ships two separate designs in the same HTML: `.desktop-home` (legacy `src/legacy/index.html`) and a distinct mobile site, `.mw-shell` (`src/components/mobile/`, `public/assets/mobile/`), switched at 767px. Edit and check both. Links inside `src/legacy/` must be relative (`x.html`); `legacy.ts` resolves them against the file's folder, so `/guides/x` becomes `/guides/guides/x`. Tool pages (layover checker, `/login`, `/account`) are Astro components chosen by route in `[...slug].astro`; the checker and the places filter share the timing rules in `src/lib/layover.mjs`. Website accounts reuse the app's Supabase Auth and switch on only when `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` are set at build time (the build fails on a secret key). Ordinary pages use `public/assets/account-lite.js` (REST, no SDK); only the account pages bundle supabase-js. Deploy migration `20260926100000_website_accounts.sql` and the updated `submit-marketing-lead` before setting those variables.
 
-**Key theme file:** `packages/config/theme.ts` (`@detour/config`; `apps/mobile/config/theme.ts` is a re-export shim). Full philosophy: `design/brand/detour-design-philosophy.md`. The older `design/brand/design-system.md` documents the superseded v2 saffron palette.
+## Gotchas
+- **Worktrees**: in a git worktree, `@detour/*` resolves to the **main checkout's** `packages/`, so package edits aren't visible to apps until merged. Keep app-facing constants local while you work in a worktree.
+- Old branches such as `archive/static-marketing-seo` share no merge base with `main`, so bring their work over with cherry-picks or ports, not merges.
+- Guides auto-approve per the product spec, so the admin has no guide-approval queue.
+- Security `overrides` must be declared in the **root** `package.json`. After changing any of them, verify Expo bundling, the mobile tests and the admin build.
 
----
+## Design
+The current system is v3 "Warm Editorial" (paper/ink, terracotta CTA `#C8542A`, sea `#2D7BA9`, marigold `#E89F2C`). Fonts: Bricolage Grotesque for display, Plus Jakarta Sans for body, Instrument Serif for editorial, DM Mono for eyebrows and prices. Tokens live in `packages/config/theme.ts`, and the full spec is in `design/brand/detour-design-philosophy.md` + `design-handoff-spec.md`. `design/brand/design-system.md` (saffron v2) is **superseded**, so don't use it. New or restyled screens use a spring press of `scale(0.96)` (damping 15, stiffness 150).
 
-## Environment Variables Needed
-Create `apps/mobile/.env.local` (see `apps/mobile/.env.local.example`):
-```
-EXPO_PUBLIC_SUPABASE_URL=
-EXPO_PUBLIC_SUPABASE_ANON_KEY=
-EXPO_PUBLIC_RAZORPAY_KEY_ID=       # test key; live keys blocked on company registration
-EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=   # needed for the native live-map variant
-```
-Admin needs `apps/admin/.env.local` with `VITE_SUPABASE_URL` and
-`VITE_SUPABASE_ANON_KEY`. Provider and service credentials are server-side
-Supabase function secrets (see `supabase/.env.local.example`).
+## Where Things Stand
+- Roadmap: `docs/project/NEXT_TASKS.md`.
+- Deferred items with runbooks: `docs/project/DEFERRED.md`.
+- Admin provider setup (10 steps): `docs/technical/ADMIN2_PROVIDER_SETUP_RUNBOOK.md`.
+- Booking support: `docs/technical/BOOKING_SUPPORT_RUNBOOK.md`.
+- Manual smoke checklist: `docs/technical/TESTING.md`.
 
----
-
-## Tech Stack Summary
-- **Monorepo:** npm workspaces + Turborepo
-- **Mobile:** React Native 0.76, Expo 52, Expo Router 4, TypeScript 5.x
-- **Styling:** NativeWind 4 (Tailwind for RN) · **Animations:** Reanimated 3 · **State:** Zustand 4
-- **Admin/Marketing web:** Vite 8 + React 18 (admin); Astro 7 static output + optional Sanity content (marketing); Sanity 6 + React 19 (studio)
-- **Backend:** Supabase JS v2, Postgres (RLS + pg_cron), Deno edge functions
-- **Payments:** Razorpay — checkout wired in test mode; live payouts/refunds behind `RAZORPAY_LIVE_FEATURES_ENABLED` · **Maps:** react-native-maps 1.18, expo-location
-- **Push:** Expo Push via `send-push` edge function draining the `notifications` table — pipeline built, pending enablement
+**Open owner decision:** commission is 25% in `packages/config/constants.ts` but 15% in older docs. Don't change it without the owner.

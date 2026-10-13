@@ -3,6 +3,7 @@ import path from 'node:path';
 import { parse, parseFragment, serializeOuter } from 'parse5';
 import type { SitePage } from './site-pages';
 import { resolveLegacyPath } from './legacy-path.mjs';
+import { addArticleNavigation } from './article-navigation.mjs';
 
 const imageDimensions: Record<string, [number, number]> = {
   'gallery-bazaar': [1024, 1024],
@@ -162,11 +163,36 @@ function prepareTree(node: LegacyNode, source: string, inHead = false): void {
   }
 }
 
+function retireLegacyChrome(node: LegacyNode): void {
+  if (!node.childNodes) return;
+  node.childNodes = node.childNodes.filter(child => {
+    if (attr(child, 'id') === 'nav' || attr(child, 'id') === 'mobile-menu') return false;
+    if (node.tagName === 'body' && child.tagName === 'footer') return false;
+    if (hasClass(child, 'breadcrumb') || hasClass(child, 'breadcrumbs') || hasClass(child, 'skip-link')) return false;
+    return true;
+  });
+  // The homepage's source owns its rich route interactions. Its retired nav
+  // listeners must tolerate the shared header replacing their old elements.
+  if (node.tagName === 'script' && !attr(node, 'src')) {
+    for (const child of node.childNodes) {
+      if (child.nodeName !== '#text' || !child.value) continue;
+      child.value = child.value
+        .replace(/\(\)\s*=>\s*nav\.classList\.toggle/gu, '()=>nav?.classList.toggle')
+        .replaceAll("toggle.addEventListener('click'", "toggle?.addEventListener('click'")
+        .replaceAll("burger.addEventListener('click'", "burger?.addEventListener('click'")
+        .replaceAll("menu.querySelectorAll('a,.btn-trigger-booking')", "menu?.querySelectorAll('a,.btn-trigger-booking')")
+        .replaceAll("&&menu.classList.contains('open')", "&&menu?.classList.contains('open')");
+    }
+  }
+  for (const child of node.childNodes) retireLegacyChrome(child);
+}
+
 function extractFaqs(body: LegacyNode): Array<{ question: string; answer: string }> {
   const results: Array<{ question: string; answer: string }> = [];
   const visit = (node: LegacyNode): void => {
-    if (node.tagName === 'div' && hasClass(node, 'faq-item')) {
-      const questionNode = findFirst(node, (candidate) => candidate.tagName === 'button' && hasClass(candidate, 'faq-q'));
+    // Homepage FAQs are div/button accordions; guide FAQs use native details/summary.
+    if ((node.tagName === 'div' || node.tagName === 'details') && hasClass(node, 'faq-item')) {
+      const questionNode = findFirst(node, (candidate) => (candidate.tagName === 'button' || candidate.tagName === 'summary') && hasClass(candidate, 'faq-q'));
       const answerNode = findFirst(node, (candidate) => candidate.tagName === 'div' && hasClass(candidate, 'faq-a-inner'));
       const question = questionNode ? normalizeText(questionNode) : '';
       const answer = answerNode ? normalizeText(answerNode) : '';
@@ -194,6 +220,8 @@ export async function readLegacyDocument(page: SitePage): Promise<LegacyDocument
 
   prepareTree(head, safeSource, true);
   prepareTree(body, safeSource, false);
+  retireLegacyChrome(body);
+  if (page.pageType === 'article') addArticleNavigation(body);
   const normalizeLogo = (node: LegacyNode): void => {
     if (node.tagName === 'a' && hasClass(node, 'logo')) {
       const logo = parseFragment('<img class="detour-logo-ink" src="/brand/detour-logo.svg" width="148" height="40" alt="Detour — Mumbai"><img class="detour-logo-paper" src="/brand/detour-logo-light.svg" width="148" height="40" alt="Detour — Mumbai">') as unknown as LegacyNode;

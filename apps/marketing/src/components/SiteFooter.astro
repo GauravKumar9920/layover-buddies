@@ -1,0 +1,46 @@
+---
+import { getSiteContent, type ContentItem } from '../lib/site-content';
+interface Props { route: string; accountsEnabled?: boolean }
+const { route, accountsEnabled = false } = Astro.props;
+const content: ContentItem[] = await getSiteContent();
+const routes = new Set(content.filter(item => item.searchable).map(item => item.route));
+type Link = { href: string; label: string };
+const links = (entries: [string, string][]): Link[] => entries.map(([href, label]) => ({ href, label })).filter(link => !link.href.startsWith('/') || routes.has(link.href.split(/[?#]/)[0]));
+const groups = [
+  { label: 'Explore Mumbai', links: links([
+    ['/guides/places', 'All places & city guides'],
+    ['/guides/marine-drive-mumbai', 'Marine Drive'],
+    ['/guides/gateway-of-india-mumbai', 'Gateway of India'],
+    ['/guides/juhu-beach-mumbai', 'Juhu Beach'],
+    ['/guides/fort-kala-ghoda-heritage-walk', 'Self-guided heritage walk'],
+    ['/guides/mumbai-street-food-layover', 'Mumbai street food'],
+  ]) },
+  { label: 'Plan your layover', links: links([
+    ['/guides', 'All layover guides'],
+    ['/guides/can-i-leave-mumbai-airport', 'Check my layover time'],
+    ['/guides/complete-mumbai-layover-guide', 'Complete Mumbai layover guide'],
+    ['/guides/mumbai-layover-visa', 'Visa & entry requirements'],
+    ['/guides/mumbai-airport-luggage-storage', 'Luggage storage'],
+    ['/guides/mumbai-airport-to-city', 'Airport to the city'],
+    ['/downloads/mumbai-layover-cheat-sheet.pdf', 'Mumbai layover cheat sheet'],
+  ]) },
+  { label: 'How Detour works', links: links([
+    ['/guides/what-to-expect-on-a-detour', 'What to expect'],
+    ['/guides/what-if-my-layover-changes', 'When flight plans change'],
+    ['/guides/what-to-expect-on-a-detour#faq', 'Common questions'],
+    ['mailto:admin@detourtrips.com', 'Email the founders'],
+    ['/careers', 'Careers'],
+  ]) },
+];
+---
+<footer class="site-footer" data-site-footer>
+  <div class="site-footer-inner">
+    <div class="site-footer-opening"><div><span class="site-footer-eyebrow">A LITTLE ROOM TO WANDER</span><p>A few hours.<br>A whole other <em>story.</em></p></div><a class="site-cta btn-trigger-booking" href="/#board" data-site-inquiry>Plan a Detour<span aria-hidden="true">↗</span></a></div>
+    <div class="site-footer-grid">
+      <div class="site-footer-brand"><a href="/" aria-label="Detour home"><img class="site-logo-ink" src="/brand/detour-logo.svg" width="148" height="40" alt="Detour" /><img class="site-logo-paper" src="/brand/detour-logo-light.svg" width="148" height="40" alt="" aria-hidden="true" /></a><p>Mumbai layovers, planned around your flight. Hosted by Gaurav and his co-founder.</p><a class="site-footer-email" href="mailto:admin@detourtrips.com">admin@detourtrips.com</a><a href="https://www.instagram.com/detour_trips/" target="_blank" rel="noopener">Instagram <span aria-hidden="true">↗</span></a></div>
+      {groups.map(group => <nav class="site-footer-group" aria-label={`${group.label} footer links`}><h2>{group.label}</h2><ul>{group.links.map(link => <li><a href={link.href} aria-current={link.href === route ? 'page' : undefined}>{link.label}</a></li>)}</ul></nav>)}
+    </div>
+    <div class="site-footer-bottom"><span>Made in Mumbai. Hosted by the founders.</span><div><a href="/search">Search</a>{accountsEnabled && <a href="/login" data-account-link>Sign in</a>}<a href="/privacy">Privacy</a><a href="/terms">Terms</a><button type="button" data-site-theme>Use dark appearance</button><button type="button" data-site-consent>Analytics preferences</button></div></div>
+    <details class="site-photo-credits"><summary>Photo credits</summary><p>Homepage hero: Vikram SN. Place photographs include Avijeet Si, Nishith Parikh and Manthan Sheth. Each place field note and gallery lists its photographers, image sources and licences.</p></details>
+  </div>
+</footer>

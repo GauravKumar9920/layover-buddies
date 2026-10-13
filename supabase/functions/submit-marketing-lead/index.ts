@@ -11,6 +11,9 @@
 //   lastAttribution?: Record<string,string>,
 //   honeypot?: string
 // }
+// Optional header: Authorization: Bearer <access token> from a website sign-in.
+// A verified token links the lead to that account (linked_user_id); anything
+// else (no header, the anon key, an expired token) is accepted unlinked.
 //
 // Success: {data:{leadId,status:'received'},error:null,meta:{generatedAt}}
 // The honeypot returns a synthetic 202 success without a leadId or DB insert.
@@ -40,7 +43,7 @@ function corsFor(req: Request): Record<string, string> | null {
   if (origin && !allowedOrigin(origin)) return null;
   return {
     'Access-Control-Allow-Origin': origin ?? '*',
-    'Access-Control-Allow-Headers': 'content-type, x-client-info, apikey',
+    'Access-Control-Allow-Headers': 'authorization, content-type, x-client-info, apikey',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin',
@@ -54,6 +57,21 @@ function clientAddress(req: Request): string {
     ?? 'unknown';
   const value = raw.trim().slice(0, 64);
   return /^[0-9a-f:.]+$/i.test(value) ? value : 'unknown';
+}
+
+// Returns the signed-in website user, or null. Never rejects a lead: a stale or
+// forged token simply means the request is stored without an account link.
+async function verifiedAccountId(req: Request, db: ReturnType<typeof adminClient>): Promise<string | null> {
+  const token = /^Bearer\s+([A-Za-z0-9._-]+)$/.exec(req.headers.get('authorization') ?? '')?.[1];
+  if (!token || token.split('.').length !== 3) return null;
+  try {
+    const { data, error } = await db.auth.getUser(token);
+    if (error || !data.user || data.user.is_anonymous) return null;
+    const { data: active } = await db.rpc('account_is_active', { p_user_id: data.user.id });
+    return active === true ? data.user.id : null;
+  } catch {
+    return null;
+  }
 }
 
 function escapeHtml(value: string): string {
@@ -194,6 +212,7 @@ serve(async (req: Request) => {
     return successEnvelope({ leadId: existing.id, status: 'received' }, { status: 200, headers: cors });
   }
 
+  const accountId = await verifiedAccountId(req, db);
   const { data: inserted, error: insertError } = await db
     .from('marketing_leads')
     .insert({
@@ -207,7 +226,8 @@ serve(async (req: Request) => {
       landing_page: lead.landingPage,
       first_attribution: lead.firstAttribution,
       last_attribution: lead.lastAttribution,
-      metadata: { schemaVersion: 1 },
+      metadata: { schemaVersion: 1, ...(accountId ? { linkedBy: 'website_sign_in' } : {}) },
+      linked_user_id: accountId,
       submission_fingerprint: fingerprint,
       rate_limit_key_hash: ipRateKeyHash,
     })

@@ -10,6 +10,12 @@ const legacy = await readLegacyDocument(page);
 ---
 
 <BaseLayout page={page} retainedHead={legacy.retainedHead + '<link rel="stylesheet" href="/assets/mobile/mobile.css">'} theme={legacy.theme}>
-  <div id="mw-page-content" tabindex="-1"><Fragment set:html={legacy.body} /></div>
+  <div id="mw-page-content" tabindex="-1">
+    <main class="site-recovery" id="main-content">
+      <span>404 / A WRONG TURN</span><h1>Let’s find your<br>way <em>back.</em></h1><p>This page has moved or isn’t on the map. Search the Detour library or pick a place to start.</p>
+      <form class="discovery-quick-search" action="/search" method="get" role="search"><label class="discovery-sr-only" for="recovery-query">Find a place or guide</label><input id="recovery-query" name="q" type="search" placeholder="A place, a question, a layover…" /><button type="submit">Search →</button></form>
+      <div class="site-recovery-links"><a href="/">Home</a><a href="/guides/places">Explore Mumbai</a><a href="/guides">Plan your layover</a><a href="/guides/can-i-leave-mumbai-airport">Check my layover time</a></div>
+    </main>
+  </div>
   <MobileShell contentTarget="#mw-page-content" />
 </BaseLayout>

@@ -1,0 +1,123 @@
+---
+import { getSiteContent, type ContentItem } from '../lib/site-content';
+
+interface Props { route: string; accountsEnabled?: boolean }
+const { route, accountsEnabled = false } = Astro.props;
+const content: ContentItem[] = await getSiteContent();
+const byRoute = new Map(content.filter(item => item.searchable).map(item => [item.route, item]));
+const current = content.find(item => item.route === (route.replace(/\/$/, '') || '/'));
+type Link = { href: string; label: string; hint?: string };
+type Column = { label: string; links: Link[] };
+const available = (links: Link[]) => links.filter(link => !link.href.startsWith('/') || byRoute.has(link.href.split(/[?#]/)[0]));
+const links = (entries: [string, string, string?][]) => available(entries.map(([href, label, hint]) => ({ href, label, hint })));
+const places = content.filter(item => item.kind === 'place' && item.searchable);
+const themes = [
+  ['sea', 'By the sea'], ['heritage', 'Heritage & architecture'], ['museums', 'Museums'],
+  ['markets', 'Markets & street life'], ['green', 'Green & quiet'], ['faith', 'Places of worship'], ['rain', 'Good in the rain'],
+].filter(([key]) => places.some(item => item.tags.includes(key))).map(([key, label]) => ({ href: `/guides/places?theme=${key}`, label }));
+const regions = [
+  ['near-airport', 'Close to the airport'], ['central', 'Central Mumbai'], ['south', 'South Mumbai'], ['further', 'Further afield · long layovers'],
+].filter(([key]) => places.some(item => item.region === key)).map(([key, label]) => ({ href: `/guides/places#region-${key}`, label }));
+const menus: { id: string; title: string; intro: string; href: string; allLabel: string; columns: Column[] }[] = [
+  {
+    id: 'explore', title: 'Explore Mumbai', intro: 'Places, photographs and a little local perspective.', href: '/guides/places', allLabel: 'Browse all places & city guides',
+    columns: [
+      { label: 'Go straight to a place', links: links([
+        ['/guides/marine-drive-mumbai', 'Marine Drive', 'Waterfront & Art Deco'],
+        ['/guides/gateway-of-india-mumbai', 'Gateway of India', 'Harbour air & Colaba'],
+        ['/guides/fort-kala-ghoda-mumbai', 'Fort & Kala Ghoda', 'Heritage streets'],
+        ['/guides/juhu-beach-mumbai', 'Juhu Beach', 'Sea breeze in the suburbs'],
+      ]) },
+      { label: 'Find your kind of Mumbai', links: available(themes) },
+      { label: 'By area & on foot', links: [...available(regions), ...links([
+        ['/guides/fort-kala-ghoda-heritage-walk', 'Fort & Kala Ghoda walk'],
+        ['/guides/bandra-village-walk', 'Bandra village walk'],
+        ['/guides/mumbai-street-food-layover', 'Mumbai street food'],
+      ])] },
+    ],
+  },
+  {
+    id: 'plan', title: 'Plan your layover', intro: 'Start with your flight. Make room for the city.', href: '/guides', allLabel: 'Browse all layover guides',
+    columns: [
+      { label: 'Start with your time', links: links([
+        ['/guides/can-i-leave-mumbai-airport', 'Check my layover time', 'Flight times → time outside'],
+        ['/guides/complete-mumbai-layover-guide', 'Complete Mumbai layover guide'],
+        ['/guides/short-layover-mumbai', 'Short layover'],
+        ['/guides/8-hour-layover-mumbai', '8-hour layover'],
+        ['/guides/12-hour-layover-mumbai', '12-hour layover'],
+        ['/guides/overnight-layover-mumbai', 'Overnight layover'],
+      ]) },
+      { label: 'Before you step out', links: links([
+        ['/guides/mumbai-layover-visa', 'Visa & entry requirements'],
+        ['/guides/mumbai-airport-luggage-storage', 'Luggage storage'],
+        ['/guides/mumbai-airport-to-city', 'Airport to the city'],
+        ['/guides/mumbai-airport-transit-layover', 'Staying at the airport'],
+        ['/guides/is-mumbai-safe-on-a-layover', 'Safety in Mumbai'],
+      ]) },
+      { label: 'Travel at your pace', links: links([
+        ['/guides/family-layover-mumbai', 'Family & slower travel'],
+        ['/guides/monsoon-layover-mumbai', 'Rain & monsoon layovers'],
+        ['/guides/phone-internet-mumbai-layover', 'Phone, SIM & internet'],
+        ['/guides/money-on-a-mumbai-layover', 'Money & payments'],
+        ['/guides/eating-safely-mumbai-layover', 'Eating safely'],
+      ]) },
+    ],
+  },
+  {
+    id: 'detour', title: 'How Detour works', intro: 'A founder-hosted Mumbai outing, planned around you.', href: '/guides/what-to-expect-on-a-detour', allLabel: 'See how a Detour works',
+    columns: [
+      { label: 'The experience', links: links([
+        ['/guides/what-to-expect-on-a-detour', 'What to expect on a Detour', 'From your request to your return'],
+        ['/guides/what-to-expect-on-a-detour#before', 'From request to agreed plan'],
+        ['/guides/what-to-expect-on-a-detour#land', 'Meeting your host'],
+        ['/guides/what-to-expect-on-a-detour#costs', 'Costs & what to expect'],
+      ]) },
+      { label: 'Good to know', links: links([
+        ['/guides/what-if-my-layover-changes', 'What if my flight changes?'],
+        ['/guides/what-to-expect-on-a-detour#faq', 'Common questions'],
+        ['/guides/is-mumbai-safe-on-a-layover', 'Planning for a safe return'],
+        ['mailto:admin@detourtrips.com', 'Ask the founders', 'admin@detourtrips.com'],
+      ]) },
+    ],
+  },
+];
+---
+<header class="site-header" data-site-header>
+  <a class="site-skip-link" href="#site-content">Skip to content</a>
+  <div class="site-header-inner">
+    <a class="site-brand" href="/" aria-label="Detour home"><img class="site-logo-ink" src="/brand/detour-logo.svg" width="148" height="40" alt="Detour" /><img class="site-logo-paper" src="/brand/detour-logo-light.svg" width="148" height="40" alt="" aria-hidden="true" /><span>MUMBAI / BOM</span></a>
+    <nav class="site-main-nav" aria-label="Main navigation">
+      {menus.map(menu => <details class="site-menu" data-site-menu data-section={menu.id}>
+        <summary class="site-nav-trigger" id={`site-nav-${menu.id}`} aria-controls={`site-panel-${menu.id}`} data-active={current?.section === menu.id ? 'true' : undefined}>{menu.title}<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="m3 4.5 3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" /></svg></summary>
+        <div class="site-menu-panel" id={`site-panel-${menu.id}`} aria-labelledby={`site-nav-${menu.id}`}>
+          <p class="site-menu-intro">{menu.intro}</p>
+          <div class={`site-menu-columns site-menu-columns-${menu.columns.length}`}>
+            {menu.columns.map(column => <section class="site-menu-column"><h2>{column.label}</h2><ul>{column.links.map(link => <li><a href={link.href} aria-current={link.href === route ? 'page' : undefined}>{link.label}{link.hint && <span>{link.hint}</span>}</a></li>)}</ul></section>)}
+          </div>
+          <div class="site-menu-bottom"><a href={menu.href}>{menu.allLabel}<span aria-hidden="true">↗</span></a><span>A little room to wander.</span></div>
+        </div>
+      </details>)}
+    </nav>
+    <div class="site-header-actions">
+      <a class="site-utility site-search-link" href="/search" aria-label="Search the website"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg><span class="site-utility-label">Search</span></a>
+      <a class="site-utility site-saved-link" href="/guides/places" data-site-saved aria-label="My saved places"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 20.5 3.7 12C-.4 7.7 5.8 1.7 10 6l2 2 2-2c4.2-4.3 10.4 1.7 6.3 6Z" /></svg><span class="site-utility-label">My places</span></a>
+      {accountsEnabled && <a class="site-account-link" href="/login" data-account-link>Sign in</a>}
+      <a class="site-cta btn-trigger-booking" href="/#board" data-site-inquiry>Plan a Detour<span aria-hidden="true">↗</span></a>
+    </div>
+    <details class="site-mobile-menu" data-site-mobile-menu>
+      <summary class="site-mobile-trigger" aria-controls="site-mobile-navigation"><span>Menu</span><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
+      <div class="site-mobile-panel" id="site-mobile-navigation">
+        <div class="site-mobile-intro"><span>YOUR MUMBAI / WHERE NEXT?</span><button type="button" class="site-mobile-close" data-site-menu-close aria-label="Close navigation">×</button></div>
+        <nav aria-label="Mobile navigation">
+          {menus.map(menu => <details class="site-mobile-group" data-site-mobile-group>
+            <summary data-active={current?.section === menu.id ? 'true' : undefined}>{menu.title}<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="m3 4.5 3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" /></svg></summary>
+            <div class="site-mobile-group-content"><a class="site-mobile-all" href={menu.href}>{menu.allLabel} <span aria-hidden="true">↗</span></a>{menu.columns.map(column => <section><h2>{column.label}</h2><ul>{column.links.map(link => <li><a href={link.href} aria-current={link.href === route ? 'page' : undefined}>{link.label}{link.hint && <span>{link.hint}</span>}</a></li>)}</ul></section>)}</div>
+          </details>)}
+        </nav>
+        <div class="site-mobile-utilities"><a href="/search">Search all content</a><a href="/guides/places" data-site-saved>My places</a>{accountsEnabled && <a href="/login" data-account-link>Sign in</a>}<a href="mailto:admin@detourtrips.com">Email the founders</a></div>
+        <a class="site-cta btn-trigger-booking" href="/#board" data-site-inquiry>Plan a Detour <span aria-hidden="true">↗</span></a>
+        <p class="site-mobile-fine">Hosted by Gaurav and his co-founder. Your request starts a conversation.</p>
+      </div>
+    </details>
+  </div>
+</header>

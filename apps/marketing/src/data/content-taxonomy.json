@@ -1,0 +1,1244 @@
+{
+  "/": {
+    "section": "utility",
+    "group": "site-home",
+    "navigationTitle": "Home",
+    "kind": "home",
+    "parentRoute": null,
+    "tags": [],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/404": {
+    "section": "utility",
+    "group": "recovery",
+    "navigationTitle": "Page not found",
+    "kind": "system",
+    "parentRoute": null,
+    "tags": [],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/account": {
+    "section": "utility",
+    "group": "account",
+    "navigationTitle": "Your account",
+    "kind": "account",
+    "parentRoute": "/",
+    "tags": [],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/careers": {
+    "section": "detour",
+    "group": "careers",
+    "navigationTitle": "Careers",
+    "kind": "company",
+    "parentRoute": "/",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides": {
+    "section": "plan",
+    "group": "start-here",
+    "navigationTitle": "Plan your layover",
+    "kind": "hub",
+    "parentRoute": "/",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/12-hour-layover-mumbai": {
+    "section": "plan",
+    "group": "by-time",
+    "navigationTitle": "12-hour layover",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/8-hour-layover-mumbai": {
+    "section": "plan",
+    "group": "by-time",
+    "navigationTitle": "8-hour layover",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/asiatic-library-town-hall-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "Asiatic Library & Town Hall",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Heritage & architecture"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/asiatic-library-town-hall-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Asiatic Library & Town Hall photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/asiatic-library-town-hall-mumbai",
+    "tags": [
+      "Heritage & architecture"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/bandra-fort-bandstand-mumbai": {
+    "section": "explore",
+    "group": "close-to-the-airport",
+    "navigationTitle": "Bandra Fort & Bandstand",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "By the sea",
+      "Heritage & architecture"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/bandra-fort-bandstand-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Bandra Fort & Bandstand photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/bandra-fort-bandstand-mumbai",
+    "tags": [
+      "By the sea",
+      "Heritage & architecture"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/bandra-village-walk": {
+    "section": "explore",
+    "group": "self-guided-walks",
+    "navigationTitle": "Bandra village walk",
+    "kind": "guide",
+    "parentRoute": "/guides/places",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/bandra-worli-sea-link-mumbai": {
+    "section": "explore",
+    "group": "close-to-the-airport",
+    "navigationTitle": "Bandra–Worli Sea Link",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "By the sea"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/bandra-worli-sea-link-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Bandra–Worli Sea Link photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/bandra-worli-sea-link-mumbai",
+    "tags": [
+      "By the sea"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/banganga-tank-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "Banganga Tank",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Places of worship",
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/banganga-tank-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Banganga Tank photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/banganga-tank-mumbai",
+    "tags": [
+      "Places of worship",
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/bhau-daji-lad-museum-mumbai": {
+    "section": "explore",
+    "group": "central-mumbai",
+    "navigationTitle": "Bhau Daji Lad Museum",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Museums",
+      "Green & quiet",
+      "Good in the rain"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/bhau-daji-lad-museum-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Bhau Daji Lad Museum photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/bhau-daji-lad-museum-mumbai",
+    "tags": [
+      "Museums",
+      "Green & quiet",
+      "Good in the rain"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/bmc-headquarters-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "BMC Headquarters",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Heritage & architecture"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/bmc-headquarters-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "BMC Headquarters photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/bmc-headquarters-mumbai",
+    "tags": [
+      "Heritage & architecture"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/can-i-leave-mumbai-airport": {
+    "section": "plan",
+    "group": "start-here",
+    "navigationTitle": "Layover checker",
+    "kind": "tool",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/carter-road-mumbai": {
+    "section": "explore",
+    "group": "close-to-the-airport",
+    "navigationTitle": "Carter Road Promenade",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "By the sea"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/carter-road-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Carter Road Promenade photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/carter-road-mumbai",
+    "tags": [
+      "By the sea"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/chor-bazaar-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "Chor Bazaar",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Markets & street life"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/chor-bazaar-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Chor Bazaar photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/chor-bazaar-mumbai",
+    "tags": [
+      "Markets & street life"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/colaba-causeway-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "Colaba Causeway",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Markets & street life"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/colaba-causeway-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Colaba Causeway photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/colaba-causeway-mumbai",
+    "tags": [
+      "Markets & street life"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/complete-mumbai-layover-guide": {
+    "section": "plan",
+    "group": "start-here",
+    "navigationTitle": "Complete layover guide",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/crawford-market-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "Crawford Market",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Heritage & architecture",
+      "Markets & street life",
+      "Good in the rain"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/crawford-market-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Crawford Market photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/crawford-market-mumbai",
+    "tags": [
+      "Heritage & architecture",
+      "Markets & street life",
+      "Good in the rain"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/csmt-heritage-quarter-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "CSMT Heritage Quarter",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Heritage & architecture"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/csmt-heritage-quarter-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "CSMT Heritage Quarter photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/csmt-heritage-quarter-mumbai",
+    "tags": [
+      "Heritage & architecture"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/csmvs-museum-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "CSMVS Museum",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Museums",
+      "Good in the rain"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/csmvs-museum-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "CSMVS Museum photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/csmvs-museum-mumbai",
+    "tags": [
+      "Museums",
+      "Good in the rain"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/dhobi-ghat-mumbai": {
+    "section": "explore",
+    "group": "central-mumbai",
+    "navigationTitle": "Mahalaxmi Dhobi Ghat",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Markets & street life"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/dhobi-ghat-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Mahalaxmi Dhobi Ghat photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/dhobi-ghat-mumbai",
+    "tags": [
+      "Markets & street life"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/eating-safely-mumbai-layover": {
+    "section": "plan",
+    "group": "practical-travel",
+    "navigationTitle": "Eating safely",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/elephanta-caves-mumbai": {
+    "section": "explore",
+    "group": "further-afield",
+    "navigationTitle": "Elephanta Caves",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Heritage & architecture"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/elephanta-caves-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Elephanta Caves photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/elephanta-caves-mumbai",
+    "tags": [
+      "Heritage & architecture"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/family-layover-mumbai": {
+    "section": "plan",
+    "group": "pace-and-needs",
+    "navigationTitle": "Kids, older parents & a slower pace",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/fort-kala-ghoda-heritage-walk": {
+    "section": "explore",
+    "group": "self-guided-walks",
+    "navigationTitle": "Fort & Kala Ghoda walk",
+    "kind": "guide",
+    "parentRoute": "/guides/places",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/fort-kala-ghoda-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "Fort & Kala Ghoda",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Heritage & architecture",
+      "Markets & street life"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/fort-kala-ghoda-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Fort & Kala Ghoda photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/fort-kala-ghoda-mumbai",
+    "tags": [
+      "Heritage & architecture",
+      "Markets & street life"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/gateway-of-india-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "Gateway of India",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "By the sea",
+      "Heritage & architecture"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/gateway-of-india-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Gateway of India photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/gateway-of-india-mumbai",
+    "tags": [
+      "By the sea",
+      "Heritage & architecture"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/girgaon-chowpatty-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "Girgaon Chowpatty",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "By the sea",
+      "Markets & street life"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/girgaon-chowpatty-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Girgaon Chowpatty photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/girgaon-chowpatty-mumbai",
+    "tags": [
+      "By the sea",
+      "Markets & street life"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/global-vipassana-pagoda-mumbai": {
+    "section": "explore",
+    "group": "further-afield",
+    "navigationTitle": "Global Vipassana Pagoda",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Places of worship",
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/global-vipassana-pagoda-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Global Vipassana Pagoda photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/global-vipassana-pagoda-mumbai",
+    "tags": [
+      "Places of worship",
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/haji-ali-dargah-mumbai": {
+    "section": "explore",
+    "group": "central-mumbai",
+    "navigationTitle": "Haji Ali Dargah",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "By the sea",
+      "Places of worship"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/haji-ali-dargah-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Haji Ali Dargah photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/haji-ali-dargah-mumbai",
+    "tags": [
+      "By the sea",
+      "Places of worship"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/hanging-gardens-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "Hanging Gardens",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/hanging-gardens-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Hanging Gardens photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/hanging-gardens-mumbai",
+    "tags": [
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/is-mumbai-safe-on-a-layover": {
+    "section": "plan",
+    "group": "practical-travel",
+    "navigationTitle": "Safety in Mumbai",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/iskcon-juhu-mumbai": {
+    "section": "explore",
+    "group": "close-to-the-airport",
+    "navigationTitle": "ISKCON Juhu",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Places of worship"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/iskcon-juhu-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "ISKCON Juhu photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/iskcon-juhu-mumbai",
+    "tags": [
+      "Places of worship"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/juhu-beach-mumbai": {
+    "section": "explore",
+    "group": "close-to-the-airport",
+    "navigationTitle": "Juhu Beach",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "By the sea",
+      "Markets & street life"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/juhu-beach-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Juhu Beach photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/juhu-beach-mumbai",
+    "tags": [
+      "By the sea",
+      "Markets & street life"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/kanheri-caves-mumbai": {
+    "section": "explore",
+    "group": "further-afield",
+    "navigationTitle": "Kanheri Caves",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Heritage & architecture",
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/kanheri-caves-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Kanheri Caves photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/kanheri-caves-mumbai",
+    "tags": [
+      "Heritage & architecture",
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/mahakali-caves-mumbai": {
+    "section": "explore",
+    "group": "close-to-the-airport",
+    "navigationTitle": "Mahakali Caves",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Heritage & architecture",
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/mahakali-caves-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Mahakali Caves photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/mahakali-caves-mumbai",
+    "tags": [
+      "Heritage & architecture",
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/mani-bhavan-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "Mani Bhavan",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Museums",
+      "Good in the rain"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/mani-bhavan-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Mani Bhavan photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/mani-bhavan-mumbai",
+    "tags": [
+      "Museums",
+      "Good in the rain"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/marine-drive-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "Marine Drive",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "By the sea"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/marine-drive-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Marine Drive photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/marine-drive-mumbai",
+    "tags": [
+      "By the sea"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/money-on-a-mumbai-layover": {
+    "section": "plan",
+    "group": "practical-travel",
+    "navigationTitle": "Money & costs",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/monsoon-layover-mumbai": {
+    "section": "plan",
+    "group": "conditions-and-preparation",
+    "navigationTitle": "Rain & monsoon",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/mount-mary-basilica-mumbai": {
+    "section": "explore",
+    "group": "close-to-the-airport",
+    "navigationTitle": "Mount Mary Basilica",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Places of worship"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/mount-mary-basilica-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Mount Mary Basilica photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/mount-mary-basilica-mumbai",
+    "tags": [
+      "Places of worship"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/mumbai-airport-luggage-storage": {
+    "section": "plan",
+    "group": "airport-essentials",
+    "navigationTitle": "Luggage storage",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/mumbai-airport-to-city": {
+    "section": "plan",
+    "group": "airport-essentials",
+    "navigationTitle": "Airport transport",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/mumbai-airport-transit-layover": {
+    "section": "plan",
+    "group": "airport-essentials",
+    "navigationTitle": "Staying inside the airport",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/mumbai-etiquette-what-to-wear": {
+    "section": "plan",
+    "group": "practical-travel",
+    "navigationTitle": "What to wear & local etiquette",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/mumbai-festivals-layover": {
+    "section": "explore",
+    "group": "food-and-culture",
+    "navigationTitle": "Festivals & events",
+    "kind": "guide",
+    "parentRoute": "/guides/places",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/mumbai-layover-visa": {
+    "section": "plan",
+    "group": "airport-essentials",
+    "navigationTitle": "Visa & entry requirements",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/mumbai-souvenirs-layover": {
+    "section": "explore",
+    "group": "food-and-culture",
+    "navigationTitle": "Souvenirs & shopping",
+    "kind": "guide",
+    "parentRoute": "/guides/places",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/mumbai-street-food-layover": {
+    "section": "explore",
+    "group": "food-and-culture",
+    "navigationTitle": "Street food",
+    "kind": "guide",
+    "parentRoute": "/guides/places",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/nehru-science-centre-mumbai": {
+    "section": "explore",
+    "group": "central-mumbai",
+    "navigationTitle": "Nehru Science Centre",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Museums",
+      "Good in the rain"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/nehru-science-centre-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Nehru Science Centre photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/nehru-science-centre-mumbai",
+    "tags": [
+      "Museums",
+      "Good in the rain"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/oval-maidan-mumbai": {
+    "section": "explore",
+    "group": "south-mumbai",
+    "navigationTitle": "Oval Maidan",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Heritage & architecture",
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/oval-maidan-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Oval Maidan photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/oval-maidan-mumbai",
+    "tags": [
+      "Heritage & architecture",
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/overnight-layover-mumbai": {
+    "section": "plan",
+    "group": "by-time",
+    "navigationTitle": "Overnight layover",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/phone-internet-mumbai-layover": {
+    "section": "plan",
+    "group": "practical-travel",
+    "navigationTitle": "Phone & internet",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/places": {
+    "section": "explore",
+    "group": "browse-all",
+    "navigationTitle": "Explore Mumbai",
+    "kind": "hub",
+    "parentRoute": "/",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/powai-lake-mumbai": {
+    "section": "explore",
+    "group": "close-to-the-airport",
+    "navigationTitle": "Powai Lake",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/powai-lake-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Powai Lake photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/powai-lake-mumbai",
+    "tags": [
+      "Green & quiet"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/short-layover-mumbai": {
+    "section": "plan",
+    "group": "by-time",
+    "navigationTitle": "5-6-hour layover",
+    "kind": "guide",
+    "parentRoute": "/guides",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/siddhivinayak-temple-mumbai": {
+    "section": "explore",
+    "group": "central-mumbai",
+    "navigationTitle": "Shree Siddhivinayak Temple",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "Places of worship"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/siddhivinayak-temple-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Shree Siddhivinayak Temple photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/siddhivinayak-temple-mumbai",
+    "tags": [
+      "Places of worship"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/guides/what-if-my-layover-changes": {
+    "section": "detour",
+    "group": "plans-changing",
+    "navigationTitle": "Delays & changing plans",
+    "kind": "guide",
+    "parentRoute": "/",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/what-to-expect-on-a-detour": {
+    "section": "detour",
+    "group": "how-it-works",
+    "navigationTitle": "What to expect on a Detour",
+    "kind": "guide",
+    "parentRoute": "/",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/worli-sea-face-mumbai": {
+    "section": "explore",
+    "group": "central-mumbai",
+    "navigationTitle": "Worli Sea Face",
+    "kind": "place",
+    "parentRoute": "/guides/places",
+    "tags": [
+      "By the sea"
+    ],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/guides/worli-sea-face-mumbai/photos": {
+    "section": "explore",
+    "group": "photographs",
+    "navigationTitle": "Worli Sea Face photographs",
+    "kind": "gallery",
+    "parentRoute": "/guides/worli-sea-face-mumbai",
+    "tags": [
+      "By the sea"
+    ],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/login": {
+    "section": "utility",
+    "group": "account",
+    "navigationTitle": "Sign in",
+    "kind": "account",
+    "parentRoute": "/",
+    "tags": [],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  },
+  "/privacy": {
+    "section": "utility",
+    "group": "legal",
+    "navigationTitle": "Privacy",
+    "kind": "legal",
+    "parentRoute": "/",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/terms": {
+    "section": "utility",
+    "group": "legal",
+    "navigationTitle": "Terms",
+    "kind": "legal",
+    "parentRoute": "/",
+    "tags": [],
+    "aliases": [],
+    "searchable": true,
+    "relatedRoutes": []
+  },
+  "/search": {
+    "section": "utility",
+    "group": "search",
+    "navigationTitle": "Search the website",
+    "kind": "system",
+    "parentRoute": "/",
+    "tags": [],
+    "aliases": [],
+    "searchable": false,
+    "relatedRoutes": []
+  }
+}
