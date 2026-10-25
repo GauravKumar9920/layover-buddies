@@ -28,7 +28,7 @@
     "security:dependencies": "node scripts/test-audit-dependencies.mjs && node scripts/audit-dependencies.mjs"
   },
   "devDependencies": {
-    "turbo": "^2.11.7"
+    "turbo": "^2.11.10"
   },
   "engines": {
     "node": "^22.19.0 || ^24.0.0 || >=26.0.0",
