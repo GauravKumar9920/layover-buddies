@@ -13,9 +13,9 @@
     "images:mobile": "node scripts/prepare-mobile-images.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.117.3",
-    "astro": "^7.3.8",
+    "@supabase/supabase-js": "^2.119.0",
+    "astro": "^7.4.7",
     "leaflet": "^1.9.4",
-    "parse5": "^8.0.1"
+    "parse5": "^8.1.0"
   }
 }
