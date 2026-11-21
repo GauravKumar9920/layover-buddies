@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/auth/AuthProvider';
 import Icon, { type IconName } from '@/components/Icon';
@@ -54,6 +54,7 @@ export default function Shell() {
   const { admin, signOut } = useAuth();
   const [drawer, setDrawer] = useState(false);
   const [search, setSearch] = useState(false);
+  const closeSearch = useCallback(() => setSearch(false), []);
   const location = useLocation();
   const canSearch = admin?.role !== 'growth';
 
@@ -120,7 +121,7 @@ export default function Shell() {
         <main className="min-h-[calc(100vh-64px)]"><Outlet /></main>
       </div>
 
-      {canSearch && <GlobalSearch open={search} onClose={() => setSearch(false)} />}
+      {canSearch && search && <GlobalSearch onClose={closeSearch} />}
     </div>
   );
 }

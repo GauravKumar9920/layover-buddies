@@ -64,6 +64,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [enrollment, setEnrollment] = useState<TotpEnrollment | null>(null);
   const checkId = useRef(0);
 
+  const clearAccess = useCallback(() => {
+    checkId.current += 1;
+    setAdmin(null);
+    setFactorId(null);
+    setEnrollment(null);
+    setStage('signed-out');
+  }, []);
+
   const checkAccess = useCallback(async () => {
     if (!configState.configured) {
       setStage('unconfigured');
@@ -77,23 +85,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const client = getSupabase();
       const { data: sessionData, error: sessionError } = await client.auth.getSession();
+      if (currentCheck !== checkId.current) return;
       if (sessionError) throw sessionError;
       if (!sessionData.session) {
-        setAdmin(null);
-        setStage('signed-out');
+        clearAccess();
         return;
       }
 
       const sessionResponse = await adminRequest('session.get');
       if (currentCheck !== checkId.current) return;
-      setAdmin(sessionResponse.data);
 
       const { data: assurance, error: assuranceError } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (currentCheck !== checkId.current) return;
       if (assuranceError) throw assuranceError;
       if (sessionResponse.data.mfaRequired && assurance.currentLevel !== 'aal2') {
         const { data: factors, error: factorsError } = await client.auth.mfa.listFactors();
+        if (currentCheck !== checkId.current) return;
         if (factorsError) throw factorsError;
         const verified = factors.totp.find((factor) => factor.status === 'verified');
+        setAdmin(null);
         setFactorId(verified?.id ?? null);
         setEnrollment(null);
         setStage(verified ? 'mfa-verify' : 'mfa-enrol');
@@ -103,6 +113,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (sessionResponse.data.mfaRequired && sessionResponse.data.aal !== 'aal2') {
         throw new Error('Your elevated session was not accepted. Sign in again or contact the owner.');
       }
+      setAdmin(sessionResponse.data);
+      setFactorId(null);
+      setEnrollment(null);
       setStage('ready');
     } catch (caught) {
       if (currentCheck !== checkId.current) return;
@@ -112,24 +125,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStage(unauthorized ? 'unauthorized' : 'error');
       setProblem(message);
     }
-  }, []);
+  }, [clearAccess]);
 
   useEffect(() => {
     if (!configState.configured) return;
     void checkAccess();
+    let accessTimer: number | undefined;
     const { data: listener } = getSupabase().auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
-        checkId.current += 1;
-        setAdmin(null);
-        setStage('signed-out');
+        window.clearTimeout(accessTimer);
+        clearAccess();
         return;
       }
       if (event === 'SIGNED_IN' || event === 'MFA_CHALLENGE_VERIFIED') {
-        window.setTimeout(() => { void checkAccess(); }, 0);
+        window.clearTimeout(accessTimer);
+        accessTimer = window.setTimeout(() => { void checkAccess(); }, 0);
       }
     });
-    return () => listener.subscription.unsubscribe();
-  }, [checkAccess]);
+    return () => {
+      checkId.current += 1;
+      window.clearTimeout(accessTimer);
+      listener.subscription.unsubscribe();
+    };
+  }, [checkAccess, clearAccess]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     setProblem(null);
@@ -143,32 +161,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [checkAccess]);
 
   const signOut = useCallback(async () => {
-    checkId.current += 1;
+    const currentCheck = ++checkId.current;
     const { error } = await getSupabase().auth.signOut();
+    if (currentCheck !== checkId.current) return;
     if (error) setProblem(error.message);
-    setAdmin(null);
-    setStage('signed-out');
-  }, []);
+    clearAccess();
+  }, [clearAccess]);
 
   const beginEnrollment = useCallback(async () => {
+    const currentCheck = checkId.current;
     setProblem(null);
     try {
       const client = getSupabase();
       const { data: factors, error: factorsError } = await client.auth.mfa.listFactors();
+      if (currentCheck !== checkId.current) return;
       if (factorsError) throw factorsError;
       const stale = factors.all.filter((factor) => factor.factor_type === 'totp' && factor.status === 'unverified');
       for (const factor of stale) {
         const { error: removeError } = await client.auth.mfa.unenroll({ factorId: factor.id });
+        if (currentCheck !== checkId.current) return;
         if (removeError) throw removeError;
       }
       const response = await client.auth.mfa.enroll({
         factorType: 'totp',
         friendlyName: 'Detour Admin',
       });
+      if (currentCheck !== checkId.current) return;
       const next = toEnrollment(response);
       setEnrollment(next);
       setFactorId(next.factorId);
     } catch (caught) {
+      if (currentCheck !== checkId.current) return;
       setProblem(errorMessage(caught));
     }
   }, []);
@@ -180,7 +203,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     setProblem(null);
+    const currentCheck = checkId.current;
     const { error } = await getSupabase().auth.mfa.challengeAndVerify({ factorId: id, code: code.trim() });
+    if (currentCheck !== checkId.current) return;
     if (error) {
       setProblem(error.message);
       return;
