@@ -21,8 +21,8 @@ The following independent major updates must not be merged into this platform:
 | [#103](https://github.com/GauravKumar9920/layover-buddies/pull/103) | React/types 18 → 19 | Expo's alignment check requires React `18.3.1` and React types `~18.3.12`. RN 0.76.9 declares React 18 peers. The PR also upgrades React independently of React DOM. |
 | [#104](https://github.com/GauravKumar9920/layover-buddies/pull/104) | React DOM/types 18 → 19 | Expo's alignment check requires React DOM `18.3.1`. The PR leaves React 18 in place while replacing its renderer with React DOM 19. |
 
-The root Dependabot configuration ignores only semver-major version updates for
-these six package names. Patch and minor updates remain eligible. Dependabot's
+The root Dependabot configuration ignores semver-major version updates for
+these package names and the Expo lint preset. Patch and minor updates remain eligible. Dependabot's
 security-update path does not apply ignore rules expressed only with
 `update-types`; it applies explicit `versions` rules. Do not add blanket version
 ignores to these packages. A security fix that requires a platform migration
@@ -35,9 +35,9 @@ Sources: [Expo 52 release](https://expo.dev/changelog/2024-11-12-sdk-52),
 
 ## CI runtime and action dependencies
 
-The root dependency tree includes patched Undici 8, which requires Node 22.19
-or newer on the Node 22 line. Studio uses the same minimum runtime. CI exercises
-that minimum version.
+Astro requires Node 22.23.4 or newer on the Node 22 line. CI runs the root
+workspaces and isolated Studio on Node 22.23.5. Keep the CI version and the
+Vercel build runtime compatible with the root engine declaration when upgrading Astro.
 GitHub Actions runtimes are separate from the project's Node version:
 checkout 7.0.1 and setup-node 7.1.0 themselves use Node 24.
 

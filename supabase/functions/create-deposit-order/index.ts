@@ -18,13 +18,41 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient, getUserFromRequest } from '../_shared/supabaseAdmin.ts';
+import { createOrder, idempotencyKey } from '../_shared/razorpayClient.ts';
 
-const RAZORPAY_API = 'https://api.razorpay.com/v1/orders';
 const DEPOSIT_PAISE = 50_000;     // ₹500 — see apps/mobile/config/constants.ts
 
 interface RequestBody {
   booking_id: string;
   side: 'traveler' | 'buddy';
+}
+
+// The deposit link can be saved before its ledger insert succeeds. Recover
+// that insert before offering checkout, even for previously created orders.
+async function ensureDepositLedger(
+  db: ReturnType<typeof adminClient>,
+  deposit: { booking_id: string; user_id: string; amount_paise: number; razorpay_order_id: string },
+): Promise<boolean> {
+  const lookup = () => db.from('payment_events').select('id, amount_paise, status')
+    .eq('booking_id', deposit.booking_id).eq('user_id', deposit.user_id)
+    .eq('razorpay_order_id', deposit.razorpay_order_id).eq('kind', 'deposit').maybeSingle();
+  const reusable = (event: { amount_paise: number; status: string } | null) =>
+    event?.amount_paise === deposit.amount_paise && ['initiated', 'failed'].includes(event.status);
+
+  const { data: existing, error } = await lookup();
+  if (error) return false;
+  if (existing) return reusable(existing);
+
+  const { error: insertError } = await db.from('payment_events').insert({
+    ...deposit,
+    kind: 'deposit',
+    status: 'initiated',
+    idempotency_key: await idempotencyKey(['deposit_order', deposit.razorpay_order_id]),
+  });
+  if (!insertError) return true;
+  if (insertError.code !== '23505') return false;
+  const { data: raced, error: readError } = await lookup();
+  return !readError && reusable(raced);
 }
 
 serve(async (req: Request) => {
@@ -49,7 +77,7 @@ serve(async (req: Request) => {
   } catch {
     return errorResponse('invalid_json', 400);
   }
-  if (!body.booking_id || (body.side !== 'traveler' && body.side !== 'buddy')) {
+  if (typeof body?.booking_id !== 'string' || !body.booking_id || (body.side !== 'traveler' && body.side !== 'buddy')) {
     return errorResponse('booking_id and side ("traveler"|"buddy") are required', 400);
   }
 
@@ -70,42 +98,41 @@ serve(async (req: Request) => {
     return errorResponse('forbidden', 403);
   }
 
-  // `awaiting_deposits` = neither side paid yet. `deposits_held` = exactly
-  // one side has paid (the booking only flips to `awaiting_balance` once
-  // BOTH deposits land), and the unpaid side must still be able to create
-  // their order. The existing-deposit check below catches the "already
-  // held" case for the side that has paid, so allowing `deposits_held` here
-  // is safe and necessary for the second-deposit path.
+  // deposits_held is a transitional state before awaiting_balance. Check the
+  // caller's own deposit state before offering checkout during that transition.
   if (booking.status !== 'awaiting_deposits' && booking.status !== 'deposits_held') {
     return errorResponse('booking_not_awaiting_deposits', 409, {
       current_status: booking.status,
     });
   }
 
-  // ── Idempotent UPSERT into `deposits` ────────────────────────────────────
-  // unique (booking_id, side) per Phase 1 schema; first call inserts, subsequent
-  // calls reuse if pending and recent.
+  // Each booking side has one deposit row. Reuse an existing pending one.
   const { data: existing, error: existingErr } = await supabase
     .from('deposits')
-    .select('id, status, razorpay_order_id, created_at')
+    .select('id, status, razorpay_order_id, amount_paise')
     .eq('booking_id', body.booking_id)
     .eq('side', body.side)
     .maybeSingle();
 
   if (existingErr) return errorResponse(`db_error: ${existingErr.message}`, 500);
 
-  if (existing?.status === 'held') {
-    return errorResponse('deposit_already_held', 409);
+  if (existing && existing.status !== 'pending') {
+    return errorResponse(existing.status === 'held' ? 'deposit_already_held' : 'deposit_not_pending', 409);
   }
 
-  // Re-use any pending order that already has a Razorpay order_id. Razorpay
-  // orders don't expire short-term, so a pending row always has a valid order
-  // to retry the checkout against. Using `created_at` for a recency window was
-  // broken because that timestamp never changes after insert.
-  if (existing?.razorpay_order_id && existing.status === 'pending') {
+  const depositAmount = existing?.amount_paise ?? DEPOSIT_PAISE;
+  const payment = {
+    booking_id: body.booking_id,
+    user_id: caller.userId,
+    amount_paise: depositAmount,
+  };
+  if (existing?.razorpay_order_id) {
+    if (!await ensureDepositLedger(supabase, { ...payment, razorpay_order_id: existing.razorpay_order_id })) {
+      return errorResponse('deposit_payment_event_unavailable', 503);
+    }
     return jsonResponse({
       order_id:     existing.razorpay_order_id,
-      amount_paise: DEPOSIT_PAISE,
+      amount_paise: depositAmount,
       currency:     'INR',
       key_id:       keyId,
       deposit_id:   existing.id,
@@ -113,12 +140,10 @@ serve(async (req: Request) => {
     });
   }
 
-  // Insert (or refresh) the deposit row.
+  // Insert the deposit row before creating the provider order.
   const depositRow = {
-    booking_id:   body.booking_id,
-    user_id:      caller.userId,
+    ...payment,
     side:         body.side,
-    amount_paise: DEPOSIT_PAISE,
     status:       'pending' as const,
   };
 
@@ -134,15 +159,10 @@ serve(async (req: Request) => {
   }
 
   // ── Create the Razorpay order ────────────────────────────────────────────
-  const razorpayRes = await fetch(RAZORPAY_API, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${btoa(`${keyId}:${keySecret}`)}`,
-      'Content-Type':  'application/json',
-    },
-    body: JSON.stringify({
-      amount:   DEPOSIT_PAISE,
-      currency: 'INR',
+  let order: Awaited<ReturnType<typeof createOrder>>;
+  try {
+    order = await createOrder({
+      amount_paise: depositAmount,
       // 40-char limit — booking-id slice + side disambiguator
       receipt:  `dep_${body.side[0]}_${body.booking_id.slice(0, 30)}`,
       notes: {
@@ -151,39 +171,27 @@ serve(async (req: Request) => {
         side:       body.side,
         deposit_id: depositId,
       },
-    }),
-  });
-
-  if (!razorpayRes.ok) {
-    const errText = await razorpayRes.text();
-    return errorResponse(`razorpay_error: ${errText}`, razorpayRes.status);
+    });
+  } catch {
+    return errorResponse('razorpay_order_failed', 502);
   }
 
-  const order = (await razorpayRes.json()) as { id: string; amount: number; currency: string };
-
-  // ── Persist order_id on deposit + insert payment_events row ─────────────
-  const { error: updateErr } = await supabase
+  const { data: linked, error: updateErr } = await supabase
     .from('deposits')
-    .update({ razorpay_order_id: order.id })
-    .eq('id', depositId);
+    .update({ razorpay_order_id: order.order_id })
+    .eq('id', depositId)
+    .eq('status', 'pending')
+    .is('razorpay_order_id', null)
+    .select('id')
+    .maybeSingle();
 
-  if (updateErr) return errorResponse(`db_error: ${updateErr.message}`, 500);
-
-  const { error: peErr } = await supabase
-    .from('payment_events')
-    .insert({
-      booking_id:        body.booking_id,
-      user_id:           caller.userId,
-      kind:              'deposit',
-      amount_paise:      DEPOSIT_PAISE,
-      status:            'initiated',
-      razorpay_order_id: order.id,
-    });
-
-  if (peErr) return errorResponse(`db_error: ${peErr.message}`, 500);
+  if (updateErr || !linked) return errorResponse('deposit_order_link_failed', 503);
+  if (!await ensureDepositLedger(supabase, { ...payment, razorpay_order_id: order.order_id })) {
+    return errorResponse('deposit_payment_event_unavailable', 503);
+  }
 
   return jsonResponse({
-    order_id:     order.id,
+    order_id:     order.order_id,
     amount_paise: order.amount,
     currency:     order.currency,
     key_id:       keyId,

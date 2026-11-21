@@ -153,6 +153,16 @@ function prepareTree(node: LegacyNode, source: string, inHead = false): void {
     }
   }
   enhanceImage(node);
+  if (hasClass(node, 'modal-overlay')) {
+    const title = findFirst(node, (child) => child.tagName === 'h2');
+    const modalId = attr(node, 'id');
+    setAttr(node, 'aria-modal', 'true');
+    if (title && modalId && !attr(node, 'aria-labelledby')) {
+      const titleId = attr(title, 'id') || `${modalId}-title`;
+      setAttr(title, 'id', titleId);
+      setAttr(node, 'aria-labelledby', titleId);
+    }
+  }
   if (node.childNodes) {
     node.childNodes = node.childNodes.filter((child) => {
       if (inHead && !shouldRetainHeadNode(child)) return false;

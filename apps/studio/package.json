@@ -31,7 +31,7 @@
   "overrides": {
     "adm-zip": "0.6.1",
     "@module-federation/dts-plugin": {
-      "undici": "7.29.1"
+      "undici": "7.30.1"
     },
     "@vercel/frameworks": {
       "js-yaml": "3.15.2",
@@ -40,14 +40,17 @@
     "typeid-js": {
       "uuid": "11.1.1"
     },
-    "undici@>=6 <7": "6.28.1",
-    "undici@>=7 <8": "7.29.1",
+    "undici@>=6 <7": "6.29.1",
+    "undici@>=7 <8": "7.30.1",
     "brace-expansion@>=2 <3": "2.1.7",
     "brace-expansion@>=4 <6": "5.0.12",
-    "dompurify": "3.4.16",
+    "dompurify": "3.4.17",
     "smol-toml": "1.9.0",
     "source-map-js": "1.2.2",
-    "markdown-it": "14.3.2",
+    "markdown-it": "14.3.3",
+    "minimatch@>=7 <12": "11.0.1",
+    "vite": "8.3.4",
+    "zod": "4.6.7",
     "braces": "3.0.3",
     "sprintf-js": "1.1.3"
   }

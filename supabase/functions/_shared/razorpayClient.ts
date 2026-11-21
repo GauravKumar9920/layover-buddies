@@ -129,15 +129,47 @@ export async function createOrder(params: {
     receipt:  params.receipt,
     notes:    params.notes ?? {},
   };
+  const ordersUrl = 'https://api.razorpay.com/v1/orders';
+  const authorization = authHeader();
 
-  const res = await fetch('https://api.razorpay.com/v1/orders', {
+  const res = await fetch(ordersUrl, {
     method:  'POST',
     headers: {
-      Authorization:  authHeader(),
+      Authorization:  authorization,
       'Content-Type': 'application/json',
     },
+    redirect: 'error',
+    signal: AbortSignal.timeout(8_000),
     body: JSON.stringify(body),
   });
+
+  // Razorpay rejects a duplicate receipt. Recover an order already created
+  // before a failed local write, and ensure the recovered quote still matches.
+  if (res.status === 400) {
+    const lookupUrl = new URL(ordersUrl);
+    lookupUrl.searchParams.set('receipt', body.receipt);
+    lookupUrl.searchParams.set('count', '2');
+    const existing = await fetch(lookupUrl, {
+      headers: { Authorization: authorization },
+      redirect: 'error',
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (existing.ok) {
+      const collection = await existing.json();
+      const order = Array.isArray(collection?.items) && collection.items.length === 1 ? collection.items[0] : null;
+      if (
+        typeof order?.id === 'string'
+        && order.receipt === body.receipt
+        && order.currency === body.currency
+        && order.amount === body.amount
+        && ['created', 'attempted'].includes(order.status)
+        && Object.entries(body.notes).every(([key, value]) => order.notes?.[key] === value)
+      ) {
+        await res.body?.cancel();
+        return { order_id: order.id, currency: order.currency, amount: order.amount, receipt: order.receipt };
+      }
+    }
+  }
 
   if (!res.ok) {
     const text = await res.text();
@@ -151,6 +183,30 @@ export async function createOrder(params: {
     currency: data.currency,
     receipt:  data.receipt ?? params.receipt,
   };
+}
+
+/** Resolve the gateway's current capture state for a signed checkout result. */
+export async function verifyCapturedPayment(expected: {
+  paymentId: string;
+  orderId: string;
+  amountPaise: number;
+}): Promise<'captured' | 'pending' | 'mismatch'> {
+  const res = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(expected.paymentId)}`, {
+    headers: { Authorization: authHeader() },
+    redirect: 'error',
+    signal: AbortSignal.timeout(8_000),
+  });
+  if (!res.ok) throw new Error(`Razorpay payment lookup failed (${res.status})`);
+
+  const payment = await res.json();
+  if (
+    payment?.id !== expected.paymentId
+    || payment.order_id !== expected.orderId
+    || payment.amount !== expected.amountPaise
+    || payment.currency !== 'INR'
+  ) return 'mismatch';
+
+  return payment.status === 'captured' ? 'captured' : 'pending';
 }
 
 /**

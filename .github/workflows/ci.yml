@@ -8,7 +8,7 @@ name: CI
 # application workspace plus packages/* from the root package-lock.json, then
 # each job runs the relevant workspace script via `npm run <task> -w <name>`.
 # Sanity Studio is intentionally isolated with its own React 19 lockfile.
-# Node 22.19 is the minimum supported runtime for the patched Undici 8 tree.
+# Keep Node on the 22.x maintenance line at a patch release supported by Astro.
 # Action releases are pinned to reviewed commits and use current runtimes.
 #
 # What this catches:
@@ -47,7 +47,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '22.19'
+          node-version: '22.23.5'
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - name: Reject committed Google API keys
@@ -85,7 +85,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '22.19'
+          node-version: '22.23.5'
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - name: Install (workspaces)
@@ -115,6 +115,9 @@ jobs:
       - name: Type check payment, admin and growth boundaries
         run: |
           deno check supabase/functions/razorpay-webhook/index.ts
+          deno check supabase/functions/confirm-payment/index.ts
+          deno check supabase/functions/create-balance-order/index.ts
+          deno check supabase/functions/create-deposit-order/index.ts
           deno check supabase/functions/create-topup-order/index.ts
           deno check supabase/functions/booking-support/index.ts
           deno check supabase/functions/cancel-booking/index.ts
@@ -141,7 +144,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '22.19'
+          node-version: '22.23.5'
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - name: Install (workspaces)
@@ -163,7 +166,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '22.19'
+          node-version: '22.23.5'
           cache: 'npm'
           cache-dependency-path: apps/studio/package-lock.json
       - name: Install isolated Studio dependencies
@@ -191,15 +194,17 @@ jobs:
         with:
           persist-credentials: false
       - name: Install Supabase CLI
-        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
-          version: latest
+          version: '3.2.0'
       - name: Start Supabase (applies migrations to fresh DB)
         run: supabase start
       - name: Test booking support transactions
         run: docker exec -i supabase_db_mumbai-buddies psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/booking_support.sql
       - name: Test refund allocation safety
         run: docker exec -i supabase_db_mumbai-buddies psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/refund_allocations.sql
+      - name: Test website account access
+        run: docker exec -i supabase_db_mumbai-buddies psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/website_account_access.sql
       - name: Stop Supabase
         if: always()
         run: supabase stop --no-backup

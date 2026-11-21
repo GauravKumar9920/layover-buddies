@@ -15,14 +15,20 @@
     }
   }
 
-  function openModal(id) {
+  function modalTabStops(modal) {
+    return Array.from(modal.querySelectorAll('button,[href],input,select,textarea,[tabindex]')).filter(function (element) {
+      return !element.matches(':disabled') && element.tabIndex >= 0 && element.getClientRects().length;
+    });
+  }
+
+  function openModal(id, opener) {
     var modal = document.getElementById(id);
     if (!modal) return;
-    if (!modal.classList.contains('open')) modalOpeners[id] = document.activeElement;
+    if (!modal.classList.contains('open')) modalOpeners[id] = opener || document.activeElement;
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
-    var focusable = modal.querySelectorAll('button,[href],input,select,textarea,[tabindex="0"]');
+    var focusable = modalTabStops(modal);
     if (focusable.length) focusable[0].focus();
   }
 
@@ -34,7 +40,10 @@
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     var opener = modalOpeners[id];
-    if (wasOpen && returnFocus !== false && opener && opener.isConnected && opener.getClientRects().length) opener.focus();
+    delete modalOpeners[id];
+    if (!wasOpen || returnFocus === false) return;
+    if (opener && opener.isConnected && opener.getClientRects().length && opener !== document.body) opener.focus();
+    else document.querySelector('[data-site-inquiry]')?.focus();
   }
 
   document.querySelectorAll('.btn-trigger-booking').forEach(function (button) {
@@ -44,9 +53,16 @@
       if (!document.getElementById('booking-modal')) return;
       event.preventDefault();
       prefillShortlist();
+      var opener = modalOpeners['route-modal'] || button;
       closeModal('route-modal', false);
-      openModal('booking-modal');
+      openModal('booking-modal', opener);
       track('booking_form_open', { form_type: 'detour', page_path: location.pathname });
+    });
+  });
+  document.querySelectorAll('[data-open-modal]').forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      openModal(button.dataset.openModal, button);
     });
   });
   function prefillShortlist() {
@@ -64,8 +80,20 @@
     modal.addEventListener('click', function (event) { if (event.target === modal) closeModal(modal.id); });
   });
   addEventListener('keydown', function (event) {
+    var modal = document.querySelector('.modal-overlay.open');
+    if (!modal) return;
     if (event.key === 'Escape') {
-      document.querySelectorAll('.modal-overlay.open').forEach(function (modal) { closeModal(modal.id); });
+      event.preventDefault();
+      closeModal(modal.id);
+    }
+    if (event.key === 'Tab') {
+      var focusable = modalTabStops(modal);
+      var boundary = event.shiftKey ? focusable[0] : focusable[focusable.length - 1];
+      if (!modal.contains(document.activeElement) || document.activeElement === boundary) {
+        event.preventDefault();
+        var next = event.shiftKey ? focusable[focusable.length - 1] : focusable[0];
+        if (next) next.focus();
+      }
     }
   });
 
@@ -146,6 +174,26 @@
     return payload;
   }
 
+  // AbortSignal.timeout needs Safari 16. Without this fallback every request
+  // from iOS 15 throws before it is sent, and both transports report failure.
+  async function fetchLead(url, options) {
+    var signal;
+    var timer;
+    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+      signal = AbortSignal.timeout(20000);
+    } else if (typeof AbortController === 'function') {
+      var controller = new AbortController();
+      signal = controller.signal;
+      timer = setTimeout(function () { controller.abort(); }, 20000);
+    }
+    try {
+      var response = await fetch(url, Object.assign({ signal: signal }, options));
+      return { response: response, body: await response.json().catch(function () { return null; }) };
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
+    }
+  }
+
   async function submitPrimary(payload) {
     if (!primaryEndpoint) {
       var missingEndpoint = new Error('primary endpoint is not configured');
@@ -156,10 +204,9 @@
     // Signed in on the website: send the access token so the request is linked to the account.
     var token = typeof window !== 'undefined' && window.DetourAccount && window.DetourAccount.signedIn() ? await window.DetourAccount.accessToken().catch(function () { return null; }) : null;
     if (token) headers.Authorization = 'Bearer ' + token;
-    var response;
+    var result;
     try {
-      response = await fetch(primaryEndpoint, {
-        signal: AbortSignal.timeout(20000),
+      result = await fetchLead(primaryEndpoint, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(payload),
@@ -168,7 +215,8 @@
       networkError.fallbackEligible = true;
       throw networkError;
     }
-    var responseBody = await response.json().catch(function () { return null; });
+    var response = result.response;
+    var responseBody = result.body;
     if (response.status === 202) return { accepted: true, synthetic: true };
     if (response.status >= 500) {
       var serverError = new Error('primary service unavailable');
@@ -180,7 +228,7 @@
       requestError.fallbackEligible = false;
       throw requestError;
     }
-    if (!response.ok || !responseBody || !responseBody.data || !responseBody.data.leadId || responseBody.error) {
+    if (!responseBody || !responseBody.data || !responseBody.data.leadId || responseBody.error) {
       var contractError = new Error('primary submission returned an invalid response');
       contractError.fallbackEligible = false;
       throw contractError;
@@ -192,14 +240,13 @@
     var fields = Object.fromEntries(new FormData(form).entries());
     fields._subject = requestType === 'detour' ? 'Detour request (temporary fallback)' : 'Cheat sheet request (temporary fallback)';
     fields._template = 'table';
-    var response = await fetch(FALLBACK_ENDPOINT, {
-      signal: AbortSignal.timeout(20000),
+    var result = await fetchLead(FALLBACK_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(fields),
     });
-    var body = await response.json().catch(function () { return null; });
-    if (!response.ok || !body || (body.success !== true && body.success !== 'true')) throw new Error('fallback submission failed');
+    var body = result.body;
+    if (!result.response.ok || !body || (body.success !== true && body.success !== 'true')) throw new Error('fallback submission failed');
     return { accepted: true, fallback: true };
   }
 

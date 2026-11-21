@@ -9,7 +9,6 @@ import { fileURLToPath } from 'node:url';
 const guarded = new Map([
   ['braces', { version: '3.0.3', advisories: new Set(['GHSA-vfj7-8cjw-p6xm']) }],
   ['sprintf-js', { version: '1.1.3', advisories: new Set(['GHSA-hp3w-g68c-fv3c']) }],
-  ['node-forge', { version: '1.4.0', advisories: new Set(['GHSA-86w9-cpqp-85rv']) }],
   ['image-size', { version: '1.2.1', advisories: new Set(['GHSA-5p2g-fcmc-qvqq', 'GHSA-w3rx-r6r6-pgpr']) }],
 ]);
 

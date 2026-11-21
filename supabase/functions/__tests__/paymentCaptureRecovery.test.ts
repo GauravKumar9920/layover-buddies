@@ -2,7 +2,7 @@ import { assertEquals, assertRejects } from 'https://deno.land/std@0.224.0/asser
 import { handleBalanceCaptured } from '../_shared/balanceCapture.ts';
 import { handleTopUpCaptured } from '../_shared/topupCapture.ts';
 import { existingTopUpOrder, linkTopUpOrder } from '../_shared/topupOrder.ts';
-import { idempotencyKey } from '../_shared/razorpayClient.ts';
+import { createOrder, idempotencyKey, verifyCapturedPayment } from '../_shared/razorpayClient.ts';
 
 type Row = Record<string, any>;
 
@@ -40,8 +40,19 @@ const balancePayload = {
   notes: { booking_id: 'booking-1', kind: 'balance' as const, is_late_fee_component: false },
 };
 
+function balanceLedger(status = 'initiated') {
+  return {
+    id: 'ledger-1',
+    booking_id: 'booking-1',
+    kind: 'balance',
+    is_late_fee_component: false,
+    razorpay_order_id: 'order-balance',
+    status,
+  };
+}
+
 Deno.test('a balance webhook retry finishes the booking after a successful ledger write', async () => {
-  const payment = { id: 'ledger-1', status: 'initiated', razorpay_order_id: 'order-balance' };
+  const payment = balanceLedger();
   const booking = { id: 'booking-1', status: 'awaiting_balance' };
   const db = makeDb({ payment_events: [payment], bookings: [booking] }, 'bookings');
   assertEquals((await handleBalanceCaptured(db, balancePayload)).ok, false);
@@ -51,8 +62,76 @@ Deno.test('a balance webhook retry finishes the booking after a successful ledge
   assertEquals(booking.status, 'balance_paid');
 });
 
+Deno.test('a balance capture after a failed attempt clears the failure and settles its order', async () => {
+  const payment = { ...balanceLedger('failed'), failed_reason: 'declined' };
+  const booking = { id: 'booking-1', status: 'awaiting_balance' };
+  const db = makeDb({ payment_events: [payment], bookings: [booking] });
+  assertEquals(await handleBalanceCaptured(db, balancePayload), { ok: true, type: 'balance_paid', bookingStatus: 'balance_paid' });
+  assertEquals(payment.status, 'captured');
+  assertEquals(payment.failed_reason, null);
+});
+
+async function withRazorpayFetch(mockFetch: typeof fetch, run: () => Promise<void>) {
+  const originalFetch = globalThis.fetch;
+  const originalGetEnv = Deno.env.get;
+  Deno.env.get = () => 'test-credential';
+  globalThis.fetch = mockFetch;
+  try {
+    await run();
+  } finally {
+    globalThis.fetch = originalFetch;
+    Deno.env.get = originalGetEnv;
+  }
+}
+
+Deno.test('checkout verification waits for provider capture and verifies the amount', async () => {
+  const expected = { paymentId: 'pay_balance', orderId: 'order_balance', amountPaise: 15000 };
+  const payment = {
+    id: expected.paymentId,
+    order_id: expected.orderId,
+    currency: 'INR',
+    amount: expected.amountPaise,
+    status: 'authorized',
+  };
+  await withRazorpayFetch(
+    (input) => {
+      assertEquals(input, 'https://api.razorpay.com/v1/payments/pay_balance');
+      return Promise.resolve(Response.json(payment));
+    },
+    async () => {
+      assertEquals(await verifyCapturedPayment(expected), 'pending');
+      payment.status = 'captured';
+      assertEquals(await verifyCapturedPayment(expected), 'captured');
+      payment.amount += 1;
+      assertEquals(await verifyCapturedPayment(expected), 'mismatch');
+    },
+  );
+});
+
+Deno.test('an order created before an interrupted local write is recovered by receipt', async () => {
+  const notes = { kind: 'balance', booking_id: 'booking-1' };
+  const order = { id: 'order_existing', currency: 'INR', amount: 15000, receipt: 'bal_booking-1', status: 'created', notes };
+  const request = { amount_paise: 15000, receipt: order.receipt, notes };
+  await withRazorpayFetch(
+    (input, init) => {
+      if (init && 'method' in init && init.method === 'POST') {
+        return Promise.resolve(new Response('duplicate receipt', { status: 400 }));
+      }
+      assertEquals(String(input), 'https://api.razorpay.com/v1/orders?receipt=bal_booking-1&count=2');
+      return Promise.resolve(Response.json({ items: [order] }));
+    },
+    async () => {
+      assertEquals(await createOrder(request), {
+        order_id: order.id, amount: order.amount, currency: order.currency, receipt: order.receipt,
+      });
+      order.amount += 1;
+      await assertRejects(() => createOrder(request), Error, 'createOrder failed (400)');
+    },
+  );
+});
+
 Deno.test('a concurrent cancellation cannot be overwritten or reported as balance paid', async () => {
-  const payment = { id: 'ledger-1', status: 'initiated', razorpay_order_id: 'order-balance' };
+  const payment = balanceLedger();
   const booking = { id: 'booking-1', status: 'awaiting_balance' };
   const db = makeDb({ payment_events: [payment], bookings: [booking] }, undefined, (table) => {
     if (table === 'bookings') booking.status = 'cancelled_no_pay';
@@ -62,7 +141,7 @@ Deno.test('a concurrent cancellation cannot be overwritten or reported as balanc
 });
 
 Deno.test('a concurrent refund cannot be overwritten by a balance capture', async () => {
-  const payment = { id: 'ledger-1', status: 'initiated', razorpay_order_id: 'order-balance' };
+  const payment = balanceLedger();
   const booking = { id: 'booking-1', status: 'awaiting_balance' };
   const db = makeDb({ payment_events: [payment], bookings: [booking] }, undefined, (table) => {
     if (table === 'payment_events') payment.status = 'refunded';
@@ -72,7 +151,7 @@ Deno.test('a concurrent refund cannot be overwritten by a balance capture', asyn
 });
 
 Deno.test('a delayed balance capture replay preserves a completed booking', async () => {
-  const payment = { id: 'ledger-1', status: 'captured', razorpay_order_id: 'order-balance', razorpay_payment_id: 'pay-balance' };
+  const payment = { ...balanceLedger('captured'), razorpay_payment_id: 'pay-balance' };
   const booking = { id: 'booking-1', status: 'completed' };
   assertEquals(await handleBalanceCaptured(makeDb({ payment_events: [payment], bookings: [booking] }), balancePayload), { ok: true, type: 'idempotent' });
   assertEquals(booking.status, 'completed');

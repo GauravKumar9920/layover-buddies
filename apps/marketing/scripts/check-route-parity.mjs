@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { access, readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -172,6 +173,21 @@ for (const htmlFile of htmlFiles) {
     } catch {
       throw new Error(`Broken local reference ${reference} in ${path.relative(distRoot, htmlFile)}`);
     }
+  }
+}
+
+// public/assets keeps the same file names on every deploy, so each page must request
+// the content-hashed URL. An unversioned script can be served from a stale cache
+// against newer markup and fail before the mobile planner is wired up.
+const assetHashes = new Map();
+for (const htmlFile of htmlFiles) {
+  const html = await readFile(htmlFile, 'utf8');
+  for (const [, reference] of html.matchAll(/<(?:script|link)\b[^>]*\b(?:src|href)="(\/assets\/[^"]+\.(?:css|js)(?:\?[^"]*)?)"/g)) {
+    const [file, query = ''] = reference.split('?');
+    if (!assetHashes.has(file)) {
+      assetHashes.set(file, createHash('sha256').update(await readFile(path.join(distRoot, file.slice(1)))).digest('hex').slice(0, 10));
+    }
+    assert.equal(query, `v=${assetHashes.get(file)}`, `${reference} in ${path.relative(distRoot, htmlFile)} must carry its content hash`);
   }
 }
 

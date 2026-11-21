@@ -56,6 +56,10 @@ export function PeoplePage({ role }: { role: 'traveler' | 'guide' }) {
 
 export function UserDetailPage() {
   const { id = '' } = useParams();
+  return <UserDetailWorkspace key={id} id={id} />;
+}
+
+function UserDetailWorkspace({ id }: { id: string }) {
   const { admin } = useAuth();
   const [suspensionOpen, setSuspensionOpen] = useState(false);
   const user = useAdminQuery<UserDetail>(() => adminRequest('users.get', { id }), [id]);

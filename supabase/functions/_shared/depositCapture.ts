@@ -72,6 +72,8 @@ export async function handleDepositCaptured(
     .from('payment_events')
     .select('id, status, razorpay_payment_id')
     .eq('razorpay_order_id', payload.orderId)
+    .eq('booking_id', payload.notes.booking_id)
+    .eq('kind', payload.notes.kind)
     .maybeSingle();
 
   if (existing.error) return { ok: false, error: `db_error: ${existing.error.message}` };
@@ -125,6 +127,7 @@ export async function handleDepositCaptured(
     .eq('id', payload.notes.deposit_id)
     .eq('booking_id', payload.notes.booking_id)
     .eq('side', payload.notes.side)
+    .eq('razorpay_order_id', payload.orderId)
     .in('status', ['pending', 'held'])
     .select('id')
     .maybeSingle();

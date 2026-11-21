@@ -11,3 +11,6 @@
 .desktop-home footer .logo .detour-logo-ink{display:none}
 .desktop-home footer .logo .detour-logo-paper{display:block}
 [data-account-link][hidden]{display:none!important}
+
+/* Inactive legacy dialogs must stay out of the keyboard tab order. */
+.modal-overlay[aria-hidden="true"]{visibility:hidden}
