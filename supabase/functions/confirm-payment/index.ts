@@ -10,10 +10,9 @@
 //   - razorpay_payment_id
 //   - razorpay_signature  (= HMAC_SHA256_HEX(KEY_SECRET, order_id|payment_id))
 //
-// If the signature verifies, the payment is provably authentic — we then
-// dispatch to the SAME capture handlers the webhook calls, so the deposit
-// row, payment_events row, booking status, and downstream side-effects all
-// land identically.
+// Verify the signature, then check that Razorpay has captured the amount
+// recorded for this booking. The webhook and fallback share the same capture
+// handlers so subsequent updates and retries follow the same rules.
 //
 // Inputs (POST JSON body):
 //   {
@@ -37,6 +36,7 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient, getUserFromRequest } from '../_shared/supabaseAdmin.ts';
 import { hmacSha256Hex, timingSafeEqual } from '../_shared/razorpaySignature.ts';
+import { verifyCapturedPayment } from '../_shared/razorpayClient.ts';
 import {
   handleDepositCaptured,
   type DepositNotes,
@@ -74,8 +74,10 @@ serve(async (req: Request) => {
   } catch {
     return errorResponse('invalid_json', 400);
   }
+  if (!body || typeof body !== 'object') return errorResponse('invalid_json', 400);
   const { booking_id, kind, side, razorpay_order_id, razorpay_payment_id, razorpay_signature } = body;
-  if (!booking_id || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+  if ([booking_id, razorpay_order_id, razorpay_payment_id, razorpay_signature]
+    .some((value) => typeof value !== 'string' || !value)) {
     return errorResponse('missing_required_field', 400);
   }
   if (kind !== 'deposit' && kind !== 'balance') {
@@ -113,12 +115,30 @@ serve(async (req: Request) => {
     if (booking.traveler_id !== caller.userId) return errorResponse('forbidden', 403);
   }
 
-  // ── Look up the payment_events row we expect to settle ───────────────────
-  // The order was created server-side by create-deposit-order or
-  // create-balance-order — those functions write the order_id into either
-  // `deposits` (deposit) or `payment_events` (balance). We pull deposit_id
-  // for deposit so the underlying handler has the same notes shape the
-  // webhook would.
+  const { data: ledger, error: ledgerError } = await db
+    .from('payment_events')
+    .select('amount_paise, is_late_fee_component')
+    .eq('razorpay_order_id', razorpay_order_id)
+    .eq('booking_id', booking_id)
+    .eq('kind', kind)
+    .eq('user_id', caller.userId)
+    .maybeSingle();
+  if (ledgerError) return errorResponse('payment_event_lookup_failed', 503);
+  if (!ledger) return errorResponse('payment_event_not_found', 404);
+
+  let capture: Awaited<ReturnType<typeof verifyCapturedPayment>>;
+  try {
+    capture = await verifyCapturedPayment({
+      paymentId: razorpay_payment_id,
+      orderId: razorpay_order_id,
+      amountPaise: ledger.amount_paise,
+    });
+  } catch {
+    return errorResponse('payment_status_unavailable', 502);
+  }
+  if (capture === 'mismatch') return errorResponse('payment_does_not_match_order', 409);
+  if (capture === 'pending') return errorResponse('payment_capture_pending', 409);
+
   const capturedAtIso = new Date().toISOString();
 
   if (kind === 'deposit') {
@@ -155,13 +175,14 @@ serve(async (req: Request) => {
   // kind === 'balance'
   // Fetch trip start time for the T-12h jump.
   let tripStartsAtIso: string | undefined;
-  const { data: agreement } = await db
+  const { data: agreement, error: agreementError } = await db
     .from('agreements')
     .select('trip_starts_at')
     .eq('booking_id', booking_id)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (agreementError) return errorResponse('agreement_lookup_failed', 503);
   if (agreement?.trip_starts_at) {
     tripStartsAtIso = new Date(agreement.trip_starts_at).toISOString();
   }
@@ -169,7 +190,7 @@ serve(async (req: Request) => {
   const notes: BalanceNotes = {
     booking_id,
     kind:                  'balance',
-    is_late_fee_component: false,
+    is_late_fee_component: ledger.is_late_fee_component,
   };
 
   const result = await handleBalanceCaptured(db, {

@@ -11,9 +11,8 @@
 // Returns:
 //   { order_id, amount_paise, currency, key_id, payment_event_id, reused? }
 //
-// Idempotent: re-uses an existing 'initiated' payment_events row of kind
-// 'balance' with the same is_late_fee_component flag rather than creating a
-// second Razorpay order.
+// Reuse the existing Razorpay order for the booking when its amount matches
+// the current quote, including after a failed checkout attempt.
 // ============================================================================
 
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
@@ -21,36 +20,29 @@ import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts';
 import { adminClient, getUserFromRequest } from '../_shared/supabaseAdmin.ts';
 import { createOrder, idempotencyKey } from '../_shared/razorpayClient.ts';
 
-const LATE_FEE_PAISE = 100_000;  // ₹1,000 — mirrors apps/mobile/config/constants.ts
-
 serve(async (req: Request) => {
-  console.log('[create-balance-order] Request received:', req.method, req.url);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST')    return errorResponse('method_not_allowed', 405);
 
   // ── Authn ────────────────────────────────────────────────────────────────
-  console.log('[create-balance-order] Extracting caller identity...');
   const caller = await getUserFromRequest(req);
-  console.log('[create-balance-order] Caller identity:', caller);
   if (!caller) return errorResponse('unauthorized', 401);
 
   // ── Body ─────────────────────────────────────────────────────────────────
   let body: { booking_id: string };
   try {
     body = await req.json();
-    console.log('[create-balance-order] Request body:', body);
-  } catch (e) {
-    console.error('[create-balance-order] Failed to parse JSON body:', e);
+  } catch {
     return errorResponse('invalid_json', 400);
   }
-  if (!body.booking_id) return errorResponse('booking_id required', 400);
+  if (typeof body?.booking_id !== 'string' || !body.booking_id) return errorResponse('booking_id required', 400);
 
   const db = adminClient();
 
   // ── Load booking ─────────────────────────────────────────────────────────
   const { data: booking, error: bErr } = await db
     .from('bookings')
-    .select('id, traveler_id, guide_id, status, late_fee_paise')
+    .select('id, traveler_id, status, late_fee_paise')
     .eq('id', body.booking_id)
     .single();
 
@@ -71,7 +63,7 @@ serve(async (req: Request) => {
   // ── Load latest agreement for amount computation ──────────────────────────
   const { data: agreement, error: aErr } = await db
     .from('agreements')
-    .select('id, traveler_subtotal_paise, traveler_gst_paise, traveler_total_paise, trip_starts_at')
+    .select('traveler_subtotal_paise, traveler_gst_paise, trip_starts_at')
     .eq('booking_id', body.booking_id)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -82,37 +74,34 @@ serve(async (req: Request) => {
   }
 
   // Balance = subtotal + GST (deposit already paid; not charged again).
-  // If late_fee_due, add ₹1,000 late fee.
+  // The booking stores the fee assessed by the lifecycle job, including zero.
   const balanceAmount = agreement.traveler_subtotal_paise +
                         agreement.traveler_gst_paise +
-                        (isLateFee ? LATE_FEE_PAISE : 0);
+                        (isLateFee ? booking.late_fee_paise : 0);
 
-  // ── Idempotency: re-use existing initiated row ────────────────────────────
-  console.log('[create-balance-order] Checking existing payment event for booking_id:', body.booking_id, 'isLateFee:', isLateFee);
+  // A failed payment attempt leaves the provider order available for retries.
   const { data: existingPe, error: peCheckErr } = await db
     .from('payment_events')
-    .select('id, razorpay_order_id, status')
+    .select('id, razorpay_order_id, status, amount_paise')
     .eq('booking_id', body.booking_id)
     .eq('kind', 'balance')
-    .eq('status', 'initiated')
-    .eq('is_late_fee_component', isLateFee)
     .maybeSingle();
 
-  if (peCheckErr) {
-    console.error('[create-balance-order] Existing payment check DB error:', peCheckErr);
-  }
-
-  console.log('[create-balance-order] Existing payment event found:', existingPe);
-
-  if (existingPe?.razorpay_order_id) {
-    console.log('[create-balance-order] Re-using existing initiated payment event:', existingPe.razorpay_order_id);
+  if (peCheckErr) return errorResponse('payment_event_lookup_failed', 503);
+  if (existingPe) {
+    if (existingPe.status !== 'initiated' && existingPe.status !== 'failed') {
+      return errorResponse('balance_already_processed', 409);
+    }
+    if (!existingPe.razorpay_order_id) return errorResponse('balance_order_unavailable', 503);
+    if (existingPe.amount_paise !== balanceAmount) return errorResponse('balance_order_amount_changed', 409);
     return jsonResponse({
       order_id:         existingPe.razorpay_order_id,
-      amount_paise:     balanceAmount,
+      amount_paise:     existingPe.amount_paise,
       currency:         'INR',
       key_id:           Deno.env.get('RAZORPAY_KEY_ID'),
       payment_event_id: existingPe.id,
       reused:           true,
+      trip_starts_at:   agreement.trip_starts_at,
     });
   }
 
@@ -135,8 +124,8 @@ serve(async (req: Request) => {
       },
     });
     order = { order_id: result.order_id, amount: result.amount, currency: result.currency };
-  } catch (err) {
-    console.error('Razorpay createOrder error:', err);
+  } catch {
+    console.error('Razorpay balance order request failed');
     return errorResponse('razorpay_order_failed', 502);
   }
 
@@ -156,9 +145,7 @@ serve(async (req: Request) => {
     .select('id')
     .single();
 
-  if (peErr) {
-    return errorResponse(`db_error: ${peErr.message}`, 500);
-  }
+  if (peErr || !pe) return errorResponse('payment_event_insert_failed', 503);
 
   return jsonResponse({
     order_id:         order.order_id,

@@ -24,8 +24,8 @@ import {
 
 interface DbState {
   bookings:       Map<string, { id: string; status: string }>;
-  deposits:       Map<string, { id: string; booking_id: string; side: string; status: string; razorpay_payment_id?: string; held_at?: string }>;
-  payment_events: Map<string, { id: string; razorpay_order_id: string; razorpay_payment_id?: string; status: string; razorpay_signature?: string; captured_at?: string; failed_reason?: string }>;
+  deposits:       Map<string, { id: string; booking_id: string; side: string; status: string; razorpay_order_id: string; razorpay_payment_id?: string; held_at?: string }>;
+  payment_events: Map<string, { id: string; booking_id: string; kind: string; razorpay_order_id: string; razorpay_payment_id?: string; status: string; razorpay_signature?: string; captured_at?: string; failed_reason?: string }>;
 }
 
 /**
@@ -71,12 +71,12 @@ function makeInitialState(): DbState {
       [BOOKING_ID, { id: BOOKING_ID, status: 'awaiting_deposits' }],
     ]),
     deposits: new Map([
-      ['dep-traveler', { id: 'dep-traveler', booking_id: BOOKING_ID, side: 'traveler', status: 'pending' }],
-      ['dep-buddy',    { id: 'dep-buddy',    booking_id: BOOKING_ID, side: 'buddy',    status: 'pending' }],
+      ['dep-traveler', { id: 'dep-traveler', booking_id: BOOKING_ID, side: 'traveler', status: 'pending', razorpay_order_id: ORDER_T }],
+      ['dep-buddy', { id: 'dep-buddy', booking_id: BOOKING_ID, side: 'buddy', status: 'pending', razorpay_order_id: ORDER_B }],
     ]),
     payment_events: new Map([
-      ['pe-traveler', { id: 'pe-traveler', razorpay_order_id: ORDER_T, razorpay_payment_id: undefined, status: 'initiated' }],
-      ['pe-buddy',    { id: 'pe-buddy',    razorpay_order_id: ORDER_B, razorpay_payment_id: undefined, status: 'initiated' }],
+      ['pe-traveler', { id: 'pe-traveler', booking_id: BOOKING_ID, kind: 'deposit', razorpay_order_id: ORDER_T, status: 'initiated' }],
+      ['pe-buddy', { id: 'pe-buddy', booking_id: BOOKING_ID, kind: 'deposit', razorpay_order_id: ORDER_B, status: 'initiated' }],
     ]),
   };
 }

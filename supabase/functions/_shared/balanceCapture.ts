@@ -57,6 +57,9 @@ export async function handleBalanceCaptured(
     .from('payment_events')
     .select('id, status, razorpay_payment_id')
     .eq('razorpay_order_id', payload.orderId)
+    .eq('booking_id', payload.notes.booking_id)
+    .eq('kind', payload.notes.kind)
+    .eq('is_late_fee_component', payload.notes.is_late_fee_component)
     .maybeSingle();
 
   if (exErr) return { ok: false, error: `db_error: ${exErr.message}` };

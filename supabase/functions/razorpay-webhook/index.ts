@@ -166,13 +166,14 @@ serve(async (req: Request) => {
     if (event.event === 'payment.captured') {
       // Fetch trip_starts_at from agreements for the T-12h check.
       let tripStartsAtIso: string | undefined;
-      const { data: agreement } = await db
+      const { data: agreement, error: agreementError } = await db
         .from('agreements')
         .select('trip_starts_at')
         .eq('booking_id', notes.booking_id)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
+      if (agreementError) return errorResponse('agreement_lookup_failed', 503);
 
       if (agreement?.trip_starts_at) {
         tripStartsAtIso = new Date(agreement.trip_starts_at).toISOString();
