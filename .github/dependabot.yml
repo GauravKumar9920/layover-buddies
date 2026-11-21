@@ -35,6 +35,9 @@ updates:
       - dependency-name: "eslint"
         update-types:
           - "version-update:semver-major"
+      - dependency-name: "eslint-config-expo"
+        update-types:
+          - "version-update:semver-major"
       # Major toolchain/API migrations need a dedicated compatibility task.
       # Continue automated patch/minor updates for these current app versions.
       - dependency-name: "jest"
