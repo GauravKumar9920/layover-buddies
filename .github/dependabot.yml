@@ -38,6 +38,10 @@ updates:
       - dependency-name: "eslint-config-expo"
         update-types:
           - "version-update:semver-major"
+      # Expo Router 4's linking code uses the query-string 7 export shape.
+      - dependency-name: "query-string"
+        update-types:
+          - "version-update:semver-major"
       # Major toolchain/API migrations need a dedicated compatibility task.
       # Continue automated patch/minor updates for these current app versions.
       - dependency-name: "jest"
