@@ -61,3 +61,8 @@ output directory to `dist`. Keep `cleanUrls` enabled. Publishing content from
 Sanity should call the Vercel Deploy Hook described in
 `../studio/docs/publishing.md`; a Git push by itself is not proof of a
 production release.
+
+Scripts and stylesheets in `public/assets/` keep fixed file names. Pages
+reference them through `src/lib/asset-url.mjs`, which appends a content hash
+(`/assets/mobile/mobile.js?v=…`), so a deploy never pairs new markup with a
+cached older script. The parity check fails on any unversioned reference.

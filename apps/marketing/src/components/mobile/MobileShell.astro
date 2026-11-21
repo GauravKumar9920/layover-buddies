@@ -1,5 +1,6 @@
 ---
 import places from '../../data/place-guides.json';
+import { assetUrl } from '../../lib/asset-url.mjs';
 interface Props { home?: boolean; contentTarget?: string }
 const { home=false, contentTarget='#main-content' } = Astro.props;
 const currentPlace = places.find(p=>Astro.url.pathname.replace(/\/$/,'') === `/guides/${p.slug}`);
@@ -21,4 +22,4 @@ const currentPlace = places.find(p=>Astro.url.pathname.replace(/\/$/,'') === `/g
   </dialog>
   <noscript><p class="mw-noscript">To request a detour without JavaScript, email <a href="mailto:admin@detourtrips.com">admin@detourtrips.com</a> with your flight times.</p></noscript>
 </div>
-<script is:inline src="/assets/mobile/mobile.js" defer></script>
+<script is:inline src={assetUrl('/assets/mobile/mobile.js')} defer></script>

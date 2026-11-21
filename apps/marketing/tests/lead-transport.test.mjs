@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 const code=await readFile(new URL('../public/assets/booking.js',import.meta.url),'utf8');
-function setup(responses){
+function setup(responses, browser = {}){
  const calls=[],events=[];
  const window={DetourAnalytics:{track:(...args)=>events.push(args)},DetourUTM:{first:{utm_source:'test',privateValue:'never'}}};
- const context={window,document:{querySelector:s=>s.startsWith('meta')?{getAttribute:()=>'/test-lead'}:s==='.mw-shell'?{}:null,querySelectorAll:()=>[],getElementById:()=>null},location:{pathname:'/'},addEventListener(){},AbortSignal,FormData:class{constructor(form){this.form=form}entries(){return Object.entries(this.form)}},fetch:async(url,options)=>{calls.push({url,payload:JSON.parse(options.body)});const response=responses.shift();if(response instanceof Error)throw response;return {status:response.status,ok:response.status<300,json:async()=>response.body}}};
+ const context={window,document:{querySelector:s=>s.startsWith('meta')?{getAttribute:()=>'/test-lead'}:s==='.mw-shell'?{}:null,querySelectorAll:()=>[],getElementById:()=>null},location:{pathname:'/'},addEventListener(){},AbortSignal,FormData:class{constructor(form){this.form=form}entries(){return Object.entries(this.form)}},fetch:async(url,options)=>{calls.push({url,payload:JSON.parse(options.body),signal:options.signal});const response=responses.shift();if(response instanceof Error)throw response;return {status:response.status,ok:response.status<300,json:async()=>response.body}},...browser};
  vm.runInNewContext(code,context);
  return {submit:window.DetourLeads.submit,calls,events};
 }
@@ -18,3 +18,27 @@ test('malformed successful response is not treated as a submitted lead',async()=
 
 test('fallback HTTP success with an explicit failure body is rejected',async()=>{const s=setup([new Error('offline'),{status:200,body:{success:false}}]);await assert.rejects(s.submit(form,'detour'));assert.equal(s.events.length,0);});
 test('fallback malformed body cannot show a false success',async()=>{const s=setup([new Error('offline'),{status:200,body:null}]);await assert.rejects(s.submit(form,'detour'));assert.equal(s.events.length,0);});
+
+test('both transports can send without AbortSignal.timeout and clean up their timers', async () => {
+  const timers = new Map();
+  let timerId = 0;
+  const browser = {
+    AbortSignal: {},
+    AbortController,
+    setTimeout(callback, milliseconds) {
+      assert.equal(milliseconds, 20000);
+      timers.set(++timerId, callback);
+      return timerId;
+    },
+    clearTimeout(id) { timers.delete(id); },
+  };
+  const { submit, calls } = setup([new Error('offline'), { status: 200, body: { success: true } }], browser);
+  assert.equal((await submit(form, 'detour')).fallback, true);
+  assert.equal(calls.length, 2);
+  for (const { signal } of calls) {
+    assert.ok(signal instanceof AbortSignal);
+    assert.equal(signal.aborted, false);
+  }
+  assert.equal(timerId, 2);
+  assert.equal(timers.size, 0);
+});

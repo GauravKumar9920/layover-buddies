@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Founder-hosted Mumbai Layover Experiences | Detour</title>
+<title>Mumbai Layover Experiences, Planned Around Your Flight | Detour</title>
 <meta name="description" content="Make more of your Mumbai layover with Detour’s founders. Explore the city with a personal route planned around your flight." />
 <link rel="canonical" href="https://detourtrips.com/" />
 <!-- Open Graph / social preview -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Detour">
 <meta property="og:locale" content="en_US">
-<meta property="og:title" content="Founder-hosted Mumbai Layover Experiences | Detour">
+<meta property="og:title" content="Mumbai Layover Experiences, Planned Around Your Flight | Detour">
 <meta property="og:description" content="Make more of your Mumbai layover with Detour’s founders. Explore the city with a personal route planned around your flight.">
 <meta property="og:url" content="https://detourtrips.com">
 <meta property="og:image" content="https://detourtrips.com/images/hero-skyline-main.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Founder-hosted Mumbai Layover Experiences | Detour">
+<meta name="twitter:title" content="Mumbai Layover Experiences, Planned Around Your Flight | Detour">
 <meta name="twitter:description" content="Make more of your Mumbai layover with Detour’s founders. Explore the city with a personal route planned around your flight.">
 <meta name="twitter:image" content="https://detourtrips.com/images/hero-skyline-main.jpg">
 <!-- Build note: legacy.ts drops this block. Live JSON-LD comes from src/lib/structured-data.ts, and the FAQ is generated from the visible .faq-item blocks. -->
@@ -27,7 +27,7 @@
   "name": "Detour",
   "url": "https://detourtrips.com",
   "email": "admin@detourtrips.com",
-  "description": "Founder-hosted Mumbai layover experiences, planned around your flight.",
+  "description": "Mumbai layover experiences with a local host, planned around your flight.",
   "sameAs": ["https://www.instagram.com/detour_trips/"],
   "areaServed": { "@type": "City", "name": "Mumbai" }
 }
@@ -744,7 +744,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
       <p class="lead">Not fixed packages — boarding passes for a day your hosts might build, shaped to your hours and what you're into. Tap a ticket for the full timeline.</p>
     </div>
     <div class="tickets">
-      <div class="ticket reveal" data-route="0">
+      <div class="ticket reveal" role="button" tabindex="0" aria-haspopup="dialog" data-open-modal="route-modal" data-route="0">
         <div class="ticket-inner">
           <div class="ticket-photo"><img src="images/gallery-gateway.jpg" alt="Gateway of India on the South Mumbai waterfront" loading="lazy"><span class="badge">The postcard</span><span class="where">Marine Drive sunset</span></div>
           <div class="ticket-main">
@@ -765,7 +765,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
         </div>
       </div>
 
-      <div class="ticket reveal" data-route="1">
+      <div class="ticket reveal" role="button" tabindex="0" aria-haspopup="dialog" data-open-modal="route-modal" data-route="1">
         <div class="ticket-inner">
           <div class="ticket-photo"><img src="images/gallery-dharavi.jpg" alt="Everyday neighbourhood life in Mumbai" loading="lazy"><span class="badge">Hyper-local</span><span class="where">Sunday like a local</span></div>
           <div class="ticket-main">
@@ -786,7 +786,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
         </div>
       </div>
 
-      <div class="ticket reveal" data-route="2">
+      <div class="ticket reveal" role="button" tabindex="0" aria-haspopup="dialog" data-open-modal="route-modal" data-route="2">
         <div class="ticket-inner">
           <div class="ticket-photo"><img src="images/gallery-cst.jpg" alt="Victorian Gothic architecture of CSMT station, Mumbai" loading="lazy"><span class="badge">Old Bombay</span><span class="where">Irani cafés &amp; stone</span></div>
           <div class="ticket-main">
@@ -978,7 +978,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
     </div>
     <div class="foot-legal">
       <div>© 2026 Detour · Made in Mumbai with a lot of cutting chai.</div>
-      <div style="display:flex;gap:16px;"><a href="/privacy" class="trigger-privacy" style="display:inline;margin:0;">Privacy</a><a href="/terms" class="trigger-terms" style="display:inline;margin:0;">Terms</a></div>
+      <div style="display:flex;gap:16px;"><a href="/privacy" data-open-modal="privacy-modal" style="display:inline;margin:0;">Privacy</a><a href="/terms" data-open-modal="terms-modal" style="display:inline;margin:0;">Terms</a></div>
     </div>
   </div>
 </footer>
@@ -1067,7 +1067,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
     <div class="modal-header"><span class="eyebrow">How we operate</span><h2>Terms of Service</h2></div>
     <div class="legal-body">
       <p>Welcome to Detour! By requesting a detour, you agree to the following terms:</p>
-      <p><b>1. Founder-hosted:</b> During early access, your hosts are Detour's founders. Student buddies are planned for January 2027.</p>
+      <p><b>1. Your hosts:</b> During early access, your hosts are Detour's founders. Student buddies are planned for January 2027.</p>
       <p><b>2. Fixed Pricing:</b> We guarantee clear, transparent, upfront rates. Your hosts will never take commissions, suggest forced shopping, or request unexpected cash surcharges.</p>
       <p><b>3. Safety &amp; Buffer Guarantee:</b> Your hosts design routes that keep you inside the airport buffer time. Detour is not liable for delayed flights or missed departures due to external traffic anomalies, but we prioritize getting you back safely and on time.</p>
       <p>Read the complete <a href="/terms">Terms of Service</a>.</p>
@@ -1130,10 +1130,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
   const spy=new IntersectionObserver((entries)=>{entries.forEach(entry=>{if(entry.isIntersecting)setActiveSection(entry.target.getAttribute('id'));});},{threshold:.2,rootMargin:"-80px 0px -45% 0px"});
   document.querySelectorAll('section[id]').forEach(s=>spy.observe(s));
 
-  const openModal=(id)=>{const m=document.getElementById(id);if(m){m.classList.add('open');m.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';const f=m.querySelectorAll('button,[href],input,textarea');if(f.length)f[0].focus();}};
-  const closeModal=(id)=>{const m=document.getElementById(id);if(m){m.classList.remove('open');m.setAttribute('aria-hidden','true');document.body.style.overflow='';}};
-  addEventListener('keydown',(e)=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(m=>closeModal(m.id));});
-  document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',(e)=>{if(e.target===m)closeModal(m.id);}));
   function prepareVideo(videoId,fallbackId){
     const v=document.getElementById(videoId);const fb=fallbackId?document.getElementById(fallbackId):null;
     if(matchMedia('(max-width: 767px)').matches||!v||v.dataset.prepared==='true'||matchMedia('(prefers-reduced-motion: reduce)').matches||navigator.connection?.saveData)return;
@@ -1161,6 +1157,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
   const rtC=document.getElementById('route-timeline-container');
   const rB=document.getElementById('route-modal-badge'),rT=document.getElementById('route-modal-title'),rD=document.getElementById('route-modal-desc');
   document.querySelectorAll('.ticket').forEach((card)=>{
+    card.addEventListener('keydown',(event)=>{
+      if(event.key==='Enter'||event.key===' '){event.preventDefault();card.click();}
+    });
     card.addEventListener('click',()=>{
       const data=routeData[card.getAttribute('data-route')];if(!data)return;
       rB.textContent=data.badge;rT.textContent=data.title;rD.textContent=data.desc;
@@ -1169,16 +1168,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
         let cls=idx===0?'origin':(idx===data.timeline.length-1?'destination':'');
         rtC.insertAdjacentHTML('beforeend',`<div class="timeline-item ${cls}"><div class="timeline-badge"></div><span class="timeline-time">${item.time}</span><h4 class="timeline-title">${item.title}</h4><p class="timeline-desc">${item.desc}</p></div>`);
       });
-      openModal('route-modal');
     });
   });
-
-  document.getElementById('close-booking')?.addEventListener('click',()=>closeModal('booking-modal'));
-  document.getElementById('close-route')?.addEventListener('click',()=>closeModal('route-modal'));
-  document.getElementById('close-privacy')?.addEventListener('click',()=>closeModal('privacy-modal'));
-  document.getElementById('close-terms')?.addEventListener('click',()=>closeModal('terms-modal'));
-  document.querySelector('.trigger-privacy')?.addEventListener('click',(e)=>{e.preventDefault();openModal('privacy-modal');});
-  document.querySelector('.trigger-terms')?.addEventListener('click',(e)=>{e.preventDefault();openModal('terms-modal');});
 
   document.querySelectorAll('.faq-item .faq-q').forEach(q=>{
     q.addEventListener('click',()=>{
