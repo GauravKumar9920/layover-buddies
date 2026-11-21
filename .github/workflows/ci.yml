@@ -203,6 +203,8 @@ jobs:
         run: docker exec -i supabase_db_mumbai-buddies psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/booking_support.sql
       - name: Test refund allocation safety
         run: docker exec -i supabase_db_mumbai-buddies psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/refund_allocations.sql
+      - name: Test website account access
+        run: docker exec -i supabase_db_mumbai-buddies psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/website_account_access.sql
       - name: Stop Supabase
         if: always()
         run: supabase stop --no-backup
