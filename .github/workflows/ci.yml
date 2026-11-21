@@ -115,6 +115,9 @@ jobs:
       - name: Type check payment, admin and growth boundaries
         run: |
           deno check supabase/functions/razorpay-webhook/index.ts
+          deno check supabase/functions/confirm-payment/index.ts
+          deno check supabase/functions/create-balance-order/index.ts
+          deno check supabase/functions/create-deposit-order/index.ts
           deno check supabase/functions/create-topup-order/index.ts
           deno check supabase/functions/booking-support/index.ts
           deno check supabase/functions/cancel-booking/index.ts
