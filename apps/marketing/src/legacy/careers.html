@@ -128,7 +128,7 @@ nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-
 .job-detail{display:none;padding:96px 0 64px;}
 .job-detail.active{display:block;}
 .job-detail-header{margin-bottom:48px;}
-.back-link{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:24px;transition:color .2s;cursor:pointer;background:none;border:none;}
+.back-link{display:inline-flex;text-decoration:none;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:24px;transition:color .2s;cursor:pointer;background:none;border:none;}
 .back-link:hover{color:var(--terracotta);}
 .back-link svg{width:16px;height:16px;}
 .job-detail-header h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,4.5vw,48px);letter-spacing:-.035em;line-height:1.02;color:var(--ink);margin-bottom:18px;}
@@ -154,7 +154,7 @@ nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-
 .apply-box{background:var(--paper-3);border:1.5px solid var(--line-soft);border-radius:20px;padding:28px;box-shadow:var(--shadow-card);}
 .apply-box h4{font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:6px;}
 .apply-box p{font-size:13.5px;color:var(--ink-mute);line-height:1.5;margin-bottom:20px;}
-.btn-apply{display:flex;align-items:center;justify-content:center;gap:9px;font-weight:700;font-size:15px;background:var(--terracotta);color:var(--paper-3);padding:15px 26px;border-radius:9999px;box-shadow:0 5px 0 var(--terra-dk);transition:transform .18s var(--ease),box-shadow .18s ease;border:none;width:100%;cursor:pointer;}
+.btn-apply{display:flex;text-decoration:none;align-items:center;justify-content:center;gap:9px;font-weight:700;font-size:15px;background:var(--terracotta);color:var(--paper-3);padding:15px 26px;border-radius:9999px;box-shadow:0 5px 0 var(--terra-dk);transition:transform .18s var(--ease),box-shadow .18s ease;border:none;width:100%;cursor:pointer;}
 .btn-apply:hover{transform:translateY(-1px);box-shadow:0 6px 0 var(--terra-dk);}
 .btn-apply:active{transform:translateY(2px);box-shadow:0 1px 0 var(--terra-dk);}
 .apply-box .note{font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);margin-top:14px;text-align:center;opacity:.7;}
@@ -167,6 +167,7 @@ nav.scrolled{background:rgba(244,237,221,.9);backdrop-filter:blur(18px);-webkit-
 
 /* ---------- APPLY MODAL ---------- */
 .apply-dialog{width:min(600px,calc(100% - 32px));max-height:calc(100% - 32px);margin:auto;padding:32px;border:1.5px solid var(--ink);border-radius:24px;background:var(--paper-3);color:var(--ink);box-shadow:0 30px 90px rgba(14,25,41,.24);}
+.apply-dialog:not([open]){display:none;}
 .apply-dialog::backdrop{background:rgba(14,25,41,.45);backdrop-filter:blur(12px);}
 .apply-dialog h2{font-family:var(--display);font-size:clamp(22px,3vw,28px);font-weight:700;letter-spacing:-.02em;margin:8px 28px 12px 0;line-height:1.1;}
 .apply-dialog p{font-size:14px;color:var(--ink-mute);line-height:1.55;}
@@ -197,6 +198,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 </style>
 <script src="assets/utm.js" defer></script>
+<noscript>
+<style>
+.reveal{opacity:1;transform:none;}
+.job-detail:target{display:block;}
+</style>
+</noscript>
 </head>
 <body>
 
@@ -340,13 +347,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 
 <!-- ═══════════════════ JOB DETAIL VIEW ═══════════════════ -->
-<div id="creative-designer-intern" class="job-detail" data-apply-title="Creative Designer (Intern) — AI-native" data-mail-subject="Creative Designer Intern application" data-form="https://docs.google.com/forms/d/e/1FAIpQLScblGPJAbuRdQuzOjd7Eg2W3ikjjQkovlbN7Ut-5c4xAMlWaw/viewform">
+<div id="creative-designer-intern" class="job-detail" data-apply-title="Creative Designer (Intern) — AI-native" data-form="https://docs.google.com/forms/d/e/1FAIpQLScblGPJAbuRdQuzOjd7Eg2W3ikjjQkovlbN7Ut-5c4xAMlWaw/viewform">
   <div class="wrap">
     <div class="job-detail-header">
-      <button class="back-link">
+      <a class="back-link" href="#openings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         All positions
-      </button>
+      </a>
       <h1 tabindex="-1">Creative Designer (Intern) — AI-native, design our app & website</h1>
       <div class="detail-meta">
         <span class="job-tag location">
@@ -400,10 +407,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
         <div class="apply-box">
           <h4>Show us something beautiful.</h4>
           <p>Send your portfolio and anything you're proud of — personal projects, AI experiments, all welcome.</p>
-          <button class="btn-apply">
+          <a class="btn-apply" href="mailto:admin@detourtrips.com?subject=Creative%20Designer%20Intern%20application">
             Apply Now
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </button>
+          </a>
           <div class="note">Applications reviewed on a rolling basis</div>
         </div>
         <div class="sidebar-info">
@@ -431,13 +438,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 
 <!-- ═══════════════════ JOB DETAIL: SOCIAL MEDIA & CONTENT INTERNS ═══════════════════ -->
-<div id="social-media-intern" class="job-detail" data-apply-title="Social Media &amp; Content Interns" data-form="https://docs.google.com/forms/d/e/1FAIpQLSc9ri6QYrSb3RSbzKXUlcWQ6HtAyzThuvTnZHMVzCT07cr8AA/viewform" data-mail-subject="Social Media Intern application">
+<div id="social-media-intern" class="job-detail" data-apply-title="Social Media &amp; Content Interns" data-form="https://docs.google.com/forms/d/e/1FAIpQLSc9ri6QYrSb3RSbzKXUlcWQ6HtAyzThuvTnZHMVzCT07cr8AA/viewform">
   <div class="wrap">
     <div class="job-detail-header">
-      <button class="back-link">
+      <a class="back-link" href="#openings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         All positions
-      </button>
+      </a>
       <h1 tabindex="-1">Social Media &amp; Content Interns (2 roles) — show the world a Mumbai layover</h1>
       <div class="detail-meta">
         <span class="job-tag location">
@@ -498,10 +505,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
         <div class="apply-box">
           <h4>Show us something that stopped the scroll.</h4>
           <p>3–5 links to your work. Follower count doesn't matter.</p>
-          <button class="btn-apply">
+          <a class="btn-apply" href="mailto:admin@detourtrips.com?subject=Social%20Media%20Intern%20application">
             Apply Now
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </button>
+          </a>
           <div class="note">Applications reviewed on a rolling basis</div>
         </div>
         <div class="sidebar-info">
@@ -607,21 +614,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       if (showDetail(card.dataset.job)) event.preventDefault();
     });
   });
-  document.querySelectorAll('.job-detail .back-link').forEach(button => button.addEventListener('click', showListing));
+  document.querySelectorAll('.job-detail .back-link').forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      showListing();
+    });
+  });
 
   const applyModal = document.getElementById('apply-modal');
   const applyFormLink = document.getElementById('apply-modal-form');
   const applyMailLink = document.getElementById('apply-modal-mail');
 
   const openModal = () => {
-    if (!activeDetail || applyModal.open) return;
+    if (!activeDetail || applyModal.open || typeof applyModal.showModal !== 'function') return false;
     document.getElementById('apply-modal-title').textContent = activeDetail.dataset.applyTitle;
-    applyMailLink.href = 'mailto:admin@detourtrips.com?subject=' + encodeURIComponent(activeDetail.dataset.mailSubject);
+    applyMailLink.href = activeDetail.querySelector('.btn-apply').href;
     applyFormLink.href = activeDetail.dataset.form;
     applyModal.showModal();
+    return true;
   };
 
-  document.querySelectorAll('.job-detail .btn-apply').forEach(button => button.addEventListener('click', openModal));
+  document.querySelectorAll('.job-detail .btn-apply').forEach(link => {
+    link.addEventListener('click', event => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (openModal()) event.preventDefault();
+    });
+  });
   document.getElementById('close-apply').addEventListener('click', () => applyModal.close());
 
   // Keep both the original designer application URL and the role-specific links.
