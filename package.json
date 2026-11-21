@@ -10,7 +10,7 @@
     "packages/*"
   ],
   "scripts": {
-    "postinstall": "node scripts/patch-image-size.mjs && node scripts/patch-unreleased-security.mjs && node scripts/patch-forge-signature.mjs",
+    "postinstall": "node scripts/patch-image-size.mjs && node scripts/patch-unreleased-security.mjs",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
@@ -24,14 +24,14 @@
     "studio:test": "npm --prefix apps/studio run type-check && npm --prefix apps/studio test",
     "test:edge": "deno test --allow-env --no-check supabase/functions/__tests__/",
     "security:admin-bundle": "node scripts/assert-no-client-secrets.mjs apps/admin/dist",
-    "test:dependency-security": "node scripts/test-image-size-patch.mjs && node scripts/test-unreleased-security.mjs && node scripts/test-forge-signature.mjs",
+    "test:dependency-security": "node scripts/test-image-size-patch.mjs && node scripts/test-unreleased-security.mjs",
     "security:dependencies": "node scripts/test-audit-dependencies.mjs && node scripts/audit-dependencies.mjs"
   },
   "devDependencies": {
-    "turbo": "^2.11.7"
+    "turbo": "^2.11.11"
   },
   "engines": {
-    "node": "^22.19.0 || ^24.0.0 || >=26.0.0",
+    "node": "^22.23.4 || ^24.0.0 || >=26.0.0",
     "npm": ">=10.0.0"
   },
   "packageManager": "npm@10.9.3",
@@ -39,17 +39,19 @@
   "overrides": {
     "tar": "7.5.22",
     "@xmldom/xmldom": "0.9.12",
-    "fast-uri": "3.1.8",
+    "fast-uri": "3.1.9",
     "@babel/plugin-transform-modules-systemjs": "7.29.4",
     "ws": "8.21.3",
     "uuid": "11.1.1",
-    "postcss": "8.5.29",
+    "postcss": "8.5.33",
     "nanoid": "3.3.18",
     "js-yaml@^3.0.0": "3.15.2",
     "js-yaml@^4.0.0": "4.3.2",
-    "react-router": "7.18.4",
+    "react-router": "7.18.6",
     "turbo-stream": "3.2.1",
     "decode-uri-component": "0.5.0",
+    "glob@10": "14.0.2",
+    "minimatch@>=7 <12": "11.0.1",
     "brace-expansion@1": "1.1.21",
     "brace-expansion@2": "2.1.7",
     "brace-expansion@>=4": "5.0.12",
@@ -62,10 +64,10 @@
     "smol-toml": "1.9.1",
     "source-map-js": "1.2.2",
     "postcss-selector-parser": "7.1.6",
-    "undici@6": "6.29.0",
-    "undici@8": "8.10.2",
+    "undici@6": "6.29.1",
+    "undici@8": "8.13.1",
     "braces": "3.0.3",
     "sprintf-js": "1.1.3",
-    "node-forge": "1.4.0"
+    "node-forge": "1.4.3"
   }
 }

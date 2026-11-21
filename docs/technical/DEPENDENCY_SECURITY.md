@@ -51,7 +51,7 @@ expected source changes. When Expo or Metro is upgraded, remove the patch only
 after confirming that the upstream package contains equivalent guards and the
 two GitHub advisories no longer apply.
 
-## No upstream releases for braces, sprintf-js and node-forge
+## Local guards for braces and sprintf-js
 
 As verified on 2026-10-13, the following advisories have no published patched
 version. Exact pins preserve reproducible local guards while keeping the real
@@ -61,13 +61,10 @@ upstream versions visible to npm audit and GitHub.
 | --- | --- | --- |
 | braces 3.0.3 | [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) | Limit actual brace/parenthesis parser nesting to 128, and preflight recursive AST operations with iterative depth/node/cycle checks. |
 | sprintf-js 1.1.3 | [GHSA-hp3w-g68c-fv3c](https://github.com/advisories/GHSA-hp3w-g68c-fv3c) | Clamp invalid numeric precision to 0–100 (1–100 for `%g`) before native number conversion. Preserve valid formatting; patch both source and minified distributions. |
-| node-forge 1.4.0 | [GHSA-86w9-cpqp-85rv](https://github.com/advisories/GHSA-86w9-cpqp-85rv) | Strictly validate the nested DigestAlgorithm sequence length and optional NULL before accepting RSA PKCS#1 v1.5 signatures. |
 
 Root and Studio installs run
 [patch-unreleased-security.mjs](../../scripts/patch-unreleased-security.mjs)
-for braces/sprintf-js. Root also runs
-[patch-forge-signature.mjs](../../scripts/patch-forge-signature.mjs).
-Both patchers verify the exact version and reviewed source hashes, discover
+for braces and sprintf-js. The patcher verifies exact versions and reviewed source hashes, discovers
 all installed copies (including workspace-only and nested copies), and validate
 all sources before writing. Unknown sources/versions fail installation. Scoped
 workspace installs can omit these packages; every copy actually present still
@@ -76,11 +73,10 @@ must pass validation. Repeated application must leave files unchanged.
 [test-unreleased-security.mjs](../../scripts/test-unreleased-security.mjs)
 checks normal formats/patterns, deep hostile input with a subprocess timeout,
 idempotency, omitted workspace packages, nested copies, tampering and prevention
-of partial patch writes.
-[test-forge-signature.mjs](../../scripts/test-forge-signature.mjs) verifies valid
-RSA signatures and rejects malformed nested DigestAlgorithm values, along with
-installation safety fixtures. Keep install scripts enabled: an audit allowlist
-alone does not apply these protections.
+of partial patch writes. Keep install scripts enabled to apply these protections.
+
+The root now pins `node-forge` to `1.4.3`. That release validates canonical DER
+for RSA PKCS#1 v1.5 signatures, replacing the former local DigestAlgorithm guard.
 
 ### Maintenance and removal
 

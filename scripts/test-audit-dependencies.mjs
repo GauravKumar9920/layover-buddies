@@ -12,22 +12,20 @@ const lockfile = { packages: {
   'node_modules/braces': { version: '3.0.3' },
   'node_modules/nested/node_modules/braces': { version: '3.0.3' },
   'node_modules/sprintf-js': { version: '1.1.3' },
-  'node_modules/node-forge': { version: '1.4.0' },
   'node_modules/image-size': { version: '1.2.1' },
 } };
 const known = reportFor({
   braces: vulnerable('braces', [advisory('braces', 'GHSA-vfj7-8cjw-p6xm')], ['node_modules/braces', 'node_modules/nested/node_modules/braces']),
   'sprintf-js': vulnerable('sprintf-js', [advisory('sprintf-js', 'GHSA-hp3w-g68c-fv3c')]),
-  'node-forge': vulnerable('node-forge', [advisory('node-forge', 'GHSA-86w9-cpqp-85rv')]),
   'image-size': vulnerable('image-size', [advisory('image-size', 'GHSA-5p2g-fcmc-qvqq'), advisory('image-size', 'GHSA-w3rx-r6r6-pgpr')]),
   metro: vulnerable('metro', ['metro-config', 'braces']),
   'metro-config': vulnerable('metro-config', ['metro']),
 });
 const summary = evaluateAuditReport(known, lockfile);
-assert.equal(summary.guardedAdvisories.length, 5);
-assert.equal(summary.directPackageCount, 4);
+assert.equal(summary.guardedAdvisories.length, 4);
+assert.equal(summary.directPackageCount, 3);
 assert.equal(summary.inheritedPackageCount, 2);
-assert.equal(summary.total, 6);
+assert.equal(summary.total, 5);
 assert.deepEqual(parseAuditResult({ status: 1, stdout: JSON.stringify(known) }, lockfile), summary);
 assert.equal(parseAuditResult({ status: 0, stdout: JSON.stringify(reportFor({})) }, lockfile).total, 0);
 
